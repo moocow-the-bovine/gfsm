@@ -77,11 +77,7 @@ gfsmAutomaton *gfsm_automaton_n_closure(gfsmAutomaton *fsm, guint n)
   if (n == 0)      return gfsm_automaton_closure(fsm, FALSE);
   else if (n == 1) return gfsm_automaton_closure(fsm, TRUE);
   else {
-    gfsmAutomaton *fsm_tmp = gfsm_automaton_clone(fsm);
-    for ( ; n > 1; n--) {
-      gfsm_automaton_concat(fsm,fsm_tmp);
-    }
-    gfsm_automaton_free(fsm_tmp);
+    gfsm_automaton_n_concat(fsm, fsm, n-1);
   }
 
   return gfsm_automaton_closure(fsm, TRUE);
@@ -200,19 +196,23 @@ gboolean _gfsm_automaton_concat_final_func_1(gfsmStateId id, gpointer dummy, gfs
   return TRUE;
 }
 
+
 /*--------------------------------------------------------------
  * concat()
  */
-gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, const gfsmAutomaton *fsm2)
+gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
 {
-  gfsmStateId offset;
-  gfsmStateId id2;
-  gfsmStateId size2;
-  gfsmStateId rootx;
-  gfsmSet     *finals2 = NULL;
+  gfsmAutomaton *fsm2 = _fsm2;
+  gfsmStateId    offset;
+  gfsmStateId    id2;
+  gfsmStateId    size2;
+  gfsmStateId    rootx;
+  gfsmSet       *finals2 = NULL;
 
   //-- sanity check(s)
-  if (!fsm2 || fsm2->root_id == gfsmNoState) return fsm1;
+  if (!_fsm2 || _fsm2->root_id == gfsmNoState) return fsm1;
+  if (_fsm2==fsm1) fsm2 = gfsm_automaton_clone(fsm1);
+  else             fsm2 = _fsm2;
 
   if (fsm1->finals == fsm2->finals) {
     finals2 = gfsm_set_new(gfsm_uint_compare);
@@ -286,6 +286,25 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, const gfsmAutomaton *f
 
   //-- cleanup
   if (finals2) gfsm_set_free(finals2);
+  if (fsm2 != _fsm2) gfsm_automaton_free(fsm2);
+
+  return fsm1;
+}
+
+/*--------------------------------------------------------------
+ * n_concat()
+ */
+gfsmAutomaton *gfsm_automaton_n_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2, guint n)
+{
+  gfsmAutomaton *fsm2 = _fsm2;
+
+  //-- sanity check(s)
+  if (!_fsm2 || _fsm2->root_id == gfsmNoState) return fsm1;
+  if (_fsm2==fsm1) fsm2 = gfsm_automaton_clone(fsm1);
+
+  for ( ; n > 0; n--) { gfsm_automaton_concat(fsm1, fsm2); }
+
+  if (fsm2 != _fsm2) gfsm_automaton_free(fsm2);
 
   return fsm1;
 }
@@ -746,7 +765,7 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * union()
  */
-gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, const gfsmAutomaton *fsm2)
+gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   gfsmStateId offset;
   gfsmStateId id2;
