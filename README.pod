@@ -69,10 +69,11 @@ formats, should have come with your Perl.
 =head1 INSTALLATION
 
 Issue the following commands to the shell:
-   cd gfsm-X.Y.Z  (or wherever you extracted the distribution)
-   sh ./configure
-   make
-   make install
+
+ cd gfsm-X.Y.Z  (or wherever you extracted the distribution)
+ sh ./configure
+ make
+ make install
 
 =head1 BUILD OPTIONS
 
