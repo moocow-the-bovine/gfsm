@@ -3,6 +3,7 @@ gfsmclosure
 gfsmcompile
 gfsmcomplement
 gfsmconcat
+gfsmconvert
 gfsmdeterminize
 gfsmdraw
 gfsminfo
@@ -35,6 +36,7 @@ SFST*
 #*.tfst
 *.fsa
 #*.tfsa
+*.thfst
 *.afst
 *.afsa
 *.gfsa

@@ -116,7 +116,10 @@ void gfsm_automaton_free(gfsmAutomaton *fsm);
 #define gfsm_automaton_get_semiring(fsm) (fsm->sr)
 
 /** Set the semiring associated with this automaton */
-//gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr);
+gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr);
+
+/** Set the semiring associated with this automaton by semiring-type */
+void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype);
 
 /** True iff automaton is a transducer */
 #define gfsm_automaton_is_transducer(fsm) (fsm->flags.is_transducer)

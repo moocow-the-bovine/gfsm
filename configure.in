@@ -282,6 +282,7 @@ if test "$gfsm_doc_formats" != "none" ; then
   ### -- docs: .gog file linkup
   gfsm_program_gogs="\
 	gfsmcompile.gog \
+	gfsmconvert.gog \
 	gfsmprint.gog \
 	gfsminfo.gog \
 	\

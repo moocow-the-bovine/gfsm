@@ -55,20 +55,13 @@ gboolean gfsm_set_copy_foreach_func(gpointer key, gpointer value, gfsmSet *data)
  */
 void gfsm_set_clear(gfsmSet *set)
 {
-  GSList *key, *keys = NULL;
-  g_tree_foreach(set, (GTraverseFunc)gfsm_set_clear_foreach_func, &keys);
-  for (key=keys; key != NULL; key = key->next) {
-    g_tree_remove(set,key->data);
+  guint i;
+  GPtrArray *keys = g_ptr_array_sized_new(gfsm_set_size(set));
+  gfsm_set_to_ptr_array(set,keys);
+  for (i=0; i < keys->len; i++) {
+    g_tree_remove(set, g_ptr_array_index(keys,i));
   }
-}
-
-/*--------------------------------------------------------------
- * clear_foreach_func()
- */
-gboolean gfsm_set_clear_foreach_func(gpointer key, gpointer value, GSList **data)
-{
-  if (*data) *data = g_slist_prepend(*data,key);
-  return FALSE; // don't stop iterating
+  g_ptr_array_free(keys,TRUE);
 }
 
 /*======================================================================
@@ -131,12 +124,14 @@ gfsmSet *gfsm_set_difference(gfsmSet *set1, gfsmSet *set2)
  */
 gfsmSet *gfsm_set_intersection(gfsmSet *set1, gfsmSet *set2)
 {
-  GSList *elts1 = gfsm_set_to_slist(set1);
-  GSList *el;
-  for (el = elts1; el != NULL; el = el->next) {
-    if (!gfsm_set_contains(set2,el->data)) gfsm_set_remove(set1,el->data);
+  guint i;
+  GPtrArray *elts1 = g_ptr_array_sized_new(gfsm_set_size(set1));
+  gfsm_set_to_ptr_array(set1,elts1);
+  for (i=0; i < elts1->len; i++) {
+    gpointer elt = g_ptr_array_index(elts1,i);
+    if (!gfsm_set_contains(set2,elt)) gfsm_set_remove(set1,elt);
   }
-  g_slist_free(elts1);
+  g_ptr_array_free(elts1,TRUE);
   return set1;
 }
 
@@ -179,4 +174,19 @@ gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrAr
 {
   g_ptr_array_add(dst,key);
   return FALSE;
+}
+
+/*======================================================================
+ * Debugging
+ */
+gboolean gfsm_set_print_foreach_func(gpointer key, gpointer data, FILE *f)
+{
+  fprintf(f, " %u", (guint)key);
+  return FALSE;
+}
+void gfsm_set_print_uint(gfsmSet *set, FILE *f)
+{
+  fputc('{',f);
+  g_tree_foreach(set, (GTraverseFunc)gfsm_set_print_foreach_func, f);
+  fputs(" }", f);
 }

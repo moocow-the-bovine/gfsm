@@ -39,6 +39,7 @@ lib_LTLIBRARIES = libgfsm.la
 libgfsm_la_SOURCES = \
 	gfsmCommon.c \
 	gfsmCompound.c \
+	gfsmDebug.c \
 	gfsmError.c \
 	gfsmMem.c \
 	gfsmVersion.c \
@@ -58,6 +59,8 @@ libgfsm_la_SOURCES = \
 	gfsmAlgebra.c
 
 
+#	gfsmHead.c 
+
 ## --- Extra (possible) sources
 #EXTRA_${prog_i}_SOURCES = 
 #EXTRA_${lib_i}_la_SOURCES = 
@@ -74,6 +77,7 @@ pkginclude_HEADERS = \
 	gfsmConfig.h \
 	gfsmCommon.h \
 	gfsmCompound.h \
+	gfsmDebug.h \
 	gfsmError.h \
 	gfsmMem.h \
 	gfsmVersion.h \
@@ -92,6 +96,8 @@ pkginclude_HEADERS = \
 	gfsmDraw.h \
 	gfsmAlgebra.h \
 	gfsm.h
+
+#	gfsmHead.h 
 
 ## --- no-install headers
 #noinst_HEADERS = nopackage.h

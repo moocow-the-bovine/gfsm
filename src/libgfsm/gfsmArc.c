@@ -155,11 +155,14 @@ gfsmArcList *gfsm_arclist_copy(gfsmArcList *src)
 /*--------------------------------------------------------------
  * arclist_free()
  */
+#include <stdio.h>
 void gfsm_arclist_free(gfsmArcList *al)
 {
   gfsmArcList *next = al;
+  //fprintf(stderr, "<DEBUG>:gfsm_arclist_free() called; al=%p\n", al);
   for ( ; al != NULL; al = next) {
     next = g_slist_remove_link(al,al);
+    //fprintf(stderr, "<DEBUG>:gfsm_arclist_free(): iter al=%p ; next=%p\n", al, next);
     gfsm_arc_free((gfsmArc*)(al->data));
     g_slist_free_1(al);
   }
@@ -219,4 +222,19 @@ gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
   }
 
   return 0;
+}
+
+
+/*======================================================================
+ * Methods: String utilities
+ */
+gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode)
+{
+  switch (mode) {
+  case gfsmASMNone:   return "none";
+  case gfsmASMLower:  return "lower";
+  case gfsmASMUpper:  return "upper";
+  case gfsmASMWeight: return "weight";
+  default:            return "unknown";
+  }
 }

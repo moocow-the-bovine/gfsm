@@ -1,12 +1,12 @@
 #include <gfsmConfig.h>
 
 /* Define this for verbose memory debugging */
-//#define GFSM_MEM_DEBUG
+//#define GFSM_DEBUG_VERBOSE
 
-#ifdef GFSM_MEM_DEBUG
-# include <glib.h>
-# define GFSM_INIT   g_mem_set_vtable(glib_mem_profiler_table);
-# define GFSM_FINISH g_blow_chunks(); g_mem_profile();
+#ifdef GFSM_DEBUG_VERBOSE
+# include <gfsmDebug.h>
+# define GFSM_INIT   gfsm_debug_init();
+# define GFSM_FINISH gfsm_debug_finish(); gfsm_debug_print();
 #else
 # define GFSM_INIT
 # define GFSM_FINISH

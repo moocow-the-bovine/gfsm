@@ -94,10 +94,10 @@ typedef void (*gfsmAlphabetKeyRemoveFunc) (struct _gfsmUserAlphabet *a, gpointer
 /** Type for alphabet label removal functions */
 typedef void (*gfsmAlphabetLabRemoveFunc) (struct _gfsmUserAlphabet *a, gfsmLabelVal lab);
 
-/** Type for alphabet string input functions */
+/** Type for alphabet string input functions (should return a static key) */
 typedef gpointer (*gfsmAlphabetKeyReadFunc) (struct _gfsmUserAlphabet *a, GString *gstr);
 
-/** Type for alphabet string output functions */
+/** Type for alphabet string output functions (should write to @str) */
 typedef void (*gfsmAlphabetKeyWriteFunc) (struct _gfsmUserAlphabet *a, gconstpointer key, GString *str);
 
 /// struct for user-defined alphabet method table
@@ -208,6 +208,10 @@ gfsmAlphabet *gfsm_string_alphabet_init (gfsmStringAlphabet *a, gboolean do_copy
 
 /** Initialize a user alphabet */
 gfsmAlphabet *gfsm_user_alphabet_init(gfsmUserAlphabet        *a,
+				      gfsmAlphabetKeyDupFunc   key_dup_func,
+				      GHashFunc                key_hash_func,
+				      GEqualFunc               key_equal_func,
+				      GDestroyNotify           key_destroy_func,
 				      gpointer                 user_data,
 				      gfsmUserAlphabetMethods *methods);
 

@@ -183,4 +183,14 @@ gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata);
 //@}
 
 
+/*======================================================================
+ * Methods: String utilities
+ */
+///\name String utilities
+//@{
+/** Return symbolic name of an arc-sort mode */
+gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode);
+//@}
+
+
 #endif /* _GFSM_ARC_H */

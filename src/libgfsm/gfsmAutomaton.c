@@ -32,7 +32,6 @@
  * Constants
  */
 const guint gfsmAutomatonDefaultSize  = 128;
-//const guint gfsmAutomatonDefaultGet   = 128;
 
 const gfsmAutomatonFlags gfsmAutomatonDefaultFlags =
   {
@@ -107,11 +106,13 @@ gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src)
  */
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
-  gfsmAutomaton *tmp = g_new0(gfsmAutomaton,1);
-  *tmp = *fsm2;
-  *fsm2 = *fsm1;
-  *fsm1 = *tmp;
-  g_free(tmp);
+  if (fsm1 != fsm2) {
+    gfsmAutomaton *tmp = g_new0(gfsmAutomaton,1);
+    *tmp = *fsm2;
+    *fsm2 = *fsm1;
+    *fsm1 = *tmp;
+    g_free(tmp);
+  }
 }
 
 /*--------------------------------------------------------------
@@ -151,14 +152,24 @@ void gfsm_automaton_free(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * set_semiring()
  */
-/*
 gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr)
 {
   if (fsm->sr) gfsm_semiring_free(fsm->sr);
   fsm->sr = gfsm_semiring_copy(sr);
   return sr;
 }
-*/
+
+/*--------------------------------------------------------------
+ * set_semiring_type()
+ */
+void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype)
+{
+  if (!fsm->sr) fsm->sr = gfsm_semiring_new(srtype);
+  else if (fsm->sr->type != srtype) {
+    gfsm_semiring_free(fsm->sr);
+    fsm->sr = gfsm_semiring_new(srtype);  
+  }
+}
 
 /*--------------------------------------------------------------
  * n_arcs_full()
@@ -332,6 +343,7 @@ void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId id, gboolean
 {
   gfsm_state_set_final(gfsm_automaton_get_state(fsm,id),is_final);
   if (is_final) gfsm_set_insert(fsm->finals,(gpointer)(id));
+  else gfsm_set_remove(fsm->finals,(gpointer)(id));
 }
 
 /*--------------------------------------------------------------
@@ -339,33 +351,40 @@ void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId id, gboolean
  */
 void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 {
-  gfsmStateId  id;
-  gfsmStateId  offset;
+  gfsmStateId  i, oldid, newid;
+  gfsmStateId  gap, rgap, gap_max;
   gfsmState   *s_old, *s_new;
-  GArray      *id2off;
+  GArray      *i2gap;
 
-  id2off = g_array_sized_new(FALSE, FALSE, sizeof(gfsmStateId), fsm->states->len);
+  i2gap = g_array_sized_new(FALSE, FALSE, sizeof(gfsmStateId), fsm->states->len);
 
-  //-- get offsets
-  for (id=0, offset=0; id < fsm->states->len; id++) {
-    s_old = gfsm_automaton_find_state(fsm,id);
+  //-- get root-gap
+  rgap = fsm->root_id==gfsmNoState ? 0 : fsm->root_id;
+
+  //-- get (negative) state-offsets
+  for (i=0, gap=0; i < fsm->states->len; i++) {
+    oldid = (i+rgap)%fsm->states->len;
+    s_old = gfsm_automaton_find_state(fsm,oldid);
     if (!s_old || !s_old->is_valid) {
-      g_array_index(id2off, gfsmStateId, id) = gfsmNoState;
-      ++offset;
+      g_array_index(i2gap, gfsmStateId, i) = gfsmNoState;
+      ++gap;
       continue;
     }
-    g_array_index(id2off, gfsmStateId, id) = offset;
+    g_array_index(i2gap, gfsmStateId, i) = gap;
   }
+  gap_max = gap;
 
   //-- renumber states
-  for (id=0, offset=0; id < fsm->states->len; id++) {
-    s_old  = gfsm_automaton_find_state(fsm,id);
-    offset = g_array_index(id2off,gfsmStateId,id);
+  for (i=0; i < fsm->states->len; i++) {
+    oldid  = (i+rgap)%fsm->states->len;
+    gap    = g_array_index(i2gap,gfsmStateId,i);
+    newid  = i-gap;
+    s_old  = gfsm_automaton_find_state(fsm,oldid);
     gfsmArcIter ai;
 
-    if (offset == gfsmNoState) continue; //-- bad state
+    if (gap == gfsmNoState) continue; //-- bad state
 
-    s_new  = gfsm_automaton_find_state(fsm, id-offset);
+    s_new  = gfsm_automaton_find_state(fsm, newid);
 
     //-- swap state data
     if (s_old != s_new) {
@@ -375,23 +394,30 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 
       //-- check for final state
       if (s_new->is_final) {
-	gfsm_set_remove(fsm->finals, (gpointer)id);
-	gfsm_set_insert(fsm->finals, ((gpointer)(id-offset)));
+	gfsm_set_remove(fsm->finals, (gpointer)oldid);
+	gfsm_set_insert(fsm->finals, ((gpointer)(newid)));
       }
-
-      //-- check for initial state
-      if (id == fsm->root_id) fsm->root_id -= offset;
     }
 
     //-- renumber targets of outgoing arcs
-    for (gfsm_arciter_open_ptr(&ai, fsm, s_new); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-      gfsmArc *a = gfsm_arciter_arc(&ai);
-      a->target -= g_array_index(id2off,gfsmStateId,a->target);
-    }
+    for (gfsm_arciter_open_ptr(&ai, fsm, s_new); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
+      {
+	gfsmArc       *a = gfsm_arciter_arc(&ai);
+	gfsmStateId   ti = (a->target >= rgap
+			    ? (a->target - rgap)
+			    : (a->target + (fsm->states->len - rgap)));
+	gfsmStateId tgap = g_array_index(i2gap, gfsmStateId, ti);
+	a->target        = ti-tgap;
+      }
   }
+  //-- set new root-id
+  if (fsm->root_id != gfsmNoState) fsm->root_id = 0;
+
+  //-- resize states vector
+  g_array_set_size(fsm->states, fsm->states->len - gap_max);
 
   //-- cleanup
-  g_array_free(id2off,TRUE);
+  g_array_free(i2gap,TRUE);
 }
 
 /*======================================================================

@@ -28,6 +28,7 @@
 
 #include <glib.h>
 #include <gfsmMem.h>
+#include <stdio.h>
 
 /*======================================================================
  * Types
@@ -61,9 +62,6 @@ gboolean gfsm_set_copy_foreach_func(gpointer key, gpointer value, gfsmSet *dst);
 
 /** clear a set */
 void gfsm_set_clear(gfsmSet *set);
-
-/** Utilitiy for gfsm_set_clear() */
-gboolean gfsm_set_clear_foreach_func(gpointer key, gpointer value, GSList **data);
 
 /** destroy a set */
 #define gfsm_set_free(set) g_tree_destroy(set)
@@ -132,6 +130,17 @@ void gfsm_set_to_ptr_array(gfsmSet *set, GPtrArray *array);
 
 /** Foreach utilitity for set_to_array() */
 gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrArray *dst);
+//@}
+
+/*======================================================================
+ * Debugging
+ */
+///\name gfsmSet: debugging
+//@{
+
+/** Dump contents of a gfsmSet using '%u' to a FILE* */
+void gfsm_set_print_uint(gfsmSet *set, FILE *f);
+
 //@}
 
 #endif /* _GFSM_SET_H */
