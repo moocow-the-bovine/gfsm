@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <gfsm.h>
 
@@ -43,7 +44,23 @@ const char *outfilename = "-";
 //-- global structs
 gfsmAutomaton *fsm;
 gfsmAlphabet  *ilabels=NULL, *olabels=NULL, *slabels=NULL;
-gfsmError *err = NULL;
+gfsmError     *err = NULL;
+gfsmSRType     srtype = gfsmSRTUnknown;
+
+/*--------------------------------------------------------------------------
+ * Utilities: semiring naming
+ *--------------------------------------------------------------------------*/
+gfsmSRType sr_name2type(const char *name)
+{
+  if      (strcmp(name,"boolean")  ==0) return gfsmSRTBoolean;
+  else if (strcmp(name,"log")      ==0) return gfsmSRTLog;
+  else if (strcmp(name,"real")     ==0) return gfsmSRTReal;
+  else if (strcmp(name,"trivial")  ==0) return gfsmSRTTrivial;
+  else if (strcmp(name,"tropical") ==0) return gfsmSRTTropical;
+  g_printerr("%s: Warning: unknown semiring name '%s' defaults to 'tropical'.\n",
+	     progname, name);
+  return gfsmSRTTropical;
+}
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -90,6 +107,12 @@ void get_my_options(int argc, char **argv)
 
   //-- initialize fsm
   fsm = gfsm_automaton_new();
+
+  //-- set semiring
+  srtype = sr_name2type(args.semiring_arg);
+  if (srtype != fsm->sr->type) {
+    gfsm_automaton_set_semiring(fsm, gfsm_semiring_new(srtype));
+  }
 }
 
 /*--------------------------------------------------------------------------

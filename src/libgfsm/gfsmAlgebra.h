@@ -49,6 +49,11 @@ gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus);
 /** Final-state pre-traversal utility for closure(fsm). */
 gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer dummy, gfsmAutomaton *fsm);
 
+/** Compute @n ary closure of @fsm.  Destructively alters @fsm.
+ *  \returns @fsm
+ */
+gfsmAutomaton *gfsm_automaton_n_closure(gfsmAutomaton *fsm, guint n);
+
 
 //------------------------------
 /**
@@ -80,8 +85,11 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton    *fsm,
 gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
 //------------------------------
-/** Append @fsm2 onto the end of @fsm1.  \returns @fsm1 */
-gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, const gfsmAutomaton *fsm2);
+/** Append @fsm2 onto the end of @fsm1 @n times.  \returns @fsm1 */
+gfsmAutomaton *gfsm_automaton_n_concat(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, guint n);
+
+/** Append @_fsm2 onto the end of @fsm1.  \returns @fsm1 */
+gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2);
 
 /** Final-state pre-traversal utility for concat(fsm,fsm2).
  *  Assumes (fsm->root_id) has been temporarily set to the translated stateId
@@ -148,7 +156,7 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm);
 
 //------------------------------
 /** Assign the union of @fsm1 and @fsm2 to @fsm1. \returns @fsm1 */
-gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, const gfsmAutomaton *fsm2);
+gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 //@}
 
 /** \todo

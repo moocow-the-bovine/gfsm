@@ -2,10 +2,10 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmclosure"
+program "gfsmconvert"
 #program_version "0.01"
 
-purpose	"Compute Kleene closure of a finite state machine"
+purpose	"Convert binary format gfsm files"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 
@@ -23,7 +23,7 @@ details ""
 #-----------------------------------------------------------------------------
 # Arguments
 #-----------------------------------------------------------------------------
-argument "BINFILE" "Stored binary gfsm file" \
+argument "FSMFILE" "Stored binary gfsm file" \
     details="
 If unspecified, standard input will be read
 "
@@ -33,13 +33,17 @@ If unspecified, standard input will be read
 #-----------------------------------------------------------------------------
 #group "Basic Options"
 
-int "times" n "Compute n-ary (^n) closure." \
-  arg="N" \
-  default="0"
+string "semiring" s "Specify semiring type." \
+   arg="SRTYPE" \
+   details="
+Specify one of the following:
 
-flag "plus" p "Compute transitive (+) closure." \
-  details="
-Alias for '-n 1'.
+ boolean
+ log
+ real
+ trivial
+ tropical
+
 "
 
 string "output" F "Specifiy output file (default=stdout)." \

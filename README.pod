@@ -2,7 +2,7 @@
 
 README for package gfsm
 
-Last updated for gfsm v0.0.2
+Last updated for gfsm v0.0.4
 
 =head1 DESCRIPTION
 
@@ -22,7 +22,7 @@ of common algebraic operations on finite state machines.
 Available from:
 http://www.gtk.org/
 
-Abstract C library.  Tested version 2.2.3.
+C library for common data structures.  Tested version 2.4.6.
 
 =item pkg-config
 
@@ -50,7 +50,11 @@ documentation, library documentation, etc.
 =item Getopt::Gen
 
 A Perl module used to generate command-line option parsers.
-Should be available from the author of this package.
+Should be available from the author of this package at:
+
+http://www.ling.uni-potsdam.de/~moocow/projects/perl
+
+Tested version 0.08.
 
 =item pod2man, pod2text, pod2html (Optional)
 
@@ -65,7 +69,6 @@ formats, should have come with your Perl.
 =head1 INSTALLATION
 
 Issue the following commands to the shell:
-
    cd gfsm-X.Y.Z  (or wherever you extracted the distribution)
    sh ./configure
    make

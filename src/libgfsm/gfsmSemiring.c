@@ -216,3 +216,37 @@ gboolean gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
   { return (sr->div_func ? ((*sr->div_func)(sr,x,y)) : (x/y)); }
 */
 //@}
+
+
+/*======================================================================
+ * Semiring: string utilities
+ */
+
+/*--------------------------------------------------------------
+ * name_to_type()
+ */
+gfsmSRType gfsm_sr_name_to_type(const char *name)
+{
+  if      (strcmp(name,"boolean")  ==0) return gfsmSRTBoolean;
+  else if (strcmp(name,"log")      ==0) return gfsmSRTLog;
+  else if (strcmp(name,"real")     ==0) return gfsmSRTReal;
+  else if (strcmp(name,"trivial")  ==0) return gfsmSRTTrivial;
+  else if (strcmp(name,"tropical") ==0) return gfsmSRTTropical;
+  else if (strcmp(name,"user")     ==0) return gfsmSRTUser;
+  return gfsmSRTUnknown;
+}
+
+/*--------------------------------------------------------------
+ * type_to_name()
+ */
+gchar *gfsm_sr_type_to_name(gfsmSRType type)
+{
+  switch (type) {
+  case gfsmSRTBoolean:  return "boolean";
+  case gfsmSRTLog:      return "log";
+  case gfsmSRTTrivial:  return "trivial";
+  case gfsmSRTTropical: return "tropical";
+  case gfsmSRTReal:     return "real";
+  default:              return "unknown";
+  }
+}

@@ -1,7 +1,10 @@
 html
 latex
 man
+libgfsm.doxy
 doxy-filter.log
+libgfsm.log
+libgfsm.tag
 *.stamp
 *~
 .*~

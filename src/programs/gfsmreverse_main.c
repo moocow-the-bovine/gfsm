@@ -72,6 +72,9 @@ void get_my_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
   gfsmError *err = NULL;
+
+  GFSM_INIT
+
   get_my_options(argc,argv);
 
   //-- load automaton
@@ -91,6 +94,8 @@ int main (int argc, char **argv)
 
   //-- cleanup
   if (fsm) gfsm_automaton_free(fsm);
+
+  GFSM_FINISH
 
   return 0;
 }

@@ -22,28 +22,29 @@
 #endif
 
 #include <stdio.h>
-#include <errno.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <gfsm.h>
 
-#include "gfsmdeterminize_cmdparser.h"
+#include "gfsmconvert_cmdparser.h"
 
 /*--------------------------------------------------------------------------
  * Globals
  *--------------------------------------------------------------------------*/
-char *progname = "gfsmdeterminize";
+char *progname = "gfsmconvert";
 
 //-- options
 struct gengetopt_args_info args;
 
 //-- files
-const char *infilename  = "-";
+const char *infilename = "-";
 const char *outfilename = "-";
 
 //-- global structs
 gfsmAutomaton *fsm;
+gfsmError     *err = NULL;
+gfsmSRType     srtype = gfsmSRTUnknown;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -53,48 +54,53 @@ void get_my_options(int argc, char **argv)
   if (cmdline_parser(argc, argv, &args) != 0)
     exit(1);
 
-  //-- output
-  if (args.inputs_num) infilename  = args.inputs[0];
-  if (args.output_arg) outfilename = args.output_arg;
-
   //-- load environmental defaults
   //cmdline_parser_envdefaults(&args);
 
-  //-- initialize automaton
+  //-- filenames
+  if (args.inputs_num > 0) infilename = args.inputs[0];
+  outfilename = args.output_arg;
+
+  //-- initialize fsm
   fsm = gfsm_automaton_new();
 }
-
 
 /*--------------------------------------------------------------------------
  * MAIN
  *--------------------------------------------------------------------------*/
 int main (int argc, char **argv)
 {
-  gfsmError *err = NULL;
-
   GFSM_INIT
-
   get_my_options(argc,argv);
 
   //-- load automaton
   if (!gfsm_automaton_load_bin_filename(fsm,infilename,&err)) {
     g_printerr("%s: load failed for '%s': %s\n", progname, infilename, err->message);
-    exit(255);
+    exit(3);
   }
 
-  //-- determinize
-  gfsm_automaton_determinize(fsm);
+  //-- set semiring
+  if (args.semiring_given) {
+    srtype = gfsm_sr_name_to_type(args.semiring_arg);
+    if (srtype == gfsmSRTUnknown) {
+      g_printerr("%s: Warning: unknown semiring name '%s' defaults to type 'tropical'.\n",
+		 progname, args.semiring_arg);
+      srtype = gfsmSRTTropical;
+    }
+    if (srtype != fsm->sr->type) {
+      gfsm_automaton_set_semiring(fsm, gfsm_semiring_new(srtype));
+    }
+  }
 
-  //-- spew automaton
-  if (!gfsm_automaton_save_bin_filename(fsm, outfilename, &err)) {
+  //-- store automaton
+  if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }
 
   //-- cleanup
-  if (fsm)  gfsm_automaton_free(fsm);
+  gfsm_automaton_free(fsm);
 
   GFSM_FINISH
-
   return 0;
 }

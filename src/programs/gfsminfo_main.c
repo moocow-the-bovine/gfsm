@@ -67,37 +67,15 @@ void get_my_options(int argc, char **argv)
  *--------------------------------------------------------------------------*/
 #define bool2char(b) (b ? 'y' : 'n')
 
-const char *semiring_name(const gfsmSemiring *sr)
-{
-  switch (sr->type) {
-  case gfsmSRTUnknown: return "unknown";
-  case gfsmSRTBoolean: return "boolean";
-  case gfsmSRTLog: return "log";
-  case gfsmSRTReal: return "real";
-  case gfsmSRTTrivial: return "trivial";
-  case gfsmSRTTropical: return "tropical";
-  case gfsmSRTUser: return "user";
-  }
-  return "undefined";
-}
-
-const char *sortmode_name(gfsmArcSortMode sm)
-{
-  switch (sm) {
-  case gfsmASMNone: return "none";
-  case gfsmASMLower: return "lower";
-  case gfsmASMUpper: return "upper";
-  case gfsmASMWeight: return "weight";
-  }
-  return "undefined";
-}
-
 /*--------------------------------------------------------------------------
  * MAIN
  *--------------------------------------------------------------------------*/
 int main (int argc, char **argv)
 {
   gfsmError *err = NULL;
+
+  GFSM_INIT
+
   get_my_options(argc,argv);
   guint n_eps_i, n_eps_o, n_eps_io;
 
@@ -109,11 +87,11 @@ int main (int argc, char **argv)
 
   //-- print information
   printf("%-24s: %s\n", "Filename", infilename);
-  printf("%-24s: %s\n", "Semiring", semiring_name(gfsm_automaton_get_semiring(fsm)));
+  printf("%-24s: %s\n", "Semiring", gfsm_sr_type_to_name(fsm->sr->type));
   printf("%-24s: %c\n", "Transducer?", bool2char(gfsm_automaton_is_transducer(fsm)));
   printf("%-24s: %c\n", "Weighted?", bool2char(gfsm_automaton_is_weighted(fsm)));
   printf("%-24s: %c\n", "Deterministic?", bool2char(fsm->flags.is_deterministic));
-  printf("%-24s: %s\n", "Sort Mode", sortmode_name(gfsm_automaton_sortmode(fsm)));
+  printf("%-24s: %s\n", "Sort Mode", gfsm_arc_sortmode_to_name(gfsm_automaton_sortmode(fsm)));
   printf("%-24s: %u\n", "Initial state", fsm->root_id);
   printf("%-24s: %u\n", "# of states", gfsm_automaton_n_states(fsm));
   printf("%-24s: %u\n", "# of final states", gfsm_automaton_n_final_states(fsm));
@@ -127,6 +105,8 @@ int main (int argc, char **argv)
 
   //-- cleanup
   gfsm_automaton_free(fsm);
+
+  GFSM_FINISH
 
   return 0;
 }

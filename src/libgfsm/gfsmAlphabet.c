@@ -106,7 +106,8 @@ gfsmAlphabet *gfsm_alphabet_init(gfsmAlphabet *a)
   case gfsmATPointer:
     return gfsm_pointer_alphabet_init((gfsmPointerAlphabet*)a,NULL,NULL,NULL,NULL);
   case gfsmATUser:
-    return gfsm_user_alphabet_init((gfsmUserAlphabet*)a,NULL,&gfsmUserAlphabetDefaultMethods);
+    return gfsm_user_alphabet_init((gfsmUserAlphabet*)a,NULL,NULL,NULL,NULL,
+				   NULL,&gfsmUserAlphabetDefaultMethods);
   case gfsmATString:
     return gfsm_string_alphabet_init((gfsmStringAlphabet*)a,FALSE);
   case gfsmATUnknown:
@@ -175,10 +176,18 @@ gfsmAlphabet *gfsm_string_alphabet_init(gfsmStringAlphabet *a, gboolean do_copy)
  * user_init()
  */
 gfsmAlphabet *gfsm_user_alphabet_init(gfsmUserAlphabet        *a,
+				      gfsmAlphabetKeyDupFunc   key_dup_func,
+				      GHashFunc                key_hash_func,
+				      GEqualFunc               key_equal_func,
+				      GDestroyNotify           key_destroy_func,
 				      gpointer                 user_data,
 				      gfsmUserAlphabetMethods *methods)
 {
-  gfsm_pointer_alphabet_init((gfsmPointerAlphabet*)a, NULL, NULL, NULL, NULL);
+  gfsm_pointer_alphabet_init((gfsmPointerAlphabet*)a,
+			     key_dup_func,
+			     key_hash_func,
+			     key_equal_func,
+			     key_destroy_func);
   a->data    = user_data;
   a->methods = methods ? (*methods) : gfsmUserAlphabetDefaultMethods;
   return (gfsmAlphabet*)a;
@@ -289,7 +298,7 @@ gfsmLabelVal gfsm_alphabet_size(gfsmAlphabet *a)
   case gfsmATIdentity:
     return gfsm_set_size(((gfsmIdentityAlphabet*)a)->labels);
   case gfsmATUser:
-    gfsm_alphabet_foreach(a, (gfsmAlphabetForeachFunc)gfsm_alphabet_foreach_size_func, (gpointer)n);
+    gfsm_alphabet_foreach(a, (gfsmAlphabetForeachFunc)gfsm_alphabet_foreach_size_func, &n);
     return (gfsmLabelVal)n;
   case gfsmATPointer:
   case gfsmATString:
@@ -309,10 +318,10 @@ gfsmLabelVal gfsm_alphabet_size(gfsmAlphabet *a)
  */
 gboolean gfsm_alphabet_foreach_size_func(gfsmAlphabet *a,
 					 gpointer      key,
-					 gfsmLabelVal   lab,
-					 gpointer      data)
+					 gfsmLabelVal  lab,
+					 guint        *np)
 {
-  if (key != gfsmNoKey && lab != gfsmNoLabel) ++((guint)data);
+  if (key != gfsmNoKey && lab != gfsmNoLabel) ++(*np);
   return FALSE;
 }
 
@@ -489,8 +498,9 @@ void gfsm_alphabet_remove_key(gfsmAlphabet *a, gconstpointer key)
   case gfsmATString:
     label = gfsm_alphabet_find_label(a,key);
     g_hash_table_remove(((gfsmPointerAlphabet*)a)->keys2labels,key);
-    if (label != gfsmNoLabel && label < ((gfsmPointerAlphabet*)a)->labels2keys->len)
+    if (label != gfsmNoLabel && label < ((gfsmPointerAlphabet*)a)->labels2keys->len) {
       g_ptr_array_index(((gfsmPointerAlphabet*)a)->labels2keys, label) = NULL;
+    }
     break;
   
   case gfsmATUnknown:

@@ -39,12 +39,13 @@ char *progname = "gfsmclosure";
 struct gengetopt_args_info args;
 
 //-- files
-const char *infilename;
+const char *infilename = "-";
 const char *outfilename = "-";
 
 //-- global structs etc.
 gfsmError *err = NULL;
 gfsmAutomaton *fsm=NULL;
+guint times = 0;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -60,6 +61,10 @@ void get_my_options(int argc, char **argv)
 
   //-- load environmental defaults
   //cmdline_parser_envdefaults(&args);
+
+  //-- get closure length
+  if (args.plus_given) times = 1;
+  else times = args.times_arg;
 
   //-- initialize automaton
   fsm = gfsm_automaton_new();
@@ -80,7 +85,7 @@ int main (int argc, char **argv)
   }
 
   //-- compute closure
-  gfsm_automaton_closure(fsm, args.plus_given);
+  gfsm_automaton_n_closure(fsm, times);
 
   //-- spew automaton
   if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {

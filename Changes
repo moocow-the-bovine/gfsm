@@ -1,4 +1,13 @@
 Change log for gfsm
 
-v0.01 Tue, 24 Aug 2004 11:34:59 +0200
+v0.0.4 Tue, 14 Sep 2004 15:57:56 +0200
+   + fixed bug in gfsm_alphabet_size() for user alphabets
+
+v0.0.3 Mon, 13 Sep 2004 10:25:23 +0200
+   + added some algebraic operations, fixed some bugs
+
+v0.0.2 Thu,  2 Sep 2004 17:34:18 +0200
+   + basic accessors and algebra
+
+v0.0.1 Tue, 24 Aug 2004 11:34:59 +0200
    + created
