@@ -298,7 +298,7 @@ gfsmLabelVal gfsm_alphabet_size(gfsmAlphabet *a)
   case gfsmATIdentity:
     return gfsm_set_size(((gfsmIdentityAlphabet*)a)->labels);
   case gfsmATUser:
-    gfsm_alphabet_foreach(a, (gfsmAlphabetForeachFunc)gfsm_alphabet_foreach_size_func, (gpointer)n);
+    gfsm_alphabet_foreach(a, (gfsmAlphabetForeachFunc)gfsm_alphabet_foreach_size_func, &n);
     return (gfsmLabelVal)n;
   case gfsmATPointer:
   case gfsmATString:
@@ -318,10 +318,10 @@ gfsmLabelVal gfsm_alphabet_size(gfsmAlphabet *a)
  */
 gboolean gfsm_alphabet_foreach_size_func(gfsmAlphabet *a,
 					 gpointer      key,
-					 gfsmLabelVal   lab,
-					 gpointer      data)
+					 gfsmLabelVal  lab,
+					 guint        *np)
 {
-  if (key != gfsmNoKey && lab != gfsmNoLabel) ++((guint)data);
+  if (key != gfsmNoKey && lab != gfsmNoLabel) ++(*np);
   return FALSE;
 }
 

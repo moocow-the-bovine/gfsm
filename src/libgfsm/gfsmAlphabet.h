@@ -259,8 +259,8 @@ gfsmLabelVal gfsm_alphabet_size(gfsmAlphabet *a);
 /** Utility for counting size of user alphabets (linear time) */
 gboolean gfsm_alphabet_foreach_size_func(gfsmAlphabet *a,
 					 gpointer      key,
-					 gfsmLabelVal   lab,
-					 gpointer      data);
+					 gfsmLabelVal  lab,
+					 guint        *np);
 
 /**
  * Insert a (key,label) pair into the alphabet.
