@@ -2,6 +2,7 @@ Change log for gfsm
 
 v0.0.5 Wed, 22 Sep 2004 00:23:49 +0200
    + fixed small size bug in clear() for gfsmUserAlphabet
+   + added key-stringification to gfsm_automaton_draw() methods
 
 v0.0.4 Tue, 14 Sep 2004 15:57:56 +0200
    + fixed bug in gfsm_alphabet_size() for user alphabets

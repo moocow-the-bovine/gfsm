@@ -52,6 +52,7 @@ gboolean gfsm_automaton_draw_vcg_file_full (gfsmAutomaton *fsm,
 					    gfsmError    **errp)
 {
   gfsmStateId id;
+  GString     *gstr = g_string_new("");
 
   fprintf(f, "graph: {\n");
   fprintf(f, " title: \"%s\"\n", (title ? title : "(gfsm)"));
@@ -75,7 +76,8 @@ gboolean gfsm_automaton_draw_vcg_file_full (gfsmAutomaton *fsm,
     //-- source state
     fprintf(f, " node: {title:\"%u\"", id);
     if (state_alphabet && (sym=gfsm_alphabet_find_key(state_alphabet,id)) != NULL) {
-      fprintf(f, " label:\"%s\"", sym);
+      gfsm_alphabet_key2string(state_alphabet, sym, gstr);
+      fprintf(f, " label:\"%s\"", gstr->str);
     } else {
       if (state_alphabet) g_printerr("Warning: no label defined for state '%u'!\n", id);
     }
@@ -91,7 +93,8 @@ gboolean gfsm_automaton_draw_vcg_file_full (gfsmAutomaton *fsm,
       fprintf(f, "  edge: {sourcename:\"%u\" targetname:\"%u\" label:\"", id, a->target);
 
       if (lo_alphabet && (sym=gfsm_alphabet_find_key(lo_alphabet,a->lower)) != NULL) {
-	fputs(sym,f);
+	gfsm_alphabet_key2string(lo_alphabet, sym, gstr);
+	fputs(gstr->str, f);
       } else {
 	if (lo_alphabet)
 	  g_printerr("Warning: no label defined for lower label '%u'!\n", a->lower);
@@ -101,7 +104,8 @@ gboolean gfsm_automaton_draw_vcg_file_full (gfsmAutomaton *fsm,
       if (fsm->flags.is_transducer) {
 	fputc(':', f);
 	if (hi_alphabet && (sym=gfsm_alphabet_find_key(hi_alphabet,a->upper)) != NULL) {
-	  fputs(sym,f);
+	  gfsm_alphabet_key2string(hi_alphabet, sym, gstr);
+	  fputs(gstr->str, f);
 	} else {
 	  if (hi_alphabet)
 	    g_printerr("Warning: no label defined for upper label '%u'!\n", a->upper);
@@ -172,6 +176,7 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
 					    gfsmError    **errp)
 {
   gfsmStateId id;
+  GString     *gstr = g_string_new("");
 
   fprintf(f, "digraph GFSM {\n");
   fprintf(f, " rankdir = %s;\n", vertical ? "TB" : "LR");
@@ -195,7 +200,8 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
     //-- source state
     fprintf(f, "%u [label=\"", id);
     if (state_alphabet && (sym=gfsm_alphabet_find_key(state_alphabet,id)) != NULL) {
-      fputs(sym,f);
+      gfsm_alphabet_key2string(state_alphabet, sym, gstr);
+      fputs(gstr->str, f);
     } else {
       if (state_alphabet) g_printerr("Warning: no label defined for state '%u'!\n", id);
       fprintf(f, "%u", id);
@@ -212,7 +218,8 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
       fprintf(f, "   %u -> %u \[label=\"", id, a->target);
 
       if (lo_alphabet && (sym=gfsm_alphabet_find_key(lo_alphabet,a->lower)) != NULL) {
-	fputs(sym,f);
+	gfsm_alphabet_key2string(lo_alphabet, sym, gstr);
+	fputs(gstr->str, f);
       } else {
 	if (lo_alphabet)
 	  g_printerr("Warning: no label defined for lower label '%u'!\n", a->lower);
@@ -222,7 +229,8 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
       if (fsm->flags.is_transducer) {
 	fputc(':', f);
 	if (hi_alphabet && (sym=gfsm_alphabet_find_key(hi_alphabet,a->upper)) != NULL) {
-	  fputs(sym,f);
+	  gfsm_alphabet_key2string(hi_alphabet, sym, gstr);
+	  fputs(gstr->str, f);
 	} else {
 	  if (hi_alphabet)
 	    g_printerr("Warning: no label defined for upper label '%u'!\n", a->upper);
@@ -238,6 +246,9 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
     }
   }
   fputs("}\n", f);
+
+  //--cleanup
+  g_string_free(gstr,TRUE);
 
   return TRUE;
 }
