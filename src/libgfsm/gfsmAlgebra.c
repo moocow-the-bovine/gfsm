@@ -328,7 +328,8 @@ gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
   else
     {
       //-- image of equiv-class (wss->set) was not yet present: make a new one
-      ec2id_val = gfsm_automaton_ensure_state(data->dfa, gfsm_enum_insert(data->ec2id, wss->set));
+      ec2id_val = gfsm_automaton_ensure_state(data->dfa,
+					      gfsm_enum_insert(data->ec2id, wss->set));
 
       //-- ... add @dfa arc
       gfsm_automaton_add_arc(data->dfa,
@@ -365,10 +366,11 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
   }
 
   //-- build label-pair => (sink-eqc, sum(weight)) mapping 'lp2ecw' for node-set nfa_ec
-  lp2ecw = g_tree_new_full((GCompareDataFunc)gfsm_labelpair_compare_with_data, //-- key_comp_func
+  lp2ecw = g_tree_new_full(((GCompareDataFunc)
+			    gfsm_labelpair_compare_with_data), //-- key_comp_func
 			   NULL, //-- key_comp_data
 			   NULL, //-- key_free_func
-			   (GDestroyNotify)g_free);                   //-- val_free_func
+			   (GDestroyNotify)g_free);            //-- val_free_func
 
   for (eci=gfsm_stateset_iter_begin(nfa_ec);
        (ecid=gfsm_stateset_iter_id(eci)) != gfsmNoState;
@@ -412,6 +414,9 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
       gfsm_arciter_close(&ai);
     }
 
+  //-- stateset-iter (eci) cleanup
+  //(none)
+
   //-- insert computed arcs into @dfa
   lp2ec_foreach_data.nfa         = nfa;
   lp2ec_foreach_data.dfa         = dfa;
@@ -449,7 +454,7 @@ gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *nfa)
  */
 gfsmAutomaton *gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *dfa)
 {
-  gfsmEnum      *ec2id;  //-- (global) maps equiv-class@nfa => node-id@dfa
+  gfsmEnum      *ec2id;  //-- (global) maps literal(equiv-class@nfa) => node-id@dfa
   gfsmStateSet  *nfa_ec; //-- (temp) equiv-class@nfa
   gfsmStateId    dfa_id; //-- (temp) id @ dfa
   gfsmStateSet  *ec_tmp; //-- (temp) equiv-class@nfa
@@ -495,8 +500,8 @@ gfsmAutomaton *gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *d
   dfa->flags.is_deterministic = TRUE;
 
   //-- cleanup
-  gfsm_stateset_free(nfa_ec);
-  gfsm_stateset_free(ec_tmp);
+  //gfsm_stateset_free(nfa_ec); //-- this ought to be freed by gfsm_enum_free(ec2id)
+  gfsm_stateset_free(ec_tmp);   //-- ... but not this
   gfsm_enum_free(ec2id);
 
   return dfa;

@@ -454,10 +454,10 @@ gboolean gfsm_automaton_print_file_full (gfsmAutomaton *fsm,
 
   for (i=0; rc && i < fsm->states->len; i++) {
     guint        id = (fsm->root_id + i) % fsm->states->len;
-    gfsmState   *st = gfsm_automaton_get_state(fsm,id);
+    gfsmState   *st = gfsm_automaton_find_state(fsm,id);
     gfsmArcIter  ai;
     gpointer     key;
-    if (!gfsm_state_is_ok(st)) continue;
+    if (!st || !st->is_valid) continue;
 
     for (gfsm_arciter_open_ptr(&ai,fsm,st); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
       gfsmArc *a = gfsm_arciter_arc(&ai);

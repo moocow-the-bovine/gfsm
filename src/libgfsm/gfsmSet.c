@@ -55,12 +55,13 @@ gboolean gfsm_set_copy_foreach_func(gpointer key, gpointer value, gfsmSet *data)
  */
 void gfsm_set_clear(gfsmSet *set)
 {
-  GSList *key;
-  GSList *keys = gfsm_set_to_slist(set);
-  for (key=keys; key != NULL; key = key->next) {
-    g_tree_remove(set,key->data);
+  guint i;
+  GPtrArray *keys = g_ptr_array_sized_new(gfsm_set_size(set));
+  gfsm_set_to_ptr_array(set,keys);
+  for (i=0; i < keys->len; i++) {
+    g_tree_remove(set, g_ptr_array_index(keys,i));
   }
-  g_slist_free(keys);
+  g_ptr_array_free(keys,TRUE);
 }
 
 /*======================================================================
@@ -123,12 +124,14 @@ gfsmSet *gfsm_set_difference(gfsmSet *set1, gfsmSet *set2)
  */
 gfsmSet *gfsm_set_intersection(gfsmSet *set1, gfsmSet *set2)
 {
-  GSList *elts1 = gfsm_set_to_slist(set1);
-  GSList *el;
-  for (el = elts1; el != NULL; el = el->next) {
-    if (!gfsm_set_contains(set2,el->data)) gfsm_set_remove(set1,el->data);
+  guint i;
+  GPtrArray *elts1 = g_ptr_array_sized_new(gfsm_set_size(set1));
+  gfsm_set_to_ptr_array(set1,elts1);
+  for (i=0; i < elts1->len; i++) {
+    gpointer elt = g_ptr_array_index(elts1,i);
+    if (!gfsm_set_contains(set2,elt)) gfsm_set_remove(set1,elt);
   }
-  g_slist_free(elts1);
+  g_ptr_array_free(elts1,TRUE);
   return set1;
 }
 

@@ -55,13 +55,22 @@ void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stat
 /*--------------------------------------------------------------
  * reset()
  */
-/** Reset an arc iterator to the first outgoing arc */
 void gfsm_arciter_reset(gfsmArcIter *aip) {
   if (aip->state && gfsm_state_is_ok(aip->state)) {
     aip->arcs = aip->state->arcs;
   } else {
     aip->arcs = NULL;
   }
+}
+
+/*--------------------------------------------------------------
+ * close()
+ */
+void gfsm_arciter_close(gfsmArcIter *aip) {
+  if (!aip) return;
+  aip->fsm   = NULL;
+  aip->state = NULL;
+  aip->arcs  = NULL;
 }
 
 

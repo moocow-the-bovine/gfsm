@@ -39,6 +39,7 @@ lib_LTLIBRARIES = libgfsm.la
 libgfsm_la_SOURCES = \
 	gfsmCommon.c \
 	gfsmCompound.c \
+	gfsmDebug.c \
 	gfsmError.c \
 	gfsmMem.c \
 	gfsmVersion.c \
@@ -76,6 +77,7 @@ pkginclude_HEADERS = \
 	gfsmConfig.h \
 	gfsmCommon.h \
 	gfsmCompound.h \
+	gfsmDebug.h \
 	gfsmError.h \
 	gfsmMem.h \
 	gfsmVersion.h \

@@ -3,6 +3,7 @@ gfsmclosure
 gfsmcompile
 gfsmcomplement
 gfsmconcat
+gfsmconvert
 gfsmdeterminize
 gfsmdraw
 gfsminfo

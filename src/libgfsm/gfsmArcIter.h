@@ -55,7 +55,7 @@ void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stat
 void gfsm_arciter_reset(gfsmArcIter *aip);
 
 /** close an arc-iterator pointer @aip */
-#define gfsm_arciter_close(aip)
+void gfsm_arciter_close(gfsmArcIter *aip);
 /* does nothing */
 //@}
 

@@ -90,7 +90,7 @@ typedef struct _gfsmSemiringUser {
 ///\name Constructors etc.
 //@{
 
-/** Create and return new semiring of type @type */
+/** Create, initialize (for builting types), and return new semiring of type @type */
 gfsmSemiring *gfsm_semiring_new(gfsmSRType type);
 
 /** Initialize and return a builtin semiring */

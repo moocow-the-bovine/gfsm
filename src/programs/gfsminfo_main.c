@@ -73,6 +73,9 @@ void get_my_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
   gfsmError *err = NULL;
+
+  GFSM_INIT
+
   get_my_options(argc,argv);
   guint n_eps_i, n_eps_o, n_eps_io;
 
@@ -102,6 +105,8 @@ int main (int argc, char **argv)
 
   //-- cleanup
   gfsm_automaton_free(fsm);
+
+  GFSM_FINISH
 
   return 0;
 }
