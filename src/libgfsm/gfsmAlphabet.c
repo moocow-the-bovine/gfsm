@@ -213,6 +213,7 @@ void gfsm_alphabet_clear(gfsmAlphabet *a)
   case gfsmATUser:
   default:
     gfsm_alphabet_foreach(a, gfsm_alphabet_foreach_remove_func, NULL);
+    g_ptr_array_set_size(((gfsmPointerAlphabet*)a)->labels2keys,0);
     break;
   }
 
