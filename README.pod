@@ -1,0 +1,99 @@
+=pod
+
+README for package gfsm
+
+Last updated for gfsm v0.0.2
+
+=head1 DESCRIPTION
+
+The gfsm package consists of libgfsm, an abstract C library
+of tools for manipulation of finite state machines, and the
+gfsm utilities, a suite of command-line tools built on libgfsm.
+gfsm currently supports AT&T style weighted transducer
+text input and label definition files, as well as a number
+of common algebraic operations on finite state machines.
+
+=head1 REQUIREMENTS
+
+=over 4
+
+=item glib-2.0
+
+Available from:
+http://www.gtk.org/
+
+Abstract C library.  Tested version 2.2.3.
+
+=item pkg-config
+
+Available from:
+http://www.freedesktop.org/software/pkgconfig/
+
+To build from cvs, you will also need the pkg-config
+autoconf macros which come with the source distribution
+of pkg-config.
+
+=item doxygen (Optional)
+
+Required for building library documentation.
+Available from:
+http://www.doxygen.org
+
+Tested version 1.2.15.
+
+=item Perl (Optional)
+
+Get it from http://www.cpan.org or http://www.perl.com
+Required for building command-line parsers, utility
+documentation, library documentation, etc.
+
+=item Getopt::Gen
+
+A Perl module used to generate command-line option parsers.
+Should be available from the author of this package.
+
+=item pod2man, pod2text, pod2html (Optional)
+
+The Perl documentation converstion utilities, required
+for building the correspdonding program documentation
+formats, should have come with your Perl.
+
+=back
+
+
+
+=head1 INSTALLATION
+
+Issue the following commands to the shell:
+
+   cd gfsm-X.Y.Z  (or wherever you extracted the distribution)
+   sh ./configure
+   make
+   make install
+
+=head1 BUILD OPTIONS
+
+The 'configure' script supports the following options, among others:
+
+=over 4
+
+=item --enable-debug , --disable-debug
+
+Whether to enable verbose debugging messages.
+Default=no.
+
+=back
+
+=begin comment text
+
+=head1 ACKNOWLEDGEMENTS
+
+=end comment text
+
+=head1 KNOWN BUGS
+
+Many.
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>moocow@ling.uni-potsdam.deE<gt>

@@ -1,0 +1,401 @@
+## File: src/programs/Makefile.am
+## Package: gfsm
+## Description:
+##   + src-level automake file
+##
+## Process this file with Automake to create Makefile.in.
+##-----------------------------------------------------------------------
+
+##-----------------------------------------------------------------------
+## subdirectories
+##-----------------------------------------------------------------------
+#SUBDIRS =
+
+##-----------------------------------------------------------------------
+## primary targets
+##-----------------------------------------------------------------------
+
+## --- executable programs
+#bin_PROGRAMS = ${prog_1} ... ${prog_N}
+bin_PROGRAMS = \
+	gfsmcompile \
+	gfsmprint \
+	gfsminfo \
+	\
+	gfsmarcsort \
+	gfsmcomplement \
+	gfsmconcat \
+	gfsmclosure \
+	gfsmdeterminize \
+	gfsmdraw \
+	gfsminvert \
+	gfsmproject \
+	gfsmprune \
+	gfsmrenumber \
+	gfsmreverse \
+	gfsmunion
+
+#	gfsmrmepsilon 
+
+EXTRA_DIST =
+
+#bin_SCRIPTS = ${script1} ... ${scriptN}
+
+## --- libtool libraries
+#lib_LTLIBRARIES = ${lib_1}.la ... ${lib_N}.la
+
+## --- shared data in @pkgdatadir@
+#pkgdata_DATA = ${data_1} ... ${data_N}
+
+## --- manpages -- section is auto-detected
+#man_MANS = ${man_1} ... ${man_N}
+
+##-----------------------------------------------------------------------
+## sources
+##-----------------------------------------------------------------------
+
+SUFFIXES = \
+	.gog _cmdparser.c _cmdparser.cc _cmdparser.h \
+	.pod .txt .1 .html .tex
+
+
+##-----------------------------------------------------------------------
+## individual programs
+##-----------------------------------------------------------------------
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## --- Required sources
+#${prog_i}_SOURCES =
+##
+## --- Extra (possible)sources
+#EXTRA_${prog_i}_SOURCES = 
+#EXTRA_${lib_i}_la_SOURCES = 
+##
+## --- leftovers
+#mootconfig_SOURCES = mootconfig.cc
+##
+## --- Additional dependencies
+#gfsmcompile_main.o: gfsmcompile_cmdparser.h
+##
+## --- Linker flags
+#${prog_i}_LDFLAGS = -L. -static
+#${prog_i}_LDADD   = ${non_src_file}.o -lsomelib
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#gfsmX_SOURCES = \
+#	gfsmX_main.c \
+#	gfsmX_cmdparser.c gfsmX_cmdparser.h
+#
+#gfsmX_main.o: gfsmX_cmdparser.h
+#
+#gfsmX_LDFLAGS = $(LDFLAGS_COMMON)
+#gfsmX_LDADD = $(LDADD_COMMON)
+#
+#EXTRA_DIST += gfsmX.gog
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmcompile_SOURCES = \
+	gfsmcompile_main.c \
+	gfsmcompile_cmdparser.c gfsmcompile_cmdparser.h
+
+gfsmcompile_main.o: gfsmcompile_cmdparser.h
+
+gfsmcompile_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmcompile_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmcompile.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmprint_SOURCES = \
+	gfsmprint_main.c \
+	gfsmprint_cmdparser.c gfsmprint_cmdparser.h
+
+gfsmprint_main.o: gfsmprint_cmdparser.h
+
+gfsmprint_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmprint_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmprint.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsminfo_SOURCES = \
+	gfsminfo_main.c \
+	gfsminfo_cmdparser.c gfsminfo_cmdparser.h
+
+gfsminfo_main.o: gfsminfo_cmdparser.h
+
+gfsminfo_LDFLAGS = $(LDFLAGS_COMMON)
+gfsminfo_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsminfo.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmarcsort_SOURCES = \
+	gfsmarcsort_main.c \
+	gfsmarcsort_cmdparser.c gfsmarcsort_cmdparser.h
+
+gfsmarcsort_main.o: gfsmarcsort_cmdparser.h
+
+gfsmarcsort_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmarcsort_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmarcsort.gog
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmcomplement_SOURCES = \
+	gfsmcomplement_main.c \
+	gfsmcomplement_cmdparser.c gfsmcomplement_cmdparser.h
+
+gfsmcomplement_main.o: gfsmcomplement_cmdparser.h
+
+gfsmcomplement_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmcomplement_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmcomplement.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmconcat_SOURCES = \
+	gfsmconcat_main.c \
+	gfsmconcat_cmdparser.c gfsmconcat_cmdparser.h
+
+gfsmconcat_main.o: gfsmconcat_cmdparser.h
+
+gfsmconcat_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmconcat_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmconcat.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmclosure_SOURCES = \
+	gfsmclosure_main.c \
+	gfsmclosure_cmdparser.c gfsmclosure_cmdparser.h
+
+gfsmclosure_main.o: gfsmclosure_cmdparser.h
+
+gfsmclosure_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmclosure_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmclosure.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmdeterminize_SOURCES = \
+	gfsmdeterminize_main.c \
+	gfsmdeterminize_cmdparser.c gfsmdeterminize_cmdparser.h
+
+gfsmdeterminize_main.o: gfsmdeterminize_cmdparser.h
+
+gfsmdeterminize_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmdeterminize_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmdeterminize.gog
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmdraw_SOURCES = \
+	gfsmdraw_main.c \
+	gfsmdraw_cmdparser.c gfsmdraw_cmdparser.h
+
+gfsmdraw_main.o: gfsmdraw_cmdparser.h
+
+gfsmdraw_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmdraw_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmdraw.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsminvert_SOURCES = \
+	gfsminvert_main.c \
+	gfsminvert_cmdparser.c gfsminvert_cmdparser.h
+
+gfsminvert_main.o: gfsminvert_cmdparser.h
+
+gfsminvert_LDFLAGS = $(LDFLAGS_COMMON)
+gfsminvert_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsminvert.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmproject_SOURCES = \
+	gfsmproject_main.c \
+	gfsmproject_cmdparser.c gfsmproject_cmdparser.h
+
+gfsmproject_main.o: gfsmproject_cmdparser.h
+
+gfsmproject_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmproject_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmproject.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmprune_SOURCES = \
+	gfsmprune_main.c \
+	gfsmprune_cmdparser.c gfsmprune_cmdparser.h
+
+gfsmprune_main.o: gfsmprune_cmdparser.h
+
+gfsmprune_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmprune_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmprune.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmrenumber_SOURCES = \
+	gfsmrenumber_main.c \
+	gfsmrenumber_cmdparser.c gfsmrenumber_cmdparser.h
+
+gfsmrenumber_main.o: gfsmrenumber_cmdparser.h
+
+gfsmrenumber_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmrenumber_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmrenumber.gog
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmreverse_SOURCES = \
+	gfsmreverse_main.c \
+	gfsmreverse_cmdparser.c gfsmreverse_cmdparser.h
+
+gfsmreverse_main.o: gfsmreverse_cmdparser.h
+
+gfsmreverse_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmreverse_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmreverse.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#gfsmrmepsilon_SOURCES = \
+#	gfsmrmepsilon_main.c \
+#	gfsmrmepsilon_cmdparser.c gfsmrmepsilon_cmdparser.h
+#
+#gfsmrmepsilon_main.o: gfsmrmepsilon_cmdparser.h
+#
+#gfsmrmepsilon_LDFLAGS = $(LDFLAGS_COMMON)
+#gfsmrmepsilon_LDADD = $(LDADD_COMMON)
+#
+#EXTRA_DIST += gfsmrmepsilon.gog
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmunion_SOURCES = \
+	gfsmunion_main.c \
+	gfsmunion_cmdparser.c gfsmunion_cmdparser.h
+
+gfsmunion_main.o: gfsmunion_cmdparser.h
+
+gfsmunion_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmunion_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmunion.gog
+
+##-----------------------------------------------------------------------
+## headers
+##-----------------------------------------------------------------------
+
+## --- installable headers: @includedir@/@pkgname@
+#pkginclude_HEADERS = ${hfile_1} ... ${hfile_N}
+
+## --- no-install headers
+noinst_HEADERS = config.h
+
+##-----------------------------------------------------------------------
+## pre-compile rules: gengetopt
+##-----------------------------------------------------------------------
+
+##-----------------------------------------------------------------------
+## pre-compile rules: Getopt::Gen
+##-----------------------------------------------------------------------
+.SECONDARY:
+
+OPTGENFLAGS = -u -l --no-handle-rcfile
+
+.gog_cmdparser.h:
+	optgen.perl $(OPTGENFLAGS) --nopod -F $*_cmdparser $<
+
+.gog_cmdparser.c:
+	optgen.perl $(OPTGENFLAGS) --nopod -F $*_cmdparser $<
+
+.gog.pod:
+	optgen.perl $(OPTGENFLAGS) --nocfile --nohfile -F $* $<
+
+##-----------------------------------------------------------------------
+## compile flags
+##-----------------------------------------------------------------------
+
+## --- preprocessor flags
+AM_CPPFLAGS = -I@srcdir@/../libgfsm -I../libgfsm
+
+## --- compiler flags (c++)
+AM_CFLAGS = $(gfsm_WFLAGS) $(gfsm_OFLAGS)
+
+##-----------------------------------------------------------------------
+## linker flags
+##   + library special handling of configure.in vars:
+##-----------------------------------------------------------------------
+#${prog_i}_LDFLAGS = -L. -static
+#${prog_i}_LDADD   = ${non_src_file}.o -lsomelib
+
+LDFLAGS_COMMON = -L../libgfsm
+LDADD_COMMON   = ../libgfsm/libgfsm.la @gfsm_LIBS@
+
+#${lib_i}_la_LDFLAGS = -L. -version-info ${lib_i_current}:${lib_i_rev}:${lib_i_age}
+#${lib_i}_LIBADD     = -lotherlib
+
+##-----------------------------------------------------------------------
+## cleanup: fst
+##-----------------------------------------------------------------------
+
+fsmclean:
+	rm -f *.afsa *.afst *.gfsa *.gfst *.thfsa *.thfst
+
+##-----------------------------------------------------------------------
+## Variables: cleanup
+##-----------------------------------------------------------------------
+
+## --- mostlyclean: built by 'make' & commonly rebuilt
+#MOSTLYCLEANFILES =
+
+## --- clean:  built by 'make'
+#CLEANFILES =
+
+## --- distclean: built by 'configure'
+#DISTCLEANFILES = 
+
+## -- maintainerclean: built by maintainer / by hand
+MAINTAINERCLEANFILES = \
+	*~ .*~ Makefile Makefile.in \
+	*_cmdparser.cc *_cmdparser.h \
+	*.man *.1 *.html *.txt *.tex \
+	*.afsa *.afst *.gfsa *.gfst *.thfst \
+	*.dot *.ps *.vcg
+
+##-----------------------------------------------------------------------
+## Variables: distribution
+##-----------------------------------------------------------------------
+
+## --- extra distribution files
+#EXTRA_DIST =
+
+## --- recursion subdirectories for 'make dist'
+#DIST_SUBDIRS = $(SUBDIRS)
+
+## --- dist-hook: when another 'Makefile.am' is overkill
+#DISTHOOK_DIRS = foo
+#DISTHOOK_FILES = foo/bar.txt foo/baz.txt
+#dist-hook:
+#	for d in $(DISTHOOK_DIRS); do\
+#	  mkdir -p $(distdir)/$$d ;\
+#	done
+#	for f in $(DISTHOOK_FILES); do\
+#	  cp -p $(srcdir)/$$f $(distdir)/$$f ;\
+#	done
+
+##-----------------------------------------------------------------------
+## Rules: cleanup
+##-----------------------------------------------------------------------
+.PHONY: cvsclean
+
+cvsclean: maintainer-clean ;
