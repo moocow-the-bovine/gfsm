@@ -58,6 +58,8 @@ libgfsm_la_SOURCES = \
 	gfsmAlgebra.c
 
 
+#	gfsmHead.c 
+
 ## --- Extra (possible) sources
 #EXTRA_${prog_i}_SOURCES = 
 #EXTRA_${lib_i}_la_SOURCES = 
@@ -92,6 +94,8 @@ pkginclude_HEADERS = \
 	gfsmDraw.h \
 	gfsmAlgebra.h \
 	gfsm.h
+
+#	gfsmHead.h 
 
 ## --- no-install headers
 #noinst_HEADERS = nopackage.h

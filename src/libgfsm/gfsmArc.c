@@ -220,3 +220,18 @@ gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
 
   return 0;
 }
+
+
+/*======================================================================
+ * Methods: String utilities
+ */
+gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode)
+{
+  switch (mode) {
+  case gfsmASMNone:   return "none";
+  case gfsmASMLower:  return "lower";
+  case gfsmASMUpper:  return "upper";
+  case gfsmASMWeight: return "weight";
+  default:            return "unknown";
+  }
+}

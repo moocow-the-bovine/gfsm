@@ -5,7 +5,7 @@
 program "gfsmcompile"
 #program_version "0.01"
 
-purpose	"Convert binary format gfsm files to text"
+purpose	"Compile text format gfsm files to binary"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 
@@ -46,6 +46,20 @@ string "olabels" o "Specify output (upper) labels file." \
 
 string "slabels" S "Specify state labels file." \
    arg="LABELS"
+
+string "semiring" s "Specify semiring type." \
+   arg="SRTYPE" \
+   default="tropical" \
+   details="
+Specify one of the following:
+
+ boolean
+ log
+ real
+ trivial
+ tropical
+
+"
 
 string "output" F "Specifiy output file (default=stdout)." \
     arg="FILE" \

@@ -141,4 +141,16 @@ gboolean gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 gboolean gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 //@}
 
+/*======================================================================
+ * Semiring: methods: string utilities
+ */
+///\name String utilities
+//@{
+/** Convert symbolic name of a semiring to a gfsmSRType */
+gfsmSRType gfsm_sr_name_to_type(const char *name);
+
+/** Convert a gfsmSRType to a (constant) symbolic name */
+gchar *gfsm_sr_type_to_name(gfsmSRType type);
+//@}
+
 #endif /* _GFSM_SEMIRING_H */

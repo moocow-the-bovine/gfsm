@@ -106,7 +106,8 @@ gfsmAlphabet *gfsm_alphabet_init(gfsmAlphabet *a)
   case gfsmATPointer:
     return gfsm_pointer_alphabet_init((gfsmPointerAlphabet*)a,NULL,NULL,NULL,NULL);
   case gfsmATUser:
-    return gfsm_user_alphabet_init((gfsmUserAlphabet*)a,NULL,&gfsmUserAlphabetDefaultMethods);
+    return gfsm_user_alphabet_init((gfsmUserAlphabet*)a,NULL,NULL,NULL,NULL,
+				   NULL,&gfsmUserAlphabetDefaultMethods);
   case gfsmATString:
     return gfsm_string_alphabet_init((gfsmStringAlphabet*)a,FALSE);
   case gfsmATUnknown:
@@ -175,10 +176,18 @@ gfsmAlphabet *gfsm_string_alphabet_init(gfsmStringAlphabet *a, gboolean do_copy)
  * user_init()
  */
 gfsmAlphabet *gfsm_user_alphabet_init(gfsmUserAlphabet        *a,
+				      gfsmAlphabetKeyDupFunc   key_dup_func,
+				      GHashFunc                key_hash_func,
+				      GEqualFunc               key_equal_func,
+				      GDestroyNotify           key_destroy_func,
 				      gpointer                 user_data,
 				      gfsmUserAlphabetMethods *methods)
 {
-  gfsm_pointer_alphabet_init((gfsmPointerAlphabet*)a, NULL, NULL, NULL, NULL);
+  gfsm_pointer_alphabet_init((gfsmPointerAlphabet*)a,
+			     key_dup_func,
+			     key_hash_func,
+			     key_equal_func,
+			     key_destroy_func);
   a->data    = user_data;
   a->methods = methods ? (*methods) : gfsmUserAlphabetDefaultMethods;
   return (gfsmAlphabet*)a;
@@ -489,8 +498,9 @@ void gfsm_alphabet_remove_key(gfsmAlphabet *a, gconstpointer key)
   case gfsmATString:
     label = gfsm_alphabet_find_label(a,key);
     g_hash_table_remove(((gfsmPointerAlphabet*)a)->keys2labels,key);
-    if (label != gfsmNoLabel && label < ((gfsmPointerAlphabet*)a)->labels2keys->len)
+    if (label != gfsmNoLabel && label < ((gfsmPointerAlphabet*)a)->labels2keys->len) {
       g_ptr_array_index(((gfsmPointerAlphabet*)a)->labels2keys, label) = NULL;
+    }
     break;
   
   case gfsmATUnknown:

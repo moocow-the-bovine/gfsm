@@ -19,6 +19,7 @@
 #bin_PROGRAMS = ${prog_1} ... ${prog_N}
 bin_PROGRAMS = \
 	gfsmcompile \
+	gfsmconvert \
 	gfsmprint \
 	gfsminfo \
 	\
@@ -106,6 +107,18 @@ gfsmcompile_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmcompile_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmcompile.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmconvert_SOURCES = \
+	gfsmconvert_main.c \
+	gfsmconvert_cmdparser.c gfsmconvert_cmdparser.h
+
+gfsmconvert_main.o: gfsmconvert_cmdparser.h
+
+gfsmconvert_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmconvert_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmconvert.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmprint_SOURCES = \

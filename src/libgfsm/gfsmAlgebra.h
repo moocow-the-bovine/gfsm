@@ -49,6 +49,11 @@ gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus);
 /** Final-state pre-traversal utility for closure(fsm). */
 gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer dummy, gfsmAutomaton *fsm);
 
+/** Compute @n ary closure of @fsm.  Destructively alters @fsm.
+ *  \returns @fsm
+ */
+gfsmAutomaton *gfsm_automaton_n_closure(gfsmAutomaton *fsm, guint n);
+
 
 //------------------------------
 /**

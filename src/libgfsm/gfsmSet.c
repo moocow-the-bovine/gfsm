@@ -55,20 +55,12 @@ gboolean gfsm_set_copy_foreach_func(gpointer key, gpointer value, gfsmSet *data)
  */
 void gfsm_set_clear(gfsmSet *set)
 {
-  GSList *key, *keys = NULL;
-  g_tree_foreach(set, (GTraverseFunc)gfsm_set_clear_foreach_func, &keys);
+  GSList *key;
+  GSList *keys = gfsm_set_to_slist(set);
   for (key=keys; key != NULL; key = key->next) {
     g_tree_remove(set,key->data);
   }
-}
-
-/*--------------------------------------------------------------
- * clear_foreach_func()
- */
-gboolean gfsm_set_clear_foreach_func(gpointer key, gpointer value, GSList **data)
-{
-  if (*data) *data = g_slist_prepend(*data,key);
-  return FALSE; // don't stop iterating
+  g_slist_free(keys);
 }
 
 /*======================================================================
@@ -179,4 +171,19 @@ gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrAr
 {
   g_ptr_array_add(dst,key);
   return FALSE;
+}
+
+/*======================================================================
+ * Debugging
+ */
+gboolean gfsm_set_print_foreach_func(gpointer key, gpointer data, FILE *f)
+{
+  fprintf(f, " %u", (guint)key);
+  return FALSE;
+}
+void gfsm_set_print_uint(gfsmSet *set, FILE *f)
+{
+  fputc('{',f);
+  g_tree_foreach(set, (GTraverseFunc)gfsm_set_print_foreach_func, f);
+  fputs(" }", f);
 }

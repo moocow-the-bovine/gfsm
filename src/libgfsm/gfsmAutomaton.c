@@ -32,7 +32,6 @@
  * Constants
  */
 const guint gfsmAutomatonDefaultSize  = 128;
-//const guint gfsmAutomatonDefaultGet   = 128;
 
 const gfsmAutomatonFlags gfsmAutomatonDefaultFlags =
   {
@@ -107,11 +106,13 @@ gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src)
  */
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
-  gfsmAutomaton *tmp = g_new0(gfsmAutomaton,1);
-  *tmp = *fsm2;
-  *fsm2 = *fsm1;
-  *fsm1 = *tmp;
-  g_free(tmp);
+  if (fsm1 != fsm2) {
+    gfsmAutomaton *tmp = g_new0(gfsmAutomaton,1);
+    *tmp = *fsm2;
+    *fsm2 = *fsm1;
+    *fsm1 = *tmp;
+    g_free(tmp);
+  }
 }
 
 /*--------------------------------------------------------------
@@ -151,14 +152,12 @@ void gfsm_automaton_free(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * set_semiring()
  */
-/*
 gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr)
 {
   if (fsm->sr) gfsm_semiring_free(fsm->sr);
   fsm->sr = gfsm_semiring_copy(sr);
   return sr;
 }
-*/
 
 /*--------------------------------------------------------------
  * n_arcs_full()
@@ -332,6 +331,7 @@ void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId id, gboolean
 {
   gfsm_state_set_final(gfsm_automaton_get_state(fsm,id),is_final);
   if (is_final) gfsm_set_insert(fsm->finals,(gpointer)(id));
+  else gfsm_set_remove(fsm->finals,(gpointer)(id));
 }
 
 /*--------------------------------------------------------------
