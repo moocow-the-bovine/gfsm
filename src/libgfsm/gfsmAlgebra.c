@@ -433,7 +433,7 @@ gfsmAutomaton *gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *d
 /// TODO
 void _gfsm_difference_visit_states(gfsmAutomaton *fsm1,    gfsmAutomaton *fsm2,
 				   gfsmStateId    id1,     gfsmStateId    id2,
-				   GHashTable     visited);
+				   GHashTable    *visited)
 {
   gfsmStatePair sp_tmp = { id1, id2 };
 
