@@ -1,5 +1,5 @@
 # File: ./Makefile.am
-# Package: pdfst
+# Package: gfsm
 # Description:
 #   + top-level automake file
 #

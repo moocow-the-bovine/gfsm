@@ -1,7 +1,7 @@
 Change log for gfsm
 
 v0.0.5 Wed, 22 Sep 2004 00:23:49 +0200
-   + renamed file "COPYING" to "LICENSE" to jive with header comments
+   + removed references to file "LICENSE" in header comments
    + fixed small size bug in clear() for gfsmUserAlphabet
    + added key-stringification to gfsm_automaton_draw() methods
 
