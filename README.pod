@@ -2,7 +2,7 @@
 
 README for package gfsm
 
-Last updated for gfsm v0.0.4
+Last updated for gfsm v0.0.5
 
 =head1 DESCRIPTION
 
@@ -88,11 +88,12 @@ Default=no.
 
 =back
 
-=begin comment text
-
 =head1 ACKNOWLEDGEMENTS
 
-=end comment text
+Ideas and code adapted from the SFST package by Helmut Schmid.
+
+Many thanks to Thomas Hanneforth for useful advice.
+
 
 =head1 KNOWN BUGS
 
