@@ -1,5 +1,8 @@
 Change log for gfsm
 
+v0.0.4 Tue, 14 Sep 2004 15:57:56 +0200
+   + fixed bug in gfsm_alphabet_size() for user alphabets
+
 v0.0.3 Mon, 13 Sep 2004 10:25:23 +0200
    + added some algebraic operations, fixed some bugs
 
