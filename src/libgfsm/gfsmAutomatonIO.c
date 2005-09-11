@@ -27,11 +27,14 @@
 #include <gfsmAutomatonIO.h>
 #include <gfsmArcIter.h>
 #include <gfsmUtils.h>
+#include <gfsmCompat.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+
 
 
 /*======================================================================

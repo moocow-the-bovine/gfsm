@@ -1,5 +1,8 @@
 Change log for gfsm
 
+v0.0.6 Mon, 12 Sep 2005 01:45:46 +0200
+   + added mingw32 patch (getline)
+
 v0.0.5 Wed, 22 Sep 2004 00:23:49 +0200
    + removed references to file "LICENSE" in header comments
    + fixed small size bug in clear() for gfsmUserAlphabet
