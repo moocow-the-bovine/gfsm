@@ -83,7 +83,7 @@ OPTGEN_SKELFLAGS = \
 POD2MANFLAGS = \
 	--center="GFSM Utilities" \
 	--release="GFSM v$(VERSION)"
-POD2HTMLFLAGS = --podpath="$(srcdir):." --htmlroot="."
+POD2HTMLFLAGS = --podpath="$(srcdir):." --htmlroot="." --css="gfsmprogs.css"
 
 .pod.1:
 	$(POD2MAN) $(POD2MANFLAGS) --section=1 $< $@
@@ -142,6 +142,7 @@ MAINTAINERCLEANFILES = \
 
 ## --- extra distribution files
 EXTRA_DIST = \
+	gfsmprogs.css \
 	gfsmutils.skel \
 	@DOC_PROG_TXT_TARGETS@ \
 	@DOC_PROG_MAN1_TARGETS@ \

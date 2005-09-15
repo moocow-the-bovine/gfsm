@@ -56,12 +56,17 @@ $(STAMPFILE): $(DOXY_INPUTS) doxy-filter.cfg
 doxy-filter.cfg:
 	echo -e '$$config_cppflags .= "$(patsubst %,-I%,$(DOXY_INCLUDES))";\n1;' > doxy-filter.cfg
 
+builddir ?= $(top_builddir)/doc/libgfsm
+
 .doxy.stamp: doxy-filter.cfg
 	@(if test -n "$(DOXYGEN)" ; then \
 	  echo "$(DOXYGEN) $<" ;\
 	  $(DOXYGEN) $< ;\
 	  if test \( -n "$(DOC_LATEX_TARGETS)" -a -d ./latex \) ; then \
 	    $(MAKE) -i -C ./latex $(DOC_LATEX_TARGETS) ;\
+	  fi ;\
+	  if test \( -d "$(builddir)/html" \) ; then \
+	    $(INSTALL_DATA) @srcdir@/libgfsm.css $(builddir)/html/libgfsm.css ;\
 	  fi ;\
 	 else \
 	  echo "-------------------------------------------------------------------" ;\
@@ -136,7 +141,9 @@ install-latex-sub:
 ## --- extra distribution files
 EXTRA_DIST = \
 	doxy-filter.perl \
-	mainpage.dox
+	mainpage.dox \
+	libgfsm.css \
+	libgfsm-header.html
 
 ## --- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS =

@@ -216,6 +216,17 @@ fi
 ## /exp()
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+## perl
+AC_ARG_VAR(PERL,[Path to local Perl interpreter])
+AC_PATH_PROG(PERL,perl)
+AC_SUBST(PERL)
+if test -z "$PERL" ; then
+  AC_MSG_WARN([Perl not found: no documentation will be built!])
+fi
+## /perl
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## documentation
@@ -238,7 +249,7 @@ AC_ARG_WITH(doc-formats,
 	AC_HELP_STRING([--with-doc-formats=LIST],
 		       [Build documentation formats in LIST. \
                         Available formats: txt, man, html, dvi, ps, pdf, none.
-	                Default='man html']),
+	                Default='man html'. Requires Perl, pod2xxx.]),
 	[ac_cv_doc_formats="$withval"])
 
 ## -- set default doc formats if unspecified
@@ -256,7 +267,7 @@ AC_ARG_ENABLE(doc,
 
 
 AC_MSG_CHECKING([which documentation formats to build])
-if test "$enable_doc" != "yes" ; then
+if test "$enable_doc" != "yes" -o -z "$PERL" ; then
  ##-- disable all docs
  gfsm_doc_formats="none"
 fi
@@ -367,7 +378,7 @@ if test "$gfsm_doc_formats" != "none" ; then
           DOC_SUBDIRS="$DOC_SUBDIRS html"
 	fi
 	if test -n "$POD2HTML" ; then
-	  DOC_PROG_HTML_TARGETS=`echo "$gfsm_pods" | sed 's/\.pod/\.html/g'`
+	  DOC_PROG_HTML_TARGETS="gfsmprogs.css `echo "$gfsm_pods" | sed 's/\.pod/\.html/g'`"
 	else
 	  AC_MSG_WARN(pod2html not found -- program html docs will not be built!)
 	fi
