@@ -8,12 +8,15 @@ gfsmdeterminize
 gfsmdraw
 gfsminfo
 gfsminvert
+gfsmlabels
+gfsmlookup
 gfsmprint
 gfsmproject
 gfsmprune
 gfsmrenumber
 gfsmreverse
 gfsmrmepsilon
+gfsmstrings
 gfsmunion
 
 *.out

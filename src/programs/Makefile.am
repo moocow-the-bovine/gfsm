@@ -30,10 +30,13 @@ bin_PROGRAMS = \
 	gfsmdeterminize \
 	gfsmdraw \
 	gfsminvert \
+	gfsmlabels \
+	gfsmlookup \
 	gfsmproject \
 	gfsmprune \
 	gfsmrenumber \
 	gfsmreverse \
+	gfsmstrings \
 	gfsmunion
 
 #	gfsmrmepsilon 
@@ -231,6 +234,30 @@ gfsminvert_LDADD = $(LDADD_COMMON)
 EXTRA_DIST += gfsminvert.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmlabels_SOURCES = \
+	gfsmlabels_main.c \
+	gfsmlabels_cmdparser.c gfsmlabels_cmdparser.h
+
+gfsmlabels_main.o: gfsmlabels_cmdparser.h
+
+gfsmlabels_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmlabels_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmlabels.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmlookup_SOURCES = \
+	gfsmlookup_main.c \
+	gfsmlookup_cmdparser.c gfsmlookup_cmdparser.h
+
+gfsmlookup_main.o: gfsmlookup_cmdparser.h
+
+gfsmlookup_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmlookup_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmlookup.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmproject_SOURCES = \
 	gfsmproject_main.c \
 	gfsmproject_cmdparser.c gfsmproject_cmdparser.h
@@ -290,6 +317,18 @@ EXTRA_DIST += gfsmreverse.gog
 #gfsmrmepsilon_LDADD = $(LDADD_COMMON)
 #
 #EXTRA_DIST += gfsmrmepsilon.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmstrings_SOURCES = \
+	gfsmstrings_main.c \
+	gfsmstrings_cmdparser.c gfsmstrings_cmdparser.h
+
+gfsmstrings_main.o: gfsmstrings_cmdparser.h
+
+gfsmstrings_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmstrings_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmstrings.gog
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
