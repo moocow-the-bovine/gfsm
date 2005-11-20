@@ -356,4 +356,50 @@ gboolean gfsm_alphabet_save_file_func(gfsmAlphabet     *a,
 				      gfsmSaveFileData *sfdata);
 //@}
 
+/*======================================================================
+ * String Alphabet Utilties
+ */
+///\name String Alphabet Utilities
+//@{
+
+/** Type for sequence of (gfsmLabelVal)s */
+typedef GPtrArray gfsmLabelVector;
+
+/** Convert an ASCII string character-wise to a vector of (gfsmLabel)s.
+ *  @vec is not cleared -- use g_ptr_array_set_size() for that.
+ *  \returns @vec if non-NULL, otherwise a new gfsmLabelVector.
+ */
+gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmStringAlphabet *abet,
+						const gchar *str,
+						gfsmLabelVector *vec,
+						gboolean warn_on_undefined);
+
+/** Convert an ASCII GString character-wise to a vector of (gfsmLabel)s.
+ *  @vec is not cleared -- use g_ptr_array_set_size() for that.
+ *  \returns @vec if non-NULL, otherwise a new gfsmLabelVector.
+ */
+#define gfsm_alphabet_gstring_to_labels(abet,gstr,vec,warn) \
+        gfsm_alphabet_string_to_labels((abet),(gstr)->str,(vec),(warn))
+
+
+/** Convert a gfsmLabelVector to a GString.
+ *  @gstr is not cleared.
+ *  \returns @gstr if non-NULL, otherwise a new GString*.
+ */
+GString *gfsm_alphabet_labels_to_gstring(gfsmStringAlphabet *abet,
+					 gfsmLabelVector *vec,
+					 GString *gstr,
+					 gboolean warn_on_undefined,
+					 gboolean att_style);
+
+/** Convert a gfsmLabelVector to a new string.
+ *  @gstr is not cleared.
+ *  \returns @gstr if non-NULL, otherwise a new GString*.
+ */
+char *gfsm_alphabet_labels_to_string(gfsmStringAlphabet *abet,
+				     gfsmLabelVector *vec,
+				     gboolean warn_on_undefined,
+				     gboolean att_style);
+//@}
+
 #endif /*_GFSM_ALPHABET_H */

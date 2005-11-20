@@ -57,7 +57,9 @@ libgfsm_la_SOURCES = \
 	gfsmAutomaton.c \
 	gfsmAutomatonIO.c \
 	gfsmDraw.c \
-	gfsmAlgebra.c
+	gfsmAlgebra.c \
+	gfsmLookup.c \
+	gfsmPaths.c
 
 
 #	gfsmHead.c 
@@ -97,6 +99,8 @@ pkginclude_HEADERS = \
 	gfsmAutomatonIO.h \
 	gfsmDraw.h \
 	gfsmAlgebra.h \
+	gfsmLookup.h \
+	gfsmPaths.h \
 	gfsm.h
 
 #	gfsmHead.h 

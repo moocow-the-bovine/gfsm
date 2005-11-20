@@ -1,13 +1,10 @@
 
 /*=============================================================================*\
- * File: gfsm.h
+ * File: gfsmLookup.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library: top-level
+ * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
- *
- * For information on usage and redistribution, and for a DISCLAIMER
- * OF ALL WARRANTIES, see the file "COPYING" in this distribution.
+ * Copyright (c) 2005 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,41 +21,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-#ifndef _GFSM_H
-#define _GFSM_H
+#ifndef _GFSM_LOOKUP_H
+#define _GFSM_LOOKUP_H
 
-/*
-#ifdef __cplusplus
-extern "C" {
-#endif
-*/
-
-#include <glib.h>
-#include <gfsmCommon.h>
-#include <gfsmCompound.h>
-#include <gfsmVersion.h>
-#include <gfsmError.h>
-#include <gfsmUtils.h>
-#include <gfsmEnum.h>
-#include <gfsmSet.h>
-#include <gfsmBitVector.h>
 #include <gfsmAlphabet.h>
-#include <gfsmSemiring.h>
-#include <gfsmArc.h>
-#include <gfsmState.h>
 #include <gfsmAutomaton.h>
-#include <gfsmArcIter.h>
-#include <gfsmStateSet.h>
-#include <gfsmAutomatonIO.h>
-#include <gfsmDraw.h>
-#include <gfsmAlgebra.h>
-#include <gfsmLookup.h>
-#include <gfsmPaths.h>
 
-/*
-#ifdef __cplusplus
-}
-#endif
-*/
+/*======================================================================
+ * Types: lookup
+ */
+/** Type for gfsmLookup computation state */
+typedef struct _gfsmLookupConfig {
+  gfsmStateId qt;  /**< current state in transducer */
+  gfsmStateId qr;  /**< current state in result acceptor */
+  guint32     i;   /**< current position in input vector */
+} gfsmLookupConfig;
 
-#endif /* _GFSM_H */
+/*======================================================================
+ * Methods: lookup
+ */
+///\name Lookup
+//@{
+
+//------------------------------
+/** Compose linear automaton specified by @input with the transducer
+ *  @fst and project the output tape to @result.
+ *  \returns @result if non-NULL, otherwise a new automaton.
+ */
+gfsmAutomaton *gfsm_lookup(gfsmLabelVector *input, gfsmAutomaton *fst, gfsmAutomaton *result);
+//@}
+
+
+#endif /* _GFSM_LOOKUP_H */

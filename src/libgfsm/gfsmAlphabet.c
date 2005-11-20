@@ -757,3 +757,116 @@ gboolean gfsm_alphabet_save_file_func(gfsmAlphabet     *a,
 	  sfdata->gstr->str, sfdata->field_sep, lab, sfdata->record_sep);
   return (sfdata->errp && *(sfdata->errp));
 }
+
+
+
+/*======================================================================
+ * Methods: String Alphabet Utilities
+ */
+
+/*--------------------------------------------------------------
+ * gfsm_alphabet_string_to_labels()
+ */
+gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmStringAlphabet *abet,
+						const gchar *str,
+						gfsmLabelVector *vec,
+						gboolean warn_on_undefined)
+{
+  gfsmLabelVal lab;
+  gchar        cs[2] = {0,0};
+
+  //-- setup vector
+  if (vec==NULL) {
+    vec = g_ptr_array_sized_new(strlen(str));
+  } else {
+    g_ptr_array_set_size(vec, strlen(str));
+  }
+
+  for (; *str; str++) {
+    cs[0] = *str;
+    lab   = gfsm_alphabet_find_label(abet, cs);
+
+    //-- check for non-existant labels
+    if (lab==gfsmNoLabel) {
+      if (warn_on_undefined) {
+	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
+			      g_quark_from_static_string("gfsm_alphabet_string_to_labels"), //-- code
+			      "Warning: unknown character '%c' in string '%s' -- skipping.",
+			      *str, str));
+      }
+      continue;
+    }
+
+    g_ptr_array_add(vec, (gpointer)lab);
+  }
+
+  return vec;
+}
+
+/*--------------------------------------------------------------
+ * gfsm_alphabet_labels_to_gstring()
+ */
+GString *gfsm_alphabet_labels_to_gstring(gfsmStringAlphabet *abet,
+					 gfsmLabelVector *vec,
+					 GString *gstr,
+					 gboolean warn_on_undefined,
+					 gboolean att_style)
+{
+  gfsmLabelVal lab;
+  const gchar  *sym;
+  int i;
+
+  //-- setup GString
+  if (gstr==NULL) {
+    gstr = g_string_new_len("",vec->len);
+  }
+
+  //-- lookup & append symbols
+  for (i=0; i < vec->len; i++) {
+    lab = (gfsmLabelVal)g_ptr_array_index(vec,i);
+    sym = (const gchar*)gfsm_alphabet_find_key(abet,lab);
+
+    //-- check for unknown labels
+    if (sym==NULL) {
+      if (warn_on_undefined) {
+	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
+			      g_quark_from_static_string("gfsm_alphabet_labels_to_gstring"), //-- code
+			      "Warning: unknown label '%d' -- skipping.",
+			      lab));
+      }
+      continue;
+    }
+
+    //-- append the symbol to the output string
+    if (att_style) {
+      if (strlen(sym)==1) {
+	g_string_append_c(gstr,sym[0]);
+      }
+      else {
+	g_string_append_c(gstr,'[');
+	g_string_append(gstr,sym);
+	g_string_append_c(gstr,']');
+      } 
+    } else { //-- !att_style
+      if (i != 0) g_string_append_c(gstr,' ');
+      g_string_append(gstr, sym);
+    }
+  }
+
+  return gstr;
+}
+
+/*--------------------------------------------------------------
+ * gfsm_alphabet_labels_to_string()
+ */
+char *gfsm_alphabet_labels_to_string(gfsmStringAlphabet *abet,
+				     gfsmLabelVector *vec,
+				     gboolean warn_on_undefined,
+				     gboolean att_style)
+{
+  GString *gstr = g_string_new("");
+  gfsm_alphabet_labels_to_gstring(abet,vec,gstr,warn_on_undefined,att_style);
+  char *str = gstr->str;
+  g_string_free(gstr,FALSE);
+  return str;
+}
