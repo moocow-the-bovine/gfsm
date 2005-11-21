@@ -779,7 +779,7 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
   if (vec==NULL) {
     vec = g_ptr_array_sized_new(strlen(str));
   } else {
-    g_ptr_array_set_size(vec, strlen(str));
+    g_ptr_array_set_size(vec, 0);
   }
 
   for (; *str; str++) {
