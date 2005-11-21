@@ -116,8 +116,8 @@ int main (int argc, char **argv)
   //-- get & stringify full paths
   paths   = gfsm_automaton_paths(fsm,NULL);
   strings = gfsm_paths_to_strings(paths,
-				  (gfsmStringAlphabet*)ilabels,
-				  (gfsmStringAlphabet*)olabels,
+				  ilabels,
+				  olabels,
 				  fsm->sr,
 				  TRUE,
 				  args.att_given,

@@ -767,7 +767,7 @@ gboolean gfsm_alphabet_save_file_func(gfsmAlphabet     *a,
 /*--------------------------------------------------------------
  * gfsm_alphabet_string_to_labels()
  */
-gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmStringAlphabet *abet,
+gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 						const gchar *str,
 						gfsmLabelVector *vec,
 						gboolean warn_on_undefined)
@@ -806,7 +806,7 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmStringAlphabet *abet,
 /*--------------------------------------------------------------
  * gfsm_alphabet_labels_to_gstring()
  */
-GString *gfsm_alphabet_labels_to_gstring(gfsmStringAlphabet *abet,
+GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
 					 gfsmLabelVector *vec,
 					 GString *gstr,
 					 gboolean warn_on_undefined,
@@ -859,7 +859,7 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmStringAlphabet *abet,
 /*--------------------------------------------------------------
  * gfsm_alphabet_labels_to_string()
  */
-char *gfsm_alphabet_labels_to_string(gfsmStringAlphabet *abet,
+char *gfsm_alphabet_labels_to_string(gfsmAlphabet *abet,
 				     gfsmLabelVector *vec,
 				     gboolean warn_on_undefined,
 				     gboolean att_style)

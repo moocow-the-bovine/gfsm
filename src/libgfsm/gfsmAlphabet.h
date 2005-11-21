@@ -368,8 +368,9 @@ typedef GPtrArray gfsmLabelVector;
 /** Convert an ASCII string character-wise to a vector of (gfsmLabel)s.
  *  @vec is not cleared -- use g_ptr_array_set_size() for that.
  *  \returns @vec if non-NULL, otherwise a new gfsmLabelVector.
+ *  @abet should be a gfsmStringAlphabet.
  */
-gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmStringAlphabet *abet,
+gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 						const gchar *str,
 						gfsmLabelVector *vec,
 						gboolean warn_on_undefined);
@@ -377,6 +378,7 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmStringAlphabet *abet,
 /** Convert an ASCII GString character-wise to a vector of (gfsmLabel)s.
  *  @vec is not cleared -- use g_ptr_array_set_size() for that.
  *  \returns @vec if non-NULL, otherwise a new gfsmLabelVector.
+ *  @abet should be a gfsmStringAlphabet.
  */
 #define gfsm_alphabet_gstring_to_labels(abet,gstr,vec,warn) \
         gfsm_alphabet_string_to_labels((abet),(gstr)->str,(vec),(warn))
@@ -385,8 +387,9 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmStringAlphabet *abet,
 /** Convert a gfsmLabelVector to a GString.
  *  @gstr is not cleared.
  *  \returns @gstr if non-NULL, otherwise a new GString*.
+ *  @abet should be a gfsmStringAlphabet.
  */
-GString *gfsm_alphabet_labels_to_gstring(gfsmStringAlphabet *abet,
+GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
 					 gfsmLabelVector *vec,
 					 GString *gstr,
 					 gboolean warn_on_undefined,
@@ -395,8 +398,9 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmStringAlphabet *abet,
 /** Convert a gfsmLabelVector to a new string.
  *  @gstr is not cleared.
  *  \returns @gstr if non-NULL, otherwise a new GString*.
+ *  @abet should be a gfsmStringAlphabet.
  */
-char *gfsm_alphabet_labels_to_string(gfsmStringAlphabet *abet,
+char *gfsm_alphabet_labels_to_string(gfsmAlphabet *abet,
 				     gfsmLabelVector *vec,
 				     gboolean warn_on_undefined,
 				     gboolean att_style);

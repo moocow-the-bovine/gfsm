@@ -104,10 +104,12 @@ gfsmSet *gfsm_automaton_paths(gfsmAutomaton *fsm, gfsmSet *paths);
 /** Recursive guts for gfsm_automaton_paths() */
 gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm, gfsmSet *paths, gfsmStateId q, gfsmPath *path);
 
-/** Convert a gfsmPathSet to a list of (char*)s */
+/** Convert a gfsmPathSet to a list of (char*)s.
+ *  @abet_lo and @abet_hi should be (gfsmStringAlphabet*)s.
+ */
 GSList *gfsm_paths_to_strings(gfsmSet *paths,
-			      gfsmStringAlphabet *abet_lo,
-			      gfsmStringAlphabet *abet_hi,
+			      gfsmAlphabet *abet_lo,
+			      gfsmAlphabet *abet_hi,
 			      gfsmSemiring       *sr,
 			      gboolean warn_on_undefined,
 			      gboolean att_style,
@@ -115,12 +117,12 @@ GSList *gfsm_paths_to_strings(gfsmSet *paths,
 
 /** Utility struct for gfsm_paths_to_strings() */
 struct _gfsm_paths_to_strings_options {
-  gfsmStringAlphabet *abet_lo;
-  gfsmStringAlphabet *abet_hi;
-  gfsmSemiring       *sr;
-  gboolean warn_on_undefined;
-  gboolean att_style;
-  GSList *strings;
+  gfsmAlphabet *abet_lo;  ///< should be a gfsmStringAlphabet*
+  gfsmAlphabet *abet_hi;  ///< should be a gfsmStringAlphabet*
+  gfsmSemiring       *sr; ///< semiring for weight-based set sorting
+  gboolean warn_on_undefined;  ///< warn on undefined symbols?
+  gboolean att_style;          ///< use ATT-style output?
+  GSList *strings;             ///< output list
 };
 
 /** Utility for gfsm_paths_to_strings() */

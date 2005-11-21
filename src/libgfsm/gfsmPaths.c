@@ -194,8 +194,8 @@ gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm, gfsmSet *paths, gfsmStateId
 
 //--------------------------------------------------------------
 GSList *gfsm_paths_to_strings(gfsmSet *paths,
-			      gfsmStringAlphabet *abet_lo,
-			      gfsmStringAlphabet *abet_hi,
+			      gfsmAlphabet *abet_lo,
+			      gfsmAlphabet *abet_hi,
 			      gfsmSemiring *sr,
 			      gboolean warn_on_undefined,
 			      gboolean att_style,

@@ -88,7 +88,7 @@ gfsmAutomaton *gfsm_lookup(gfsmLabelVector *input, gfsmAutomaton *fst, gfsmAutom
 	  cfg_new->qt = arc->target;
 	  cfg_new->qr = gfsm_automaton_add_state(result);
 	  cfg_new->i  = cfg->i;
-	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, gfsmEpsilon, gfsmEpsilon, arc->weight);
+	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->upper, arc->upper, arc->weight);
 	  stack = g_slist_prepend(stack, cfg_new);
 	}
 	//-- input-matching arcs
