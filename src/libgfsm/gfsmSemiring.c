@@ -56,6 +56,10 @@ void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type)
     sr->zero = FLT_MAX;
     sr->one  = 0;
     break;
+  case gfsmSRTPLog:
+    sr->zero = -FLT_MAX;
+    sr->one  = 0;
+    break;
   case gfsmSRTTrivial:
     sr->zero = 0;
     sr->one  = 0;
@@ -127,6 +131,8 @@ gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
   case gfsmSRTLog:
   case gfsmSRTTropical: return (x < y);
 
+  case gfsmSRTPLog: return (x > y);
+
   case gfsmSRTTrivial:  return (x != y);
 
   case gfsmSRTUser:
@@ -150,6 +156,8 @@ gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
   case gfsmSRTTropical: 
   case gfsmSRTTrivial:  return (x < y ? -1 : (x > y ? 1 : 0));
 
+  case gfsmSRTPLog: return (x < y ? 1 : (x > y ? -1 : 0));
+
   case gfsmSRTUser:
     return (gfsm_sr_compare(sr,x,y) ? -1 : (gfsm_sr_compare(sr,y,x) ? 1 : 0));
     if (((gfsmUserSemiring*)sr)->less_func) {
@@ -168,11 +176,13 @@ gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 /*--------------------------------------------------------------
  * plus()
  */
-gboolean gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
+gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 { 
   switch (sr->type) {
   case gfsmSRTBoolean:  return x || y;
-  case gfsmSRTLog:      return -log(exp(-x) + exp(-y));
+  //case gfsmSRTLog:      return -log(exp(-x) + exp(-y));
+  case gfsmSRTLog:      return -gfsm_log_add(-x,-y);
+  case gfsmSRTPLog:     return  gfsm_log_add( x, y);
   case gfsmSRTTropical: return (x < y ? x : y);
   case gfsmSRTTrivial:
 
@@ -189,11 +199,12 @@ gboolean gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 /*--------------------------------------------------------------
  * times()
  */
-gboolean gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
+gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
   switch (sr->type) {
   case gfsmSRTBoolean:  return x && y;
   case gfsmSRTLog:      
+  case gfsmSRTPLog:
   case gfsmSRTTrivial:
   case gfsmSRTTropical: return x + y;
 
@@ -227,6 +238,7 @@ gfsmSRType gfsm_sr_name_to_type(const char *name)
 {
   if      (strcmp(name,"boolean")  ==0) return gfsmSRTBoolean;
   else if (strcmp(name,"log")      ==0) return gfsmSRTLog;
+  else if (strcmp(name,"plog")     ==0) return gfsmSRTPLog;
   else if (strcmp(name,"real")     ==0) return gfsmSRTReal;
   else if (strcmp(name,"trivial")  ==0) return gfsmSRTTrivial;
   else if (strcmp(name,"tropical") ==0) return gfsmSRTTropical;
@@ -242,9 +254,30 @@ gchar *gfsm_sr_type_to_name(gfsmSRType type)
   switch (type) {
   case gfsmSRTBoolean:  return "boolean";
   case gfsmSRTLog:      return "log";
+  case gfsmSRTPLog:     return "plog";
   case gfsmSRTTrivial:  return "trivial";
   case gfsmSRTTropical: return "tropical";
   case gfsmSRTReal:     return "real";
   default:              return "unknown";
   }
+}
+
+
+/*======================================================================
+ * Semiring: general utilities
+ */
+
+// LOG_BIG = log(1E31)
+#define LOG_BIG    71.3801378828154
+//#define LOG_ZERO  -FLT_MAX
+#define LOG_ZERO  -1E+38F
+#define LOG_ONE    0
+#define LOG_NONE   1
+gfsmWeight gfsm_log_add(gfsmWeight x, gfsmWeight y)
+{
+  if      (y-x > LOG_BIG) return y;
+  else if (x-y > LOG_BIG) return x;
+  /*else        return min(x,y) + log(exp(x-min(x,y)) + exp(y-min(x,y))); */
+  else if (x<y) return x        + log( 1              + exp(y-x));
+  else          return y        + log(exp(x-y)        + 1);
 }

@@ -42,4 +42,7 @@ typedef struct {
 /// current version information
 extern const gfsmVersionInfo gfsm_version;
 
+/// current version string
+extern const char *gfsm_version_string;
+
 #endif /* _GFSM_VERSION_H */

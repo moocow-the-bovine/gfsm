@@ -118,3 +118,17 @@ void gfsm_arciter_seek_user(gfsmArcIter *aip,
     if ((*seekfunc)(aip,data)) break;
   }
 }
+
+/*--------------------------------------------------------------
+ * remove()
+ */
+void gfsm_arciter_remove(gfsmArcIter *aip)
+{
+  if (aip && aip->arcs) {
+    gfsmArcList *next = aip->arcs->next;
+    gfsmArc *arc = (gfsmArc*)aip->arcs->data;
+    if (arc) gfsm_arc_free(arc);
+    aip->state->arcs = g_slist_delete_link(aip->state->arcs, aip->arcs);
+    aip->arcs = next;
+  }
+}

@@ -55,6 +55,7 @@ void gfsm_arciter_reset(gfsmArcIter *aip);
 /** close an arc-iterator pointer @aip */
 void gfsm_arciter_close(gfsmArcIter *aip);
 /* does nothing */
+
 //@}
 
 /*======================================================================
@@ -101,7 +102,13 @@ void gfsm_arciter_seek_user(gfsmArcIter *aip,
 			    gfsmArcIterSeekFunc seekfunc,
 			    gpointer data);
 
+
+/** Remove the arc referred to by a gfsmArcIter, and positions the iterator to the
+ *  next arc, if any.
+ */
+void gfsm_arciter_remove(gfsmArcIter *aip);
+
 //@}
 
-#endif /* _GFSM_ARC_H */
+#endif /* _GFSM_ARCITER_H */
 

@@ -2,6 +2,7 @@ Change log for gfsm
 
 v0.0.7 Sun, 20 Nov 2005 14:39:33 +0100
    + added lookup(), paths(), path<->string conversion functions
+   + added semiring type "plog" (positive logs), added stable gfsm_log_add() function
 
 v0.0.6 Mon, 12 Sep 2005 01:45:46 +0200
    + added mingw32 patch (getline)

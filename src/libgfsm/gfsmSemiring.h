@@ -31,15 +31,16 @@
 /*======================================================================
  * Semiring: types
  */
-/// builtin semiring types
+/// builtin semiring types (see fsmcost(3))
 typedef enum _gfsmSRType {
-  gfsmSRTUnknown  = 0,
-  gfsmSRTBoolean  = 1,
-  gfsmSRTLog      = 2,
-  gfsmSRTReal     = 3,
-  gfsmSRTTrivial  = 4,
-  gfsmSRTTropical = 5,
-  gfsmSRTUser     = 256
+  gfsmSRTUnknown  = 0,  ///< unknown semiring (should never happen)
+  gfsmSRTBoolean  = 1,  ///< boolean semiring <set:{0,1}, plus:||, times:&&, less:>, zero:0, one:1>
+  gfsmSRTLog      = 2,  ///< negative log semiring <set:[-inf,inf], plus:-log(e^-x+e^-y), times:+, less:<, zero:inf, one:0>
+  gfsmSRTReal     = 3,  ///< real semiring: <set:[0,inf], plus:+, times:*, less:<, zero:0, one:1>
+  gfsmSRTTrivial  = 4,  ///< trivial semiring <set:{0}, plus:+, times:+, less:!=, zero:0, one:0>
+  gfsmSRTTropical = 5,  ///< tropical semiring: <set:[-inf,inf], plus:min, times:+, less:<, zero:inf, one:0>
+  gfsmSRTPLog     = 6,  ///< positive log semiring <set:[-inf,inf], plus:log(e^x+e^y), times:+, less:>, zero:-inf, one:0>
+  gfsmSRTUser     = 256 ///< user-defined semiring
 } gfsmSRType;
 
 /*======================================================================
@@ -88,7 +89,7 @@ typedef struct _gfsmSemiringUser {
 ///\name Constructors etc.
 //@{
 
-/** Create, initialize (for builting types), and return new semiring of type @type */
+/** Create, initialize (for builtin types), and return new semiring of type @type */
 gfsmSemiring *gfsm_semiring_new(gfsmSRType type);
 
 /** Initialize and return a builtin semiring */
@@ -122,7 +123,7 @@ void gfsm_semiring_free(gfsmSemiring *sr);
 /** Check semiring element equality */
 //gboolean gfsm_sr_equal(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 #define gfsm_sr_equal(sr,x,y) \
-  (sr->type == gfsmSRTUser && sr->equal_func \
+  (sr->type == gfsmSRTUser && ((gfsmUserSemiring*)sr)->equal_func \
    ? ((*((gfsmUserSemiring*)sr)->equal_func)(sr,x,y)) \
    : (x==y))
 
@@ -133,10 +134,10 @@ gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** Semiring addition */
-gboolean gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
+gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** Semiring multiplication */
-gboolean gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
+gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 //@}
 
 /*======================================================================
@@ -149,6 +150,17 @@ gfsmSRType gfsm_sr_name_to_type(const char *name);
 
 /** Convert a gfsmSRType to a (constant) symbolic name */
 gchar *gfsm_sr_type_to_name(gfsmSRType type);
+//@}
+
+/*======================================================================
+ * Semiring: methods: general utilities
+ */
+///\name General utilities
+//@{
+/** stable log addition.
+ *  \returns log(exp(x)+exp(y))
+ */
+gfsmWeight gfsm_log_add(gfsmWeight x, gfsmWeight y);
 //@}
 
 #endif /* _GFSM_SEMIRING_H */

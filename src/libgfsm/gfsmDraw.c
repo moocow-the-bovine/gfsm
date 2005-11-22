@@ -208,7 +208,7 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
 	    (s->is_final ? "doublecircle" : "circle"),
 	    (id == fsm->root_id ? "bold" : "solid"),
 	    (fontsize ? fontsize : 14));
-    if (fontname) fprintf(f, ", fontname=\"%s\"", fontname);
+    if (fontname && *fontname) fprintf(f, ", fontname=\"%s\"", fontname);
     fprintf(f, "]\n");
 
     for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
@@ -239,7 +239,7 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
       if (fsm->flags.is_weighted) fprintf(f, "/%g", a->weight);
       
       fprintf(f, "\", fontsize=%d", (fontsize ? fontsize : 14));
-      if (fontname) fprintf(f, ", fontname=\"%s\"", fontname);
+      if (fontname && *fontname) fprintf(f, ", fontname=\"%s\"", fontname);
       fprintf(f, "];\n");
     }
   }

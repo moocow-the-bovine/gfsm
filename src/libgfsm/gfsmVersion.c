@@ -37,6 +37,4 @@ const gfsmVersionInfo gfsm_version =
     GFSM_VERSION_MICRO
   };
 
-const char *gfsm_version_string = PACKAGE_STRING;
-
-
+const char *gfsm_version_string = PACKAGE_VERSION;

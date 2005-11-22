@@ -83,10 +83,10 @@ extern const gfsmVersionInfo gfsm_version_bincompat_min;
  *  Returns TRUE iff the header looks valid. */
 gboolean gfsm_automaton_load_header(gfsmAutomatonHeader *hdr, FILE *f, gfsmError **errp);
 
-/** Load an automaton from a stored binary file (implicitly clear()s @a) */
+/** Load an automaton from a stored binary file (implicitly clear()s @fsm) */
 gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp);
 
-/** Load an automaton from a named binary file (implicitly clear()s @a) */
+/** Load an automaton from a named binary file (implicitly clear()s @fsm) */
 gboolean gfsm_automaton_load_bin_filename(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp);
 
 /** Store an automaton from to a binary file */

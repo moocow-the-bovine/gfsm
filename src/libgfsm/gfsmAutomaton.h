@@ -219,7 +219,7 @@ gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id);
  *  or removed.
  */
 #define gfsm_automaton_find_state(fsm,id) \
-    ((id) < fsm->states->len ? (((gfsmState*)((fsm)->states->data))+(id)) : NULL)
+    ((id) < (fsm)->states->len ? (((gfsmState*)((fsm)->states->data))+(id)) : NULL)
 
 /** Try to get a constant pointer to the state with id @id,
  *  or NULL if so such state exists.
@@ -230,6 +230,10 @@ gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id);
  */
 #define gfsm_automaton_find_state_const(fsm,id) \
     ((id) < fsm->states->len ? (((const gfsmState*)((fsm)->states->data))+(id)) : NULL)
+
+/** Check whether automaton has a state with ID @id. */
+#define gfsm_automaton_has_state(fsm,id) \
+    ((id) < (fsm)->states->len && (((gfsmState*)((fsm)->states->data))+(id))->is_valid)
 
 /** Remove the state with id @id, if any.
  *  Note that any incoming arcs for state @id are NOT removed,
