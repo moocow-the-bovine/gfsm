@@ -35,7 +35,7 @@
  */
 
 //--------------------------------------------------------------
-gfsmAutomaton *gfsm_lookup(gfsmLabelVector *input, gfsmAutomaton *fst, gfsmAutomaton *result)
+gfsmAutomaton *gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input, gfsmAutomaton *result)
 {
   GSList           *stack = NULL;
   gfsmLookupConfig *cfg   = (gfsmLookupConfig*)g_new(gfsmLookupConfig,1);

@@ -48,7 +48,7 @@ typedef struct _gfsmLookupConfig {
  *  @fst and project the output tape to @result.
  *  \returns @result if non-NULL, otherwise a new automaton.
  */
-gfsmAutomaton *gfsm_lookup(gfsmLabelVector *input, gfsmAutomaton *fst, gfsmAutomaton *result);
+gfsmAutomaton *gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input, gfsmAutomaton *result);
 //@}
 
 

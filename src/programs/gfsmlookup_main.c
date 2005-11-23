@@ -89,7 +89,7 @@ gfsmAutomaton *lookup_labels(gfsmAutomaton *fst, int argc, char **argv)
   }
 
   //-- actual lookup
-  result = gfsm_lookup(vec, fst, result);
+  result = gfsm_automaton_lookup(fst, vec, result);
 
   //-- cleanup
   g_ptr_array_free(vec,TRUE);
