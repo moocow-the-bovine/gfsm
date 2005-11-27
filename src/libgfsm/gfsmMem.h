@@ -27,6 +27,41 @@
 #include <glib.h>
 
 /*----------------------------------------------------------------------
+ * Allocators: variables
+ */
+
+/** Default GNode allocator */
+extern GAllocator *gfsm_node_allocator;
+
+/** Default GSList allocator */
+extern GAllocator *gfsm_slist_allocator;
+
+/** Default GList allocator */
+extern GAllocator *gfsm_list_allocator;
+
+/** Whether gfsm allocators are currently enabled */
+extern gboolean gfsm_allocators_enabled;
+
+
+/*----------------------------------------------------------------------
+ * Allocators
+ *  - these aren't used by default!
+ */
+
+/** Ensure that gfsm allocators are defined and non-NULL */
+void gfsm_allocators_init(void);
+
+/** Push gfsm allocators to the stack */
+void gfsm_allocators_enable(void);
+
+/** Pop gfsm allocators from the stack */
+void gfsm_allocators_disable(void);
+
+/** Free all memory allocated by the gfsm allocators */
+void gfsm_allocators_free(void);
+
+
+/*----------------------------------------------------------------------
  * Copying
  */
 /** Abstract copy function */

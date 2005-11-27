@@ -25,6 +25,70 @@
 #include <string.h>
 
 /*----------------------------------------------------------------------
+ * Allocators
+ */
+GAllocator *gfsm_node_allocator  = NULL;
+GAllocator *gfsm_slist_allocator = NULL;
+GAllocator *gfsm_list_allocator  = NULL;
+gboolean    gfsm_allocators_enabled = FALSE;
+
+
+/*----------------------------------------------------------------------
+ * init_allocators()
+ */
+void gfsm_allocators_init(void)
+{
+  if (!gfsm_node_allocator) gfsm_node_allocator = g_allocator_new("gfsm_node_allocator",128);
+  if (!gfsm_slist_allocator) gfsm_slist_allocator = g_allocator_new("gfsm_slist_allocator",128);
+  if (!gfsm_list_allocator) gfsm_list_allocator  = g_allocator_new("gfsm_list_allocator",128);
+}
+
+/*----------------------------------------------------------------------
+ * allocators_enable()
+ */
+void gfsm_allocators_enable(void)
+{
+  if (!gfsm_allocators_enabled) {
+    gfsm_allocators_init();
+    g_node_push_allocator(gfsm_node_allocator);
+    g_slist_push_allocator(gfsm_slist_allocator);
+    g_list_push_allocator(gfsm_list_allocator);
+    gfsm_allocators_enabled = TRUE;
+  }
+}
+
+/*----------------------------------------------------------------------
+ * allocators_disable()
+ */
+void gfsm_allocators_disable(void)
+{
+  if (gfsm_allocators_enabled) {
+    g_node_pop_allocator();
+    g_slist_pop_allocator();
+    g_list_pop_allocator();
+    gfsm_allocators_enabled = FALSE;
+  }
+}
+
+
+/*----------------------------------------------------------------------
+ * allocators_free()
+ */
+void gfsm_allocators_free(void)
+{
+  gfsm_allocators_disable();
+
+  if (gfsm_node_allocator) g_allocator_free(gfsm_node_allocator);
+  if (gfsm_slist_allocator) g_allocator_free(gfsm_slist_allocator);
+  if (gfsm_list_allocator) g_allocator_free(gfsm_list_allocator);
+
+  gfsm_node_allocator=NULL;
+  gfsm_slist_allocator=NULL;
+  gfsm_list_allocator=NULL;
+}
+
+
+/*----------------------------------------------------------------------
  * string_dup_n()
  */
 gpointer gfsm_string_dup_n(gconstpointer src, gsize size)

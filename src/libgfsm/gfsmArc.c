@@ -153,9 +153,10 @@ gfsmArcList *gfsm_arclist_copy(gfsmArcList *src)
 /*--------------------------------------------------------------
  * arclist_free()
  */
-#include <stdio.h>
+//#include <stdio.h>
 void gfsm_arclist_free(gfsmArcList *al)
 {
+  /*
   gfsmArcList *next = al;
   //fprintf(stderr, "<DEBUG>:gfsm_arclist_free() called; al=%p\n", al);
   for ( ; al != NULL; al = next) {
@@ -163,6 +164,11 @@ void gfsm_arclist_free(gfsmArcList *al)
     //fprintf(stderr, "<DEBUG>:gfsm_arclist_free(): iter al=%p ; next=%p\n", al, next);
     gfsm_arc_free((gfsmArc*)(al->data));
     g_slist_free_1(al);
+  }
+  */
+  while (al != NULL) {
+    gfsm_arc_free((gfsmArc*)(al->data));
+    al = g_slist_delete_link(al,al);
   }
 }
 

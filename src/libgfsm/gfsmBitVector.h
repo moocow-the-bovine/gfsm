@@ -93,4 +93,5 @@ typedef GArray gfsmBitVector;
 
 //@}
 
+
 #endif /* _GFSM_BITVECTOR_H */

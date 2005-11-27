@@ -26,6 +26,7 @@
 
 #include <glib.h>
 #include <gfsmCommon.h>
+#include <gfsmEnum.h>
 
 /*======================================================================
  * Compound Types
@@ -39,6 +40,9 @@ typedef struct {
   gfsmStateId  id2;
 } gfsmStatePair;
 
+/// Typedef for mapping (gfsmStatePair)s to single (gfsmStateId)s,
+/// used by gfsm_automaton_intersection()
+typedef gfsmEnum gfsmStatePairEnum;
 
 /*======================================================================
  * LabelPair: Methods
@@ -91,6 +95,27 @@ gint gfsm_statepair_compare(const gfsmStatePair *sp1, const gfsmStatePair *sp2);
 
 /** Equality predicate for gfsmStatePair */
 gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2);
+
+//@}
+
+/*======================================================================
+ * Methods: gfsmStatePairEnum
+ */
+///\name gfsmStatePairEnum Methods
+//@{
+
+/** create a new gfsmStatePairEnum (copies & frees keys)
+ *  See gfsmEnum.h for more methods.
+ */
+gfsmStatePairEnum *gfsm_statepair_enum_new(void);
+
+/** Alias */
+#define gfsm_statepair_enum_clear gfsm_enum_clear
+
+/** Alias */
+#define gfsm_statepair_enum_free  gfsm_enum_free
+
+//... see gfsmEnum.h
 
 //@}
 

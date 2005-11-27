@@ -29,6 +29,7 @@
 #include <gfsmAlphabet.h>
 #include <gfsmStateSet.h>
 #include <gfsmEnum.h>
+#include <gfsmCompound.h>
 
 
 /*======================================================================
@@ -55,13 +56,13 @@ gfsmAutomaton *gfsm_automaton_n_closure(gfsmAutomaton *fsm, guint n);
 
 //------------------------------
 /**
- * Compute the complement of @fsm with respect to its own alphabet.
+ * Compute the lower-side complement of @fsm with respect to its own lower alphabet.
  * Destructively alters @fsm \returns @fsm
  */
 gfsmAutomaton *gfsm_automaton_complement(gfsmAutomaton *fsm);
 
 /**
- * Compute the complement of @fsm with respect to the alphabet @alph,
+ * Compute the lower-side complement of @fsm with respect to the alphabet @alph,
  * which should contain all of the lower-labels from @fsm1.  Destructively alters @fsm.
  * \returns @fsm
  */
@@ -78,9 +79,41 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton    *fsm,
 				       gfsmStateId      *sinkp);
 
 //------------------------------
-/** Compute the composition of transducer @fsm1 with @fsm2. \returns altered @fsm1 */
-/// TODO
+/** Compute the composition of @fsm1 with @fsm2
+ *  (upper-side of @fsm1 intersection with lower-side of @fsm2).
+ *  Pseudo-destructive on @fsm1.
+ *  \returns altered @fsm1
+ */
+// WIP
 gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+
+/** Compute the composition of two transducers @fsm1 and @fsm2 
+ *  into the transducer @composition, which may be passed as NULL to create a new FSM.
+ *  @spenum stores a mapping from (@fsm1,@fsm2) StatePairs to @fsm StateIds,
+ *  if it is passed as NULL, a temporary enum will be created.
+ *  \returns @fsm3.
+ */
+// WIP
+gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
+					   gfsmAutomaton *fsm2,
+					   gfsmAutomaton *composition,
+					   gfsmStatePairEnum *spenum);
+
+/** Guts for gfsm_automaton_compose() \returns (new) StateId for @sp. */
+gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair  sp,
+					  gfsmAutomaton *fsm1,
+					  gfsmAutomaton *fsm2,
+					  gfsmAutomaton *fsm,
+					  gfsmStatePairEnum *spenum);
+
+/** Wrapper guts for compose() and intersect() */
+gfsmAutomaton *_gfsm_automaton_compose_intersect_wrapper(gfsmAutomaton *fsm1,
+							 gfsmAutomaton *fsm2,
+							 gfsmAutomaton *fsmout,
+							 gfsmStatePairEnum *spenum,
+							 gboolean is_composition);
+
+
 
 //------------------------------
 /** Append @fsm2 onto the end of @fsm1 @n times.  \returns @fsm1 */
@@ -116,41 +149,98 @@ gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *fsm1);
 gfsmAutomaton *gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *dfa);
 
 //------------------------------
-/** Remove language of @fsm2 from @fsm1. \returns @fsm1 */
-/// TODO
+/** Remove language of acceptor @fsm2 from acceptor @fsm1.
+ *  Pseudo-destructively alters @fsm1.
+ *  Really just an alias for intersect_full(fsm1,fsm2,NULL)
+ *  \returns @fsm1
+ */
 gfsmAutomaton *gfsm_automaton_difference(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
+/** Compute difference of acceptors (@fsm1-@fsm2) into acceptor @diff,
+ *  which may be passed as NULL to implicitly create a new automaton.
+ *  Really just an alias for intersect_full(fsm1,complement(clone(fsm2)),diff).
+ *  \returns (possibly new) difference automaton @diff
+ */
+gfsmAutomaton *gfsm_automaton_difference_full(gfsmAutomaton *fsm1,
+					      gfsmAutomaton *fsm2,
+					      gfsmAutomaton *diff);
+
 //------------------------------
-/** Compute the intersection of two acceptors @fsm1 and @fsm2. */
-/// TODO
-gfsmAutomaton *gfsm_automaton_intersection(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+/** Compute the intersection of two acceptors @fsm1 and @fsm2 (lower-side intersection).
+ *  Pseudo-destructive on @fsm1.
+ *  \returns @fsm1.
+ */
+gfsmAutomaton *gfsm_automaton_intersect(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+
+/** Compute the intersection of two acceptors @fsm1 and @fsm2 
+ *  into the acceptor @intersect, which may be passed as NULL to create a new FSM.
+ *  @spenum stores a mapping from (@fsm1,@fsm2) StatePairs to @fsm StateIds,
+ *  if it is passed as NULL, a temporary hash will be created.
+ *  \returns @fsm3.
+ */
+gfsmAutomaton *gfsm_automaton_intersect_full(gfsmAutomaton *fsm1,
+						gfsmAutomaton *fsm2,
+						gfsmAutomaton *intersect,
+						gfsmStatePairEnum *spenum);
+
+/** Guts for gfsm_automaton_intersect() \returns (new) StateId for @sp */
+gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair  sp,
+					       gfsmAutomaton *fsm1,
+					       gfsmAutomaton *fsm2,
+					       gfsmAutomaton *fsm,
+					       gfsmStatePairEnum *spenum);
 
 //------------------------------
 /** Invert upper and lower labels of an FSM */
 gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm);
 
 //------------------------------
-/** Compute Cartesian product of @fsm1 and @fsm2.  \returns @fsm1  */
-/// TODO
+/** Compute Cartesian product of acceptors @fsm1 and @fsm2.
+ *  Destructively alters @fsm1.
+ *  \returns @fsm1 
+ */
 gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+
+/** Compute Cartesian product of acceptors @fsm1 and @fsm2.
+ *  Destructively alters @fsm1 and @fsm2.
+ *  \returns @fsm1 
+ */
+gfsmAutomaton *_gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
 
 //------------------------------
-/** Project one "side" (lower or upper) of @fsm */
+/** Project one "side" (lower or upper) of @fsm
+ *  \returns modified @fsm
+ */
 gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which);
 
 //------------------------------
-/** Prune unreachable states from @fsm.  \returns @fsm */
+/**
+ * Prune unreachable states from @fsm.
+ * \returns pruned @fsm
+ */
 gfsmAutomaton *gfsm_automaton_prune(gfsmAutomaton *fsm);
 
 //------------------------------
-/** Reverse an @fsm. \returns @fsm */
+/** Reverse an @fsm.
+ *  \returns @fsm
+ */
 gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm);
 
 //------------------------------
-/** Remove epsilon arcs from @fsm.  \returns @fsm */
-/// TODO
+/**
+ * Remove epsilon arcs from @fsm.
+ * Destructively alters @fsm.
+ * \returns @fsm
+ */
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm);
+
+/** Guts for rmepsilon() */
+void gfsm_automaton_rmepsilon_visit_state(gfsmAutomaton *fsm,
+					  gfsmStateId qid_noeps,
+					  gfsmStateId qid_eps,
+					  gfsmWeight weight_eps,
+					  gfsmStatePairEnum *spenum);
 
 //------------------------------
 /** Assign the union of @fsm1 and @fsm2 to @fsm1. \returns @fsm1 */

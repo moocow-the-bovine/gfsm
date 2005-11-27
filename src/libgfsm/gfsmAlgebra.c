@@ -176,6 +176,199 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton *fsm, gfsmAlphabet *alph, g
 }
 
 
+
+/*--------------------------------------------------------------
+ * compose()
+ */
+gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+{
+  gfsmAutomaton *fsm = gfsm_automaton_compose_full(fsm1,fsm2,NULL,NULL);
+  gfsm_automaton_swap(fsm1,fsm);
+  gfsm_automaton_free(fsm);
+  return fsm1;
+}
+
+/*--------------------------------------------------------------
+ * compose_full()
+ */
+gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
+					   gfsmAutomaton *fsm2,
+					   gfsmAutomaton *composition,
+					   gfsmStatePairEnum *spenum)
+{
+  return _gfsm_automaton_compose_intersect_wrapper(fsm1,fsm2,composition,spenum,TRUE);
+}
+
+/*--------------------------------------------------------------
+ * compose_intersect_wrapper()
+ */
+gfsmAutomaton *_gfsm_automaton_compose_intersect_wrapper(gfsmAutomaton *fsm1,
+							 gfsmAutomaton *fsm2,
+							 gfsmAutomaton *fsmout,
+							 gfsmStatePairEnum *spenum,
+							 gboolean is_composition)
+{
+  gboolean      spenum_is_temp;
+  gfsmStatePair rootpair;
+  gfsmStateId   rootid;
+
+  //-- setup: output fsm
+  if (!fsmout) {
+    fsmout=gfsm_automaton_shadow(fsm1);
+  } else {
+    gfsm_automaton_clear(fsmout);
+    gfsm_automaton_copy_shallow(fsmout,fsm1);
+  }
+  fsmout->flags.sort_mode = gfsmASMNone;
+
+  //-- setup: StatePairEnum
+  if (spenum==NULL) {
+    spenum_is_temp=TRUE;
+    spenum = gfsm_statepair_enum_new();
+  } else {
+    spenum_is_temp=FALSE;
+    gfsm_enum_clear(spenum);
+  }
+
+  //-- guts
+  rootpair.id1 = fsm1->root_id;
+  rootpair.id2 = fsm2->root_id;
+  if (is_composition) {
+    fsmout->flags.is_transducer = 1;
+    rootid = _gfsm_automaton_compose_visit(rootpair, fsm1, fsm2, fsmout, spenum);
+  } else {
+    fsmout->flags.is_transducer = 0;
+    rootid = _gfsm_automaton_intersect_visit(rootpair, fsm1, fsm2, fsmout, spenum);
+  }
+
+  //-- finalize: set root state
+  if (rootid != gfsmNoState) {
+    gfsm_automaton_set_root(fsmout, rootid);
+  } else {
+    fsmout->root_id = gfsmNoState;
+  }
+
+  //-- cleanup
+  if (spenum_is_temp) gfsm_enum_free(spenum);
+
+  return fsmout;
+}
+
+/*--------------------------------------------------------------
+ * compose_visit()
+ */
+gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
+					  gfsmAutomaton *fsm1,
+					  gfsmAutomaton *fsm2,
+					  gfsmAutomaton *fsm,
+					  gfsmStatePairEnum *spenum)
+{
+  gfsmState   *q1, *q2;
+  gfsmStateId qid = gfsm_enum_lookup(spenum,&sp);
+  gfsmStateId qid2;
+  gfsmArcList *al1, *al2, *ai1, *ai2, *ai2eps;
+  gboolean     al1_temp=FALSE, al2_temp=FALSE;
+  gfsmArc     *a1,*a2;
+
+  //-- ignore already-visited states
+  if (qid != gfsmEnumNone) return qid;
+
+  //-- get state pointers for input automata
+  q1 = gfsm_automaton_find_state(fsm1,sp.id1);
+  q2 = gfsm_automaton_find_state(fsm2,sp.id2);
+
+  //-- sanity check
+  if ( !(q1 && q2 && q1->is_valid && q2->is_valid) ) return gfsmNoState;
+
+  //-- insert new state into output automaton
+  qid = gfsm_automaton_add_state(fsm);
+  gfsm_enum_insert_full(spenum,&sp,qid);
+
+  //-- check for final states
+  if (q1->is_final && q2->is_final) gfsm_automaton_set_final_state(fsm,qid,TRUE);
+
+  //-------------------------------------------
+  // recurse on outgoing arcs
+
+  //--------------------------------
+  // recurse: arcs: sort
+
+  //-- arcs: sort arclists: fsm12
+  if (gfsm_automaton_sortmode(fsm1)==gfsmASMUpper) al1 = q1->arcs;
+  else {
+    gfsmArcSortData sortdata = {gfsmASMUpper,NULL};
+    al1 = gfsm_arclist_sort(g_slist_copy(q1->arcs), &sortdata);
+    al1_temp = TRUE;
+  }
+
+  //-- arcs: sort arclists: fsm2
+  if (gfsm_automaton_sortmode(fsm2)==gfsmASMLower) al2 = q2->arcs;
+  else {
+    gfsmArcSortData sortdata = {gfsmASMLower,NULL};
+    al2 = gfsm_arclist_sort(g_slist_copy(q2->arcs), &sortdata);
+    al2_temp = TRUE;
+  }
+
+  //--------------------------------
+  // recurse: arcs: iterate
+  for (ai1=al1, ai2=al2; ai1 != NULL; ai1=ai1->next) {
+    a1 = (gfsmArc*)ai1->data;
+    if (a1->upper == gfsmEpsilon) {
+      //-- handle epsilon arcs on fsm1
+
+      //-- eps: case fsm1:(q1 --*:eps-->  q1'), fsm2:(q2)
+      qid2 = _gfsm_automaton_compose_visit((gfsmStatePair){a1->target,sp.id2},
+					   fsm1, fsm2, fsm, spenum);
+      if (qid2 != gfsmNoState)
+	gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, gfsmEpsilon, a1->weight);
+
+      //-- eps: case fsm1:(q1 --*:eps-->  q1'), fsm2:(q2 --eps:*-->  q2')
+      for (ai2eps=al2; ai2eps != NULL; ai2eps=ai2eps->next) {
+	a2 = (gfsmArc*)ai2eps->data;
+	if (a2->lower != gfsmEpsilon) break;
+
+	qid2 = _gfsm_automaton_compose_visit((gfsmStatePair){a1->target,a2->target},
+					     fsm1, fsm2, fsm, spenum);
+	if (qid2 != gfsmNoState)
+	  gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a2->upper,
+				 gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
+      }
+    }
+    else {
+      //-- handle non-epsilon arcs on fsm1
+      for ( ; ai2 != NULL; ai2=ai2->next) {
+	a2 = (gfsmArc*)ai2->data;
+
+	//-- eps: case fsm1:(q1), fsm2:(q2 --eps:*-->  q2')
+	if (a2->lower == gfsmEpsilon) {
+	  qid2 = _gfsm_automaton_compose_visit((gfsmStatePair){sp.id1,a2->target},
+					       fsm1, fsm2, fsm, spenum);
+	  if (qid2 != gfsmNoState)
+	    gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, a2->upper, a2->weight);
+	  continue;
+	}
+	else if (a2->lower < a1->upper) continue;
+	else if (a2->lower > a1->upper) break;
+
+	qid2 = _gfsm_automaton_compose_visit((gfsmStatePair){a1->target,a2->target},
+					     fsm1, fsm2, fsm, spenum);
+	if (qid2 != gfsmNoState)
+	  gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a2->upper,
+				 gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
+      }
+    }
+  }
+
+  //-- cleanup
+  if (al1_temp) g_slist_free(al1);
+  if (al2_temp) g_slist_free(al2);
+
+  return qid;
+}
+
+
+
+
 /*--------------------------------------------------------------
  * concat_final_func()
  *  + called for each final @id of @fsm during concat(@fsm,@fsm2)
@@ -490,7 +683,7 @@ gfsmAutomaton *gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *d
   //-- initialization: dfa
   if (!dfa) dfa = gfsm_automaton_shadow(nfa);
   else {
-    gfsm_automaton_clear(nfa);
+    gfsm_automaton_clear(dfa);
     gfsm_automaton_copy_shallow(dfa,nfa);
   }
   dfa->flags.sort_mode = gfsmASMNone; //-- avoid "smart" arc-insertion
@@ -526,68 +719,173 @@ gfsmAutomaton *gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *d
 
 
 /*--------------------------------------------------------------
- * difference_visit()
- */
-/// TODO
-void _gfsm_difference_visit_states(gfsmAutomaton *fsm1,    gfsmAutomaton *fsm2,
-				   gfsmStateId    id1,     gfsmStateId    id2,
-				   GHashTable    *visited)
-{
-  gfsmStatePair sp_tmp = { id1, id2 };
-
-  if (g_hash_table_lookup(visited,&sp_tmp) == NULL) return;
-
-  //-- not yet visited... do something
-}
-
-/*--------------------------------------------------------------
  * difference()
  */
 gfsmAutomaton *gfsm_automaton_difference(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
-  GHashTable  *visited;  //-- (global) maps pairs (q1,q2) -> TRUE iff (q1,q2) was visited
-
-  //-- sanity check(s)
-  if (!fsm1 || !fsm2 || fsm1->root_id==gfsmNoState || fsm2->root_id==gfsmNoState)
-    return fsm1;
-
-  //-- ERROR
-  g_printerr("gfsm_automaton_difference(): not yet implemented!");
-  g_assert_not_reached();
-
-  //-- initialization: sort both automata
-  gfsm_automaton_arcsort(fsm1, gfsmASMLower);
-  gfsm_automaton_arcsort(fsm2, gfsmASMLower);
-  fsm1->flags.sort_mode = gfsmASMNone; //-- avoid "smart" arc-insertion
-
-  //-- initialization: visited
-  visited = g_hash_table_new_full((GHashFunc)gfsm_statepair_hash,
-				  (GEqualFunc)gfsm_statepair_equal,
-				  (GDestroyNotify)g_free,
-				  NULL);
-
-  //-- guts: pair up root states & visit recursively
-  _gfsm_difference_visit_states(fsm1, fsm2, fsm1->root_id, fsm2->root_id, visited);
-
-  //-- cleanup
-  g_hash_table_destroy(visited);
-
+  gfsmAutomaton *fsm = gfsm_automaton_difference_full(fsm1,fsm2,NULL);
+  gfsm_automaton_swap(fsm1,fsm);
+  gfsm_automaton_free(fsm);
   return fsm1;
 }
 
 /*--------------------------------------------------------------
- * intersection()
+ * difference_full()
  */
-/// TODO
-gfsmAutomaton *gfsm_automaton_intersection(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+gfsmAutomaton *gfsm_automaton_difference_full(gfsmAutomaton *fsm1,
+					      gfsmAutomaton *fsm2,
+					      gfsmAutomaton *diff)
 {
+  gfsmAutomaton *not_fsm2;
+  gfsmAlphabet *alph1 = gfsm_identity_alphabet_new();
+
+  gfsm_automaton_get_alphabet(fsm1, gfsmLSLower, alph1);
+  not_fsm2 = gfsm_automaton_clone(fsm2);
+  gfsm_automaton_complement_full(not_fsm2, alph1);
+  diff = gfsm_automaton_intersect_full(fsm1, not_fsm2, diff, NULL);
+
+  gfsm_automaton_free(not_fsm2);
+  gfsm_alphabet_free(alph1);
+
+  return diff;
+}
 
 
-  g_printerr("gfsm_automaton_difference(): not yet implemented!");
-  g_assert_not_reached();
 
+/*--------------------------------------------------------------
+ * intersect()
+ */
+gfsmAutomaton *gfsm_automaton_intersect(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+{
+  gfsmAutomaton *fsm = gfsm_automaton_intersect_full(fsm1,fsm2,NULL,NULL);
+  gfsm_automaton_swap(fsm1,fsm);
+  gfsm_automaton_free(fsm);
   return fsm1;
 }
+
+/*--------------------------------------------------------------
+ * intersect_full()
+ */
+gfsmAutomaton *gfsm_automaton_intersect_full(gfsmAutomaton *fsm1,
+						gfsmAutomaton *fsm2,
+						gfsmAutomaton *intersect,
+						gfsmStatePairEnum *spenum)
+{
+  return _gfsm_automaton_compose_intersect_wrapper(fsm1,fsm2,intersect,spenum,FALSE);
+}
+
+/*--------------------------------------------------------------
+ * intersect_visit()
+ */
+gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair sp,
+					       gfsmAutomaton *fsm1,
+					       gfsmAutomaton *fsm2,
+					       gfsmAutomaton *fsm,
+					       gfsmStatePairEnum *spenum)
+{
+  gfsmState   *q1, *q2;
+  gfsmStateId qid = gfsm_enum_lookup(spenum,&sp);
+  gfsmStateId qid2;
+  gfsmArcList *al1, *al2, *ai1, *ai2, *ai2eps;
+  gboolean     al1_temp=FALSE, al2_temp=FALSE;
+  gfsmArcSortData sortdata = {gfsmASMLower,NULL};
+  gfsmArc     *a1,*a2;
+
+  //-- ignore already-visited states
+  if (qid != gfsmEnumNone) return qid;
+
+  //-- get state pointers for input automata
+  q1 = gfsm_automaton_find_state(fsm1,sp.id1);
+  q2 = gfsm_automaton_find_state(fsm2,sp.id2);
+
+  //-- sanity check
+  if ( !(q1 && q2 && q1->is_valid && q2->is_valid) ) return gfsmNoState;
+
+  //-- insert new state into output automaton
+  qid = gfsm_automaton_add_state(fsm);
+  gfsm_enum_insert_full(spenum,&sp,qid);
+  //q   = gfsm_automaton_get_state(fsm,qid);
+
+  //-- check for final states
+  if (q1->is_final && q2->is_final) gfsm_automaton_set_final_state(fsm,qid,TRUE);
+
+  //-------------------------------------------
+  // recurse on outgoing arcs
+
+  //--------------------------------
+  // recurse: arcs: sort
+
+  //-- arcs: sort arclists: fsm12
+  if (gfsm_automaton_sortmode(fsm1)==gfsmASMLower) al1 = q1->arcs;
+  else {
+    al1 = gfsm_arclist_sort(g_slist_copy(q1->arcs), &sortdata);
+    al1_temp = TRUE;
+  }
+
+  //-- arcs: sort arclists: fsm2
+  if (gfsm_automaton_sortmode(fsm2)==gfsmASMLower) al2 = q2->arcs;
+  else {
+    al2 = gfsm_arclist_sort(g_slist_copy(q2->arcs), &sortdata);
+    al2_temp = TRUE;
+  }
+
+  //--------------------------------
+  // recurse: arcs: iterate
+  for (ai1=al1, ai2=al2; ai1 != NULL; ai1=ai1->next) {
+    a1 = (gfsmArc*)ai1->data;
+    if (a1->lower == gfsmEpsilon) {
+      //-- handle epsilon arcs
+
+      //-- eps: case fsm1:(q1 --eps-->  q1'), fsm2:(q2)
+      qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){a1->target,sp.id2},
+						fsm1, fsm2, fsm, spenum);
+      if (qid2 != gfsmNoState)
+	gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon, a1->weight);
+
+      //-- eps: case fsm1:(q1 --eps-->  q1'), fsm2:(q2 --eps-->  q2')
+      for (ai2eps=al2; ai2eps != NULL; ai2eps=ai2eps->next) {
+	a2 = (gfsmArc*)ai2eps->data;
+	if (a2->lower != gfsmEpsilon) break;
+
+	qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){a1->target,a2->target},
+						  fsm1, fsm2, fsm, spenum);
+	if (qid2 != gfsmNoState)
+	  gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon,
+				 gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
+      }
+    }
+    else {
+      //-- handle non-epsilon arcs
+      for ( ; ai2 != NULL; ai2=ai2->next) {
+	a2 = (gfsmArc*)ai2->data;
+
+	//-- eps: case fsm1:(q1), fsm2:(q2 --eps-->  q2')
+	if (a2->lower == gfsmEpsilon) {
+	  qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){sp.id1,a2->target},
+						    fsm1, fsm2, fsm, spenum);
+	  if (qid2 != gfsmNoState)
+	    gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon, a2->weight);
+	  continue;
+	}
+	else if (a2->lower < a1->lower) continue;
+	else if (a2->lower > a1->lower) break;
+
+	qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){a1->target,a2->target},
+						  fsm1, fsm2, fsm, spenum);
+	if (qid2 != gfsmNoState)
+	  gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a1->lower,
+				 gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
+      }
+    }
+  }
+
+  //-- cleanup
+  if (al1_temp) g_slist_free(al1);
+  if (al2_temp) g_slist_free(al2);
+
+  return qid;
+}
+
 
 /*--------------------------------------------------------------
  * invert()
@@ -608,12 +906,52 @@ gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm)
 }
 
 /*--------------------------------------------------------------
- * product()
+ * product() (single-destructive)
  */
-/// TODO
 gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
-  g_assert_not_reached();
+  gfsmAutomaton *fsm2_tmp = gfsm_automaton_clone(fsm2);
+  _gfsm_automaton_product(fsm1,fsm2_tmp);
+  gfsm_automaton_free(fsm2_tmp);
+  return fsm1;
+}
+
+/*--------------------------------------------------------------
+ * _product() (dual-destructive)
+ */
+gfsmAutomaton *_gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+{
+  gfsmStateId  qid;
+  gfsmState   *qp;
+  gfsmArcIter  ai;
+  gfsmArc     *a;
+
+  //-- chuck out all upper-labels from fsm1
+  for (qid=0; qid < fsm1->states->len; qid++) {
+    qp = gfsm_automaton_find_state(fsm1,qid);
+    if (!qp || !qp->is_valid) continue;
+    for (gfsm_arciter_open_ptr(&ai,fsm1,qp); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      a = gfsm_arciter_arc(&ai);
+      a->upper = gfsmEpsilon;
+    }
+  }
+
+  //-- chuck out all upper-labels from fsm2
+  for (qid=0; qid < fsm2->states->len; qid++) {
+    qp = gfsm_automaton_find_state(fsm2,qid);
+    if (!qp || !qp->is_valid) continue;
+    for (gfsm_arciter_open_ptr(&ai,fsm2,qp); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      a = gfsm_arciter_arc(&ai);
+      a->lower = gfsmEpsilon;
+    }
+  }
+
+  //-- concatenate
+  gfsm_automaton_concat(fsm1,fsm2);
+  
+  //-- mark output fsm as transducer
+  fsm1->flags.is_transducer = 1;
+
   return fsm1;
 }
 
@@ -639,26 +977,39 @@ gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which)
 
 /*--------------------------------------------------------------
  * prune(): visit_state()
+ *  + returns true if this state is on a path to a final state
  */
-void gfsm_prune_visit_state(gfsmAutomaton *fsm,
-			    gfsmStateId id,
-			    gfsmBitVector *visited)
+gboolean gfsm_prune_visit_state(gfsmAutomaton *fsm,
+				gfsmStateId id,
+				gfsmBitVector *visited,
+				gfsmBitVector *coaccessible)
 {
   gfsmState *s;
   gfsmArcIter ai;
+  gboolean rc=FALSE;
 
-  if (gfsm_bitvector_get(visited,id)) return;
+  if (gfsm_bitvector_get(visited,id)) return FALSE;  //-- already visited
 
   s = gfsm_automaton_find_state(fsm,id);
-  if (!s || !s->is_valid) return;        //-- ignore invalid states
+  if (!s || !s->is_valid) return FALSE;              //-- ignore invalid states
 
-  //-- mark node as visited
+  //-- mark node as visited on this path
   gfsm_bitvector_set(visited,id,1);
+
+  //-- check final
+  if (s->is_final) rc = TRUE;
 
   //-- visit targets of outgoing arcs
   for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-    gfsm_prune_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited);
+    rc = rc || gfsm_prune_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited, coaccessible);
   }
+
+  //-- mark as co-accessible
+  if (rc) {
+    gfsm_bitvector_set(coaccessible,id,1);
+  }
+
+  return rc;
 }
 
 /*--------------------------------------------------------------
@@ -666,22 +1017,38 @@ void gfsm_prune_visit_state(gfsmAutomaton *fsm,
  */
 gfsmAutomaton *gfsm_automaton_prune(gfsmAutomaton *fsm)
 {
-  gfsmBitVector *visited;
+  gfsmBitVector *visited, *coaccessible;
   gfsmStateId    id;
+  gfsmArcIter    ai;
   if (!fsm || fsm->root_id == gfsmNoState) return fsm;
 
-  visited = gfsm_bitvector_sized_new(fsm->states->len);
-  gfsm_prune_visit_state(fsm, fsm->root_id, visited);
-
-  //-- prune
-  for (id=0; id < fsm->states->len; id++) {
-    if (!gfsm_bitvector_get(visited,id)) {
-      gfsm_automaton_remove_state(fsm,id);
+  visited      = gfsm_bitvector_sized_new(fsm->states->len);
+  coaccessible = gfsm_bitvector_sized_new(fsm->states->len);
+  if (gfsm_prune_visit_state(fsm, fsm->root_id, visited, coaccessible)) {
+    //-- root state id co-accessible; prune other states
+    for (id=0; id < fsm->states->len; id++) {
+      if (!gfsm_bitvector_get(coaccessible,id)) {
+	gfsm_automaton_remove_state(fsm,id);
+      }
+      //-- prune outgoing arcs to non-coaccessible states, too
+      for (gfsm_arciter_open(&ai, fsm, id); gfsm_arciter_ok(&ai); ) {
+	gfsmArc *arc = gfsm_arciter_arc(&ai);
+	if (!gfsm_bitvector_get(coaccessible,arc->target)) {
+	  gfsm_arciter_remove(&ai);
+	} else {
+	  gfsm_arciter_next(&ai);
+	}
+      }
     }
+  }
+  else {
+    //-- root state is not co-accessible: just clear the whole fsm
+    gfsm_automaton_clear(fsm);
   }
 
   //-- cleanup
   gfsm_bitvector_free(visited);
+  gfsm_bitvector_free(coaccessible);
 
   return fsm;
 }
@@ -689,12 +1056,90 @@ gfsmAutomaton *gfsm_automaton_prune(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * rmepsilon()
  */
-/// TODO
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 {
-  g_assert_not_reached();
+  gfsmStatePairEnum *spenum = gfsm_statepair_enum_new();
+  gfsmArcIter ai;
+  gfsmStateId qid;
+  gfsmArc *a;
+
+  //-- traversal
+  gfsm_automaton_rmepsilon_visit_state(fsm, fsm->root_id, fsm->root_id, fsm->sr->one,spenum);
+  gfsm_enum_free(spenum);
+
+  //-- actual removal of now-redundant epsilon arcs
+  for (qid=0; qid < fsm->states->len; qid++) {
+    for (gfsm_arciter_open(&ai,fsm,qid); gfsm_arciter_ok(&ai); ) {
+      a = gfsm_arciter_arc(&ai);
+      if (a->lower==gfsmEpsilon && a->upper==gfsmEpsilon) {
+	gfsm_arciter_remove(&ai);
+      } else {
+	gfsm_arciter_next(&ai);
+      }
+    }
+  }
+
   return fsm;
 }
+
+/*--------------------------------------------------------------
+ * rmepsilon_visit_state()
+ */
+void gfsm_automaton_rmepsilon_visit_state(gfsmAutomaton *fsm,
+					  gfsmStateId qid_noeps,
+					  gfsmStateId qid_eps,
+					  gfsmWeight weight_eps,
+					  gfsmStatePairEnum *spenum)
+{
+  gfsmState *q_noeps, *q_eps;
+  gfsmStatePair sp = {qid_noeps,qid_eps};
+  gfsmArcIter ai;
+  gfsmArc *a;
+
+  //-- visited check
+  if (gfsm_enum_lookup(spenum, &sp) != gfsmEnumNone) return;
+
+  //-- sanity check
+  q_noeps = gfsm_automaton_find_state(fsm,qid_noeps);
+  q_eps   = gfsm_automaton_find_state(fsm,qid_eps);
+  if (!q_noeps || !q_noeps->is_valid || !q_eps || !q_eps->is_valid) return;
+
+  //-- mark as visited
+  gfsm_enum_insert_full(spenum, &sp, qid_noeps);
+
+  //-- check for final state
+  if (q_eps->is_final) {
+    gfsm_automaton_set_final_state(fsm,qid_noeps,1);
+  }
+
+  //-- adopt all arcs from eps-reachable state
+  if (qid_eps != qid_noeps) {
+    for (gfsm_arciter_open_ptr(&ai, fsm, q_eps);
+	 gfsm_arciter_ok(&ai);
+	 gfsm_arciter_next(&ai))
+      {
+	a = gfsm_arciter_arc(&ai);
+	gfsm_automaton_add_arc(fsm, qid_noeps, a->target, a->lower, a->upper,
+			       gfsm_sr_times(fsm->sr, weight_eps, a->weight));
+      }
+  }
+
+  //-- visit outgoing arcs from non-eps state
+  for (gfsm_arciter_open_ptr(&ai, fsm, q_eps); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    a = gfsm_arciter_arc(&ai);
+
+    if (a->lower==gfsmEpsilon && a->upper==gfsmEpsilon) {
+      //-- visit epsilon-reachable states
+      gfsm_automaton_rmepsilon_visit_state(fsm, qid_noeps, a->target,
+					   gfsm_sr_times(fsm->sr, weight_eps, a->weight),
+					   spenum);
+    } else {
+      //-- visit "normal" states
+      gfsm_automaton_rmepsilon_visit_state(fsm, a->target, a->target, fsm->sr->one, spenum);
+    }
+  }  
+}
+
 
 /*--------------------------------------------------------------
  * reverse()
@@ -800,4 +1245,14 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
   }
 	 
   return fsm1;
+}
+
+
+/*--------------------------------------------------------------
+ * dummy()
+ */
+gfsmAutomaton *gfsm_automaton_dummy(gfsmAutomaton *fsm)
+{
+  g_assert_not_reached();
+  return fsm;
 }

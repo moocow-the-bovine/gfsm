@@ -109,4 +109,21 @@ gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2
 { return sp1->id1==sp2->id1 && sp1->id2==sp2->id2; }
 
 
+/*======================================================================
+ * Methods: gfsmStatePairEnum
+ */
+
+/*--------------------------------------------------------------
+ * statepair_enum_new()
+ */
+gfsmStatePairEnum *gfsm_statepair_enum_new(void)
+{
+  return gfsm_enum_new_full((gfsmDupFunc)gfsm_statepair_clone,
+			    (GHashFunc)gfsm_statepair_hash,
+			    (GEqualFunc)gfsm_statepair_equal,
+			    (GDestroyNotify)g_free);
+}
+
+
+
 
