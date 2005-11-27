@@ -305,25 +305,32 @@ if test "$gfsm_doc_formats" != "none" ; then
 
   ### -- docs: .gog file linkup
   gfsm_program_gogs="\
-	gfsmcompile.gog \
-	gfsmconvert.gog \
-	gfsmprint.gog \
-	gfsminfo.gog \
-	\
 	gfsmarcsort.gog \
 	gfsmclosure.gog \
+	gfsmcompile.gog \
 	gfsmcomplement.gog \
+	gfsmcompose.gog \
 	gfsmconcat.gog \
+	gfsmconvert.gog \
 	gfsmdeterminize.gog \
+	gfsmdifference.gog \
 	gfsmdraw.gog \
+	gfsminfo.gog \
+	gfsmintersect.gog \
 	gfsminvert.gog \
+	gfsmlabels.gog \
+	gfsmlookup.gog \
+	gfsmprint.gog \
+	gfsmproduct.gog \
 	gfsmproject.gog \
 	gfsmprune.gog \
 	gfsmrenumber.gog \
 	gfsmreverse.gog \
+	gfsmrmepsilon.gog \
+	gfsmstrings.gog \
 	gfsmunion.gog \
 	"
-# gfsmrmepsilon.gog 
+
   gfsm_sec5_pods=""
 
   for g in $gfsm_program_gogs ; do
