@@ -46,7 +46,18 @@ string "output" F "Specifiy output file (default=stdout)." \
 #-----------------------------------------------------------------------------
 bugs "
 
-None known.
+=over 4
+
+=item
+
+If multiple epsilon paths between 2 states exist, only the first path found
+contributes to the collected weight in the output fsm.
+
+=item
+
+Probably many more.
+
+=back
 
 "
 

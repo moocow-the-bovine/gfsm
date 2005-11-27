@@ -2,10 +2,10 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmcomplement"
+program "gfsmproduct"
 #program_version "0.01"
 
-purpose	"Compute complement of finite state acceptors"
+purpose	"Compute Cartesian product of finite state acceptors"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 
@@ -17,25 +17,29 @@ details ""
 #-----------------------------------------------------------------------------
 # Files
 #-----------------------------------------------------------------------------
-#rcfile "/etc/gfsmrc"
-#rcfile "~/.gfsmrc"
+#rcfile "/etc/mootrc"
+#rcfile "~/.mootrc"
 
 #-----------------------------------------------------------------------------
 # Arguments
 #-----------------------------------------------------------------------------
-argument "BINFILE" "Stored binary gfsm file" \
+argument "LOWER" "Stored binary gfsm file" \
+    required=1 \
     details="
-If unspecified, standard input will be read
+FSM accepting the lower side of the output FST.
+Required argument.
+"
+
+argument "UPPER" "Stored binary gfsm file" \
+    details="
+FSM accepting the upper side of the output FST.
+If unspecified, standard input will be read.
 "
 
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
 #group "Basic Options"
-
-string "ilabels" i "Specify input (lower) labels file for alphabet." \
-   arg="LABELS"
-
 string "output" F "Specifiy output file (default=stdout)." \
     arg="FILE" \
     default="-"
@@ -50,7 +54,7 @@ string "output" F "Specifiy output file (default=stdout)." \
 #-----------------------------------------------------------------------------
 bugs "
 
-Epsilon arcs are not handled correctly.
+None known.
 
 "
 

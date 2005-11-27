@@ -25,21 +25,24 @@ bin_PROGRAMS = \
 	\
 	gfsmarcsort \
 	gfsmcomplement \
+	gfsmcompose \
 	gfsmconcat \
 	gfsmclosure \
 	gfsmdeterminize \
+	gfsmdifference \
 	gfsmdraw \
+	gfsmintersect \
 	gfsminvert \
 	gfsmlabels \
 	gfsmlookup \
+	gfsmproduct \
 	gfsmproject \
 	gfsmprune \
 	gfsmrenumber \
 	gfsmreverse \
+	gfsmrmepsilon \
 	gfsmstrings \
 	gfsmunion
-
-#	gfsmrmepsilon 
 
 EXTRA_DIST =
 
@@ -173,6 +176,18 @@ gfsmcomplement_LDADD = $(LDADD_COMMON)
 EXTRA_DIST += gfsmcomplement.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmcompose_SOURCES = \
+	gfsmcompose_main.c \
+	gfsmcompose_cmdparser.c gfsmcompose_cmdparser.h
+
+gfsmcompose_main.o: gfsmcompose_cmdparser.h
+
+gfsmcompose_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmcompose_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmcompose.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmconcat_SOURCES = \
 	gfsmconcat_main.c \
 	gfsmconcat_cmdparser.c gfsmconcat_cmdparser.h
@@ -208,6 +223,18 @@ gfsmdeterminize_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmdeterminize.gog
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmdifference_SOURCES = \
+	gfsmdifference_main.c \
+	gfsmdifference_cmdparser.c gfsmdifference_cmdparser.h
+
+gfsmdifference_main.o: gfsmdifference_cmdparser.h
+
+gfsmdifference_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmdifference_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmdifference.gog
+
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmdraw_SOURCES = \
@@ -220,6 +247,18 @@ gfsmdraw_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmdraw_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmdraw.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmintersect_SOURCES = \
+	gfsmintersect_main.c \
+	gfsmintersect_cmdparser.c gfsmintersect_cmdparser.h
+
+gfsmintersect_main.o: gfsmintersect_cmdparser.h
+
+gfsmintersect_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmintersect_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmintersect.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsminvert_SOURCES = \
@@ -256,6 +295,18 @@ gfsmlookup_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmlookup_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmlookup.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmproduct_SOURCES = \
+	gfsmproduct_main.c \
+	gfsmproduct_cmdparser.c gfsmproduct_cmdparser.h
+
+gfsmproduct_main.o: gfsmproduct_cmdparser.h
+
+gfsmproduct_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmproduct_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmproduct.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmproject_SOURCES = \
@@ -307,16 +358,16 @@ gfsmreverse_LDADD = $(LDADD_COMMON)
 EXTRA_DIST += gfsmreverse.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#gfsmrmepsilon_SOURCES = \
-#	gfsmrmepsilon_main.c \
-#	gfsmrmepsilon_cmdparser.c gfsmrmepsilon_cmdparser.h
-#
-#gfsmrmepsilon_main.o: gfsmrmepsilon_cmdparser.h
-#
-#gfsmrmepsilon_LDFLAGS = $(LDFLAGS_COMMON)
-#gfsmrmepsilon_LDADD = $(LDADD_COMMON)
-#
-#EXTRA_DIST += gfsmrmepsilon.gog
+gfsmrmepsilon_SOURCES = \
+	gfsmrmepsilon_main.c \
+	gfsmrmepsilon_cmdparser.c gfsmrmepsilon_cmdparser.h
+
+gfsmrmepsilon_main.o: gfsmrmepsilon_cmdparser.h
+
+gfsmrmepsilon_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmrmepsilon_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmrmepsilon.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmstrings_SOURCES = \

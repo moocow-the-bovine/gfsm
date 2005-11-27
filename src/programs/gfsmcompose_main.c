@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow@ling.uni-potsdam.de>
+   Copyright (C) 2005 by Bryan Jurish <moocow@ling.uni-potsdam.de>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,12 +28,12 @@
 
 #include <gfsm.h>
 
-#include "gfsmunion_cmdparser.h"
+#include "gfsmcompose_cmdparser.h"
 
 /*--------------------------------------------------------------------------
  * Globals
  *--------------------------------------------------------------------------*/
-char *progname = "gfsmunion";
+char *progname = "gfsmcompose";
 
 //-- options
 struct gengetopt_args_info args;
@@ -44,7 +44,7 @@ const char *outfilename = "-";
 
 //-- global structs etc.
 gfsmError *err = NULL;
-gfsmAutomaton *fsmUnion=NULL, *fsmIn=NULL;
+gfsmAutomaton *fsmOut=NULL, *fsmIn=NULL;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -71,10 +71,10 @@ void get_my_options(int argc, char **argv)
 }
 
 /*--------------------------------------------------------------------------
- * compute_union()
+ * compute_operation()
  *  + utility routine
  */
-void compute_union(const char *infilename)
+void compute_operation(const char *infilename)
 {
   //-- load automaton
   if (!gfsm_automaton_load_bin_filename(fsmIn,infilename,&err)) {
@@ -82,12 +82,12 @@ void compute_union(const char *infilename)
     exit(255);
   }
 
-  //-- compute union
-  if (fsmUnion == NULL) {
-    fsmUnion = fsmIn;
-    fsmIn    = gfsm_automaton_new();
+  //-- compute underlying FSM operation
+  if (fsmOut == NULL) {
+    fsmOut = fsmIn;
+    fsmIn = gfsm_automaton_new();
   } else {
-    gfsm_automaton_union(fsmUnion,fsmIn);
+    gfsm_automaton_compose(fsmOut,fsmIn);
   }
 }
 
@@ -103,19 +103,19 @@ int main (int argc, char **argv)
   get_my_options(argc,argv);
 
   for (i = 0; i < args.inputs_num; i++) {
-    compute_union(args.inputs[i]);
+    compute_operation(args.inputs[i]);
   }
-  if (args.inputs_num == 1) compute_union("-");
+  if (args.inputs_num == 1) compute_operation("-");
 
   //-- spew automaton
-  if (!gfsm_automaton_save_bin_filename(fsmUnion,outfilename,&err)) {
+  if (!gfsm_automaton_save_bin_filename(fsmOut,outfilename,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }
 
   //-- cleanup
   if (fsmIn) gfsm_automaton_free(fsmIn);
-  if (fsmUnion) gfsm_automaton_free(fsmUnion);
+  if (fsmOut) gfsm_automaton_free(fsmOut);
 
   GFSM_FINISH
 

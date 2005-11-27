@@ -49,6 +49,9 @@ FILE  *outfile = NULL;
 gfsmAlphabet  *labels=NULL;
 gfsmError     *err = NULL;
 
+/* HACK */
+extern ssize_t getline(char **LINEPTR, size_t *N, FILE *STREAM);
+
 /*--------------------------------------------------------------------------
  * Option Processing
  *--------------------------------------------------------------------------*/

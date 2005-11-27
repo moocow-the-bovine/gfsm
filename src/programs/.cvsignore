@@ -2,15 +2,19 @@ gfsmarcsort
 gfsmclosure
 gfsmcompile
 gfsmcomplement
+gfsmcompose
 gfsmconcat
 gfsmconvert
 gfsmdeterminize
+gfsmdifference
 gfsmdraw
 gfsminfo
+gfsmintersect
 gfsminvert
 gfsmlabels
 gfsmlookup
 gfsmprint
+gfsmproduct
 gfsmproject
 gfsmprune
 gfsmrenumber
@@ -22,6 +26,7 @@ gfsmunion
 *.out
 *.tmp
 tmp.*
+tmp
 SFST*
 
 *~
