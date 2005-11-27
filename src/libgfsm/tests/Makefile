@@ -1,4 +1,14 @@
-TARGETS = pathtest
+TARGETS = memtest-general pathtest
+
+KNOWN_TARGETS = \
+	pathtest \
+	memtest \
+	memtest-general
+
+
+CC = gcc
+#CC = ccmalloc --no-wrapper gcc
+LD = $(CC)
 
 CPPFLAGS = -I. -I.. -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
 CFLAGS   = -g
@@ -13,8 +23,14 @@ all: $(TARGETS)
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $< 
 
-pathtest: pathtest.o ../.libs/libgfsm.a
-	$(CC) $(LDFLAGS) -o $@ pathtest.o $(GFSMLIBS) $(LIBS)
-
+##-- clean
 clean:
-	rm -f *.o *.lo $(TARGETS)
+	rm -f *.o *.lo $(KNOWN_TARGETS)
+
+
+##-- executables
+%test: %test.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
+
+%-general: %-general.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
