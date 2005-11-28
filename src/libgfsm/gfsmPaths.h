@@ -20,6 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmPaths.h
+ *  \brief Path discovery & enumeration
+ */
+
 #ifndef _GFSM_PATHS_H
 #define _GFSM_PATHS_H
 
@@ -34,7 +38,7 @@
  * Types: paths
  */
 
-/** Type for a full automaton path */
+/// Type for an automaton path
 typedef struct _gfsmPath {
   gfsmLabelVector *lo;  /**< lower label sequence */
   gfsmLabelVector *hi;  /**< upper label sequence */
@@ -50,15 +54,15 @@ typedef struct _gfsmPath {
 ///\name Path Utilities
 //@{
 
-/** Copy gfsmLabelVector. \returns @dst */
+/** Copy gfsmLabelVector. \returns \a dst */
 gfsmLabelVector *gfsm_label_vector_copy(gfsmLabelVector *dst, gfsmLabelVector *src);
 
-/** Duplicate a gfsmLabelVector. \returns @dst */
+/** Duplicate a gfsmLabelVector. \returns \a dst */
 #define gfsm_label_vector_dup(src) \
   gfsm_label_vector_copy(g_ptr_array_sized_new(src->len), src)
 
 /** Create and return a new gfsmPath, specifying components
- *  If either of @lo or @hi are NULL, a new vector will be created.
+ *  If either of \a lo or \a hi are NULL, a new vector will be created.
  */
 gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w);
 
@@ -97,7 +101,7 @@ void gfsm_path_free(gfsmPath *p);
  *  Returns a gfsmSet whose elements are (gfsmPath*)s.
  *  allocated with g_new().  It is the caller's responsibility to free the
  *  returned objects.
- *  \returns @set if non-NULL, otherwise a new gfsmSet*.
+ *  \returns \a set if non-NULL, otherwise a new gfsmSet*.
  */
 gfsmSet *gfsm_automaton_paths(gfsmAutomaton *fsm, gfsmSet *paths);
 
@@ -105,7 +109,7 @@ gfsmSet *gfsm_automaton_paths(gfsmAutomaton *fsm, gfsmSet *paths);
 gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm, gfsmSet *paths, gfsmStateId q, gfsmPath *path);
 
 /** Convert a gfsmPathSet to a list of (char*)s.
- *  @abet_lo and @abet_hi should be (gfsmStringAlphabet*)s.
+ *  \a abet_lo and \a abet_hi should be (gfsmStringAlphabet*)s.
  */
 GSList *gfsm_paths_to_strings(gfsmSet *paths,
 			      gfsmAlphabet *abet_lo,

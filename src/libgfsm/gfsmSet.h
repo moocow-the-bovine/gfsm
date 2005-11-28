@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmSet.h
+ *  \brief Abstract set type using GTree
+ */
+
 #ifndef _GFSM_SET_H
 #define _GFSM_SET_H
 
@@ -31,9 +35,10 @@
 /*======================================================================
  * Types
  */
-/// type for sets of pointers: really just an ugly wrapper for GTree
+/** \brief Type for sets of pointers
+ *  \detail really just an ugly wrapper for GTree
+ */
 typedef GTree gfsmSet;
-
 
 
 /*======================================================================
@@ -52,7 +57,7 @@ typedef GTree gfsmSet;
  */
 #define gfsm_set_new(key_cmp_f) g_tree_new(key_cmp_f)
 
-/** Copy set @src to @dst. \returns @dst */
+/** Copy set \a src to \a dst. \returns \a dst */
 gfsmSet *gfsm_set_copy(gfsmSet *dst, gfsmSet *src);
 
 /** Utilitiy for gfsm_set_copy() */
@@ -93,19 +98,19 @@ void gfsm_set_clear(gfsmSet *set);
 ///\name gfsmSet: Algebra
 //@{
 
-/** Add all elements of set @set2 to @set1.
- *  If @dupfunc is non-NULL, it will be used to copy elements from @set2,
+/** Add all elements of set \a set2 to \a set1.
+ *  If \a dupfunc is non-NULL, it will be used to copy elements from \a set2,
  *  otherwise elements will be copied as literal gpointer values.
- * \returns altered @set1
+ * \returns altered \a set1
  */
 gfsmSet *gfsm_set_union(gfsmSet *set1, gfsmSet *set2, gfsmDupFunc dupfunc);
 
-/** Remove all elements in @set2 from @set1.
- * \returns altered @set1 */
+/** Remove all elements in \a set2 from \a set1.
+ * \returns altered \a set1 */
 gfsmSet *gfsm_set_difference(gfsmSet *set1, gfsmSet *set2);
 
-/** Remove all elements from @set1 which are not also in @set2.
- * \returns altered @set1 */
+/** Remove all elements from \a set1 which are not also in \a set2.
+ * \returns altered \a set1 */
 gfsmSet *gfsm_set_intersection(gfsmSet *set1, gfsmSet *set2);
 
 //@}

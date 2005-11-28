@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmArcIter.h
+ *  \brief Iterate over outgoing arcs of an automaton state.
+ */
+
 #ifndef _GFSM_ARCITER_H
 #define _GFSM_ARCITER_H
 
@@ -29,11 +33,11 @@
 /*======================================================================
  * Types: Arc iterators
  */
-/// generic type for arc iterators
+/// Abstract type for arc iterators
 typedef struct _gfsmArcIter {
-  gfsmAutomaton *fsm;    ///< fsm holding these arcs
-  gfsmState     *state;  ///< state holding these arcs
-  gfsmArcList   *arcs;   ///< pointer to node for current arc
+  gfsmAutomaton *fsm;    /**< fsm holding these arcs */
+  gfsmState     *state;  /**< state holding these arcs */
+  gfsmArcList   *arcs;   /**< pointer to node for current arc */
 } gfsmArcIter;
 
 /*======================================================================
@@ -42,17 +46,17 @@ typedef struct _gfsmArcIter {
 ///\name Arc Iterators: Constructors etc.
 //@{
 /** "Open" an arc iterator for the outgoing arcs from state with
- *  id @stateid in @fsm */
+ *  id \a stateid in \a fsm */
 void gfsm_arciter_open(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmStateId stateid);
 
 /** "Open" an arc iterator for the outgoing arcs from a state pointer
- *  into @fsm */
+ *  into \a fsm */
 void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stateptr);
 
 /** Reset an arc iterator to the first outgoing arc */
 void gfsm_arciter_reset(gfsmArcIter *aip);
 
-/** close an arc-iterator pointer @aip */
+/** close an arc-iterator pointer \a aip */
 void gfsm_arciter_close(gfsmArcIter *aip);
 /* does nothing */
 
@@ -64,13 +68,13 @@ void gfsm_arciter_close(gfsmArcIter *aip);
 ///\name Arc Iterators: Accessors
 //@{
 
-/** get a pointer to the arc associated with @aip, or NULL
+/** get a pointer to the arc associated with \a aip, or NULL
  *  if no such arc exists */
 //gfsmArc *gfsm_arciter_arc(gfsmArcIter *aip);
 #define gfsm_arciter_arc(aip) \
   (((aip)->arcs) ? ((gfsmArc*)((aip)->arcs->data)) : NULL)
 
-/** check validity of an arc iterator pointer @aip */
+/** check validity of an arc iterator pointer \a aip */
 //gboolean gfsm_arciter_ok(gfsmArcIter *aip);
 #define gfsm_arciter_ok(aip) ((aip) != NULL && (aip)->arcs != NULL)
 
@@ -78,15 +82,15 @@ void gfsm_arciter_close(gfsmArcIter *aip);
 #define gfsm_arciter_next(aip) \
   ((aip)->arcs ? ((aip)->arcs = (aip)->arcs->next) : NULL)
 
-/** Position an arc-iterator to the next arc with lower label @lo */
+/** Position an arc-iterator to the next arc with lower label \a lo */
 void gfsm_arciter_seek_lower(gfsmArcIter *aip, gfsmLabelVal lo);
 
-/** Position an arc-iterator to the next arc with upper label @hi */
+/** Position an arc-iterator to the next arc with upper label \a hi */
 void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi);
 
 /** Position an arc-iterator to the next arc
- *  with lower label @lo and upper label @hi.
- *  If either @lo or @hi is gfsmNoLabel, the corresponding label(s)
+ *  with lower label \a lo and upper label \a hi.
+ *  If either \a lo or \a hi is gfsmNoLabel, the corresponding label(s)
  *  will be ignored.
  */
 void gfsm_arciter_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi);

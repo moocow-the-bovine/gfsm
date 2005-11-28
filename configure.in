@@ -312,6 +312,7 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmcompose.gog \
 	gfsmconcat.gog \
 	gfsmconvert.gog \
+	gfsmconnect.gog \
 	gfsmdeterminize.gog \
 	gfsmdifference.gog \
 	gfsmdraw.gog \
@@ -323,7 +324,6 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmprint.gog \
 	gfsmproduct.gog \
 	gfsmproject.gog \
-	gfsmprune.gog \
 	gfsmrenumber.gog \
 	gfsmreverse.gog \
 	gfsmrmepsilon.gog \
@@ -546,7 +546,7 @@ AC_CONFIG_FILES(src/libgfsm/Makefile)
 AC_CONFIG_FILES(src/programs/Makefile)
 dnl AC_CONFIG_FILES(src/programs/gfsmconfig, [chmod 0755 src/programs/gfsmconfig])
 AC_CONFIG_FILES(src/Makefile)
-AC_CONFIG_FILES(doc/libgfsm/libgfsm.doxy doc/libgfsm/Makefile)
+AC_CONFIG_FILES(doc/libgfsm/mainpage.dox doc/libgfsm/libgfsm.doxy doc/libgfsm/Makefile)
 AC_CONFIG_FILES(doc/programs/Makefile)
 dnl AC_CONFIG_FILES(doc/tutorial/Makefile)
 AC_CONFIG_FILES(doc/Makefile)

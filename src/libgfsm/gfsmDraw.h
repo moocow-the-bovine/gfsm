@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmDraw.h
+ *  \brief Automaton visualization utilities
+ */
+
 #ifndef _GFSM_DRAW_H
 #define _GFSM_DRAW_H
 

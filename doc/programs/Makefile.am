@@ -45,7 +45,7 @@ html: $(gfsm_program_gogs:.gog=.html)
 
 latex: $(gfsm_program_gogs:.gog=.tex)
 
-dvi: $(gfsm_program_gogs:.gog=.dvi)
+man-dvi: $(gfsm_program_gogs:.gog=.dvi)
 
 ps: $(gfsm_program_gogs:.gog=.ps)
 

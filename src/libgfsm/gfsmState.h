@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmState.h
+ *  \brief Automaton state definitions & utilities
+ */
+
 #ifndef _GFSM_STATE_H
 #define _GFSM_STATE_H
 
@@ -31,11 +35,11 @@
  * Types
  */
 
-/// "Heavy" state structure
+/// Automaton state structure
 typedef struct {
-  gboolean      is_valid : 1; ///< whether this is a valid state
-  gboolean      is_final : 1; ///< whether this is a final state
-  gfsmArcList  *arcs;         ///< list of outgoing arcs
+  gboolean      is_valid : 1; /**< whether this is a valid state */
+  gboolean      is_final : 1; /**< whether this is a final state */
+  gfsmArcList  *arcs;         /**< list of outgoing arcs */
 } gfsmState;
 
 /*======================================================================

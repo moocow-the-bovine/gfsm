@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmArc.h
+ *  \brief Arc (transition) definitions & utilities
+ */
+
 #ifndef _GFSM_ARC_H
 #define _GFSM_ARC_H
 
@@ -30,18 +34,18 @@
 
 /// "Heavy" arc structure
 typedef struct _gfsmArc {
-  gfsmStateId       target;  ///< ID of target node
-  gfsmLabelId       lower;   ///< Lower label
-  gfsmLabelId       upper;   ///< Upper label
-  gfsmWeight        weight;  ///< arc weight
+  gfsmStateId       target;  /**< ID of target node */
+  gfsmLabelId       lower;   /**< Lower label */
+  gfsmLabelId       upper;   /**< Upper label */
+  gfsmWeight        weight;  /**< arc weight */
 } gfsmArc;
 
 /// "Heavy" arc-list structure, data is a (gfsmArc*)
 typedef GSList gfsmArcList;
 /*
 typedef struct _gfsmArcList {
-  gfsmArc               arc;     ///< current arc
-  struct _gfsmArcList  *next;    ///< pointer to next arc
+gfsmArc               arc;     ///< current arc 
+struct _gfsmArcList  *next;    ///< pointer to next arc 
 } gfsmArcList;
 */
 
@@ -53,17 +57,17 @@ typedef enum {
   gfsmASMWeight ///< sort by weight (refers to semiring)
 } gfsmArcSortMode;
 
-/// typedef for arc-sort data
+/// typedef for arc-sorting parameters
 typedef struct {
-  gfsmArcSortMode  mode; ///< sorting mode
-  gfsmSemiring    *sr;   ///< semiring for weight-mode, otherwise ignored
+  gfsmArcSortMode  mode; /**< sorting mode */
+  gfsmSemiring    *sr;   /**< semiring for weight-mode, otherwise ignored */
 } gfsmArcSortData;
 
 /// Type for identifying transducer "sides" (lower vs. upper)
 typedef enum {
-  gfsmLSBoth  = 0,
-  gfsmLSLower = 1,
-  gfsmLSUpper = 2
+  gfsmLSBoth  = 0, ///< Both sides (lower and upper)
+  gfsmLSLower = 1, ///< Lower side only
+  gfsmLSUpper = 2  ///< Upper side only
 } gfsmLabelSide;
 
 /*======================================================================
@@ -85,7 +89,7 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 #define gfsm_arc_new_full(dst,lo,hi,wt) \
   gfsm_arc_init(g_malloc(sizeof(gfsmArc)),(dst),(lo),(hi),(wt))
 
-/** Create a copy of @arc */
+/** Create a copy of \a arc */
 gfsmArc *gfsm_arc_copy(gfsmArc *src);
 
 /** Destroy an arc */
@@ -100,7 +104,7 @@ gfsmArc *gfsm_arc_copy(gfsmArc *src);
 /** Allocate space for a new gfsmArcList node. */
 #define gfsm_arclist_alloc() g_slist_alloc()
 
-/** Create a new arc-list node for @arc, prepending it to @nxt
+/** Create a new arc-list node for \a arc, prepending it to \a nxt
  *  \returns a pointer to the new 1st element of the arclist */
 //gfsmArcList *gfsm_arclist_prepend(gfsmArcList *nxt, gfsmArc *arc);
 #define gfsm_arclist_prepend(al,arc) g_slist_prepend(al,arc)

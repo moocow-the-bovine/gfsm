@@ -24,6 +24,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmAutomatonIO.h
+ *  \brief Librarian routines for automata.
+ */
+
 #ifndef _GFSM_AUTOMATON_IO_H
 #define _GFSM_AUTOMATON_IO_H
 
@@ -38,25 +42,25 @@
  */
 /// Header info for binary files
 typedef struct {
-  gchar              magic[16];    ///< magic header string "gfsm_automaton"
-  gfsmVersionInfo    version;      ///< gfsm version which created the stored file
-  gfsmVersionInfo    version_min;  ///< minimum gfsm versionr required to load the file
-  gfsmAutomatonFlags flags;        ///< automaton flags
-  gfsmStateId        root_id;      ///< Id of root node
-  gfsmStateId        n_states;     ///< number of stored states
-  gfsmStateId        n_arcs;       ///< number of stored arcs
-  gfsmSRType         srtype;       ///< semiring type
-  guint              unused2;      ///< reserved
-  guint              unused3;      ///< reserved
-  guint              unused4;      ///< reserved
+  gchar              magic[16];    /**< magic header string "gfsm_automaton" */
+  gfsmVersionInfo    version;      /**< gfsm version which created the stored file */
+  gfsmVersionInfo    version_min;  /**< minimum gfsm versionr required to load the file */
+  gfsmAutomatonFlags flags;        /**< automaton flags */
+  gfsmStateId        root_id;      /**< Id of root node */
+  gfsmStateId        n_states;     /**< number of stored states */
+  gfsmStateId        n_arcs;       /**< number of stored arcs */
+  gfsmSRType         srtype;       /**< semiring type */
+  guint              unused2;      /**< reserved */
+  guint              unused3;      /**< reserved */
+  guint              unused4;      /**< reserved */
 } gfsmAutomatonHeader;
 
 /// Type for a stored state
 typedef struct {
-  gboolean is_valid : 1; ///< valid flag
-  gboolean is_final : 1; ///< final flag
-  guint    n_arcs;       ///< number of stored arcs
-  guint    min_arc;      ///< index of stored minimum arc
+  gboolean is_valid : 1; /**< valid flag */
+  gboolean is_final : 1; /**< final flag */
+  guint    n_arcs;       /**< number of stored arcs */
+  guint    min_arc;      /**< index of stored minimum arc */
 } gfsmStoredState;
 
 /// Type for a stored arc
@@ -65,7 +69,7 @@ typedef gfsmArc gfsmStoredArc;
 /*======================================================================
  * Constants
  */
-/** Scanner config for gfsm_automaton_compile() */
+/* Scanner config for gfsm_automaton_compile() */
 //extern const GScannerConfig gfsm_automaton_scanner_config;
 
 /** Magic header string for stored gfsm files */
@@ -83,10 +87,10 @@ extern const gfsmVersionInfo gfsm_version_bincompat_min;
  *  Returns TRUE iff the header looks valid. */
 gboolean gfsm_automaton_load_header(gfsmAutomatonHeader *hdr, FILE *f, gfsmError **errp);
 
-/** Load an automaton from a stored binary file (implicitly clear()s @fsm) */
+/** Load an automaton from a stored binary file (implicitly clear()s \a fsm) */
 gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp);
 
-/** Load an automaton from a named binary file (implicitly clear()s @fsm) */
+/** Load an automaton from a named binary file (implicitly clear()s \a fsm) */
 gboolean gfsm_automaton_load_bin_filename(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp);
 
 /** Store an automaton from to a binary file */

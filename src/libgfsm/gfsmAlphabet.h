@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmAlphabet.h
+ *  \brief Map between gfsmLabelIds and external objects
+ */
+
 #ifndef _GFSM_ALPHABET_H
 #define _GFSM_ALPHABET_H
 
@@ -32,7 +36,7 @@
 /*======================================================================
  * Alphabet: Flags
  */
-/// builtin alphabet types
+/** Enumeration of builtin alphabet types */
 typedef enum _gfsmAlphabetType {
   gfsmATUnknown  = 0,   ///< unknown alphabet type
   gfsmATRange    = 1,   ///< alphabet type for label ranges
@@ -47,9 +51,9 @@ typedef enum _gfsmAlphabetType {
  */
 /// Generic alphabet structure
 typedef struct {
-  gfsmAType     type;          ///< alphabet type
-  gfsmLabelVal  lab_min;       ///< minimum label
-  gfsmLabelVal  lab_max;       ///< maximum label
+  gfsmAType     type;          /**< alphabet type */
+  gfsmLabelVal  lab_min;       /**< minimum label */
+  gfsmLabelVal  lab_max;       /**< maximum label */
 } gfsmAlphabet;
 
 /// Ranged alphabet structure
@@ -57,8 +61,8 @@ typedef gfsmAlphabet gfsmRangeAlphabet;
 
 /// Sparse identity alphabet structure
 typedef struct {
-  gfsmAlphabet  a;             ///< inheritance magic
-  gfsmSet      *labels;        ///< known labels
+  gfsmAlphabet  a;             /**< inheritance magic */
+  gfsmSet      *labels;        /**< known labels */
 } gfsmIdentityAlphabet;
 
 // Pointer-hashing alphabet structure (forward decl)
@@ -98,14 +102,14 @@ typedef gpointer (*gfsmAlphabetKeyReadFunc) (struct _gfsmUserAlphabet *a, GStrin
 /** Type for alphabet string output functions (should write to @str) */
 typedef void (*gfsmAlphabetKeyWriteFunc) (struct _gfsmUserAlphabet *a, gconstpointer key, GString *str);
 
-/// struct for user-defined alphabet method table
+/// method table for user-defined alphabets
 typedef struct _gfsmUserAlpabetMethods {
-  gfsmAlphabetKeyLookupFunc key_lookup;  ///< key->label lookup function
-  gfsmAlphabetLabLookupFunc lab_lookup;  ///< label->key lookup function
-  gfsmAlphabetInsertFunc    insert;      ///< insertion function: receives a newly copied key!
-  gfsmAlphabetLabRemoveFunc lab_remove;  ///< label removal function
-  gfsmAlphabetKeyReadFunc   key_read;    ///< key input function
-  gfsmAlphabetKeyWriteFunc  key_write;   ///< key output function
+  gfsmAlphabetKeyLookupFunc key_lookup;  /**< key->label lookup function */
+  gfsmAlphabetLabLookupFunc lab_lookup;  /**< label->key lookup function */
+  gfsmAlphabetInsertFunc    insert;      /**< insertion function: receives a newly copied key! */
+  gfsmAlphabetLabRemoveFunc lab_remove;  /**< label removal function */
+  gfsmAlphabetKeyReadFunc   key_read;    /**< key input function */
+  gfsmAlphabetKeyWriteFunc  key_write;   /**< key output function */
 } gfsmUserAlphabetMethods;
 
 /// default methods for user-defined alphabets (dummy)
@@ -119,10 +123,10 @@ extern gfsmUserAlphabetMethods gfsmUserAlphabetDefaultMethods;
 //@{
 /// Pointer-hashing alphabet structure
 typedef struct _gfsmPointerAlphabet {
-  gfsmAlphabet           a;             ///< inheritance magic
-  GPtrArray             *labels2keys;   ///< label->key lookup table
-  GHashTable            *keys2labels;   ///< key->label lookup table
-  gfsmAlphabetKeyDupFunc key_dup_func;  ///< key duplication function
+  gfsmAlphabet           a;             /**< inheritance magic */
+  GPtrArray             *labels2keys;   /**< label->key lookup table */
+  GHashTable            *keys2labels;   /**< key->label lookup table */
+  gfsmAlphabetKeyDupFunc key_dup_func;  /**< key duplication function */
 } gfsmPointerAlphabet;
 
 /// type for string alphabets
@@ -131,9 +135,9 @@ typedef gfsmPointerAlphabet gfsmStringAlphabet;
 /// User-extendable alphabet structure
 typedef struct _gfsmUserAlphabet
 {
-  gfsmPointerAlphabet      aa;          ///< inheritance magic
-  gpointer                 data;        ///< user data
-  gfsmUserAlphabetMethods  methods;     ///< method table
+  gfsmPointerAlphabet      aa;          /**< inheritance magic */
+  gpointer                 data;        /**< user data */
+  gfsmUserAlphabetMethods  methods;     /**< method table */
 } gfsmUserAlphabet;
 //@}
 
@@ -145,44 +149,46 @@ typedef struct _gfsmUserAlphabet
 
 /** Create a new alphabet. The alphabet will be uninitialized until you call
  *  one of the gfsm_*_alphabet_init() functions.
+ *
+ *  \param type Type of alphabet to create.
  */
 gfsmAlphabet *gfsm_alphabet_new(gfsmAType type);
 
 
 /** Create and initialize a new identity alphabet.
- *  You do not need to call the init() function for the returned alphabet.
+ *  You do not need to call an init() function for the returned alphabet.
  */
 #define gfsm_identity_alphabet_new() \
   gfsm_identity_alphabet_init((gfsmIdentityAlphabet*)gfsm_alphabet_new(gfsmATIdentity))
 
 /** Create and initialize a new string alphabet.
- *  You do not need to call the init() function for the returned alphabet.
+ *  You do not need to call an init() function for the returned alphabet.
  */
 #define gfsm_string_alphabet_new_full(docopy) \
   gfsm_string_alphabet_init((gfsmStringAlphabet*)gfsm_alphabet_new(gfsmATString),(docopy))
 
 /** Create and initialize a new string alphabet which copies keys.
- *  You do not need to call the init() function for the returned alphabet.
+ *  You do not need to call an init() function for the returned alphabet.
  */
 #define gfsm_string_alphabet_new() gfsm_string_alphabet_new_full(TRUE)
 
 /** Create and initialize a new range alphabet.
- *  You do not need to call the init() function for the returned alphabet. */
+ *  You do not need to call an init() function for the returned alphabet. */
 #define gfsm_range_alphabet_new() \
   gfsm_range_alphabet_init((gfsmRangeAlphabet*)gfsm_alphabet_new(gfsmATRange), \
                            gfsmNoLabel, gfsmNoLabel)
 
 /** Create and initialize a new pointer alphabet.
- *  You do not need to call the init() function for the returned alphabet. */
+ *  You do not need to call an init() function for the returned alphabet. */
 #define gfsm_pointer_alphabet_new(key_dup_f, key_hash_f, key_eq_f, key_free_f, val_free_f) \
   gfsm_pointer_alphabet_init((gfsmPointerAlphabet*)gfsm_alphabet_new(gfsmATPointer),\
                              key_dup_f, key_hash_f, key_eq_f, key_free_f, val_free_f)
 
 
-/** Initialize a builtin alphabet (depending on a->type)
+/** Initialize a builtin alphabet (depending on \a a->type)
  *  This really only works well identity, range, and string alphabets,
- *  as well as for literal pointer alphabets and user alphabets
- *  using literal pointers.
+ *  as well as for literal pointer alphabets (without copy and/or free)
+ *  and for user alphabets using literal pointers.
  */
 gfsmAlphabet *gfsm_alphabet_init(gfsmAlphabet *a);
 
@@ -213,7 +219,7 @@ gfsmAlphabet *gfsm_user_alphabet_init(gfsmUserAlphabet        *a,
 				      gpointer                 user_data,
 				      gfsmUserAlphabetMethods *methods);
 
-/** Clear a gfsmAlphabet */
+/** Clear all labels and keys from a gfsmAlphabet */
 void gfsm_alphabet_clear(gfsmAlphabet *a);
 
 /** foreach utility function to clear user alphabets */
@@ -222,7 +228,7 @@ gboolean gfsm_alphabet_foreach_remove_func (gfsmAlphabet *a,
 					    gfsmLabelVal   lab,
 					    gpointer      data);
 
-/** Free a gfsmAlphabet */
+/** Free all memory allocated by a gfsmAlphabet */
 void gfsm_alphabet_free(gfsmAlphabet *a);
 //@}
 
@@ -231,7 +237,9 @@ void gfsm_alphabet_free(gfsmAlphabet *a);
  */
 ///\name Utilities
 //@{
-/** Type for alphabet functions.  Functions should return TRUE to stop the traversal */
+/** Type for alphabet iterator functions.
+ *  Functions should return \a TRUE to stop the traversal
+ */
 typedef gboolean (*gfsmAlphabetForeachFunc) (gfsmAlphabet *a,
 					     gpointer      key,
 					     gfsmLabelVal   lab,
@@ -261,46 +269,47 @@ gboolean gfsm_alphabet_foreach_size_func(gfsmAlphabet *a,
 					 guint        *np);
 
 /**
- * Insert a (key,label) pair into the alphabet.
- * If @label is gfsmNoLabel, a new label will be assigned.
- * No sanity checks are performed.
- * \returns the new label for @key
+ * Insert a \a (key,label) pair into the alphabet.
+ * If \a label is \a gfsmNoLabel, a new label will be assigned.
+ * \note No sanity checks are performed.
+ *
+ * \returns the new label for \a key
  */
 gfsmLabelVal gfsm_alphabet_insert(gfsmAlphabet *a, gpointer key, gfsmLabelVal label);
 
-/** Get or assign a label for @key.
- *  If @label is gfsmNoLabel, a new label will be assigned for @key if none exists.
- * \returns label for @key
+/** Get or assign a label for \a key.
+ *  If \a label is gfsmNoLabel, a new label will be assigned for \a key if none exists.
+ * \returns label for \a key
  */
 gfsmLabelVal gfsm_alphabet_get_full(gfsmAlphabet *a, gpointer key, gfsmLabelVal label);
 
-/** Get label for @key or assign a new one if none exists.
- * \returns label for @key
+/** Get label for \a key or assign a new one if none exists.
+ * \returns label for \a key
  */
 #define gfsm_alphabet_get_label(a,key) gfsm_alphabet_get_full(a,key,gfsmNoLabel)
 
-/** Lookup label for @key.
- * \returns label for @key, or gfsmNoLabel if none is defined.
+/** Lookup label for \a key.
+ * \returns label for \a key, or gfsmNoLabel if none is defined.
  */
 gfsmLabelVal gfsm_alphabet_find_label(gfsmAlphabet *a, gconstpointer key);
 
-/** Lookup key for @label
- * \returns pointer to key for @label, or NULL if no key is defined.
+/** Lookup key for \a label
+ * \returns pointer to key for \a label, or \a NULL if no key is defined.
  */
 gpointer gfsm_alphabet_find_key(gfsmAlphabet *a, gfsmLabelVal label);
 
-/** Get key for @label or assign gfsmNoKey if none exists.
- * \returns key for @label
+/** Get key for \a label or assign gfsmNoKey if none exists.
+ * \returns key for \a label
  */
 gpointer gfsm_alphabet_get_key(gfsmAlphabet *a, gfsmLabelVal label);
 
-/** Remove mapping for @key (and associated label, if any) */
+/** Remove mapping for \a key (and associated label, if any) */
 void gfsm_alphabet_remove_key(gfsmAlphabet *a, gconstpointer key);
 
-/** Remove mapping for @label (and associated key, if any) */
+/** Remove mapping for \a label (and associated key, if any) */
 void gfsm_alphabet_remove_label(gfsmAlphabet *a, gfsmLabelVal label);
 
-/** Add all keys from alphabet @a2 to @a1. \returns @a1 */
+/** Add all keys from alphabet \a a2 to \a a1. \returns \a a1 */
 gfsmAlphabet *gfsm_alphabet_union(gfsmAlphabet *a1, gfsmAlphabet *a2);
 
 /** foreach utility func for union() */
@@ -331,7 +340,7 @@ void gfsm_alphabet_key2string(gfsmAlphabet *a, gpointer key, GString *gstr);
 /** Load a string alphabet from a named file */
 gboolean gfsm_alphabet_load_filename (gfsmAlphabet *a, const gchar *filename, gfsmError **errp);
 
-/** Load a string alphabet from a stream.  Returns NULL on success */
+/** Load a string alphabet from a stream.  Returns \a NULL on success */
 gboolean gfsm_alphabet_load_file (gfsmAlphabet *a, FILE *f, gfsmError **errp);
 
 /** Save a string alphabet to a named file */
@@ -366,9 +375,9 @@ gboolean gfsm_alphabet_save_file_func(gfsmAlphabet     *a,
 typedef GPtrArray gfsmLabelVector;
 
 /** Convert an ASCII string character-wise to a vector of (gfsmLabel)s.
- *  @vec is not cleared -- use g_ptr_array_set_size() for that.
- *  \returns @vec if non-NULL, otherwise a new gfsmLabelVector.
- *  @abet should be a gfsmStringAlphabet.
+ *  \a vec is not cleared -- use g_ptr_array_set_size() for that.
+ *  \returns \a vec if non-\a NULL, otherwise a new gfsmLabelVector.
+ *  \a abet should be a gfsmStringAlphabet.
  */
 gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 						const gchar *str,
@@ -376,18 +385,18 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 						gboolean warn_on_undefined);
 
 /** Convert an ASCII GString character-wise to a vector of (gfsmLabel)s.
- *  @vec is not cleared -- use g_ptr_array_set_size() for that.
- *  \returns @vec if non-NULL, otherwise a new gfsmLabelVector.
- *  @abet should be a gfsmStringAlphabet.
+ *  \a vec is not cleared -- use g_ptr_array_set_size() for that.
+ *  \returns \a vec if non-\a NULL, otherwise a new gfsmLabelVector.
+ *  \a abet should be a gfsmStringAlphabet.
  */
 #define gfsm_alphabet_gstring_to_labels(abet,gstr,vec,warn) \
         gfsm_alphabet_string_to_labels((abet),(gstr)->str,(vec),(warn))
 
 
 /** Convert a gfsmLabelVector to a GString.
- *  @gstr is not cleared.
- *  \returns @gstr if non-NULL, otherwise a new GString*.
- *  @abet should be a gfsmStringAlphabet.
+ *  \a gstr is not cleared.
+ *  \returns \a gstr if non-\a NULL, otherwise a new GString*.
+ *  \a abet should be a gfsmStringAlphabet.
  */
 GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
 					 gfsmLabelVector *vec,
@@ -396,9 +405,9 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
 					 gboolean att_style);
 
 /** Convert a gfsmLabelVector to a new string.
- *  @gstr is not cleared.
- *  \returns @gstr if non-NULL, otherwise a new GString*.
- *  @abet should be a gfsmStringAlphabet.
+ *  \a gstr is not cleared.
+ *  \returns \a gstr if non-\a NULL, otherwise a new GString*.
+ *  \a abet should be a gfsmStringAlphabet.
  */
 char *gfsm_alphabet_labels_to_string(gfsmAlphabet *abet,
 				     gfsmLabelVector *vec,

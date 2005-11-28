@@ -4,6 +4,7 @@ gfsmcompile
 gfsmcomplement
 gfsmcompose
 gfsmconcat
+gfsmconnect
 gfsmconvert
 gfsmdeterminize
 gfsmdifference

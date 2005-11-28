@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmStateSet.h
+ *  \brief Sets of (gfsmStateId)s
+ */
+
 #ifndef _GFSM_STATESET_H
 #define _GFSM_STATESET_H
 
@@ -37,8 +41,8 @@ typedef GArray gfsmStateSet;
 
 /** \brief typedef for weighted sets of automaton state-Ids */
 typedef struct {
-  gfsmStateSet *set;
-  gfsmWeight    weight;
+  gfsmStateSet *set;    /**< Set of gfsmStateIds */
+  gfsmWeight    weight; /**< Weight of this set */
 } gfsmWeightedStateSet;
 
 
@@ -94,15 +98,15 @@ void gfsm_stateset_free(gfsmStateSet *sset);
 gboolean gfsm_stateset_contains(gfsmStateSet *sset, gfsmStateId id);
 
 /** Insert a single state-id into a state-set.
- *  \returns true iff @sset already contained @id
+ *  \returns true iff \a sset already contained \a id
  */
 gboolean gfsm_stateset_insert(gfsmStateSet *sset, gfsmStateId id);
 
-/** Assign @sset1 to be the union of itself with @sset2 */
+/** Assign \a sset1 to be the union of itself with \a sset2 */
 gfsmStateSet *gfsm_stateset_union(gfsmStateSet *sset1, gfsmStateSet *sset2);
 
 /** Remove a state-id from a state-set
- * \returns true iff @sset contained @id
+ * \returns true iff \a sset contained \a id
  */
 gboolean gfsm_stateset_remove(gfsmStateSet *sset, gfsmStateId id);
 
@@ -136,7 +140,7 @@ typedef gfsmStateId* gfsmStateSetIter;
    ? (sseti) \
    : NULL)
 
-/** Find an iterator pointing to the element for @id in @sset,
+/** Find an iterator pointing to the element for \a id in \a sset,
  *  or a bad iterator if no such element exists */
 gfsmStateSetIter gfsm_stateset_find(gfsmStateSet *sset, gfsmStateId id);
 
@@ -166,13 +170,13 @@ guint gfsm_stateset_hash(gfsmStateSet *sset);
 //@{
 
 /** Populate a state-set representing targets of arcs with
- *  lower label @lo and upper label @hi leaving state with id @id
- *  in automaton @fsm.
+ *  lower label \a lo and upper label \a hi leaving state with id \a id
+ *  in automaton \a fsm.
  *
- *  If either @lo or @hi is gfsmNoLabel, the corresponding labels
+ *  If either \a lo or \a hi is gfsmNoLabel, the corresponding labels
  *  will be ignored.
  *
- *  Note that this method does not clear @sset.
+ *  Note that this method does not clear \a sset.
  */
 void gfsm_stateset_populate(gfsmStateSet *sset,
 			    gfsmAutomaton *fsm,
@@ -184,7 +188,7 @@ void gfsm_stateset_populate(gfsmStateSet *sset,
 #define gfsm_stateset_populate_eps(sset,fsm,id) \
   gfsm_stateset_populate((sset),(fsm),(id),gfsmEpsilon,gfsmEpsilon)
 
-/** Returns true iff some id in @sset is a final state in @fsm */
+/** Returns true iff some id in \a sset is a final state in \a fsm */
 gboolean gfsm_stateset_has_final_state(gfsmStateSet *sset, gfsmAutomaton *fsm);
 
 //@}

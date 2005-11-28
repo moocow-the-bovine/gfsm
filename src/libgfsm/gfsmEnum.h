@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmEnum.h
+ *  \brief Abstract utilities for run-time value enumerations
+ */
+
 #ifndef _GFSM_ENUM_H
 #define _GFSM_ENUM_H
 
@@ -76,30 +80,30 @@ void gfsm_enum_free(gfsmEnum *en);
 /** Get next available value */
 #define gfsm_enum_next_value(en) ((en)->nxtval)
 
-/** Lookup the numeric value associated with @lookup_key.
- *  On return, *@stored_key points to the original (stored) key, if any;
- *  and *@stored_value points to the stored value.
- *  \returns true iff a value for @key was already stored
+/** Lookup the numeric value associated with \a lookup_key.
+ *  On return, *\a stored_key points to the original (stored) key, if any;
+ *  and *\a stored_value points to the stored value.
+ *  \returns true iff a value for \a key was already stored
  */
 gboolean gfsm_enum_lookup_extended(gfsmEnum      *en,
 				   gconstpointer  lookup_key,
 				   gpointer      *stored_key,
 				   gpointer      *stored_val);
 
-/** Lookup the numeric value associated with @key.
- *  \returns the value associated with @key, or gfsmEnumNone
+/** Lookup the numeric value associated with \a key.
+ *  \returns the value associated with \a key, or gfsmEnumNone
  *  if no such value was found
  */
 guint gfsm_enum_lookup(gfsmEnum *en, gconstpointer key);
 
 
-/** Insert or overwrite new value @val for @key.
- *  If @val is gfsmEnumNone, the next available value will be used.
- *  \returns new value for @key
+/** Insert or overwrite new value \a val for \a key.
+ *  If \a val is gfsmEnumNone, the next available value will be used.
+ *  \returns new value for \a key
  */
 guint gfsm_enum_insert_full(gfsmEnum *en, gpointer key, guint val);
 
-/** Insert a (possibly new) value @val for @key */
+/** Insert a (possibly new) value \a val for \a key */
 #define gfsm_enum_insert(en,key) gfsm_enum_insert_full(en,key,gfsmEnumNone)
 
 /** Really just an alias for gfsm_enum_insert(en,key) */

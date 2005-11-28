@@ -393,7 +393,7 @@ gboolean _gfsm_automaton_concat_final_func_1(gfsmStateId id, gpointer dummy, gfs
  */
 gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
 {
-  gfsmAutomaton *fsm2 = _fsm2;
+  gfsmAutomaton *fsm2;
   gfsmStateId    offset;
   gfsmStateId    id2;
   gfsmStateId    size2;
@@ -499,6 +499,85 @@ gfsmAutomaton *gfsm_automaton_n_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2
 
   return fsm1;
 }
+
+/*--------------------------------------------------------------
+ * connect(): visit_state()
+ *  + returns true if this state is on a path to a final state
+ */
+gboolean gfsm_connect_visit_state(gfsmAutomaton *fsm,
+				gfsmStateId id,
+				gfsmBitVector *visited,
+				gfsmBitVector *coaccessible)
+{
+  gfsmState *s;
+  gfsmArcIter ai;
+  gboolean rc=FALSE;
+
+  if (gfsm_bitvector_get(visited,id)) return FALSE;  //-- already visited
+
+  s = gfsm_automaton_find_state(fsm,id);
+  if (!s || !s->is_valid) return FALSE;              //-- ignore invalid states
+
+  //-- mark node as visited on this path
+  gfsm_bitvector_set(visited,id,1);
+
+  //-- check final
+  if (s->is_final) rc = TRUE;
+
+  //-- visit targets of outgoing arcs
+  for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    rc = rc || gfsm_connect_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited, coaccessible);
+  }
+
+  //-- mark as co-accessible
+  if (rc) {
+    gfsm_bitvector_set(coaccessible,id,1);
+  }
+
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * connect()
+ */
+gfsmAutomaton *gfsm_automaton_connect(gfsmAutomaton *fsm)
+{
+  gfsmBitVector *visited, *coaccessible;
+  gfsmStateId    id;
+  gfsmArcIter    ai;
+  if (!fsm || fsm->root_id == gfsmNoState) return fsm;
+
+  visited      = gfsm_bitvector_sized_new(fsm->states->len);
+  coaccessible = gfsm_bitvector_sized_new(fsm->states->len);
+  if (gfsm_connect_visit_state(fsm, fsm->root_id, visited, coaccessible)) {
+    //-- root state id co-accessible; prune other states
+    for (id=0; id < fsm->states->len; id++) {
+      if (!gfsm_bitvector_get(coaccessible,id)) {
+	gfsm_automaton_remove_state(fsm,id);
+      }
+      //-- prune outgoing arcs to non-coaccessible states, too
+      for (gfsm_arciter_open(&ai, fsm, id); gfsm_arciter_ok(&ai); ) {
+	gfsmArc *arc = gfsm_arciter_arc(&ai);
+	if (!gfsm_bitvector_get(coaccessible,arc->target)) {
+	  gfsm_arciter_remove(&ai);
+	} else {
+	  gfsm_arciter_next(&ai);
+	}
+      }
+    }
+  }
+  else {
+    //-- root state is not co-accessible: just clear the whole fsm
+    gfsm_automaton_clear(fsm);
+  }
+
+  //-- cleanup
+  gfsm_bitvector_free(visited);
+  gfsm_bitvector_free(coaccessible);
+
+  return fsm;
+}
+
 
 /*--------------------------------------------------------------
  * _determinize_lp2ec_foreach_func()
@@ -652,7 +731,7 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *nfa)
 {
   if (!nfa->flags.is_deterministic) {
-    gfsmAutomaton *dfa = gfsm_automaton_determinize_2(nfa,NULL);
+    gfsmAutomaton *dfa = gfsm_automaton_determinize_full(nfa,NULL);
     gfsm_automaton_swap(nfa,dfa);
     gfsm_automaton_free(dfa);
   }
@@ -660,9 +739,9 @@ gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *nfa)
 }
 
 /*--------------------------------------------------------------
- * determinize_2()
+ * determinize_full()
  */
-gfsmAutomaton *gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *dfa)
+gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton *dfa)
 {
   gfsmEnum      *ec2id;  //-- (global) maps literal(equiv-class@nfa) => node-id@dfa
   gfsmStateSet  *nfa_ec; //-- (temp) equiv-class@nfa
@@ -975,83 +1054,6 @@ gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which)
   return fsm;
 }
 
-/*--------------------------------------------------------------
- * prune(): visit_state()
- *  + returns true if this state is on a path to a final state
- */
-gboolean gfsm_prune_visit_state(gfsmAutomaton *fsm,
-				gfsmStateId id,
-				gfsmBitVector *visited,
-				gfsmBitVector *coaccessible)
-{
-  gfsmState *s;
-  gfsmArcIter ai;
-  gboolean rc=FALSE;
-
-  if (gfsm_bitvector_get(visited,id)) return FALSE;  //-- already visited
-
-  s = gfsm_automaton_find_state(fsm,id);
-  if (!s || !s->is_valid) return FALSE;              //-- ignore invalid states
-
-  //-- mark node as visited on this path
-  gfsm_bitvector_set(visited,id,1);
-
-  //-- check final
-  if (s->is_final) rc = TRUE;
-
-  //-- visit targets of outgoing arcs
-  for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-    rc = rc || gfsm_prune_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited, coaccessible);
-  }
-
-  //-- mark as co-accessible
-  if (rc) {
-    gfsm_bitvector_set(coaccessible,id,1);
-  }
-
-  return rc;
-}
-
-/*--------------------------------------------------------------
- * prune()
- */
-gfsmAutomaton *gfsm_automaton_prune(gfsmAutomaton *fsm)
-{
-  gfsmBitVector *visited, *coaccessible;
-  gfsmStateId    id;
-  gfsmArcIter    ai;
-  if (!fsm || fsm->root_id == gfsmNoState) return fsm;
-
-  visited      = gfsm_bitvector_sized_new(fsm->states->len);
-  coaccessible = gfsm_bitvector_sized_new(fsm->states->len);
-  if (gfsm_prune_visit_state(fsm, fsm->root_id, visited, coaccessible)) {
-    //-- root state id co-accessible; prune other states
-    for (id=0; id < fsm->states->len; id++) {
-      if (!gfsm_bitvector_get(coaccessible,id)) {
-	gfsm_automaton_remove_state(fsm,id);
-      }
-      //-- prune outgoing arcs to non-coaccessible states, too
-      for (gfsm_arciter_open(&ai, fsm, id); gfsm_arciter_ok(&ai); ) {
-	gfsmArc *arc = gfsm_arciter_arc(&ai);
-	if (!gfsm_bitvector_get(coaccessible,arc->target)) {
-	  gfsm_arciter_remove(&ai);
-	} else {
-	  gfsm_arciter_next(&ai);
-	}
-      }
-    }
-  }
-  else {
-    //-- root state is not co-accessible: just clear the whole fsm
-    gfsm_automaton_clear(fsm);
-  }
-
-  //-- cleanup
-  gfsm_bitvector_free(visited);
-  gfsm_bitvector_free(coaccessible);
-
-  return fsm;
-}
 
 /*--------------------------------------------------------------
  * rmepsilon()

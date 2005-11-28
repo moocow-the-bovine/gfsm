@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmLookup.h
+ *  \brief Linear composition
+ */
+
 #ifndef _GFSM_LOOKUP_H
 #define _GFSM_LOOKUP_H
 
@@ -44,9 +48,9 @@ typedef struct _gfsmLookupConfig {
 //@{
 
 //------------------------------
-/** Compose linear automaton specified by @input with the transducer
- *  @fst and project the output tape to @result.
- *  \returns @result if non-NULL, otherwise a new automaton.
+/** Compose linear automaton specified by \a input with the transducer
+ *  \a fst and project the output tape to \a result.
+ *  \returns \a result if non-NULL, otherwise a new automaton.
  */
 gfsmAutomaton *gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input, gfsmAutomaton *result);
 //@}

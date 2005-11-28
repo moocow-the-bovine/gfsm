@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmVersion.h
+ *  \brief Library version information
+ */
+
 #ifndef _GFSM_VERSION_H
 #define _GFSM_VERSION_H
 
@@ -29,20 +33,20 @@
 /*======================================================================
  * Types
  */
-/// Version information
+/// Library Version information
 typedef struct {
-  guint major;   ///< major version
-  guint minor;   ///< minor version
-  guint micro;   ///< micro version
+  guint major;   /**< major version */
+  guint minor;   /**< minor version */
+  guint micro;   /**< micro version */
 } gfsmVersionInfo;
 
 /*======================================================================
  * Constants
  */
-/// current version information
+/** Current version information */
 extern const gfsmVersionInfo gfsm_version;
 
-/// current version string
+/** Current version string */
 extern const char *gfsm_version_string;
 
 #endif /* _GFSM_VERSION_H */

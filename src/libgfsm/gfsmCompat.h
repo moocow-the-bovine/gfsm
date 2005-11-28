@@ -24,6 +24,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmCompat.h
+ *  \brief Compatibility routines for non-GNU systems
+ */
+
 #ifndef _GFSM_COMPAT_H
 #define _GFSM_COMPAT_H
 
@@ -31,22 +35,15 @@
 #include <gfsmConfig.h>
 #endif /* HAVE_CONFIG_H */
 
-/*
-#ifdef __cplusplus
-extern "C" {
-#endif
-*/
-
 #ifndef HAVE_GETLINE
 #include <stdio.h>
-extern ssize_t getdelim(char **linebuf, size_t *linebufsz, int delimiter, FILE *file);
-extern ssize_t getline(char **linebuf, size_t *n, FILE *file);
-#endif
 
-/*
-#ifdef __cplusplus
-}
-#endif
-*/
+/** Compatibility function for non-GNU systems */
+extern ssize_t getdelim(char **linebuf, size_t *linebufsz, int delimiter, FILE *file);
+
+/** Compatibility function for non-GNU systems */
+extern ssize_t getline(char **linebuf, size_t *n, FILE *file);
+
+#endif /* HAVE_GETLINE */
 
 #endif /* _GFSM_COMPAT_H */

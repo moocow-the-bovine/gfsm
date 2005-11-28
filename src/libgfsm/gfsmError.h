@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmError.h
+ *  \brief Error utilities
+ */
+
 #ifndef _GFSM_ERROR_H
 #define _GFSM_ERROR_H
 

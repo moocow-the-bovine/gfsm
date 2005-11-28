@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmCompound.h
+ *  \brief Utilities for "compound" states and labels
+ */
+
 #ifndef _GFSM_COMPOUND_H
 #define _GFSM_COMPOUND_H
 
@@ -34,10 +38,10 @@
 /// Typedef for (lower,upper) label pairs: really just a wrapper for some bit operations
 typedef guint gfsmLabelPair;
 
-/// Typedef for matched pairs of state-ids (used by algebraic operations)
+/// Matched pair of state-ids (used by algebraic operations)
 typedef struct {
-  gfsmStateId  id1;
-  gfsmStateId  id2;
+  gfsmStateId  id1;  /**< Id of first component */
+  gfsmStateId  id2;  /**< Id of second component */
 } gfsmStatePair;
 
 /// Typedef for mapping (gfsmStatePair)s to single (gfsmStateId)s,
@@ -105,17 +109,15 @@ gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2
 //@{
 
 /** create a new gfsmStatePairEnum (copies & frees keys)
- *  See gfsmEnum.h for more methods.
+ *  \see gfsmEnum
  */
 gfsmStatePairEnum *gfsm_statepair_enum_new(void);
 
-/** Alias */
+/** Alias; \sa gfsm_enum_clear() */
 #define gfsm_statepair_enum_clear gfsm_enum_clear
 
-/** Alias */
+/** Alias; \sa gfsm_enum_clear() */
 #define gfsm_statepair_enum_free  gfsm_enum_free
-
-//... see gfsmEnum.h
 
 //@}
 

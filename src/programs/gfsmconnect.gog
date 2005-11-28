@@ -2,10 +2,10 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmprune"
+program "gfsmconnect"
 #program_version "0.01"
 
-purpose	"Prune unreachable states from finite state machines"
+purpose	"Remove non-coaccessible states from finite state machines"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 

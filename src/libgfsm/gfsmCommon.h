@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmCommon.h
+ *  \brief Commonly use typedefs and constants
+ */
+
 #ifndef _GFSM_COMMON_H
 #define _GFSM_COMMON_H
 

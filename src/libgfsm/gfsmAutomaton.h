@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmAutomaton.h
+ *  \brief Automaton definitions and low-level access
+ */
+
 #ifndef _GFSM_AUTOMATON_H
 #define _GFSM_AUTOMATON_H
 
@@ -37,22 +41,26 @@
  * Types
  */
 
+/// Automaton status flags
 typedef struct _gfsmAutomatonFlags {
-  guint32 is_transducer    : 1;       ///< whether this automaton is a transducer
-  guint32 is_weighted      : 1;       ///< whether this automaton is weighted
-  guint32 sort_mode        : 4;       ///< sort-mode (cast to gfsmArcSortMode)
-  guint32 is_deterministic : 1;       ///< whether fsm is known to be deterministic
-  guint32 unused           : 25;      ///< reserved
+  guint32 is_transducer    : 1;       /**< whether this automaton is a transducer */
+  guint32 is_weighted      : 1;       /**< whether this automaton is weighted */
+  guint32 sort_mode        : 4;       /**< sort-mode (cast to gfsmArcSortMode) */
+  guint32 is_deterministic : 1;       /**< whether fsm is known to be deterministic */
+  guint32 unused           : 25;      /**< reserved */
 } gfsmAutomatonFlags;
 
-/// "Heavy" automaton type (weighted transducer)
+/** \brief "Heavy" automaton type
+ *  
+ *  All automata are stored as weighted transducers.
+ */
 typedef struct
 {
-  gfsmAutomatonFlags  flags;     ///< automaton flags
-  gfsmSemiring       *sr;        ///< semiring used for arc weight computations
-  GArray             *states;    ///< vector of automaton states
-  gfsmSet            *finals;    ///< set of final states
-  gfsmStateId         root_id;   ///< ID of root node, or gfsmNoState if not defined
+  gfsmAutomatonFlags  flags;     /**< automaton flags */
+  gfsmSemiring       *sr;        /**< semiring used for arc weight computations */
+  GArray             *states;    /**< vector of automaton states */
+  gfsmSet            *finals;    /**< set of final states */
+  gfsmStateId         root_id;   /**< ID of root node, or gfsmNoState if not defined */
 } gfsmAutomaton;
 
 /*======================================================================
@@ -61,7 +69,7 @@ typedef struct
 /** Default initial automaton size */
 extern const guint gfsmAutomatonDefaultSize;
 
-/** Default initial automaton size */
+/** Default initial automaton flags */
 extern const gfsmAutomatonFlags gfsmAutomatonDefaultFlags;
 
 /** Default semiring for automaton arc weights */
@@ -72,7 +80,7 @@ extern const gfsmSRType gfsmAutomatonDefaultSRType;
  */
 /// \name Constructors etc.
 //@{
-/** Create a new gfsmAutomaton, preallocating some states */
+/** Create a new gfsmAutomaton, preallocating \a size states */
 gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, guint size);
 
 /** Create a new gfsmAutomaton */
@@ -85,17 +93,17 @@ gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srty
 #define gfsm_automaton_clone(fsm) \
   gfsm_automaton_copy(gfsm_automaton_new_full(gfsmAutomatonDefaultFlags,fsm->sr->type,0),fsm)
 
-/** Assign non-structural contents of @src to @dst. \returns @dst */
+/** Assign non-structural contents of \a src to \a dst. \returns \a dst */
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src);
 
-/** Assign the contents of fsm @src to fsm @dst \returns @dst */
+/** Assign the contents of fsm \a src to fsm \a dst \returns \a dst */
 gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src);
 
-/** Create a new FSM whose non-structural contents match those of @fsm */
+/** Create a new FSM whose non-structural contents match those of \a fsm */
 #define gfsm_automaton_shadow(fsm) \
   gfsm_automaton_copy_shallow(gfsm_automaton_new(), fsm)
 
-/** Swap the contents of fsms @fsm1 and @fsm2 */
+/** Swap the contents of fsms \a fsm1 and \a fsm2 */
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
 /** Clear an automaton */
@@ -153,7 +161,7 @@ guint gfsm_automaton_n_arcs_full(gfsmAutomaton *fsm,
 #define gfsm_automaton_set_root(fsm,id) \
    (fsm->root_id = gfsm_automaton_ensure_state(fsm,id))
 
-/** Reserve space for at least @n states */
+/** Reserve space for at least \a n states */
 void gfsm_automaton_reserve(gfsmAutomaton *fsm, gfsmStateId nstates);
 
 /** Utility function for gfsm_automaton_is_cyclic() */
@@ -168,16 +176,16 @@ gboolean gfsm_automaton_is_cyclic(gfsmAutomaton *fsm);
 /** Test whether automaton is acyclic */
 #define gfsm_automaton_is_acyclic(fsm) (!gfsm_automaton_is_cyclic(fsm))
 
-/** Extract automaton-internal labels to @alph.  If @alph is NULL,
+/** Extract automaton-internal labels to \a alph.  If \a alph is NULL,
  *  a new default alphabet will be created and returned (you will need to
  *  free it yourself).
  *
  *  The alphabet should be able to match literal label values to themselved
  *  (i.e. don't pass a string alphabet)
  *
- *  @which determines which side to extract.
+ *  \a which determines which side to extract.
  *
- * \returns @alph
+ * \returns \a alph
  */
 gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm,
 					  gfsmLabelSide  which,
@@ -189,14 +197,14 @@ gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm,
  */
 /// \name Accessors: Automaton States
 //@}
-/** Add a new state, specifying id.  If @id is gfsmNoState,
+/** Add a new state, specifying id.  If \a id is gfsmNoState,
  *  first available state id will be selected.
  *  Implicitly sets root_id
  * \returns Id of the new state
  */
 gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id);
 
-/** Ensures that state @id exists \returns @id */
+/** Ensures that state \a id exists \returns \a id */
 #define gfsm_automaton_ensure_state(fsm,id) \
    gfsm_automaton_add_state_full(fsm,id)
 
@@ -204,16 +212,16 @@ gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id);
 #define gfsm_automaton_add_state(fsm) \
    gfsm_automaton_add_state_full(fsm,gfsmNoState)
 
-/** Get a (possibly new) state with id @id.
+/** Get a (possibly new) state with id \a id.
  * \returns pointer to the state
  */
 #define gfsm_automaton_get_state(fsm,id) \
     (((gfsmState*)((fsm)->states->data))+gfsm_automaton_ensure_state(fsm,(id)))
 /*  (&g_array_index(fsm->states, gfsmState, gfsm_automaton_ensure_state(fsm,id)))*/
 
-/** Try to get a pre-cast pointer to the state with id @id,
+/** Try to get a pre-cast pointer to the state with id \a id,
  *  or NULL if so such state exists.
- *  \returns gfsmState* for @id in @fsm or NULL
+ *  \returns gfsmState* for \a id in \a fsm or NULL
  *  \warning
  *  The pointer returned may be invalidated if states are added
  *  or removed.
@@ -221,9 +229,9 @@ gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id);
 #define gfsm_automaton_find_state(fsm,id) \
     ((id) < (fsm)->states->len ? (((gfsmState*)((fsm)->states->data))+(id)) : NULL)
 
-/** Try to get a constant pointer to the state with id @id,
+/** Try to get a constant pointer to the state with id \a id,
  *  or NULL if so such state exists.
- *  \returns const gfsmState* for @id in @fsm
+ *  \returns const gfsmState* for \a id in \a fsm
  *  \warning
  *  The pointer returned may be invalidated if states are added
  *  or removed.
@@ -231,12 +239,12 @@ gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id);
 #define gfsm_automaton_find_state_const(fsm,id) \
     ((id) < fsm->states->len ? (((const gfsmState*)((fsm)->states->data))+(id)) : NULL)
 
-/** Check whether automaton has a state with ID @id. */
+/** Check whether automaton has a state with ID \a id. */
 #define gfsm_automaton_has_state(fsm,id) \
     ((id) < (fsm)->states->len && (((gfsmState*)((fsm)->states->data))+(id))->is_valid)
 
-/** Remove the state with id @id, if any.
- *  Note that any incoming arcs for state @id are NOT removed,
+/** Remove the state with id \a id, if any.
+ *  Note that any incoming arcs for state \a id are NOT removed,
  *  although any outgoing arcs are removed and freed.
  */
 void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id);
@@ -262,7 +270,7 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm);
  */
 /// \name Accessors: Automaton Arcs
 //@{
-/** Add an arc from state @q1 to state @q2 with label (@lo,@hi) and weight @w
+/** Add an arc from state \a q1 to state \a q2 with label (\a lo,\a hi) and weight \a w
  *  Missing states are implicitly created.
  */
 void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
@@ -272,7 +280,7 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
 			    gfsmLabelId hi,
 			    gfsmWeight  w);
 
-/** Add an arc given pointers @sp to the state and @link to a
+/** Add an arc given pointers \a sp to the state and \a link to a
  *  single-element arclist to be added.  No states are
  *  implicitly created.
  */

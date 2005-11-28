@@ -20,6 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmSemiring.h
+ *  \brief semiring types & operations
+ */
+
 #ifndef _GFSM_SEMIRING_H
 #define _GFSM_SEMIRING_H
 
@@ -31,7 +35,9 @@
 /*======================================================================
  * Semiring: types
  */
-/// builtin semiring types (see fsmcost(3))
+/** Builtin semiring types
+ *  \see fsmcost(3)
+ */
 typedef enum _gfsmSRType {
   gfsmSRTUnknown  = 0,  ///< unknown semiring (should never happen)
   gfsmSRTBoolean  = 1,  ///< boolean semiring <set:{0,1}, plus:||, times:&&, less:>, zero:0, one:1>
@@ -48,39 +54,39 @@ typedef enum _gfsmSRType {
  */
 /// struct to represent a builtin semi-ring for gfsm arc weights
 typedef struct _gfsmSemiring {
-  gfsmSRType type;    ///< type of this semiring
-  gfsmWeight zero;    ///< nil element of this semiring (identity for '+')
-  gfsmWeight one;     ///< unity element of this semiring (idendity for '*')
+  gfsmSRType type;    /**< type of this semiring */
+  gfsmWeight zero;    /**< nil element of this semiring (identity for '+') */
+  gfsmWeight one;     /**< unity element of this semiring (idendity for '*') */
 } gfsmSemiring;
 
 /*======================================================================
  * Semiring: types: functions
  */
-/** Type for semiring unary predicates (i.e. member) */
+/** Type for user-defined semiring unary predicates (i.e. member) */
 typedef gboolean (*gfsmSRUnaryPredicate) (gfsmSemiring *sr, gfsmWeight x);
 
-/// Type for semiring binary predicates (i.e. equal) */
+/// Type for user-defined semiring binary predicates (i.e. equal) */
 typedef gboolean (*gfsmSRBinaryPredicate) (gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
-/// Type for semiring unary operations */
+/// Type for user-defined semiring unary operations */
 typedef gfsmWeight (*gfsmSRUnaryOp) (gfsmSemiring *sr, gfsmWeight x);
 
-/// Type for semiring binary operations */
+/// Type for user-defined semiring binary operations */
 typedef gfsmWeight (*gfsmSRBinaryOp) (gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 
 /*======================================================================
  * Semiring: types: user structs
  */
-/// Hacked struct to represent a semi-ring for gfsm arc weights
+/// User-defined semirings for gfsm operations
 typedef struct _gfsmSemiringUser {
-  gfsmSemiring sr;                  ///< inheritance magic
+  gfsmSemiring sr;                  /**< inheritance magic */
 
-  //-- user-defined semirings must set these functions
-  gfsmSRBinaryPredicate equal_func; ///< equality predicate
-  gfsmSRBinaryPredicate less_func;  ///< order predicate
-  gfsmSRBinaryOp        plus_func;  ///< addition operation
-  gfsmSRBinaryOp        times_func; ///< multiplication operation
+  //-- user-defined semirings *must* set these functions
+  gfsmSRBinaryPredicate equal_func; /**< equality predicate */
+  gfsmSRBinaryPredicate less_func;  /**< order predicate */
+  gfsmSRBinaryOp        plus_func;  /**< addition operation */
+  gfsmSRBinaryOp        times_func; /**< multiplication operation */
 } gfsmUserSemiring;
 
 /*======================================================================
@@ -89,7 +95,7 @@ typedef struct _gfsmSemiringUser {
 ///\name Constructors etc.
 //@{
 
-/** Create, initialize (for builtin types), and return new semiring of type @type */
+/** Create, initialize (for builtin types), and return new semiring of type \a type */
 gfsmSemiring *gfsm_semiring_new(gfsmSRType type);
 
 /** Initialize and return a builtin semiring */
@@ -114,14 +120,13 @@ void gfsm_semiring_free(gfsmSemiring *sr);
 ///\name General Accessors
 //@{
 
-/** Get 'zero' element of the semiring @sr */
+/** Get 'zero' element of the semiring \a sr */
 #define gfsm_sr_zero(sr) (sr ? sr->zero : 0)
 
-/** Get 'one' element of the semiring @sr */
+/** Get 'one' element of the semiring \a sr */
 #define gfsm_sr_one(sr) (sr ? sr->one : 1)
 
 /** Check semiring element equality */
-//gboolean gfsm_sr_equal(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 #define gfsm_sr_equal(sr,x,y) \
   (sr->type == gfsmSRTUser && ((gfsmUserSemiring*)sr)->equal_func \
    ? ((*((gfsmUserSemiring*)sr)->equal_func)(sr,x,y)) \

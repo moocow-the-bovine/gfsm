@@ -21,6 +21,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+/** \file gfsmUtils.h
+ *  \brief Miscellaneous utilities
+ */
+
 #ifndef _GFSM_UTILS_H
 #define _GFSM_UTILS_H
 
@@ -58,10 +62,10 @@ gboolean gfsm_hash_clear_func (gpointer key, gpointer value, gpointer user_data)
  * File Utilties
  */
 /* Open a named file.
- * The filename "-" may be used to indicate stdin or stdout,
- * depending on @mode.
+ * The filename \a "-" may be used to indicate stdin or stdout,
+ * depending on \a mode.
  *
- * If the file cannot be opened, an **errp is set (if non-NULL) and NULL is returned.
+ * If the file cannot be opened, **errp is set (if non-NULL) and NULL is returned.
  */
 FILE *gfsm_open_filename(const char *filename, const char *mode, gfsmError **errp);
 

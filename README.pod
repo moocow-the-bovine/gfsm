@@ -2,7 +2,7 @@
 
 README for package gfsm
 
-Last updated for gfsm v0.0.5
+Last updated for gfsm v0.0.7
 
 =head1 DESCRIPTION
 
@@ -22,7 +22,8 @@ of common algebraic operations on finite state machines.
 Available from:
 http://www.gtk.org/
 
-C library for common data structures.  Tested version 2.4.6.
+C library for common data structures.
+Tested versions 2.4.6, 2.8.3.
 
 =item pkg-config
 
@@ -39,7 +40,7 @@ Required for building library documentation.
 Available from:
 http://www.doxygen.org
 
-Tested version 1.2.15.
+Tested versions 1.2.15, 1.4.4.
 
 =item Perl (Optional)
 
@@ -54,7 +55,7 @@ Should be available from the author of this package at:
 
 http://www.ling.uni-potsdam.de/~moocow/projects/perl
 
-Tested version 0.08.
+Tested version 0.09.
 
 =item pod2man, pod2text, pod2html (Optional)
 

@@ -24,10 +24,11 @@ bin_PROGRAMS = \
 	gfsminfo \
 	\
 	gfsmarcsort \
+	gfsmclosure \
 	gfsmcomplement \
 	gfsmcompose \
 	gfsmconcat \
-	gfsmclosure \
+	gfsmconnect \
 	gfsmdeterminize \
 	gfsmdifference \
 	gfsmdraw \
@@ -37,7 +38,6 @@ bin_PROGRAMS = \
 	gfsmlookup \
 	gfsmproduct \
 	gfsmproject \
-	gfsmprune \
 	gfsmrenumber \
 	gfsmreverse \
 	gfsmrmepsilon \
@@ -212,6 +212,18 @@ gfsmclosure_LDADD = $(LDADD_COMMON)
 EXTRA_DIST += gfsmclosure.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmconnect_SOURCES = \
+	gfsmconnect_main.c \
+	gfsmconnect_cmdparser.c gfsmconnect_cmdparser.h
+
+gfsmconnect_main.o: gfsmconnect_cmdparser.h
+
+gfsmconnect_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmconnect_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmconnect.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmdeterminize_SOURCES = \
 	gfsmdeterminize_main.c \
 	gfsmdeterminize_cmdparser.c gfsmdeterminize_cmdparser.h
@@ -319,18 +331,6 @@ gfsmproject_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmproject_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmproject.gog
-
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-gfsmprune_SOURCES = \
-	gfsmprune_main.c \
-	gfsmprune_cmdparser.c gfsmprune_cmdparser.h
-
-gfsmprune_main.o: gfsmprune_cmdparser.h
-
-gfsmprune_LDFLAGS = $(LDFLAGS_COMMON)
-gfsmprune_LDADD = $(LDADD_COMMON)
-
-EXTRA_DIST += gfsmprune.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmrenumber_SOURCES = \

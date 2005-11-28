@@ -28,12 +28,12 @@
 
 #include <gfsm.h>
 
-#include "gfsmprune_cmdparser.h"
+#include "gfsmconnect_cmdparser.h"
 
 /*--------------------------------------------------------------------------
  * Globals
  *--------------------------------------------------------------------------*/
-char *progname = "gfsmprune";
+char *progname = "gfsmconnect";
 
 //-- options
 struct gengetopt_args_info args;
@@ -79,8 +79,8 @@ int main (int argc, char **argv)
     exit(255);
   }
 
-  //-- prune
-  gfsm_automaton_prune(fsm);
+  //-- connect
+  gfsm_automaton_connect(fsm);
 
   //-- spew automaton
   if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {
