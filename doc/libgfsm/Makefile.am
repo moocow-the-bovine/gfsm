@@ -140,8 +140,8 @@ install-latex-sub:
 
 ## --- extra distribution files
 EXTRA_DIST = \
-	doxy-filter.perl \
 	mainpage.dox \
+	mainpage.dox.in \
 	libgfsm.css \
 	libgfsm-header.html
 

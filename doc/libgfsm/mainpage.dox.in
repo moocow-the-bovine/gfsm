@@ -4,7 +4,7 @@
 
 \author Bryan Jurish <moocow@ling.uni-potsdam.de>
 
-\version 0.0.3
+\version @VERSION@
 
 
 \section Intro Introduction
