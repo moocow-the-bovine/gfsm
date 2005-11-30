@@ -4,6 +4,8 @@ v0.0.7 Sun, 20 Nov 2005 14:39:33 +0100
    + added lookup(), paths(), path<->string conversion functions
    + added semiring type "plog" (positive logs), added stable gfsm_log_add() function
    + added intersect(), compose(), difference(), product(), rmepsilon() operations
+   + gobble less memory on load_bin_file() -- load states & arcs incrementally
+     - doing this right would require a stored binary file incompatibility, currently hacked.
    + fixed a number of small bugs
 
 v0.0.6 Mon, 12 Sep 2005 01:45:46 +0200

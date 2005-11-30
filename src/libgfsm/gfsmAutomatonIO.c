@@ -114,6 +114,88 @@ gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
 {
   gfsmAutomatonHeader hdr;
   gfsmStateId     id;
+  guint           arci, n_arcs;
+  gfsmStoredArc   s_arc;
+  gfsmStoredState s_state;
+  gfsmState       *st;
+  gboolean         rc = TRUE;
+
+  gfsm_automaton_clear(fsm);
+
+  //-- load header
+  if (!gfsm_automaton_load_bin_header(&hdr,f,errp)) return FALSE;
+
+  //-- allocate states
+  gfsm_automaton_reserve(fsm, hdr.n_states);
+
+  //-- set automaton-global properties
+  fsm->flags   = hdr.flags;
+  gfsm_semiring_init(fsm->sr, hdr.srtype);
+  fsm->root_id = hdr.root_id;
+
+  //------ load states (one-by-one)
+  for (id=0; rc && id < hdr.n_states; id++) {
+    if (fread(&s_state, sizeof(gfsmStoredState), 1, f) != 1) {
+      g_set_error(errp,
+		  g_quark_from_static_string("gfsm"),                     //-- domain
+		  g_quark_from_static_string("automaton_load_bin:state"), //-- code
+		  "could not read stored state %d", id);
+      rc = FALSE;
+      break;
+    }
+
+    if (!s_state.is_valid) continue;
+
+    st           = gfsm_automaton_find_state(fsm,id);
+    st->is_valid = TRUE;
+
+    if (s_state.is_final) {
+      st->is_final = TRUE;
+      gfsm_set_insert(fsm->finals,(gpointer)(id));
+    } else {
+      st->is_final = FALSE;
+    }
+
+    //st->arcs = NULL;
+
+    //-- HACK: remember number of arcs!
+    st->arcs = (gfsmArcList*)(s_state.n_arcs);
+  }
+
+  //------ load arcs (state-by-state)
+  for (id=0; rc && id < hdr.n_states; id++) {
+    //-- get state
+    st = gfsm_automaton_find_state(fsm,id);
+    if (!st || !st->is_valid) continue;
+
+    //-- read in arcs (one-by-one)
+    n_arcs   = (guint)(st->arcs);
+    st->arcs = NULL;
+    for (arci=0; arci < n_arcs; arci++) {
+      if (fread(&s_arc, sizeof(gfsmStoredArc), 1, f) != 1) {
+	g_set_error(errp, g_quark_from_static_string("gfsm"),                   //-- domain
+		    g_quark_from_static_string("automaton_load_bin:arc"), //-- code
+		    "could not read stored arcs");
+	rc=FALSE;
+	break;
+      }
+
+      st->arcs = gfsm_arclist_new_full(s_arc.target,
+				       s_arc.lower,
+				       s_arc.upper,
+				       s_arc.weight,
+				       st->arcs);
+    }
+  }
+
+  return rc;
+}
+
+
+gboolean gfsm_automaton_load_bin_file_1(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+{
+  gfsmAutomatonHeader hdr;
+  gfsmStateId     id;
   guint           arci;
   gfsmStoredArc   *s_arcs;
   gfsmStoredState *s_states;
