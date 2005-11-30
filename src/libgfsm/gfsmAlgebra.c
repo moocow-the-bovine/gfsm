@@ -505,15 +505,17 @@ gfsmAutomaton *gfsm_automaton_n_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2
  *  + returns true if this state is on a path to a final state
  */
 gboolean gfsm_connect_visit_state(gfsmAutomaton *fsm,
-				gfsmStateId id,
-				gfsmBitVector *visited,
-				gfsmBitVector *coaccessible)
+				  gfsmStateId id,
+				  gfsmBitVector *visited,
+				  gfsmBitVector *coaccessible)
 {
   gfsmState *s;
   gfsmArcIter ai;
   gboolean rc=FALSE;
 
-  if (gfsm_bitvector_get(visited,id)) return FALSE;  //-- already visited
+  //-- already visited
+  if (gfsm_bitvector_get(visited,id))
+    return gfsm_bitvector_get(coaccessible,id); 
 
   s = gfsm_automaton_find_state(fsm,id);
   if (!s || !s->is_valid) return FALSE;              //-- ignore invalid states
@@ -526,7 +528,9 @@ gboolean gfsm_connect_visit_state(gfsmAutomaton *fsm,
 
   //-- visit targets of outgoing arcs
   for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-    rc = rc || gfsm_connect_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited, coaccessible);
+    gboolean arc_rc =
+      gfsm_connect_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited, coaccessible);
+    rc = rc || arc_rc;
   }
 
   //-- mark as co-accessible
