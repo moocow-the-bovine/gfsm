@@ -59,7 +59,8 @@ libgfsm_la_SOURCES = \
 	gfsmDraw.c \
 	gfsmAlgebra.c \
 	gfsmLookup.c \
-	gfsmPaths.c
+	gfsmPaths.c \
+	gfsmTrie.c
 
 
 #	gfsmHead.c 
@@ -101,6 +102,7 @@ pkginclude_HEADERS = \
 	gfsmAlgebra.h \
 	gfsmLookup.h \
 	gfsmPaths.h \
+	gfsmTrie.h \
 	gfsm.h
 
 #	gfsmHead.h 

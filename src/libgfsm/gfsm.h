@@ -61,6 +61,7 @@ extern "C" {
 #include <gfsmAlgebra.h>
 #include <gfsmLookup.h>
 #include <gfsmPaths.h>
+#include <gfsmTrie.h>
 
 /*
 #ifdef __cplusplus
