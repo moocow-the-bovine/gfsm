@@ -1,0 +1,19 @@
+/* -*- Mode: C++ -*- */
+/** 
+\mainpage libgfsm : finite state utility library
+
+\author Bryan Jurish <moocow@ling.uni-potsdam.de>
+
+\version 0.0.3
+
+
+\section Intro Introduction
+
+libgfsm is an abstract C library for the manipulation of finite
+state machines using <A HREF="http://www.gtk.org">glib</A>
+for basic data structures.  libgfsm currently supports AT&T style
+weighted transducer text input and label definition files, a
+number of common algebraic operations on finite
+state machines, as well as a low-level automaton interface.
+
+*/
