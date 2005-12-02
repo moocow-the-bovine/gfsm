@@ -90,8 +90,8 @@ gboolean gfsm_enum_lookup_extended(gfsmEnum      *en,
  */
 guint gfsm_enum_lookup(gfsmEnum *en, gconstpointer key)
 {
-  guint s_val;
-  if (g_hash_table_lookup_extended(en->table, key, NULL, (gpointer*)(&s_val))) return s_val;
+  gpointer s_val;
+  if (g_hash_table_lookup_extended(en->table, key, NULL, &s_val)) return (guint)s_val;
   return gfsmEnumNone;
 }
 

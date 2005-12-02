@@ -41,6 +41,17 @@ typedef struct _gfsmLookupConfig {
   guint32     i;   /**< current position in input vector */
 } gfsmLookupConfig;
 
+/** Type for a StateId map */
+typedef GPtrArray gfsmStateIdVector;
+
+/*======================================================================
+ * Constants
+ */
+
+/** Number of states to pre-allocate when extending state-map vector on lookup_full() (>= 1) */
+extern const guint gfsmLookupStateMapGet;
+
+
 /*======================================================================
  * Methods: lookup
  */
@@ -50,9 +61,30 @@ typedef struct _gfsmLookupConfig {
 //------------------------------
 /** Compose linear automaton specified by \a input with the transducer
  *  \a fst and project the output tape to \a result.
+ *  \param fst transducer (lower-upper)
+ *  \param input input labels (lower)
+ *  \param result output transducer or NULL
  *  \returns \a result if non-NULL, otherwise a new automaton.
  */
-gfsmAutomaton *gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input, gfsmAutomaton *result);
+#define gfsm_automaton_lookup(fst,input,result) \
+  gfsm_automaton_lookup_full((fst),(input),(result),NULL)
+
+//------------------------------
+/** Compose linear automaton specified by \a input with the transducer
+ *  \a fst and project the output tape to \a result, storing state-translation map \a qenum.
+ *  \param fst transducer (lower-upper)
+ *  \param input input labels (lower)
+ *  \param result output transducer or NULL
+ *  \param statemap if non-NULL, maps \a result StateIds (indices) to \a fst StateIds (values) on return.
+ *                  Not implicitly created or cleared.
+ *  \returns \a result if non-NULL, otherwise a new automaton.
+ */
+gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
+					  gfsmLabelVector   *input,
+					  gfsmAutomaton     *result,
+					  gfsmStateIdVector *statemap);
+					  
+
 //@}
 
 

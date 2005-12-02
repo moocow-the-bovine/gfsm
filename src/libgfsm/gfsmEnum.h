@@ -30,6 +30,7 @@
 
 #include <glib.h>
 #include <gfsmMem.h>
+#include <gfsmCommon.h>
 
 /*======================================================================
  * Types
@@ -43,6 +44,9 @@ typedef struct {
   guint        nxtval;  ///< next id to assign
   gfsmDupFunc  key_dup; ///< key copying function
 } gfsmEnum;
+
+/// Enumeration of StateIds
+typedef gfsmEnum gfsmDirectEnum;
 
 /** Constant indicating failed gfsmEnum value-lookup */
 extern const guint gfsmEnumNone;
@@ -63,6 +67,9 @@ gfsmEnum *gfsm_enum_new_full(gfsmDupFunc key_dup_func,
 
 /** create a new gfsmEnum (no copying) */
 #define gfsm_enum_new(key_hash_f) gfsm_enum_new_full(NULL,key_hash_f,NULL,NULL)
+
+/** create a new gfsmDirectEnum */
+#define gfsm_direct_enum_new() gfsm_enum_new(g_direct_hash)
 
 /** Clear a gfsmEnum */
 void gfsm_enum_clear(gfsmEnum *en);

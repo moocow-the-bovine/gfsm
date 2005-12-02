@@ -42,6 +42,7 @@ typedef struct {
   gfsmArcList  *arcs;         /**< list of outgoing arcs */
 } gfsmState;
 
+
 /*======================================================================
  * Methods: gfsmState: Constructors etc.
  */

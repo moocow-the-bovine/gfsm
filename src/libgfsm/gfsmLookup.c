@@ -31,11 +31,19 @@
 #include <string.h>
 
 /*======================================================================
+ * Constants
+ */
+const guint gfsmLookupStateMapGet = 16;
+
+/*======================================================================
  * Methods: lookup
  */
 
 //--------------------------------------------------------------
-gfsmAutomaton *gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input, gfsmAutomaton *result)
+gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
+					  gfsmLabelVector   *input,
+					  gfsmAutomaton     *result,
+					  gfsmStateIdVector *statemap)
 {
   GSList           *stack = NULL;
   gfsmLookupConfig *cfg   = (gfsmLookupConfig*)g_new(gfsmLookupConfig,1);
@@ -65,6 +73,14 @@ gfsmAutomaton *gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input,
     //-- pop the top element off the stack
     cfg   = (gfsmLookupConfig*)(stack->data);
     stack = g_slist_delete_link(stack, stack);
+
+    //-- add config to the state-map, if non-NULL
+    if (statemap) {
+      if (cfg->qr >= statemap->len) {
+	g_ptr_array_set_size(statemap, cfg->qr + gfsmLookupStateMapGet);
+      }
+      g_ptr_array_index(statemap, cfg->qr) = (gpointer)cfg->qt;
+    }
 
     //-- get states
     qt = gfsm_automaton_find_state_const(fst,    cfg->qt);
@@ -105,6 +121,9 @@ gfsmAutomaton *gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input,
     //-- we're done with this config
     g_free(cfg);
   }
+
+  //-- set final size of the state-map
+  if (statemap) { statemap->len = result->states->len; }
   
   return result;
-};
+}
