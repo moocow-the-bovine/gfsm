@@ -44,24 +44,24 @@
 typedef struct {
   gchar              magic[16];    /**< magic header string "gfsm_automaton" */
   gfsmVersionInfo    version;      /**< gfsm version which created the stored file */
-  gfsmVersionInfo    version_min;  /**< minimum gfsm versionr required to load the file */
+  gfsmVersionInfo    version_min;  /**< minimum gfsm version required to load the file */
   gfsmAutomatonFlags flags;        /**< automaton flags */
   gfsmStateId        root_id;      /**< Id of root node */
   gfsmStateId        n_states;     /**< number of stored states */
-  gfsmStateId        n_arcs;       /**< number of stored arcs */
+  gfsmStateId        n_arcs_007;   /**< number of stored arcs (v0.0.2 .. v0.0.7) */
   gfsmSRType         srtype;       /**< semiring type */
+  guint              unused1;      /**< reserved */
   guint              unused2;      /**< reserved */
   guint              unused3;      /**< reserved */
-  guint              unused4;      /**< reserved */
 } gfsmAutomatonHeader;
 
 /// Type for a stored state
 typedef struct {
   gboolean is_valid : 1; /**< valid flag */
   gboolean is_final : 1; /**< final flag */
-  guint    n_arcs;       /**< number of stored arcs */
-  guint    min_arc;      /**< index of stored minimum arc */
+  guint    n_arcs;       /**< number of stored arcs for this state */
 } gfsmStoredState;
+
 
 /// Type for a stored arc
 typedef gfsmArc gfsmStoredArc;
@@ -75,8 +75,11 @@ typedef gfsmArc gfsmStoredArc;
 /** Magic header string for stored gfsm files */
 extern const gchar gfsm_header_magic[16];
 
-/** Minor version required for loading files stored by this version of libgfsm */
-extern const gfsmVersionInfo gfsm_version_bincompat_min;
+/** Minimum libgfsm version required for loading files stored by this version of libgfsm */
+extern const gfsmVersionInfo gfsm_version_bincompat_min_store;
+
+/** Minimum libgfsm version whose binary files this version of libgfsm can read */
+extern const gfsmVersionInfo gfsm_version_bincompat_min_check;
 
 /*======================================================================
  * Methods: Binary I/O

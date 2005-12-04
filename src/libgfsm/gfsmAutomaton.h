@@ -35,6 +35,7 @@
 #include <gfsmArc.h>
 #include <gfsmState.h>
 #include <gfsmSet.h>
+#include <gfsmWeightMap.h>
 #include <gfsmBitVector.h>
 
 /*======================================================================
@@ -59,7 +60,7 @@ typedef struct
   gfsmAutomatonFlags  flags;     /**< automaton flags */
   gfsmSemiring       *sr;        /**< semiring used for arc weight computations */
   GArray             *states;    /**< vector of automaton states */
-  gfsmSet            *finals;    /**< set of final states */
+  gfsmWeightMap      *finals;    /**< map from final state-Ids to final weights */
   gfsmStateId         root_id;   /**< ID of root node, or gfsmNoState if not defined */
 } gfsmAutomaton;
 
@@ -140,7 +141,7 @@ void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype);
 #define gfsm_automaton_n_states(fsm) (fsm->states->len)
 
 /** Get number of final states (linear time w/ number of final states) */
-#define gfsm_automaton_n_final_states(fsm) (gfsm_set_size(fsm->finals))
+#define gfsm_automaton_n_final_states(fsm) (gfsm_weightmap_size(fsm->finals))
 
 /** Get total number of arcs (linear time w/ number of arcs) */
 //guint gfsm_automaton_n_arcs(gfsmAutomaton *fsm);
@@ -254,8 +255,22 @@ void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id);
 #define gfsm_automaton_is_final_state(fsm,id) \
   gfsm_state_is_final(gfsm_automaton_find_state_const(fsm,id))
 
-/** Set final-state flag. \returns (void) */
-void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId id, gboolean is_final);
+/** Set boolean final-state flag. \returns (void) */
+//void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId id, gboolean is_final);
+#define gfsm_automaton_set_final_state(fsm,id,is_final) \
+  gfsm_automaton_set_final_state_full(fsm,id,is_final,fsm->sr->one)
+
+/** Set final weight. \returns (void) */
+void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
+					 gfsmStateId    id,
+					 gboolean       is_final,
+					 gfsmWeight     final_weight);
+
+/** Get final weight. \returns final weight if state \a id is final, else \a fsm->sr->zero */
+gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id);
+
+/** Lookup final weight. \returns TRUE iff state \a id is final, and sets \a *wp to its final weight. */
+gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeight *wp);
 
 /** Get number of outgoing arcs. \returns guint */
 #define gfsm_automaton_out_degree(fsm,id) \

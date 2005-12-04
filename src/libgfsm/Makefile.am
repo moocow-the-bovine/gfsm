@@ -47,6 +47,7 @@ libgfsm_la_SOURCES = \
 	gfsmUtils.c \
 	gfsmEnum.c \
 	gfsmSet.c \
+	gfsmWeightMap.c \
 	gfsmBitVector.c \
 	gfsmAlphabet.c \
 	gfsmSemiring.c \
@@ -58,6 +59,7 @@ libgfsm_la_SOURCES = \
 	gfsmAutomatonIO.c \
 	gfsmDraw.c \
 	gfsmAlgebra.c \
+	gfsmArith.c \
 	gfsmLookup.c \
 	gfsmPaths.c \
 	gfsmTrie.c
@@ -89,6 +91,7 @@ pkginclude_HEADERS = \
 	gfsmUtils.h \
 	gfsmEnum.h \
 	gfsmSet.h \
+	gfsmWeightMap.h \
 	gfsmBitVector.h \
 	gfsmAlphabet.h \
 	gfsmSemiring.h \
@@ -100,6 +103,7 @@ pkginclude_HEADERS = \
 	gfsmAutomatonIO.h \
 	gfsmDraw.h \
 	gfsmAlgebra.h \
+	gfsmArith.h \
 	gfsmLookup.h \
 	gfsmPaths.h \
 	gfsmTrie.h \

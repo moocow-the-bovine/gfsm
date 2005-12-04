@@ -335,13 +335,34 @@ void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id)
 }
 
 /*--------------------------------------------------------------
- * set_final_state
+ * set_final_state_full
  */
-void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId id, gboolean is_final)
+void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
+					 gfsmStateId    id,
+					 gboolean       is_final,
+					 gfsmWeight     final_weight)
 {
   gfsm_state_set_final(gfsm_automaton_get_state(fsm,id),is_final);
-  if (is_final) gfsm_set_insert(fsm->finals,(gpointer)(id));
-  else gfsm_set_remove(fsm->finals,(gpointer)(id));
+  if (is_final) gfsm_weightmap_insert(fsm->finals, (gpointer)id, final_weight);
+  else gfsm_weightmap_remove(fsm->finals,id);
+}
+
+/*--------------------------------------------------------------
+ * get_final_weight
+ */
+gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id)
+{
+  gfsmWeight w;
+  if (gfsm_weightmap_lookup(fsm->finals, (gconstpointer)id, &w)) return w;
+  return fsm->sr->zero;
+}
+
+/*--------------------------------------------------------------
+ * lookup_final
+ */
+gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeight *wp)
+{
+  return gfsm_weightmap_lookup(fsm->finals, (gconstpointer)id, wp);
 }
 
 /*--------------------------------------------------------------

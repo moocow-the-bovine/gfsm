@@ -48,6 +48,7 @@ extern "C" {
 #include <gfsmUtils.h>
 #include <gfsmEnum.h>
 #include <gfsmSet.h>
+#include <gfsmWeightMap.h>
 #include <gfsmBitVector.h>
 #include <gfsmAlphabet.h>
 #include <gfsmSemiring.h>
@@ -59,6 +60,7 @@ extern "C" {
 #include <gfsmAutomatonIO.h>
 #include <gfsmDraw.h>
 #include <gfsmAlgebra.h>
+#include <gfsmArith.h>
 #include <gfsmLookup.h>
 #include <gfsmPaths.h>
 #include <gfsmTrie.h>

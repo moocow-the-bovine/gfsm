@@ -34,7 +34,7 @@
 #include <gfsmStateSet.h>
 #include <gfsmEnum.h>
 #include <gfsmCompound.h>
-
+#include <gfsmArcIter.h>
 
 /*======================================================================
  * Methods: algebra
@@ -57,7 +57,7 @@
 gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus);
 
 /** Final-state pre-traversal utility for \c closure(fsm). */
-gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer dummy, gfsmAutomaton *fsm);
+gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
 
 /** Compute \a n-ary closure of \a fsm.
  *  \note Destructively alters \a fsm.
@@ -171,8 +171,12 @@ gfsmAutomaton *gfsm_automaton_n_concat(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2,
 gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2);
 
 /** Final-state pre-traversal utility for \a concat(fsm,fsm2).
- *  Assumes \a fsm->root_id has been temporarily set to the translated gfsmStateId
+ *
+ *  \note Assumes \a fsm->root_id has been temporarily set to the translated gfsmStateId
  *  of \a fsm2->root_id.
+ *
+ *  \param pw   final weight encoded as a gpointer
+ *  \param data concatenation data
  */
 gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer dummy, gfsmAutomaton *fsm);
 
@@ -191,24 +195,27 @@ gfsmAutomaton *gfsm_automaton_connect(gfsmAutomaton *fsm);
 /** Utility for \a gfsm_automaton_determinize(). */
 void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 				   gfsmStateSet  *nfa_ec, gfsmStateId    dfa_id,
-				   gfsmEnum      *ec2id,  gfsmStateSet  *ec_tmp);
+				   gfsmEnum      *ec2id);
 
-/** Determinize acceptor \a fsm1.
- *  \note Pseudo-destructive on \a fsm1
- *  \note Weights on epsilon-arcs are probably not handled correctly.
+/** Determinize acceptor \a fsm
+ *  \note Pseudo-destructive on \a fsm
+ *  \note Epsilon is treated like any other symbol.
+ *  \note Arc labels are treated as (input,output) pairs for purposes
+ *        of state-equivalence-class construction: this may not be what you want.
  *
- *  \param fsm1 Acceptor
- *  \returns altered \a fsm1
+ *  \param fsm Automaton
+ *  \returns altered \a fsm
  *
  *  \sa gfsm_automaton_determinize_full()
  */
-gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *fsm1);
+gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *fsm);
 
 /** Alias for gfsm_automaton_determinize() */
 #define gfsm_automaton_determinise gfsm_automaton_determinize
 
 /** Determinise automaton \a nfa to \a dfa.
- *  \note weights on epsilon-arcs are probably not handled correctly.
+ *  \note Epsilon is treated like any other symbol.
+ *  \note Arc labels are treated as (input,output) pairs.
  *
  *  \param nfa non-deterministic acceptor 
  *  \param dfa deterministic acceptor to be constructed
@@ -287,6 +294,17 @@ gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair  sp,
  */
 gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm);
 
+
+//------------------------------
+/** Make \a fsm optional.
+ *  \note Destructively alters \a fsm
+ *
+ *  \param fsm Automaton
+ *  \returns \a modified fsm
+ */
+gfsmAutomaton *gfsm_automaton_optional(gfsmAutomaton *fsm);
+
+
 //------------------------------
 /** Compute Cartesian product of acceptors \a fsm1 and \a fsm2.
  *  \note Destructively alters \a fsm1.
@@ -319,6 +337,33 @@ gfsmAutomaton *_gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
  */
 gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which);
 
+//------------------------------
+/** Replace label-pair \a (lo,hi) with \a fsm2 in \a fsm1 .
+ *  \note Destructively alters \a fsm.
+ *
+ *  \param fsm1 Automaton
+ *  \param lo   lower label or gfsmNoLabel to ignore lower labels
+ *  \param hi   upper label or gfsmNoLabel to ignore upper labels
+ *  \returns modified \a fsm1
+ */
+gfsmAutomaton *gfsm_automaton_replace(gfsmAutomaton *fsm1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmAutomaton *fsm2);
+
+/** Insert automaton \a fsm2 into \a fsm1 between states \a q1from and \a q1to with weight \a w.
+ *  \note Destructively alters \a fsm1.
+ *
+ *  \param fsm1 Automaton into which \a fsm2 is inserted
+ *  \param fsm2 Automaton to be inserted
+ *  \param q1from Source state for inserted automaton in \a fsm1
+ *  \param q1to   Final state for inserted automaton in \a fsm1
+ *  \param w    Weight to add to final arcs for translated \a fsm2 in \a fsm1
+ *  \returns modified \a fsm1
+ */
+gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
+					       gfsmStateId    q1from,
+					       gfsmStateId    q1to,
+					       gfsmAutomaton *fsm2,
+					       gfsmWeight     w);
+
 
 //------------------------------
 /** Reverse an automaton \a fsm.
@@ -346,6 +391,16 @@ void gfsm_automaton_rmepsilon_visit_state(gfsmAutomaton *fsm,
 					  gfsmStateId qid_eps,
 					  gfsmWeight weight_eps,
 					  gfsmStatePairEnum *spenum);
+
+//------------------------------
+/**
+ * Make \a fsm an identity-transducer for alphabet \a abet
+ * \note Destructively alters \a fsm.
+ *
+ * \param fsm Automaton
+ * \returns \a fsm
+ */
+gfsmAutomaton *gfsm_automaton_sigma(gfsmAutomaton *fsm, gfsmAlphabet *abet);
 
 //------------------------------
 /** Add the language or relat6ion of \a fsm2 to \a fsm1.

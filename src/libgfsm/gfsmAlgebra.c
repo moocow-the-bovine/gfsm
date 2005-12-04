@@ -33,17 +33,18 @@
  * Methods: algebra
  */
 
-
 /*--------------------------------------------------------------
  * closure_final_func()
  *  + called for each final @id of @fsm during closure(@fsm)
  */
-gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer dummy, gfsmAutomaton *fsm)
+gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm)
 {
+  gfsmWeight w = gfsm_ptr2weight(pw);
   if (id != fsm->root_id)
-    gfsm_automaton_add_arc(fsm, id, fsm->root_id, gfsmEpsilon, gfsmEpsilon, fsm->sr->one);
+    gfsm_automaton_add_arc(fsm, id, fsm->root_id, gfsmEpsilon, gfsmEpsilon, w);
   return FALSE;
 }
+
 
 /*--------------------------------------------------------------
  * closure()
@@ -57,11 +58,11 @@ gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus)
   g_tree_foreach(fsm->finals, (GTraverseFunc)_gfsm_automaton_closure_final_func, fsm);
 
   //-- reflexive+transitive or reflexive?
-  if (!is_plus)
-    gfsm_automaton_set_final_state(fsm,fsm->root_id,TRUE);
+  if (!is_plus) gfsm_automaton_optional(fsm);
 
   return fsm;
 }
+
 
 /*--------------------------------------------------------------
  * n_closure()
@@ -102,7 +103,7 @@ gfsmAutomaton *gfsm_automaton_complement_full(gfsmAutomaton *fsm, gfsmAlphabet *
   gfsmStateId id, sink_id;
   gfsm_automaton_complete(fsm, alph, &sink_id);
 
-  //-- flip final states
+  //-- flip final states (no weights here)
   for (id = 0; id < fsm->states->len; id++) {
     gfsmState  *s = gfsm_automaton_find_state(fsm,id);
     if (!s || !s->is_valid) continue;
@@ -285,7 +286,12 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
   gfsm_enum_insert_full(spenum,&sp,qid);
 
   //-- check for final states
-  if (q1->is_final && q2->is_final) gfsm_automaton_set_final_state(fsm,qid,TRUE);
+  if (q1->is_final && q2->is_final) {
+    gfsm_automaton_set_final_state_full(fsm,qid,TRUE,
+					gfsm_sr_times(fsm->sr,
+						      gfsm_automaton_get_final_weight(fsm1,sp.id1),
+						      gfsm_automaton_get_final_weight(fsm2,sp.id2)));
+  }
 
   //-------------------------------------------
   // recurse on outgoing arcs
@@ -374,19 +380,31 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
  *  + called for each final @id of @fsm during concat(@fsm,@fsm2)
  *  + during the call @fsm1->root_id should be set to the translated root of @fsm2
  */
-gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer dummy, gfsmAutomaton *fsm)
+gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm)
 {
-  gfsm_automaton_add_arc(fsm, id, fsm->root_id, gfsmEpsilon, gfsmEpsilon, fsm->sr->one);
+  gfsmWeight w = gfsm_ptr2weight(pw);
+  gfsm_automaton_add_arc(fsm, id, fsm->root_id, gfsmEpsilon, gfsmEpsilon, w);
   gfsm_automaton_find_state(fsm,id)->is_final = FALSE;
   return FALSE;
 }
 
-gboolean _gfsm_automaton_concat_final_func_1(gfsmStateId id, gpointer dummy, gfsmStateId *fp)
+/*--------------------------------------------------------------
+ * concat_final_func_1()
+ *  + called for singleton final @id of @fsm during concat(@fsm,@fsm2)
+ *  + BAD if singleton final of @fsm has outgoing arcs!
+ */
+struct _gfsm_automaton_concat_1_final_data {
+  gfsmStateId *rootxp;
+  gfsmWeight  *weightp;
+};
+gboolean _gfsm_automaton_concat_final_func_1(gfsmStateId id,
+					     gpointer pw,
+					     struct _gfsm_automaton_concat_1_final_data *data)
 {
-  *fp = id;
+  *(data->rootxp) = id;
+  *(data->weightp) = gfsm_ptr2weight(pw);
   return TRUE;
 }
-
 
 /*--------------------------------------------------------------
  * concat()
@@ -398,7 +416,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
   gfsmStateId    id2;
   gfsmStateId    size2;
   gfsmStateId    rootx;
-  gfsmSet       *finals2 = NULL;
+  gfsmWeightMap *finals2 = NULL;
 
   //-- sanity check(s)
   if (!_fsm2 || _fsm2->root_id == gfsmNoState) return fsm1;
@@ -406,8 +424,8 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
   else             fsm2 = _fsm2;
 
   if (fsm1->finals == fsm2->finals) {
-    finals2 = gfsm_set_new(gfsm_uint_compare);
-    gfsm_set_copy(finals2, fsm2->finals);
+    finals2 = gfsm_weightmap_new(gfsm_uint_compare);
+    gfsm_weightmap_copy(finals2, fsm2->finals);
   }
 
   offset = fsm1->states->len;
@@ -416,67 +434,56 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
 
   //-- concatenative arcs
   if (fsm1->root_id != gfsmNoState) {
-    if (gfsm_set_size(fsm1->finals) == 1) {
-      //-- only one final state: concatenate without epsilon arcs
-      g_tree_foreach(fsm1->finals, (GTraverseFunc)_gfsm_automaton_concat_final_func_1, &rootx);
-      gfsm_automaton_set_final_state(fsm1, rootx, FALSE);
-    } else {
-      //-- multiple final states: add epsilon arcs from old finals to mapped root2
-      gfsmStateId root_tmp = fsm1->root_id;
-      rootx                = fsm2->root_id+offset;
-      fsm1->root_id        = rootx;
-      g_tree_foreach(fsm1->finals, (GTraverseFunc)_gfsm_automaton_concat_final_func, fsm1);
-      fsm1->root_id        = root_tmp;
-    }
+    //-- multiple final states: add epsilon arcs from old finals to mapped root2
+    gfsmStateId root_tmp = fsm1->root_id;
+    rootx                = fsm2->root_id+offset;
+    fsm1->root_id        = rootx;
+    g_tree_foreach(fsm1->finals, (GTraverseFunc)_gfsm_automaton_concat_final_func, fsm1);
+    fsm1->root_id        = root_tmp;
   } else /*if (fsm2->root_id != gfsmNoState)*/ {
     fsm1->root_id = rootx = fsm2->root_id + offset;
   }
-  gfsm_set_clear(fsm1->finals);
+  gfsm_weightmap_clear(fsm1->finals);
 
+  //-- adopt states from fsm2 into fsm1
   for (id2 = 0; id2 < size2; id2++) {
     gfsmStateId      id1;
     const gfsmState *s2;
     gfsmState       *s1;
     gfsmArcIter      ai;
-    gfsmArcList     *s1arcs;
+    gfsmWeight       s2fw;
 
     s2 = gfsm_automaton_find_state_const(fsm2,id2);
-    if (id2 == fsm2->root_id) {
-      id1 = rootx;
-      s1 = gfsm_automaton_find_state(fsm1, id1);
-      s1arcs = s1->arcs;
-      s1->arcs = NULL;
-    } else {
-      id1 = id2+offset;
-      s1 = gfsm_automaton_find_state(fsm1, id1);
-      s1arcs = NULL;
-    }
-    if (!s1 || !s2) continue;
+    id1 = id2+offset;
+    s1 = gfsm_automaton_find_state(fsm1, id1);
 
+    //-- sanity check(s)
+    if (!s1 || !s2 || !s2->is_valid) continue;
+
+    //-- copy state
     gfsm_state_copy(s1,s2);
+
+    //-- translate targets for adopted arcs
     for (gfsm_arciter_open_ptr(&ai,fsm1,s1); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
       {
 	gfsmArc *a = gfsm_arciter_arc(&ai);
-	if (a->target == fsm2->root_id) a->target = rootx;
-	else a->target += offset;
+	a->target += offset;
       }
-    //-- re-insert old arcs
-    if (s1arcs) s1->arcs = g_slist_concat(s1->arcs, s1arcs);
 
-    //-- check for new final states
-    if ( (finals2 && gfsm_set_contains(finals2, ((gpointer)id2)))
+    //-- check for new final states: get weight & mark state is_final flag
+    if ( (finals2 && gfsm_weightmap_lookup(finals2, ((gpointer)id2), &s2fw))
 	 ||
-	 (!finals2 && s2->is_final) )
+	 (!finals2 && gfsm_weightmap_lookup(fsm2->finals, ((gpointer)id2), &s2fw)) )
       {
 	s1->is_final = TRUE;
-	gfsm_set_insert(fsm1->finals, (gpointer)(id1));
+	_gfsm_weightmap_insert(fsm1->finals, ((gpointer)id1), s2fw);
       }
   }
 
-  fsm1->flags.sort_mode = gfsmASMNone;
+  fsm1->flags.sort_mode = gfsmASMNone; //-- mark as unsorted
 
   //-- cleanup
-  if (finals2) gfsm_set_free(finals2);
+  if (finals2) gfsm_weightmap_free(finals2);
   if (fsm2 != _fsm2) gfsm_automaton_free(fsm2);
 
   return fsm1;
@@ -591,7 +598,6 @@ typedef struct {
   gfsmAutomaton *dfa;
   gfsmStateId    dfa_src_id;
   gfsmEnum      *ec2id;
-  gfsmStateSet  *ec_tmp;
 } gfsmLp2EcForeachData;
 
 gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
@@ -635,27 +641,27 @@ gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
       //-- ... and recurse
       _gfsm_determinize_visit_state(data->nfa,   data->dfa,
 				    wss->set,    ec2id_val,
-				    data->ec2id, data->ec_tmp);
+				    data->ec2id);
     }
   return FALSE;
 }
-
 
 /*--------------------------------------------------------------
  * _determinize_visit_state()
  */
 void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 				   gfsmStateSet  *nfa_ec, gfsmStateId    dfa_id,
-				   gfsmEnum      *ec2id,  gfsmStateSet  *ec_tmp)
+				   gfsmEnum      *ec2id)
 {
   GTree            *lp2ecw;  //-- maps label-pairs@nfa.src.ec => (eq-class@nfa.sink, sum(weight))
   gfsmStateSetIter  eci;
   gfsmStateId       ecid;
   gfsmLp2EcForeachData lp2ec_foreach_data;
+  gfsmWeight           fw;
 
   //-- check for final state
-  if (gfsm_stateset_has_final_state(nfa_ec,nfa)) {
-    gfsm_automaton_set_final_state(dfa, dfa_id, TRUE);
+  if (gfsm_stateset_lookup_final_weight(nfa_ec,nfa,&fw)) {
+    gfsm_automaton_set_final_state_full(dfa, dfa_id, TRUE, fw);
   }
 
   //-- build label-pair => (sink-eqc, sum(weight)) mapping 'lp2ecw' for node-set nfa_ec
@@ -676,12 +682,8 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 	gfsmLabelPair *lp2ec_key;
 	gfsmWeightedStateSet *lp2ec_val;
 
-	if (a->lower==gfsmEpsilon && a->upper==gfsmEpsilon) continue; //-- ignore eps arcs
+	//if (a->lower==gfsmEpsilon && a->upper==gfsmEpsilon) continue; //-- ignore eps arcs
 	lp = gfsm_labelpair_new(a->lower, a->upper);
-
-	//-- populate state-set with all nodes eps-reachable from this arc's target
-	gfsm_stateset_clear(ec_tmp);
-	gfsm_stateset_populate_eps(ec_tmp, nfa, a->target);
 
 	//-- add equivalence class to local mapping
 	if ( g_tree_lookup_extended(lp2ecw,
@@ -690,14 +692,14 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 				    (gpointer)(&lp2ec_val)) )
 	  {
 	    //-- already present: compute union and add new arc's weight
-	    gfsm_stateset_union(lp2ec_val->set, ec_tmp);
+	    gfsm_stateset_insert(lp2ec_val->set, a->target);
 	    lp2ec_val->weight = gfsm_sr_plus(nfa->sr, lp2ec_val->weight, a->weight);
 	  }
 	else
 	  {
 	    //-- not yet present: insert new value
 	    lp2ec_val         = g_new(gfsmWeightedStateSet,1);
-	    lp2ec_val->set    = gfsm_stateset_clone(ec_tmp);
+	    lp2ec_val->set    = gfsm_stateset_new_singleton(a->target);
 	    lp2ec_val->weight = a->weight;
 	    g_tree_insert(lp2ecw, (gpointer)lp, lp2ec_val);
 	  }
@@ -715,18 +717,12 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
   lp2ec_foreach_data.dfa         = dfa;
   lp2ec_foreach_data.dfa_src_id  = dfa_id;
   lp2ec_foreach_data.ec2id       = ec2id;
-  lp2ec_foreach_data.ec_tmp      = ec_tmp;
   g_tree_foreach(lp2ecw,
 		 (GTraverseFunc)_gfsm_determinize_lp2ec_foreach_func,
 		 (gpointer)(&lp2ec_foreach_data));
 
   //-- cleanup
   g_tree_destroy(lp2ecw);
-
-  /*
-  g_printerr("_gfsm_automaton_determinize_visit_state(): not yet implemented!");
-  g_assert_not_reached();
-  */
 }
 
 /*--------------------------------------------------------------
@@ -750,7 +746,6 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
   gfsmEnum      *ec2id;  //-- (global) maps literal(equiv-class@nfa) => node-id@dfa
   gfsmStateSet  *nfa_ec; //-- (temp) equiv-class@nfa
   gfsmStateId    dfa_id; //-- (temp) id @ dfa
-  gfsmStateSet  *ec_tmp; //-- (temp) equiv-class@nfa
 
   //-- sanity check(s)
   if (!nfa) return NULL;
@@ -760,12 +755,10 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
     return dfa;
   }
 
-  //-- initialization: nfa
-  gfsm_automaton_arcsort(nfa,gfsmASMLower);
-
   //-- initialization: dfa
-  if (!dfa) dfa = gfsm_automaton_shadow(nfa);
-  else {
+  if (!dfa) {
+    dfa = gfsm_automaton_shadow(nfa);
+  } else {
     gfsm_automaton_clear(dfa);
     gfsm_automaton_copy_shallow(dfa,nfa);
   }
@@ -779,26 +772,25 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
 
   //-- initialization: nfa_ec
   nfa_ec = gfsm_stateset_sized_new(32);
-  ec_tmp = gfsm_stateset_sized_new(32);
-  gfsm_stateset_populate_eps(nfa_ec, nfa, nfa->root_id);
+  gfsm_stateset_insert(nfa_ec, nfa->root_id);
 
   //-- set root in dfa
   dfa_id = gfsm_automaton_ensure_state(dfa, gfsm_enum_insert(ec2id, nfa_ec));
   gfsm_automaton_set_root(dfa, dfa_id);
 
   //-- guts: determinize recursively outwards from root node
-  _gfsm_determinize_visit_state(nfa, dfa, nfa_ec, dfa_id, ec2id, ec_tmp);
+  _gfsm_determinize_visit_state(nfa, dfa, nfa_ec, dfa_id, ec2id);
 
   //-- set flag in dfa
   dfa->flags.is_deterministic = TRUE;
 
   //-- cleanup
   //gfsm_stateset_free(nfa_ec); //-- this ought to be freed by gfsm_enum_free(ec2id)
-  gfsm_stateset_free(ec_tmp);   //-- ... but not this
   gfsm_enum_free(ec2id);
 
   return dfa;
 }
+
 
 
 /*--------------------------------------------------------------
@@ -890,7 +882,12 @@ gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair sp,
   //q   = gfsm_automaton_get_state(fsm,qid);
 
   //-- check for final states
-  if (q1->is_final && q2->is_final) gfsm_automaton_set_final_state(fsm,qid,TRUE);
+  if (q1->is_final && q2->is_final) {
+    gfsm_automaton_set_final_state_full(fsm,qid,TRUE,
+					gfsm_sr_times(fsm->sr,
+						      gfsm_automaton_get_final_weight(fsm1,sp.id1),
+						      gfsm_automaton_get_final_weight(fsm2,sp.id2)));
+  }
 
   //-------------------------------------------
   // recurse on outgoing arcs
@@ -989,6 +986,16 @@ gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm)
 }
 
 /*--------------------------------------------------------------
+ * optional()
+ */
+gfsmAutomaton *gfsm_automaton_optional(gfsmAutomaton *fsm)
+{
+  if (!gfsm_automaton_is_final_state(fsm,fsm->root_id))
+    gfsm_automaton_set_final_state_full(fsm,fsm->root_id,TRUE,fsm->sr->one);
+  return fsm;
+}
+
+/*--------------------------------------------------------------
  * product() (single-destructive)
  */
 gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
@@ -1058,6 +1065,89 @@ gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which)
   return fsm;
 }
 
+/*--------------------------------------------------------------
+ * replace()
+ */
+gfsmAutomaton *gfsm_automaton_replace(gfsmAutomaton *fsm1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmAutomaton *fsm2)
+{
+  gfsmStateId id;
+  gfsmArcIter ai;
+  gfsmStateId nstates = fsm1->states->len;
+
+  for (id=0; id < nstates; id++) {
+    if (!gfsm_automaton_has_state(fsm1,id)) continue;
+    for (gfsm_arciter_open(&ai,fsm1,id), gfsm_arciter_seek_both(&ai,lo,hi);
+	 gfsm_arciter_ok(&ai);
+	 gfsm_arciter_seek_both(&ai,lo,hi))
+      {
+	gfsmArc *a = gfsm_arciter_arc(&ai);
+	gfsm_automaton_insert_automaton(fsm1, id, a->target, fsm2, a->weight);
+	gfsm_arciter_remove(&ai); //-- implies gfsm_arciter_next()
+      }
+    //gfsm_arciter_close(&ai);
+  }
+
+  return fsm1;
+}
+
+/*--------------------------------------------------------------
+ * insert_automaton()
+ */
+gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
+					       gfsmStateId    q1from,
+					       gfsmStateId    q1to,
+					       gfsmAutomaton *fsm2,
+					       gfsmWeight     w)
+{
+  gfsmStateId offset;
+  gfsmStateId size2;
+  gfsmStateId id2;
+  gfsmStateId      id1;
+  const gfsmState *s2;
+  gfsmState       *s1;
+  gfsmArcIter      ai;
+  gfsmWeight       s2fw;
+
+  //-- reserve size
+  offset = fsm1->states->len;
+  size2  = fsm2->states->len;
+  gfsm_automaton_reserve(fsm1, offset + size2);
+
+  fsm1->flags.sort_mode = gfsmASMNone; //-- avoid "smart" arc-insertion
+
+  //-- adopt states from fsm2 into fsm1
+  for (id2 = 0; id2 < size2; id2++) {
+
+    s2 = gfsm_automaton_find_state_const(fsm2,id2);
+    id1 = id2+offset;
+    s1 = gfsm_automaton_find_state(fsm1, id1);
+
+    //-- sanity check(s)
+    if (!s1 || !s2 || !s2->is_valid) continue;
+
+    //-- copy state
+    gfsm_state_copy(s1,s2);
+
+    //-- translate targets for adopted arcs
+    for (gfsm_arciter_open_ptr(&ai,fsm1,s1); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
+      {
+	gfsmArc *a = gfsm_arciter_arc(&ai);
+	a->target += offset;
+      }
+
+    //-- check for fsm2-final states: get weight & add arc to our sink state
+    if (gfsm_weightmap_lookup(fsm2->finals, ((gpointer)id2), &s2fw)) {
+      s1->is_final = FALSE;
+      gfsm_automaton_add_arc(fsm1,id1,q1to,gfsmEpsilon,gfsmEpsilon, s2fw);
+    }
+  }
+
+  //-- add arc to new state
+  gfsm_automaton_add_arc(fsm1, q1from, fsm2->root_id+offset, gfsmEpsilon, gfsmEpsilon, w);
+
+  return fsm1;
+}
+
 
 /*--------------------------------------------------------------
  * rmepsilon()
@@ -1115,7 +1205,10 @@ void gfsm_automaton_rmepsilon_visit_state(gfsmAutomaton *fsm,
 
   //-- check for final state
   if (q_eps->is_final) {
-    gfsm_automaton_set_final_state(fsm,qid_noeps,1);
+    gfsm_automaton_set_final_state_full(fsm,qid_noeps,TRUE,
+					gfsm_sr_plus(fsm->sr,
+						     gfsm_automaton_get_final_weight(fsm,qid_noeps),
+						     gfsm_automaton_get_final_weight(fsm,qid_eps)));
   }
 
   //-- adopt all arcs from eps-reachable state
@@ -1156,6 +1249,7 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
   gfsmStateId id;
   gfsmState   *s, *ts;
   gfsmArcList *al, *al_next, *al_prev;
+  gfsmWeight   w;
 
   //-- reverse arc directions, assigning reversed arcs 'target' values as 'old_src+new_root'
   for (id = 0; id < new_root; id++) {
@@ -1163,10 +1257,10 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
     if (!s || !s->is_valid) continue;
 
     //-- check for old final states
-    if (s->is_final) {
+    if (gfsm_automaton_lookup_final(fsm,id,&w)) {
       s->is_final = FALSE;
-      gfsm_set_remove(fsm->finals,((gpointer)id));
-      gfsm_automaton_add_arc(fsm, new_root, id, gfsmEpsilon, gfsmEpsilon, gfsm_sr_one(fsm->sr));
+      gfsm_weightmap_remove(fsm->finals,((gpointer)id));
+      gfsm_automaton_add_arc(fsm, new_root, id, gfsmEpsilon, gfsmEpsilon, w);
     }
 
     //-- reverse arcs
@@ -1203,13 +1297,31 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
   }
 
   //-- root flop
-  gfsm_automaton_set_final_state(fsm,fsm->root_id,TRUE);
+  gfsm_automaton_set_final_state_full(fsm,fsm->root_id,TRUE,fsm->sr->one);
   fsm->root_id = new_root;
 
   return fsm;
 }
 
 
+/*--------------------------------------------------------------
+ * sigma()
+ */
+gboolean _gfsm_automaton_sigma_foreach_func(gfsmAlphabet *abet, gpointer key, gfsmLabelVal lab, gfsmAutomaton *fsm)
+{
+  gfsm_automaton_add_arc(fsm,0,1,lab,lab,fsm->sr->one);
+  return FALSE;
+}
+
+gfsmAutomaton *gfsm_automaton_sigma(gfsmAutomaton *fsm, gfsmAlphabet *abet)
+{
+  gfsm_automaton_clear(fsm);
+  fsm->root_id = gfsm_automaton_add_state_full(fsm,0);
+  gfsm_automaton_add_state_full(fsm,1);
+  gfsm_automaton_set_final_state_full(fsm,1,TRUE,fsm->sr->one);
+  gfsm_alphabet_foreach(abet, (gfsmAlphabetForeachFunc)_gfsm_automaton_sigma_foreach_func, fsm);
+  return fsm;
+}
 
 /*--------------------------------------------------------------
  * union()
@@ -1235,7 +1347,10 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
       a->target += offset;
     }
     //-- index final states from @fsm2
-    if (s2->is_final) gfsm_set_insert(fsm1->finals, ((gpointer)(id2+offset)));
+    if (s2->is_final) {
+      gfsmWeight fw = gfsm_automaton_get_final_weight(fsm2, id2);
+      _gfsm_weightmap_insert(fsm1->finals, (gpointer)(id2+offset), fw);
+    }
   }
 
   //-- add epsilon arc to translated root state

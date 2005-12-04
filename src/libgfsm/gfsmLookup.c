@@ -90,8 +90,10 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 	  : gfsmNoLabel);
 
     //-- check for final states
-    if (cfg->i >= input->len && gfsm_state_is_final(qt))
-      gfsm_automaton_set_final_state(result, cfg->qr, TRUE);
+    if (cfg->i >= input->len && gfsm_state_is_final(qt)) {
+      gfsm_automaton_set_final_state_full(result, cfg->qr, TRUE,
+					  gfsm_automaton_get_final_weight(fst, cfg->qt));
+    }
 
     //-- handle outgoing arcs
     for (gfsm_arciter_open_ptr(&ai, fst, (gfsmState*)qt); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
@@ -127,3 +129,122 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
   
   return result;
 }
+
+//--------------------------------------------------------------
+#if 0
+gfsmAutomaton *gfsm_automaton_lookup_viterbi(gfsmAutomaton     *fst,
+					     gfsmLabelVector   *input,
+					     gfsmAutomaton     *trellis)
+{
+  g_assert_not_reached();
+
+  GPtrArray cols   = g_ptr_array_sized_new(input->len+1);
+  gfsmViterbiConfig *cfg, *cfg_new;
+  const gfsmState  *qt;
+  gfsmLabelVal      a;
+  gfsmArcIter       ai;
+  gfsmArc          *arc;
+  guint             rowi;
+
+  //-- ensure trellis automaton exists and is clear
+  if (trellis==NULL) {
+    trellis = gfsm_automaton_shadow(fst);
+  } else {
+    gfsm_automaton_clear(trellis);
+  }
+  trellis->flags.is_transducer = TRUE;
+
+  //-- initialization
+  cfg = (gfsmViterbiConfig*)g_new(gfsmViterbiConfig,1);
+  cfg->qt = fst->root_id;
+  cfg->qr = gfsm_automaton_add_state(trellis);
+  cfg->i  = 0;
+  cfg->w  = fst->sr->one;
+  g_ptr_array_index(cols,0) = g_slist_prepend(NULL, cfg);
+
+  //-- ye olde loope: for each input character (coli)
+  for (coli=1; coli <= input->len; coli++) {
+    GSList *prevcol = g_ptr_array_index(cols,coli);
+    GSList *col     = NULL;
+    GSList *prevcoli;
+    gfsmLabelVal a  = (coli <= input->len
+		       ? (gfsmLabelVal)(g_ptr_array_index(input, coli-1))
+		       : gfsmNoLabel);
+    gfsmStateId  bestprev_id = gfsmNoState;
+    gfsmWeight   bestprev_w  = fsm->sr->zero;
+
+    //-- foreach config in previous column (prevcoli)
+    for (prevcoli=prevcol; prevcoli != NULL; prevcoli=prevcoli->next) {
+      GSlist *stack = g_slist_prepend(NULL,prevcoli->data);
+
+      while (stack != NULL) {
+	//-- pop the top element off the stack
+	cfg = (gfsmViterbiConfig*)(stack->data);
+	stack = g_slist_delete_link(stack,stack);
+
+	//-- search for input-epsilon arcs & add them to the previous column
+	for (gfsm_arciter_open(&ai,fst,cfg->qt), gfsm_arciter_seek_lower(&ai,gfsmEpsilon);
+	     gfsm_arciter_ok(&ai);
+	     gfsm_arciter_next(&ai), gfsm_arciter_seek_lower(&ai,gfsmEpsilon))
+	  {
+	    arc     = gfsm_arciter_arc(&ai);
+	    cfg_new = (gfsmViterbiConfig*)g_new(gfsmViterbiConfig,1);
+	    cfg_new->qt = arc->target;
+	    //cfg_new->  ///-----------------------> ARGH !
+	    g_ptr_array_index(cols,coli) = g_slist_prepend((GSList*)g_ptr_array_index(cols,coli), cfg_new);
+	  }
+      }
+    }
+  }
+  while (deque_head != NULL) {
+    //-- pop the top element off the queue
+    cfg        = (gfsmLookupConfig*)(deque_head->data);
+    deque_head = g_slist_delete_link(deque_head, deque_head);
+
+    //-- get states
+    qt = gfsm_automaton_find_state_const(fst,     cfg->qt);
+    qr = gfsm_automaton_find_state      (trellis, cfg->qr);
+    a  = (cfg->i < input->len
+	  ? (gfsmLabelVal)(g_ptr_array_index(input, cfg->i))
+	  : gfsmNoLabel);
+
+    //-- check for final states
+    if (cfg->i >= input->len && gfsm_state_is_final(qt)) {
+      gfsm_automaton_set_final_state_full(result, cfg->qr, TRUE,
+					  gfsm_sr_times(fst->sr,
+							gfsm_automaton_get_final_weight(fst, cfg->qt),
+							cfg->w));
+    }
+
+    //-- handle outgoing arcs
+    for (gfsm_arciter_open_ptr(&ai, fst, (gfsmState*)qt); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
+      {
+	gfsmArc *arc = gfsm_arciter_arc(&ai);
+
+	//-- epsilon arcs
+	if (arc->lower == gfsmEpsilon) {
+	  cfg_new = (gfsmLookupConfig*)g_new(gfsmLookupConfig,1);
+	  cfg_new->qt = arc->target;
+	  cfg_new->qr = gfsm_automaton_add_state(result);
+	  cfg_new->i  = cfg->i;
+	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->upper, arc->upper, arc->weight);
+	  stack = g_slist_prepend(stack, cfg_new);
+	}
+	//-- input-matching arcs
+	else if (a != gfsmNoLabel && arc->lower == a) {
+	  cfg_new = (gfsmLookupConfig*)g_new(gfsmLookupConfig,1);
+	  cfg_new->qt = arc->target;
+	  cfg_new->qr = gfsm_automaton_add_state(result);
+	  cfg_new->i  = cfg->i+1;
+	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->upper, arc->upper, arc->weight);
+	  stack = g_slist_prepend(stack, cfg_new);
+	}
+      }
+
+    //-- we're done with this config
+    g_free(cfg);
+  }
+
+  return trellis;
+}
+#endif

@@ -1,6 +1,5 @@
-
 /*=============================================================================*\
- * File: gfsmVersion.h
+ * File: gfsmWeightmap.c
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
@@ -21,47 +20,41 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-/** \file gfsmVersion.h
- *  \brief Library version information
- */
-
-#ifndef _GFSM_VERSION_H
-#define _GFSM_VERSION_H
-
-#include <glib.h>
+#include <gfsmWeightMap.h>
 
 /*======================================================================
- * Types
+ * Constructors etc.
  */
-/// Library Version information
-typedef struct {
-  guint major;   /**< major version */
-  guint minor;   /**< minor version */
-  guint micro;   /**< micro version */
-} gfsmVersionInfo;
 
 /*======================================================================
- * Constants
+ * Accessors
  */
-/** Current version information */
-extern const gfsmVersionInfo gfsm_version;
 
-/** Current version string */
-extern const char *gfsm_version_string;
+//--------------------------------------------------------------
+void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w)
+{
+  g_tree_insert(weightmap, (gpointer)key, gfsm_weight2ptr(w));
+}
+
+//--------------------------------------------------------------
+gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key)
+{
+  gfsmWeight w;
+  return gfsm_weightmap_lookup(weightmap, key, &w);
+}
+
+//--------------------------------------------------------------
+gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight *wp)
+{
+  gpointer orig_key;
+  return g_tree_lookup_extended(weightmap, key, &orig_key, (gpointer*)wp);
+}
+
 
 /*======================================================================
- * Comparison
+ * Algebra
  */
-/** 3-way comparison two gfsmVersionInfo structures */
-int gfsm_version_compare(gfsmVersionInfo v1, gfsmVersionInfo v2);
 
-/** Equality check for gfsmVersionInfo structures */
-#define gfsm_version_eq(v1,v2) (gfsm_version_compare((gfsmVersionInfo)(v1),(gfsmVersionInfo)(v2))==0)
-
-/** Less-than-or-equal comparison for gfsmVersionInfo structures */
-#define gfsm_version_le(v1,v2) (gfsm_version_compare((gfsmVersionInfo)(v1),(gfsmVersionInfo)(v2))<=0)
-
-/** Greater-than-or-equal comparison for gfsmVersionInfo structures */
-#define gfsm_version_ge(v1,v2) (gfsm_version_compare((gfsmVersionInfo)(v1),(gfsmVersionInfo)(v2))>=0)
-
-#endif /* _GFSM_VERSION_H */
+/*======================================================================
+ * Converters
+ */

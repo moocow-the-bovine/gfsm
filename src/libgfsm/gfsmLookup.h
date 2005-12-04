@@ -34,12 +34,20 @@
 /*======================================================================
  * Types: lookup
  */
-/** Type for gfsmLookup computation state */
-typedef struct _gfsmLookupConfig {
+/** Type for gfsm_automaton_lookup() computation state */
+typedef struct {
   gfsmStateId qt;  /**< current state in transducer */
   gfsmStateId qr;  /**< current state in result acceptor */
   guint32     i;   /**< current position in input vector */
 } gfsmLookupConfig;
+
+/** Type for gfsm_automaton_look_viterbi() computation state */
+typedef struct {
+  gfsmStateId qt;  /**< current state in transducer */
+  gfsmStateId qr;  /**< current state in trellis */
+  gfsmWeight  w;   /**< total weight to this config */
+  guint32     i;   /**< current position in input vector */
+} gfsmViterbiConfig;
 
 /** Type for a StateId map */
 typedef GPtrArray gfsmStateIdVector;
@@ -83,7 +91,21 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 					  gfsmLabelVector   *input,
 					  gfsmAutomaton     *result,
 					  gfsmStateIdVector *statemap);
-					  
+
+
+//------------------------------
+/** Get the best path for input \a input in the transducer \a fst using the Viterbi algorithm.
+ *  \param fst transducer (lower-upper)
+ *  \param input input labels (lower)
+ *  \param trellis output fsm or NULL
+ *  \returns \a trellis if non-NULL, otherwise a new automaton representing the (reversed) Viterbi trellis.
+ *           lower labels in \a trellis represent upper labels of \a fst,
+ *           upper labels in \a trellis represent states of \a fst,
+ *           and arc-weights in \a trellis represent Viterbi algorithm weights (gamma).
+ */
+gfsmAutomaton *gfsm_automaton_lookup_viterbi(gfsmAutomaton     *fst,
+					     gfsmLabelVector   *input,
+					     gfsmAutomaton     *trellis);
 
 //@}
 

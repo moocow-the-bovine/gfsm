@@ -69,6 +69,9 @@ extern const guint gfsmStateSetDefaultSize;
 #define gfsm_stateset_new() \
   gfsm_stateset_sized_new(gfsmStateSetDefaultSize)
 
+/** Create and return a new singleton state-set */
+gfsmStateSet *gfsm_stateset_new_singleton(gfsmStateId id);
+
 /** clear a state-set */
 #define gfsm_stateset_clear(sset) \
   g_array_set_size(sset,0)
@@ -126,6 +129,10 @@ typedef gfsmStateId* gfsmStateSetIter;
 /** Iterator access: get current state-id, or gfsmNoState if none defined */
 #define gfsm_stateset_iter_id(sseti) \
   ((sseti) ? *(sseti) : gfsmNoState)
+
+/** Check validity of a state-set iterator */
+#define gfsm_stateset_iter_ok(sseti) \
+  ((sseti)!=NULL)
 
 /** Get first state in the state-set.
  *  \returns iterator (value) pointing to the first state in the
@@ -188,8 +195,14 @@ void gfsm_stateset_populate(gfsmStateSet *sset,
 #define gfsm_stateset_populate_eps(sset,fsm,id) \
   gfsm_stateset_populate((sset),(fsm),(id),gfsmEpsilon,gfsmEpsilon)
 
-/** Returns true iff some id in \a sset is a final state in \a fsm */
+/** Returns true iff some \a id in \a sset is a final state in \a fsm */
 gboolean gfsm_stateset_has_final_state(gfsmStateSet *sset, gfsmAutomaton *fsm);
+
+/** Lookup sum of final weights in \a fsm of states \a id in \a sset
+ *  Returns TRUE iff at least one state in \a sset is final, and
+ *  sets \a *wp to the sum of final weights.
+ */
+gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeight *wp);
 
 //@}
 

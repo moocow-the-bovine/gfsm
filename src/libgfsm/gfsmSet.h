@@ -76,7 +76,7 @@ void gfsm_set_clear(gfsmSet *set);
  */
 ///\name gfsmSet: Accessors
 //@{
-/** check set membersgip */
+/** check set membership */
 #define gfsm_set_contains(set,key) g_tree_lookup(set,key)
 
 /** insert a new key into the set */

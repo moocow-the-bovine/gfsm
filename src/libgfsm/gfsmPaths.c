@@ -95,6 +95,22 @@ gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, g
 }
 
 //--------------------------------------------------------------
+gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr)
+{
+  gfsmPath *p = g_new(gfsmPath,1);
+
+  p->lo = g_ptr_array_sized_new(p1->lo->len);
+  gfsm_label_vector_copy(p->lo, p1->lo);
+
+  p->hi = g_ptr_array_sized_new(p1->hi->len);
+  gfsm_label_vector_copy(p->hi, p1->hi);
+
+  p->w = gfsm_sr_times(sr, p1->w, w);
+
+  return p;
+}
+
+//--------------------------------------------------------------
 void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr)
 {
   if (lo != gfsmEpsilon) g_ptr_array_add(p->lo, (gpointer)lo);
@@ -169,10 +185,17 @@ gfsmSet *gfsm_automaton_paths(gfsmAutomaton *fsm, gfsmSet *paths)
 gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm, gfsmSet *paths, gfsmStateId q, gfsmPath *path)
 {
   gfsmArcIter ai;
+  gfsmWeight  fw;
 
   //-- if final state, add to set of full paths
-  if (gfsm_automaton_is_final_state(fsm,q) && !gfsm_set_contains(paths,path)) {
-    gfsm_set_insert(paths, gfsm_path_new_copy(path));
+  if (gfsm_automaton_lookup_final(fsm,q,&fw)) {
+    gfsmWeight path_w = path->w;
+    path->w = gfsm_sr_times(fsm->sr, fw, path_w);
+
+    if (!gfsm_set_contains(paths,path)) {
+      gfsm_set_insert(paths, gfsm_path_new_copy(path));
+    }
+    path->w = path_w;
   }
 
   //-- investigate all outgoing arcs

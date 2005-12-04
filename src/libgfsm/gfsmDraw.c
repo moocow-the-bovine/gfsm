@@ -72,13 +72,18 @@ gboolean gfsm_automaton_draw_vcg_file_full (gfsmAutomaton *fsm,
     if (!s || !s->is_valid) continue;
 
     //-- source state
-    fprintf(f, " node: {title:\"%u\"", id);
+    fprintf(f, " node: {title:\"%u\" label:\"", id);
     if (state_alphabet && (sym=gfsm_alphabet_find_key(state_alphabet,id)) != NULL) {
       gfsm_alphabet_key2string(state_alphabet, sym, gstr);
-      fprintf(f, " label:\"%s\"", gstr->str);
+      fprintf(f, "%s", gstr->str);
     } else {
       if (state_alphabet) g_printerr("Warning: no label defined for state '%u'!\n", id);
+      fprintf(f, "%u", id);
     }
+    if (fsm->flags.is_weighted) {
+      fprintf(f, "/%g", gfsm_automaton_get_final_weight(fsm,id));
+    }
+    fprintf(f, "\"");
 
     if (s->is_final) {
       fprintf(f, " color:%s", (final_color ? final_color : "lightgrey"));
@@ -203,6 +208,9 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
     } else {
       if (state_alphabet) g_printerr("Warning: no label defined for state '%u'!\n", id);
       fprintf(f, "%u", id);
+    }
+    if (fsm->flags.is_weighted && s->is_final) {
+      fprintf(f, "/%g", gfsm_automaton_get_final_weight(fsm,id));
     }
     fprintf(f, "\", shape=%s, style=%s, fontsize=%d",
 	    (s->is_final ? "doublecircle" : "circle"),

@@ -40,7 +40,14 @@
 /*======================================================================
  * Constants: Binary I/O
  */
-const gfsmVersionInfo gfsm_version_bincompat_min =
+const gfsmVersionInfo gfsm_version_bincompat_min_store =
+  {
+    0, // major
+    0, // minor
+    8  // micro
+  };
+
+const gfsmVersionInfo gfsm_version_bincompat_min_check =
   {
     0, // major
     0, // minor
@@ -71,9 +78,7 @@ gboolean gfsm_automaton_load_bin_header(gfsmAutomatonHeader *hdr, FILE *f, gfsmE
 		"bad magic");
     return FALSE;
   }
-  else if (hdr->version.major < gfsm_version_bincompat_min.major
-	   || hdr->version.minor < gfsm_version_bincompat_min.minor
-	   || hdr->version.micro < gfsm_version_bincompat_min.micro) {
+  else if (gfsm_version_compare(hdr->version, gfsm_version_bincompat_min_check) < 0) {
     g_set_error(errp,
 		g_quark_from_static_string("gfsm"),                              //-- domain
 		g_quark_from_static_string("automaton_load_bin_header:version"), //-- code
@@ -81,24 +86,23 @@ gboolean gfsm_automaton_load_bin_header(gfsmAutomatonHeader *hdr, FILE *f, gfsmE
 		hdr->version.major,
 		hdr->version.minor,
 		hdr->version.micro,
-		gfsm_version_bincompat_min.major,
-		gfsm_version_bincompat_min.minor,
-		gfsm_version_bincompat_min.micro);
+		gfsm_version_bincompat_min_check.major,
+		gfsm_version_bincompat_min_check.minor,
+		gfsm_version_bincompat_min_check.micro);
     return FALSE;
   }
-  else if (hdr->version_min.major > gfsm_version.major
-	   || hdr->version_min.minor > gfsm_version.minor
-	   || hdr->version_min.micro > gfsm_version.micro) {
+  else if (gfsm_version_compare(gfsm_version, hdr->version_min) < 0) {
     g_set_error(errp,
 		g_quark_from_static_string("gfsm"),                              //-- domain
 		g_quark_from_static_string("automaton_load_bin_header:version"), //-- code
-		"libgfsm v%u.%u.%u is obsolete - stored file needs least v%u.%u.%u",
+		"libgfsm v%u.%u.%u is obsolete - stored automaton needs at least v%u.%u.%u",
 		gfsm_version.major,
 		gfsm_version.minor,
 		gfsm_version.micro,
 		hdr->version_min.major,
 		hdr->version_min.minor,
 		hdr->version_min.micro);
+    return FALSE;
   }
   if (hdr->srtype == gfsmSRTUnknown || hdr->srtype >= gfsmSRTUser) {
     //-- compatibility hack
@@ -108,33 +112,29 @@ gboolean gfsm_automaton_load_bin_header(gfsmAutomatonHeader *hdr, FILE *f, gfsmE
 }
 
 /*--------------------------------------------------------------
- * load_bin_file()
+ * load_bin_file_0_0_8()
+ *   + supports stored file versions v0.0.8 -- CURRENT
  */
-gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+gboolean gfsm_automaton_load_bin_file_0_0_8(gfsmAutomatonHeader *hdr, gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
 {
-  gfsmAutomatonHeader hdr;
   gfsmStateId     id;
-  guint           arci, n_arcs;
+  guint           arci;
   gfsmStoredArc   s_arc;
   gfsmStoredState s_state;
   gfsmState       *st;
   gboolean         rc = TRUE;
-
-  gfsm_automaton_clear(fsm);
-
-  //-- load header
-  if (!gfsm_automaton_load_bin_header(&hdr,f,errp)) return FALSE;
+  gfsmWeight       w;
 
   //-- allocate states
-  gfsm_automaton_reserve(fsm, hdr.n_states);
+  gfsm_automaton_reserve(fsm, hdr->n_states);
 
   //-- set automaton-global properties
-  fsm->flags   = hdr.flags;
-  gfsm_semiring_init(fsm->sr, hdr.srtype);
-  fsm->root_id = hdr.root_id;
+  fsm->flags   = hdr->flags;
+  gfsm_semiring_init(fsm->sr, hdr->srtype);
+  fsm->root_id = hdr->root_id;
 
   //------ load states (one-by-one)
-  for (id=0; rc && id < hdr.n_states; id++) {
+  for (id=0; rc && id < hdr->n_states; id++) {
     if (fread(&s_state, sizeof(gfsmStoredState), 1, f) != 1) {
       g_set_error(errp,
 		  g_quark_from_static_string("gfsm"),                     //-- domain
@@ -150,20 +150,108 @@ gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
     st->is_valid = TRUE;
 
     if (s_state.is_final) {
+      //-- read final weight
+      if (fread(&w, sizeof(gfsmWeight), 1, f) != 1) {
+	g_set_error(errp,
+		    g_quark_from_static_string("gfsm"),                                  //-- domain
+		    g_quark_from_static_string("automaton_load_bin:state:final_weight"), //-- code
+		    "could not read final weight for stored state %d", id);
+	rc = FALSE;
+	break;
+      }
+
+      //-- set final weight
       st->is_final = TRUE;
-      gfsm_set_insert(fsm->finals,(gpointer)(id));
+      gfsm_weightmap_insert(fsm->finals,(gpointer)id,w);
     } else {
       st->is_final = FALSE;
     }
 
-    //st->arcs = NULL;
+
+    //-- read arcs (one-by-one)
+    st->arcs = NULL;
+    for (arci=0; arci < s_state.n_arcs; arci++) {
+      if (fread(&s_arc, sizeof(gfsmStoredArc), 1, f) != 1) {
+	g_set_error(errp, g_quark_from_static_string("gfsm"),                   //-- domain
+		    g_quark_from_static_string("automaton_load_bin:state:arc"), //-- code
+		    "could not read stored arcs for state %d", id);
+	rc=FALSE;
+	break;
+      }
+      if (!rc) break;
+
+      st->arcs = gfsm_arclist_new_full(s_arc.target,
+				       s_arc.lower,
+				       s_arc.upper,
+				       s_arc.weight,
+				       st->arcs);
+    }
+
+    //-- reverse arc-list for sorted automata
+    if (fsm->flags.sort_mode != gfsmASMNone) st->arcs = g_slist_reverse(st->arcs);
+  }
+
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * load_bin_file_0_0_7()
+ *   + supports stored file versions 0.0.2 -- 0.0.7
+ */
+/// Type for a stored state (v0.0.2 .. v0.0.7)
+typedef struct {
+  gboolean is_valid : 1; /**< valid flag */
+  gboolean is_final : 1; /**< final flag */
+  guint    n_arcs;       /**< number of stored arcs */
+  guint    min_arc;      /**< index of stored minimum arc (not really necessary) */
+} gfsmStoredState_007;
+
+gboolean gfsm_automaton_load_bin_file_0_0_7(gfsmAutomatonHeader *hdr, gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+{
+  gfsmStateId     id;
+  guint           arci, n_arcs;
+  gfsmStoredArc   s_arc;
+  gfsmStoredState_007 s_state;
+  gfsmState       *st;
+  gboolean         rc = TRUE;
+
+  //-- allocate states
+  gfsm_automaton_reserve(fsm, hdr->n_states);
+
+  //-- set automaton-global properties
+  fsm->flags   = hdr->flags;
+  gfsm_semiring_init(fsm->sr, hdr->srtype);
+  fsm->root_id = hdr->root_id;
+
+  //------ load states (one-by-one)
+  for (id=0; rc && id < hdr->n_states; id++) {
+    if (fread(&s_state, sizeof(gfsmStoredState_007), 1, f) != 1) {
+      g_set_error(errp,
+		  g_quark_from_static_string("gfsm"),                     //-- domain
+		  g_quark_from_static_string("automaton_load_bin:state"), //-- code
+		  "could not read stored state %d", id);
+      rc = FALSE;
+      break;
+    }
+
+    if (!s_state.is_valid) continue;
+
+    st           = gfsm_automaton_find_state(fsm,id);
+    st->is_valid = TRUE;
+
+    if (s_state.is_final) {
+      st->is_final = TRUE;
+      gfsm_weightmap_insert(fsm->finals,(gpointer)(id),fsm->sr->one);
+    } else {
+      st->is_final = FALSE;
+    }
 
     //-- HACK: remember number of arcs!
     st->arcs = (gfsmArcList*)(s_state.n_arcs);
   }
 
   //------ load arcs (state-by-state)
-  for (id=0; rc && id < hdr.n_states; id++) {
+  for (id=0; rc && id < hdr->n_states; id++) {
     //-- get state
     st = gfsm_automaton_find_state(fsm,id);
     if (!st || !st->is_valid) continue;
@@ -173,9 +261,9 @@ gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
     st->arcs = NULL;
     for (arci=0; arci < n_arcs; arci++) {
       if (fread(&s_arc, sizeof(gfsmStoredArc), 1, f) != 1) {
-	g_set_error(errp, g_quark_from_static_string("gfsm"),                   //-- domain
+	g_set_error(errp, g_quark_from_static_string("gfsm"),             //-- domain
 		    g_quark_from_static_string("automaton_load_bin:arc"), //-- code
-		    "could not read stored arcs");
+		    "could not read stored arcs for state %d", id);
 	rc=FALSE;
 	break;
       }
@@ -186,93 +274,37 @@ gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
 				       s_arc.weight,
 				       st->arcs);
     }
+
+    //-- reverse arc-list for sorted automata
+    if (fsm->flags.sort_mode != gfsmASMNone) st->arcs = g_slist_reverse(st->arcs);
   }
 
   return rc;
 }
 
-
-gboolean gfsm_automaton_load_bin_file_1(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+/*--------------------------------------------------------------
+ * load_bin_file()
+ *   + dispatch
+ */
+gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
 {
   gfsmAutomatonHeader hdr;
-  gfsmStateId     id;
-  guint           arci;
-  gfsmStoredArc   *s_arcs;
-  gfsmStoredState *s_states;
-  gfsmState       *st;
-  gfsmStoredState *sst;
-  gboolean         rc = TRUE;
 
   gfsm_automaton_clear(fsm);
 
   //-- load header
   if (!gfsm_automaton_load_bin_header(&hdr,f,errp)) return FALSE;
 
-  //-- allocate states
-  gfsm_automaton_reserve(fsm, hdr.n_states);
-
-  //-- set automaton-global properties
-  fsm->flags   = hdr.flags;
-  gfsm_semiring_init(fsm->sr, hdr.srtype);
-  fsm->root_id = hdr.root_id;
-
-  //-- allocate space for stored arcs and states
-  s_arcs   = g_new(gfsmStoredArc,   hdr.n_arcs);
-  s_states = g_new(gfsmStoredState, hdr.n_states);
-
-  //-- load state and arc vectors
-  if (fread(s_states, sizeof(gfsmStoredState), hdr.n_states, f) != hdr.n_states)
-    {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                    //-- domain
-		  g_quark_from_static_string("automaton_load_bin:states"), //-- code
-		  "could not read stored states");
-      rc = FALSE;
-    }
-  else if (fread(s_arcs, sizeof(gfsmStoredArc), hdr.n_arcs, f) != hdr.n_arcs)
-    {
-      g_set_error(errp, g_quark_from_static_string("gfsm"),                    //-- domain
-			g_quark_from_static_string("automaton_load_bin:arcs"), //-- code
-			"could not read stored arcs");
-      rc = FALSE;
-    }
-
-  //-- load state-by-state
-  for (id=0; rc && id < hdr.n_states; id++) {
-    sst          = s_states + id;
-    if (!sst->is_valid) continue;
-
-    st           = gfsm_automaton_find_state(fsm,id);
-    st->is_valid = TRUE;
-
-    if (sst->is_final) {
-      //gfsm_automaton_set_final_state(fsm,id,TRUE);
-      st->is_final = TRUE;
-      gfsm_set_insert(fsm->finals,(gpointer)(id));
-    } else {
-      st->is_final = FALSE;
-    }
-
-    st->arcs = NULL;
-    for (arci = sst->n_arcs; arci > 0; arci--) {
-      gfsmStoredArc *sa = s_arcs + arci + sst->min_arc - 1;
-      gfsmArcList   *al;
-      al = gfsm_arclist_new_full(sa->target,
-				 sa->lower,
-				 sa->upper,
-				 sa->weight,
-				 st->arcs);
-      st->arcs = al;
-      //gfsm_automaton_add_arc_ptr(fsm, st, al);
-    }
+  if (gfsm_version_ge(hdr.version,((gfsmVersionInfo){0,0,8}))) {
+    //-- v0.0.8 .. CURRENT
+    return gfsm_automaton_load_bin_file_0_0_8(&hdr,fsm,f,errp);
   }
-
-  //-- cleanup
-  g_free(s_arcs);
-  g_free(s_states);
-
-  return rc;
+  else {
+    //-- v0.0.2 .. v0.0.7
+    return gfsm_automaton_load_bin_file_0_0_7(&hdr,fsm,f,errp);
+  }
 }
+
 
 /*--------------------------------------------------------------
  * load_bin_filename()
@@ -301,18 +333,19 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
   gfsmState           *st;
   gfsmStoredState     sst;
   gfsmStoredArc       sa;
-  guint               arcid = 0;
+  gfsmWeight           w;
+  gfsmArcIter         ai;
   gboolean            rc = TRUE;
 
   //-- create header
   memset(&hdr, 0, sizeof(gfsmAutomatonHeader));
   strcpy(hdr.magic, gfsm_header_magic);
   hdr.version     = gfsm_version;
-  hdr.version_min = gfsm_version_bincompat_min;
+  hdr.version_min = gfsm_version_bincompat_min_store;
   hdr.flags       = fsm->flags;
   hdr.root_id     = fsm->root_id;
   hdr.n_states    = gfsm_automaton_n_states(fsm);
-  hdr.n_arcs      = gfsm_automaton_n_arcs(fsm);
+  //hdr.n_arcs_007= gfsm_automaton_n_arcs(fsm);
   hdr.srtype      = gfsm_automaton_get_semiring(fsm)->type;
 
   //-- write header
@@ -324,33 +357,41 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
   }
 
   //-- write states
-  for (id=0; rc &&id < hdr.n_states; id++) {
+  for (id=0; rc && id < hdr.n_states; id++) {
+    //-- store basic state information
     st           = &g_array_index(fsm->states, gfsmState, id);
     sst.is_valid = st->is_valid;
     sst.is_final = st->is_final;
     sst.n_arcs   = gfsm_state_out_degree(st);
-    sst.min_arc  = arcid;
-    arcid       += sst.n_arcs;
     if (fwrite(&sst, sizeof(sst), 1, f) != 1) {
       g_set_error(errp, g_quark_from_static_string("gfsm"),                      //-- domain
-			g_quark_from_static_string("automaton_save_bin:states"), //-- code
-			"could not store states");
+			g_quark_from_static_string("automaton_save_bin:state"), //-- code
+			"could not store state %d", id);
       rc = FALSE;
     }
-  }
-  //-- write arcs
-  for (id=0; rc && id < hdr.n_states; id++) {
-    gfsmArcIter ai;
-    for (gfsm_arciter_open(&ai,fsm,id); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+
+    //-- store final weight (maybe)
+    if (rc && sst.is_final) {
+      w = gfsm_automaton_get_final_weight(fsm,id);
+      if (fwrite(&w, sizeof(gfsmWeight), 1, f) != 1) {
+	g_set_error(errp, g_quark_from_static_string("gfsm"),                            //-- domain
+		    g_quark_from_static_string("automaton_save_bin:state:final_weight"), //-- code
+		    "could not store final weight for state %d", id);
+	rc = FALSE;
+      }
+    }
+
+    //-- store arcs
+    for (gfsm_arciter_open_ptr(&ai,fsm,st); rc && gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
       gfsmArc *a = gfsm_arciter_arc(&ai);
       sa.target = a->target;
       sa.lower  = a->lower;
       sa.upper  = a->upper;
       sa.weight = a->weight;
       if (fwrite(&sa, sizeof(sa), 1, f) != 1) {
-	g_set_error(errp, g_quark_from_static_string("gfsm"),                      //-- domain
-			  g_quark_from_static_string("automaton_save_bin:states"), //-- code
-			  "could not store arcs");
+	g_set_error(errp, g_quark_from_static_string("gfsm"),                         //-- domain
+			  g_quark_from_static_string("automaton_save_bin:state:arc"), //-- code
+			  "could not store arcs for state %d", id);
 	rc = FALSE;
       }
     }
@@ -448,15 +489,8 @@ gboolean gfsm_automaton_compile_file_full (gfsmAutomaton *fsm,
     //-- weighted final state?
     else if (nfields == 2) {
       w = strtod(b2,NULL);
-      if (w != 0)
-	g_printerr("gfsm: Warning: final weights are unsupported at line %u\n", lineno);
-
-      gfsm_automaton_set_final_state(fsm,q1,TRUE);
+      gfsm_automaton_set_final_state_full(fsm,q1,TRUE,w);
       continue;
-    }
-    else if (nfields == 3) {
-      g_printerr("gfsm: Warning: no upper label given (using <epsilon>) at line %u\n", lineno);
-      hi = 0;
     }
 
     //---- q2: sink state
@@ -476,16 +510,34 @@ gboolean gfsm_automaton_compile_file_full (gfsmAutomaton *fsm,
     } else lo = strtol(b3,NULL,10);
 
     //---- hi: upper label
-    if (hi_alphabet) {
-      g_string_assign(gs,b4);
-      key = gfsm_alphabet_string2key(hi_alphabet, gs);
-      if ((hi = gfsm_alphabet_find_label(hi_alphabet,key)) == gfsmNoLabel)
-	hi = gfsm_alphabet_get_label(hi_alphabet, key);
-    } else hi = strtol(b4,NULL,10);
+    if (fsm->flags.is_transducer) {
+      if (nfields > 3) {
+	if (hi_alphabet) {
+	  g_string_assign(gs,b4);
+	  key = gfsm_alphabet_string2key(hi_alphabet, gs);
+	  if ((hi = gfsm_alphabet_find_label(hi_alphabet,key)) == gfsmNoLabel)
+	    hi = gfsm_alphabet_get_label(hi_alphabet, key);
+	}
+	else hi = strtol(b4,NULL,10);
+      }
+      else {
+	g_printerr("gfsm: Warning: no upper label given for transducer at line %u - using lower label\n",
+		   lineno);
+	hi = lo;
+      }
+    }
+    else {
+      //-- not a transducer
+      hi = lo;
+      if (nfields > 4) {
+	g_printerr("gfsm: Warning: ignoring extra fields in acceptor file at line %u\n", lineno);
+      }
+    }
 
-    if (nfields == 5)
-      w = strtod(b5,NULL);     //-- w : arc weight
-    else w = 0;
+    //-- w: arc weight
+    if      ( fsm->flags.is_transducer && nfields >= 5) { w = strtod(b5,NULL); }
+    else if (!fsm->flags.is_transducer && nfields >= 4) { w = strtod(b4,NULL); }
+    else                                                { w = fsm->sr->one; }
 
     gfsm_automaton_add_arc(fsm,q1,q2,lo,hi,w);
   }
@@ -573,20 +625,25 @@ gboolean gfsm_automaton_print_file_full (gfsmAutomaton *fsm,
 	if (lo_alphabet) g_printerr("Warning: no lower label defined for Id '%u'!\n", a->lower);
 	fprintf(f, "%u", a->lower);
       }
-      fputc('\t',f);
 
       //-- upper label
-      if (hi_alphabet && (key=gfsm_alphabet_find_key(hi_alphabet,a->upper)) != gfsmNoKey) {
-	gfsm_alphabet_key2string(hi_alphabet,key,gs);
-	fputs(gs->str,f);
-      } else {
-	if (hi_alphabet) g_printerr("Warning: no upper label defined for Id '%u'!\n", a->upper);
-	fprintf(f, "%u", a->upper);
+      if (fsm->flags.is_transducer) {
+	fputc('\t',f);
+	if (hi_alphabet && (key=gfsm_alphabet_find_key(hi_alphabet,a->upper)) != gfsmNoKey) {
+	  gfsm_alphabet_key2string(hi_alphabet,key,gs);
+	  fputs(gs->str,f);
+	} else {
+	  if (hi_alphabet) g_printerr("Warning: no upper label defined for Id '%u'!\n", a->upper);
+	  fprintf(f, "%u", a->upper);
+	}
       }
-      fputc('\t',f);
 
       //-- weight
-      fprintf(f, "%g\n", a->weight);
+      if (fsm->flags.is_weighted) { // && a->weight != fsm->sr->one
+	fprintf(f, "\t%g", a->weight);
+      }
+
+      fputc('\n', f);
     }
 
     //-- final?
@@ -597,7 +654,10 @@ gboolean gfsm_automaton_print_file_full (gfsmAutomaton *fsm,
       } else {
 	fprintf(f, "%u", id);
       }
-      fputs("\t0\n",f);
+      if (fsm->flags.is_weighted) {
+	fprintf(f, "\t%g", gfsm_automaton_get_final_weight(fsm,id));
+      }
+      fputc('\n', f);
     }
   }
 

@@ -32,6 +32,17 @@ const guint gfsmStateSetDefaultSize = 2;
 /*======================================================================
  * Methods: Constructors etc.
  */
+
+/*--------------------------------------------------------------
+ * new_singleton()
+ */
+gfsmStateSet *gfsm_stateset_new_singleton(gfsmStateId id)
+{
+  gfsmStateSet *sset = gfsm_stateset_new();
+  g_array_insert_val(sset,0,id);
+  return sset;
+}
+
 /*--------------------------------------------------------------
  * clone()
  */
@@ -212,4 +223,23 @@ gboolean gfsm_stateset_has_final_state(gfsmStateSet *sset, gfsmAutomaton *fsm)
     if (gfsm_automaton_is_final_state(fsm, g_array_index(sset,gfsmStateId,i))) return TRUE;
   }
   return FALSE;
+}
+
+/*--------------------------------------------------------------
+ * lookup_final_weight()
+ */
+gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeight *wp)
+{
+  guint i;
+  gboolean rc=FALSE;
+  *wp = fsm->sr->one;
+  gfsmWeight w;
+  for (i = 0; i < sset->len; i++) {
+    gfsmStateId id = g_array_index(sset,gfsmStateId,i);
+    if (gfsm_automaton_lookup_final(fsm,id,&w)) {
+      *wp = gfsm_sr_plus(fsm->sr, *wp, w);
+      rc  = TRUE;
+    }
+  }
+  return rc;
 }

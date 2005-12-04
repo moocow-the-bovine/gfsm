@@ -75,6 +75,10 @@ gfsmPath *gfsm_path_new_copy(gfsmPath *p1);
 
 /** Create and return a new gfsmPath, appending to an existing path */
 gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr);
+
+/** Create and return a new gfsmPath as a copy of an existing gfsmPath with weight multiplied by \a w */
+gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr);
+
 /** Append an arc to a gfsmPath */
 void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr);
 
