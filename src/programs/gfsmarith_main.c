@@ -27,12 +27,12 @@
 
 #include <gfsm.h>
 
-#include "gfsmconvert_cmdparser.h"
+#include "gfsmarith_cmdparser.h"
 
 /*--------------------------------------------------------------------------
  * Globals
  *--------------------------------------------------------------------------*/
-char *progname = "gfsmconvert";
+char *progname = "gfsmarith";
 
 //-- options
 struct gengetopt_args_info args;
@@ -44,7 +44,6 @@ const char *outfilename = "-";
 //-- global structs
 gfsmAutomaton *fsm;
 gfsmError     *err = NULL;
-gfsmSRType     srtype = gfsmSRTUnknown;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -79,21 +78,12 @@ int main (int argc, char **argv)
     exit(3);
   }
 
-  //-- set flags
-  if (args.transducer_given) fsm->flags.is_transducer = args.transducer_arg;
-  if (args.weighted_given)   fsm->flags.is_weighted   = args.weighted_arg;
-
-  //-- set semiring
-  if (args.semiring_given) {
-    srtype = gfsm_sr_name_to_type(args.semiring_arg);
-    if (srtype == gfsmSRTUnknown) {
-      g_printerr("%s: Warning: unknown semiring name '%s' defaults to type 'tropical'.\n",
-		 progname, args.semiring_arg);
-      srtype = gfsmSRTTropical;
-    }
-    if (srtype != fsm->sr->type) {
-      gfsm_automaton_set_semiring(fsm, gfsm_semiring_new(srtype));
-    }
+  //-- perform final-weight aritmetic
+  if (args.multiply_given) {
+    gfsm_automaton_final_weight_times(fsm,args.multiply_arg);
+  }
+  else if (args.add_given) {
+    gfsm_automaton_final_weight_plus(fsm,args.add_arg);
   }
 
   //-- store automaton

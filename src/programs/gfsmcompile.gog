@@ -38,6 +38,9 @@ If unspecified, standard input will be read
 #-----------------------------------------------------------------------------
 #group "Basic Options"
 
+flag   "acceptor" a "Compile as acceptor (default=transducer)" \
+  default=0
+
 string "ilabels" i "Specify input (lower) labels file." \
    arg="LABELS"
 
@@ -55,6 +58,7 @@ Specify one of the following:
 
  boolean
  log
+ plog
  real
  trivial
  tropical

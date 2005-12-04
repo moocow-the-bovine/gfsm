@@ -2,10 +2,10 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmconvert"
+program "gfsmreplace"
 #program_version "0.01"
 
-purpose	"Convert binary format gfsm files"
+purpose	"Replace some automaton arcs with a whole automaton"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 
@@ -17,40 +17,30 @@ details ""
 #-----------------------------------------------------------------------------
 # Files
 #-----------------------------------------------------------------------------
-#rcfile "/etc/gfsmrc"
-#rcfile "~/.gfsmrc"
+#rcfile "/etc/mootrc"
+#rcfile "~/.mootrc"
 
 #-----------------------------------------------------------------------------
 # Arguments
 #-----------------------------------------------------------------------------
-argument "FSMFILE" "Stored binary gfsm file" \
-    details="
-If unspecified, standard input will be read
-"
 
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
 #group "Basic Options"
 
-int "transducer" t "Specify whether automaton is a transducer" \
-  arg="BOOL"
-
-int "weighted" w "Specify whether automaton is weighted" \
-  arg="BOOL"
-
-string "semiring" s "Specify semiring type." \
-   arg="SRTYPE" \
-   details="
-Specify one of the following:
-
- boolean
- log
- real
- trivial
- tropical
-
+string "replacement" r "Replacement automaton (binary gfsm file)" \
+    arg="FSMFILE" \
+    default="-" \
+    details="
+If unspecified, standard input will be read.
 "
+
+int "lower" l "Lower label to replace (default=any)" \
+  arg="LABEL"
+
+int "upper" u "Upper label to replace (default=any)" \
+  arg="LABEL"
 
 string "output" F "Specifiy output file (default=stdout)." \
     arg="FILE" \

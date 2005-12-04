@@ -2,10 +2,10 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmconvert"
+program "gfsmarith"
 #program_version "0.01"
 
-purpose	"Convert binary format gfsm files"
+purpose	"Perform a semiring arithmetic operation on automaton final weights"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 
@@ -33,24 +33,11 @@ If unspecified, standard input will be read
 #-----------------------------------------------------------------------------
 #group "Basic Options"
 
-int "transducer" t "Specify whether automaton is a transducer" \
-  arg="BOOL"
+float "multiply" m "Multiply by WEIGHT" \
+  arg="WEIGHT"
 
-int "weighted" w "Specify whether automaton is weighted" \
-  arg="BOOL"
-
-string "semiring" s "Specify semiring type." \
-   arg="SRTYPE" \
-   details="
-Specify one of the following:
-
- boolean
- log
- real
- trivial
- tropical
-
-"
+float "add" a "Add WEIGHT" \
+  arg="WEIGHT"
 
 string "output" F "Specifiy output file (default=stdout)." \
     arg="FILE" \

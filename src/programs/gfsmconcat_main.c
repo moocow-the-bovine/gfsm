@@ -44,7 +44,7 @@ const char *outfilename = "-";
 
 //-- global structs etc.
 gfsmError *err = NULL;
-gfsmAutomaton *fsmConcat=NULL, *fsmIn=NULL;
+gfsmAutomaton *fsmOut=NULL, *fsmIn=NULL;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -71,10 +71,10 @@ void get_my_options(int argc, char **argv)
 }
 
 /*--------------------------------------------------------------------------
- * compute_concat()
+ * compute_operation()
  *  + utility routine
  */
-void compute_concat(const char *infilename)
+void compute_operation(const char *infilename)
 {
   //-- load automaton
   if (!gfsm_automaton_load_bin_filename(fsmIn,infilename,&err)) {
@@ -83,10 +83,11 @@ void compute_concat(const char *infilename)
   }
 
   //-- compute concat
-  if (fsmConcat == NULL) {
-    fsmConcat = gfsm_automaton_clone(fsmIn);
+  if (fsmOut == NULL) {
+    fsmOut = fsmIn;
+    fsmIn  = gfsm_automaton_new();
   } else {
-    gfsm_automaton_concat(fsmConcat,fsmIn);
+    gfsm_automaton_concat(fsmOut,fsmIn);
   }
 }
 
@@ -99,19 +100,19 @@ int main (int argc, char **argv)
   get_my_options(argc,argv);
 
   for (i = 0; i < args.inputs_num; i++) {
-    compute_concat(args.inputs[i]);
+    compute_operation(args.inputs[i]);
   }
-  if (args.inputs_num == 1) compute_concat("-");
+  if (args.inputs_num == 1) compute_operation("-");
 
   //-- spew automaton
-  if (!gfsm_automaton_save_bin_filename(fsmConcat,outfilename,&err)) {
+  if (!gfsm_automaton_save_bin_filename(fsmOut,outfilename,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }
 
   //-- cleanup
   if (fsmIn) gfsm_automaton_free(fsmIn);
-  if (fsmConcat) gfsm_automaton_free(fsmConcat);
+  if (fsmOut) gfsm_automaton_free(fsmOut);
 
   return 0;
 }

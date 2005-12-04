@@ -71,6 +71,7 @@ void get_my_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
   gfsmError *err = NULL;
+  int rc = 0;
   get_my_options(argc,argv);
 
   //-- load automaton
@@ -88,8 +89,11 @@ int main (int argc, char **argv)
     exit(4);
   }
 
+  //-- get exit status: 255 if no root state
+  if (fsm->root_id == gfsmNoState) rc=255;
+
   //-- cleanup
   if (fsm) gfsm_automaton_free(fsm);
 
-  return 0;
+  return rc;
 }

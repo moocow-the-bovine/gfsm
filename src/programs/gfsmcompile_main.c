@@ -107,6 +107,7 @@ void get_my_options(int argc, char **argv)
 
   //-- initialize fsm
   fsm = gfsm_automaton_new();
+  if (args.acceptor_given) fsm->flags.is_transducer = FALSE;
 
   //-- set semiring
   srtype = sr_name2type(args.semiring_arg);

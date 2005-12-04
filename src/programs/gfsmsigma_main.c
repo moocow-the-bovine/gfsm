@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow@ling.uni-potsdam.de>
+   Copyright (C) 2005 by Bryan Jurish <moocow@ling.uni-potsdam.de>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,29 +22,30 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <gfsm.h>
 
-#include "gfsmconvert_cmdparser.h"
+#include "gfsmsigma_cmdparser.h"
 
 /*--------------------------------------------------------------------------
  * Globals
  *--------------------------------------------------------------------------*/
-char *progname = "gfsmconvert";
+char *progname = "gfsmsigma";
 
 //-- options
 struct gengetopt_args_info args;
 
 //-- files
-const char *infilename = "-";
+const char *abetname = "-";
 const char *outfilename = "-";
 
-//-- global structs
-gfsmAutomaton *fsm;
-gfsmError     *err = NULL;
-gfsmSRType     srtype = gfsmSRTUnknown;
+//-- global structs etc.
+gfsmError *err = NULL;
+gfsmAutomaton *fsmOut=NULL;
+gfsmAlphabet *abet=NULL;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -54,16 +55,14 @@ void get_my_options(int argc, char **argv)
   if (cmdline_parser(argc, argv, &args) != 0)
     exit(1);
 
-  //-- load environmental defaults
-  //cmdline_parser_envdefaults(&args);
+  //-- output
+  if (args.inputs_num) abetname = args.inputs[0];
+  if (args.output_arg) outfilename = args.output_arg;
 
-  //-- filenames
-  if (args.inputs_num > 0) infilename = args.inputs[0];
-  outfilename = args.output_arg;
-
-  //-- initialize fsm
-  fsm = gfsm_automaton_new();
+  //-- initialize automaton
+  fsmOut = gfsm_automaton_new();
 }
+
 
 /*--------------------------------------------------------------------------
  * MAIN
@@ -71,40 +70,31 @@ void get_my_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
   GFSM_INIT
+
   get_my_options(argc,argv);
 
-  //-- load automaton
-  if (!gfsm_automaton_load_bin_filename(fsm,infilename,&err)) {
-    g_printerr("%s: load failed for '%s': %s\n", progname, infilename, err->message);
-    exit(3);
+  //-- load alphabet
+  abet = gfsm_string_alphabet_new();
+  if (!gfsm_alphabet_load_filename(abet, abetname, &err)) {
+    g_printerr("%s: load failed for alphabet file '%s': %s\n",
+	       progname, abetname, err->message);
+    exit(2);
   }
 
-  //-- set flags
-  if (args.transducer_given) fsm->flags.is_transducer = args.transducer_arg;
-  if (args.weighted_given)   fsm->flags.is_weighted   = args.weighted_arg;
+  //-- compute operation
+  gfsm_automaton_sigma(fsmOut,abet);
 
-  //-- set semiring
-  if (args.semiring_given) {
-    srtype = gfsm_sr_name_to_type(args.semiring_arg);
-    if (srtype == gfsmSRTUnknown) {
-      g_printerr("%s: Warning: unknown semiring name '%s' defaults to type 'tropical'.\n",
-		 progname, args.semiring_arg);
-      srtype = gfsmSRTTropical;
-    }
-    if (srtype != fsm->sr->type) {
-      gfsm_automaton_set_semiring(fsm, gfsm_semiring_new(srtype));
-    }
-  }
-
-  //-- store automaton
-  if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {
+  //-- spew automaton
+  if (!gfsm_automaton_save_bin_filename(fsmOut,outfilename,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }
 
   //-- cleanup
-  gfsm_automaton_free(fsm);
+  if (abet)   gfsm_alphabet_free(abet);
+  if (fsmOut) gfsm_automaton_free(fsmOut);
 
   GFSM_FINISH
+
   return 0;
 }

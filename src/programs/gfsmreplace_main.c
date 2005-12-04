@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow@ling.uni-potsdam.de>
+   Copyright (C) 2005 by Bryan Jurish <moocow@ling.uni-potsdam.de>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,27 +24,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <ctype.h>
 
 #include <gfsm.h>
 
-#include "gfsmconvert_cmdparser.h"
+#include "gfsmreplace_cmdparser.h"
 
 /*--------------------------------------------------------------------------
  * Globals
  *--------------------------------------------------------------------------*/
-char *progname = "gfsmconvert";
+char *progname = "gfsmreplace";
 
 //-- options
 struct gengetopt_args_info args;
 
 //-- files
-const char *infilename = "-";
+const char *replfilename = "-";
+const char *infilename  = "-";
 const char *outfilename = "-";
 
 //-- global structs
-gfsmAutomaton *fsm;
+gfsmAutomaton *repl = NULL, *fsm=NULL;
 gfsmError     *err = NULL;
-gfsmSRType     srtype = gfsmSRTUnknown;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -58,11 +60,16 @@ void get_my_options(int argc, char **argv)
   //cmdline_parser_envdefaults(&args);
 
   //-- filenames
-  if (args.inputs_num > 0) infilename = args.inputs[0];
+  if (args.inputs_num)         infilename  = args.inputs[0];
+  if (args.replacement_given) replfilename = args.replacement_arg;
   outfilename = args.output_arg;
 
-  //-- initialize fsm
-  fsm = gfsm_automaton_new();
+  //-- load replacement automaton
+  repl = gfsm_automaton_new();
+  if (!gfsm_automaton_load_bin_filename(repl, replfilename, &err)) {
+    g_printerr("%s: load failed for FST file '%s': %s\n", progname, replfilename, err->message);
+    exit(255);
+  }
 }
 
 /*--------------------------------------------------------------------------
@@ -73,37 +80,28 @@ int main (int argc, char **argv)
   GFSM_INIT
   get_my_options(argc,argv);
 
-  //-- load automaton
+  //-- load input automaton
+  fsm = gfsm_automaton_new();
   if (!gfsm_automaton_load_bin_filename(fsm,infilename,&err)) {
     g_printerr("%s: load failed for '%s': %s\n", progname, infilename, err->message);
-    exit(3);
+    exit(255);
   }
 
-  //-- set flags
-  if (args.transducer_given) fsm->flags.is_transducer = args.transducer_arg;
-  if (args.weighted_given)   fsm->flags.is_weighted   = args.weighted_arg;
+  //-- perform replacement
+  gfsm_automaton_replace(fsm,
+			 (args.lower_given ? args.lower_arg : gfsmNoLabel),
+			 (args.upper_given ? args.upper_arg : gfsmNoLabel),
+			 repl);
 
-  //-- set semiring
-  if (args.semiring_given) {
-    srtype = gfsm_sr_name_to_type(args.semiring_arg);
-    if (srtype == gfsmSRTUnknown) {
-      g_printerr("%s: Warning: unknown semiring name '%s' defaults to type 'tropical'.\n",
-		 progname, args.semiring_arg);
-      srtype = gfsmSRTTropical;
-    }
-    if (srtype != fsm->sr->type) {
-      gfsm_automaton_set_semiring(fsm, gfsm_semiring_new(srtype));
-    }
-  }
-
-  //-- store automaton
+  //-- save output
   if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }
 
   //-- cleanup
-  gfsm_automaton_free(fsm);
+  if (repl) gfsm_automaton_free(repl);
+  if (fsm)  gfsm_automaton_free(fsm);
 
   GFSM_FINISH
   return 0;
