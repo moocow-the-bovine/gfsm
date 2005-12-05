@@ -1,4 +1,3 @@
-
 /*=============================================================================*\
  * File: gfsmEnum.c
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>

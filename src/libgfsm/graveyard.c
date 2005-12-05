@@ -1,4 +1,171 @@
 //=================================================================================
+// statepair2weightXXX
+//=================================================================================
+
+/// Typedef for mapping (gfsmStatePair)s to (gfsmWeight)s
+/// used by gfsm_automaton_rmepsilon()
+typedef struct {
+  gfsmWeightMap *wm; /**< underlying weight-map */
+  gfsmSemiring  *sr; /**< semiring used for comparison */
+} gfsmStatePair2WeightMap;
+
+/// Typedef for mapping (gfsmStatePair)s to (gfsmWeight)s
+/// used by gfsm_automaton_rmepsilon()
+typedef struct {
+  GHashTable    *h;  /**< underlying hash */
+  gfsmSemiring  *sr; /**< semiring used for comparison */
+} gfsmStatePair2WeightHash;
+
+/*======================================================================
+ * Methods: gfsmStatePair2WeightHash
+ */
+///\name gfsmStatePair2WeightHash Methods
+//@{
+
+
+/** create a new gfsmStatePair2WeightHash (copies & frees keys)
+ *  \see gfsmWeightHash
+ */
+gfsmStatePair2WeightHash *gfsm_statepair2weighthash_new(gfsmSemiring *sr);
+
+/** Hash \a sp to \a w in \a spw.
+ *  \returns TRUE if \a sp was already present in \a spw with a less-than-or-equal weight */
+gboolean gfsm_statepair2weighthash_insert(gfsmStatePair2WeightHash *sp2wh, gfsmStatePair *sp, gfsmWeight w);
+
+/** Lookup weight for \a sp in \a sp2wh .
+ *  \returns TRUE if \a sp was already present in \a sp2wh and sets \a *wp to its stored weight */
+gboolean gfsm_statepair2weighthash_lookup(gfsmStatePair2WeightHash *sp2wh, gfsmStatePair *sp, gfsmWeight *wp);
+
+/** Clear a gfsmStatePair2WeightHash */
+#define gfsm_statepair2weighthash_clear(sp2wh) \
+  g_hash_free((sp2wh)->h)
+
+/** Free all memory allocated by a gfsmStatePair2WeightHash */
+void gfsm_statepair2weighthash_free(gfsmStatePair2WeightHash *sp2wh);
+
+/** Alias; \sa gfsm_weighthash_foreach() */
+#define gfsm_statepair2weighthash_foreach(sp2wh,func,data) \
+  gfsm_weighthash_foreach((sp2wh)->h,(func),(data))
+
+//@}
+
+
+/*======================================================================
+ * Methods: gfsmStatePair2WeightMap
+ */
+
+/*--------------------------------------------------------------
+ * statepair2weightmap_new()
+ */
+gfsmStatePair2WeightMap *gfsm_statepair2weightmap_new(gfsmSemiring *sr)
+{
+  gfsmStatePair2WeightMap *sp2wm = g_new(gfsmStatePair2WeightMap,1);
+  sp2wm->wm = gfsm_weightmap_new_full((GCompareDataFunc)gfsm_statepair_compare,
+				      sr,
+				      (GDestroyNotify)g_free);
+  sp2wm->sr = sr;
+  return sp2wm;
+}
+
+/*--------------------------------------------------------------
+ * statepair2weightmap_insert()
+ */
+gboolean gfsm_statepair2weightmap_insert(gfsmStatePair2WeightMap *spw, gfsmStatePair *sp, gfsmWeight w)
+{
+  gpointer orig_key;
+  gpointer orig_val;
+  if (g_tree_lookup_extended(spw->wm, sp, &orig_key, &orig_val)) {
+    //-- already present: is the stored weight better?
+    if (gfsm_sr_less(spw->sr, gfsm_ptr2weight(orig_val), w)) {
+      return TRUE;
+    }
+  }
+  //-- either not present or we need to update the stored weight because (w) is better
+  gfsm_weightmap_insert(spw->wm, gfsm_statepair_clone(sp), w);
+  return FALSE;
+}
+
+/*--------------------------------------------------------------
+ * statepair2weightmap_lookup()
+ */
+gboolean gfsm_statepair2weightmap_lookup(gfsmStatePair2WeightMap *spw, gfsmStatePair *sp, gfsmWeight *wp)
+{
+  gpointer orig_key;
+  return g_tree_lookup_extended(spw->wm, sp, &orig_key, &((gpointer*)wp));
+}
+
+/*--------------------------------------------------------------
+ * statepair2weightmap_free()
+ */
+void gfsm_statepair2weightmap_free(gfsmStatePair2WeightMap *sp2wm)
+{
+  gfsm_weightmap_free(sp2wm->wm);
+  g_free(sp2wm);
+}
+
+/*======================================================================
+ * Methods: gfsmStatePair2WeightHash
+ */
+
+/*--------------------------------------------------------------
+ * statepair2weighthash_new()
+ */
+gfsmStatePair2WeightHash *gfsm_statepair2weighthash_new(gfsmSemiring *sr)
+{
+  gfsmStatePair2WeightHash *sp2wh = g_new(gfsmStatePair2WeightHash,1);
+  sp2wh->h = g_hash_table_new_full((GHashFunc)gfsm_statepair_hash,
+				   (GEqualFunc)gfsm_statepair_equal,
+				   (GDestroyNotify)gfsm_statepair_free,
+				   NULL);
+  sp2wh->sr = sr;
+  return sp2wh;
+}
+
+/*--------------------------------------------------------------
+ * statepair2weighthash_insert()
+ */
+gboolean gfsm_statepair2weighthash_insert(gfsmStatePair2WeightHash *sp2wh, gfsmStatePair *sp, gfsmWeight w)
+{
+  gpointer orig_key;
+  gpointer orig_val;
+  if (g_tree_lookup_extended(spw->h, sp, &orig_key, &orig_val)) {
+    //-- already present: is (stored_weight+w) better than (stored_weight)?
+    gfsmWeight ow = gfsm_ptr2weight(orig_val);
+    w = gfsm_sr_plus(sp2wh->sr, ow, w);
+    if (gfsm_sr_less(sp2wh->sr, ow, w)) {
+      return TRUE;
+    }
+    //-- adding new weight is better
+    g_hash_table_steal(sp2wh->h,  orig_key);
+    g_hash_table_insert(sp2wh->h, orig_key, gfsm_weight2ptr(w));
+  }
+  else {
+    //-- pair (sp) was not present: copy & insert
+    g_hash_table_insert(sp2wh->h, gfsm_statepair_clone(sp), gfsm_weight2ptr(w));
+  }
+  return FALSE; //-- either not present or updated
+}
+
+/*--------------------------------------------------------------
+ * statepair2weighthash_lookup()
+ */
+gboolean gfsm_statepair2weighthash_lookup(gfsmStatePair2WeightHash *sp2wh, gfsmStatePair *sp, gfsmWeight *wp)
+{
+  gpointer orig_key;
+  return g_hash_table_lookup_extended(spw->wm, sp, &orig_key, &((gpointer*)wp));
+}
+
+/*--------------------------------------------------------------
+ * statepair2weighthash_free()
+ */
+void gfsm_statepair2weighthash_free(gfsmStatePair2WeightHash *sp2wh)
+{
+  gfsm_weighthash_free(sp2wh->wm);
+  g_free(sp2wh);
+}
+
+
+//=================================================================================
 // DETERMINIZE (v1)
 //=================================================================================
 

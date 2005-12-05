@@ -1154,16 +1154,20 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
  */
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 {
-  gfsmStatePairEnum *spenum = gfsm_statepair_enum_new();
+  gfsmStatePair2WeightHash *sp2wh = gfsm_statepair2weighthash_new();
   gfsmArcIter ai;
   gfsmStateId qid;
   gfsmArc *a;
 
-  //-- traversal
-  gfsm_automaton_rmepsilon_visit_state(fsm, fsm->root_id, fsm->root_id, fsm->sr->one,spenum);
-  gfsm_enum_free(spenum);
+  //-- pass-1: populate sp2wh with epsilon-reachable states
+  for (qid=0; qid < fsm->states->len; qid++) {
+    _gfsm_automaton_rmeps_visit_state(fsm, qid, qid, fsm->sr->one, sp2wh);
+  }
 
-  //-- actual removal of now-redundant epsilon arcs
+  //-- pass-2: adopt non-epsilon arcs from eps-reachable states
+  gfsm_weighthash_foreach(sp2wh, (GHFunc)_gfsm_automaton_rmeps_pass2_foreach_func, fsm);
+
+  //-- pass-3: actual removal of now-redundant epsilon arcs
   for (qid=0; qid < fsm->states->len; qid++) {
     for (gfsm_arciter_open(&ai,fsm,qid); gfsm_arciter_ok(&ai); ) {
       a = gfsm_arciter_arc(&ai);
@@ -1175,70 +1179,65 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
     }
   }
 
+  //-- cleanup
+  gfsm_weighthash_free(sp2wh);
+
   return fsm;
 }
 
 /*--------------------------------------------------------------
  * rmepsilon_visit_state()
  */
-void gfsm_automaton_rmepsilon_visit_state(gfsmAutomaton *fsm,
-					  gfsmStateId qid_noeps,
-					  gfsmStateId qid_eps,
-					  gfsmWeight weight_eps,
-					  gfsmStatePairEnum *spenum)
+void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
+				       gfsmStateId qid_noeps, //-- state reachable by non-eps arcs
+				       gfsmStateId qid_eps,   //-- eps-reachable state from qid_noeps
+				       gfsmWeight weight_eps, //-- total weight of followed eps-arcs
+				       gfsmStatePair2WeightHash *sp2wh //-- maps (qid_noeps,qid_noeps)=>sum_weight_eps
+				       )
 {
   gfsmState *q_noeps, *q_eps;
   gfsmStatePair sp = {qid_noeps,qid_eps};
   gfsmArcIter ai;
   gfsmArc *a;
 
-  //-- visited check
-  if (gfsm_enum_lookup(spenum, &sp) != gfsmEnumNone) return;
+  //-- visited check, mark
+  if (!gfsm_weighthash_insert_sum_if_less(sp2wh, &sp, weight_eps, fsm->sr))
+    return; //-- no update required
 
   //-- sanity check
   q_noeps = gfsm_automaton_find_state(fsm,qid_noeps);
   q_eps   = gfsm_automaton_find_state(fsm,qid_eps);
   if (!q_noeps || !q_noeps->is_valid || !q_eps || !q_eps->is_valid) return;
 
-  //-- mark as visited
-  gfsm_enum_insert_full(spenum, &sp, qid_noeps);
-
-  //-- check for final state
-  if (q_eps->is_final) {
-    gfsm_automaton_set_final_state_full(fsm,qid_noeps,TRUE,
-					gfsm_sr_plus(fsm->sr,
-						     gfsm_automaton_get_final_weight(fsm,qid_noeps),
-						     gfsm_automaton_get_final_weight(fsm,qid_eps)));
-  }
-
-  //-- adopt all arcs from eps-reachable state
-  if (qid_eps != qid_noeps) {
-    for (gfsm_arciter_open_ptr(&ai, fsm, q_eps);
-	 gfsm_arciter_ok(&ai);
-	 gfsm_arciter_next(&ai))
-      {
-	a = gfsm_arciter_arc(&ai);
-	gfsm_automaton_add_arc(fsm, qid_noeps, a->target, a->lower, a->upper,
-			       gfsm_sr_times(fsm->sr, weight_eps, a->weight));
-      }
-  }
-
-  //-- visit outgoing arcs from non-eps state
-  for (gfsm_arciter_open_ptr(&ai, fsm, q_eps); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-    a = gfsm_arciter_arc(&ai);
-
-    if (a->lower==gfsmEpsilon && a->upper==gfsmEpsilon) {
-      //-- visit epsilon-reachable states
-      gfsm_automaton_rmepsilon_visit_state(fsm, qid_noeps, a->target,
-					   gfsm_sr_times(fsm->sr, weight_eps, a->weight),
-					   spenum);
-    } else {
-      //-- visit "normal" states
-      gfsm_automaton_rmepsilon_visit_state(fsm, a->target, a->target, fsm->sr->one, spenum);
+  //-- visit epsilon-reachable states from q_eps
+  for (gfsm_arciter_open_ptr(&ai, fsm, q_eps), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon);
+       gfsm_arciter_ok(&ai);
+       gfsm_arciter_next(&ai), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon))
+    {
+      a = gfsm_arciter_arc(&ai);
+      _gfsm_automaton_rmeps_visit_state(fsm, qid_noeps, a->target,
+					gfsm_sr_times(fsm->sr, weight_eps, a->weight),
+					sp2wh);
     }
-  }  
 }
 
+/*--------------------------------------------------------------
+ * rmepsilon_foreach_func()
+ */
+void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm)
+{
+  gfsmWeight  w = gfsm_ptr2weight(pw);
+  gfsmArcIter ai;
+  gfsmArc     *a;
+  if (sp->id1==sp->id2) return; //-- sanity check
+  for (gfsm_arciter_open(&ai,fsm,sp->id2); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    a = gfsm_arciter_arc(&ai);
+    if (a->lower != gfsmEpsilon || a->upper != gfsmEpsilon) {
+      gfsm_automaton_add_arc(fsm, sp->id1, a->target, a->lower, a->upper,
+			     gfsm_sr_times(fsm->sr, a->weight, w));
+    }
+  }
+}
 
 /*--------------------------------------------------------------
  * reverse()
@@ -1362,7 +1361,7 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 			   offset + fsm2->root_id,
 			   gfsmEpsilon,
 			   gfsmEpsilon,
-			   gfsmNoWeight);
+			   fsm1->sr->one);
   }
 	 
   return fsm1;

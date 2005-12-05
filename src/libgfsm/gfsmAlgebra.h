@@ -379,18 +379,26 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm);
  * Remove epsilon arcs from \a fsm.
  * \note Destructively alters \a fsm.
  * \note Multiple epsilon-paths between two states may not be weighted correctly in the output automaton.
+ * \warning negative-cost epsilon cycles in \a fsm will cause infinite recursion!
  *
  * \param fsm Automaton
  * \returns \a fsm
  */
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm);
 
-/** Guts for rmepsilon() */
-void gfsm_automaton_rmepsilon_visit_state(gfsmAutomaton *fsm,
-					  gfsmStateId qid_noeps,
-					  gfsmStateId qid_eps,
-					  gfsmWeight weight_eps,
-					  gfsmStatePairEnum *spenum);
+/** Pass-1 guts for rmepsilon(): populates the mapping \a sp2wh
+ *  with state-pairs (qid_noeps,qid_eps)=>weight for all
+ *  \a qid_eps epsilon-reachable from \a qid_noeps in \a fsm
+ */
+void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
+				       gfsmStateId qid_noeps,
+				       gfsmStateId qid_eps,
+				       gfsmWeight weight_eps,
+				       gfsmStatePair2WeightHash *sp2wh
+				       );
+
+/** Pass-2 for rmepsilon(): arc-adoption iterator */
+void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm);
 
 //------------------------------
 /**

@@ -31,6 +31,8 @@
 #include <glib.h>
 #include <gfsmCommon.h>
 #include <gfsmEnum.h>
+#include <gfsmSemiring.h>
+#include <gfsmWeightMap.h>
 
 /*======================================================================
  * Compound Types
@@ -44,9 +46,21 @@ typedef struct {
   gfsmStateId  id2;  /**< Id of second component */
 } gfsmStatePair;
 
+/// Type for a (stateid,weight) pair (used by algebraic operations)
+typedef struct {
+  gfsmStateId id; /**< state-id */
+  gfsmWeight   w; /**< weight */
+} gfsmStateWeightPair;
+
+
 /// Typedef for mapping (gfsmStatePair)s to single (gfsmStateId)s,
 /// used by gfsm_automaton_intersection()
 typedef gfsmEnum gfsmStatePairEnum;
+
+/// Typedef for mapping (gfsmStatePair)s to single (gfsmWeight)s,
+/// used by gfsm_automaton_rmepsilon()
+typedef gfsmWeightHash gfsmStatePair2WeightHash;
+
 
 /*======================================================================
  * LabelPair: Methods
@@ -88,7 +102,7 @@ gfsmStatePair *gfsm_statepair_new(gfsmStateId id1, gfsmStateId id2);
 gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp);
 
 /** Free a gfsmStatePair */
-#define gfsm_statepair_free(sp) g_free(sp)
+#define gfsm_statepair_free g_free
 //gfsmStatePair *gfsm_statepair_free(gfsmStatePair *sp);
 
 /** Get a more or less sensible hash value from a state pair */
@@ -99,6 +113,32 @@ gint gfsm_statepair_compare(const gfsmStatePair *sp1, const gfsmStatePair *sp2);
 
 /** Equality predicate for gfsmStatePair */
 gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2);
+
+//@}
+
+/*======================================================================
+ * Methods: gfsmStateWeightPair
+ */
+///\name gfsmStateWeightPair Methods
+//@{
+
+/** Create a new gfsmStateWeightPair */
+gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeight w);
+
+/** Clone an existing gfsmStateWeightPair */
+gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp);
+
+/** Free a gfsmStatePair */
+#define gfsm_state_weight_pair_free(swp) g_free(swp)
+
+/** Get a more or less sensible hash value from a state pair (really just hashes id) */
+guint gfsm_state_weight_pair_hash(gfsmStateWeightPair *sp);
+
+/** Comparison function for gfsmStatePair (id << w) */
+gint gfsm_state_weight_pair_compare(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2, gfsmSemiring *sr);
+
+/** Equality predicate for gfsmStatePair */
+gboolean gfsm_state_weight_pair_equal(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2);
 
 //@}
 
@@ -118,6 +158,24 @@ gfsmStatePairEnum *gfsm_statepair_enum_new(void);
 
 /** Alias; \sa gfsm_enum_clear() */
 #define gfsm_statepair_enum_free  gfsm_enum_free
+
+//@}
+
+
+/*======================================================================
+ * Methods: gfsmStatePair2WeightHash
+ */
+///\name gfsmStatePair2WeightHash Methods
+//@{
+
+/** create a new gfsmStatePair2WeightHash (copies & frees keys)
+ *  \see gfsmWeightHash
+ */
+#define gfsm_statepair2weighthash_new() \
+  gfsm_weighthash_new_full((gfsmDupFunc)gfsm_statepair_clone,\
+                           (GHashFunc)gfsm_statepair_hash,\
+                           (GEqualFunc)gfsm_statepair_equal,\
+                           (GDestroyNotify)g_free)
 
 //@}
 

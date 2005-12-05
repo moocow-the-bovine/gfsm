@@ -23,6 +23,7 @@
 #include <gfsmCompound.h>
 #include <gfsmMem.h>
 #include <stdlib.h>
+#include <gfsmUtils.h>
 
 
 /*======================================================================
@@ -109,6 +110,47 @@ gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2
 { return sp1->id1==sp2->id1 && sp1->id2==sp2->id2; }
 
 
+
+/*======================================================================
+ * Methods: gfsmStateWeightPair
+ */
+
+//--------------------------------------------------------------
+gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeight w)
+{
+  gfsmStateWeightPair *swp = g_new(gfsmStateWeightPair,1);
+  swp->id = id;
+  swp->w  = w;
+  return swp;
+}
+
+//--------------------------------------------------------------
+gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp)
+{
+  return gfsm_state_weight_pair_new(swp->id,swp->w);
+}
+
+//--------------------------------------------------------------
+guint gfsm_state_weight_pair_hash(gfsmStateWeightPair *swp)
+{
+  return swp->id;
+}
+
+//--------------------------------------------------------------
+gint gfsm_state_weight_pair_compare(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2, gfsmSemiring *sr)
+{
+  gint rc = gfsm_uint_compare((gconstpointer)swp1->id,(gconstpointer)swp2->id);
+  if (!rc) rc = gfsm_sr_compare(sr,swp1->w,swp2->w);
+  return rc;
+}
+
+//--------------------------------------------------------------
+gboolean gfsm_state_weight_pair_equal(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2)
+{
+  return swp1->id==swp2->id && swp1->w==swp2->w;
+}
+
+
 /*======================================================================
  * Methods: gfsmStatePairEnum
  */
@@ -123,7 +165,4 @@ gfsmStatePairEnum *gfsm_statepair_enum_new(void)
 			    (GEqualFunc)gfsm_statepair_equal,
 			    (GDestroyNotify)g_free);
 }
-
-
-
 

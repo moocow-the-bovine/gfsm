@@ -32,19 +32,29 @@
 #include <gfsmMem.h>
 #include <gfsmSet.h>
 #include <gfsmCommon.h>
+#include <gfsmSemiring.h>
 
 /*======================================================================
  * Types
  */
-/** \brief Type for sets of weighted pointers
+/** \brief Type for maps from arbitrary data to gfsmWeights with a balanced binary tree.
  *  \detail really just an ugly wrapper for GTree
  */
 typedef GTree gfsmWeightMap;
 
+/** \brief Structure for mapping arbitrary data to gfsmWeights with a hash.
+ *  \detail really just an ugly wrapper for GHashTable
+ */
+typedef struct {
+  GHashTable   *table;   ///< hash table which does the dirty work
+  gfsmDupFunc   key_dup; ///< key copying function
+} gfsmWeightHash;
+
 
 /*======================================================================
- * Constructors etc.
+ * gfsmWeightMap: Constructors etc.
  */
+
 ///\name gfsmWeightMap: Constructors etc.
 //@{
 /** gfsm_weightmap_new(key_compare_func,key_compare_data,key_destroy_func):
@@ -102,6 +112,66 @@ void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeig
 
 /** Traversal (see g_tree_foreach) */
 #define gfsm_weightmap_foreach(weightmap,func,data) g_tree_foreach((weightmap),(func),(data))
+//@}
+
+
+
+/*======================================================================
+ * gfsmWeighHash: Constructors etc.
+ */
+///\name gfsmWeightHash: Constructors etc.
+//@{
+/** create and return a new hashing weight-map  */
+gfsmWeightHash *gfsm_weighthash_new_full(gfsmDupFunc key_dup_func,
+					 GHashFunc   key_hash_func,
+					 GEqualFunc  key_equal_func,
+					 GDestroyNotify key_destroy_func);
+
+/** create & return a new hashing weightmap (returned map will not copy or free keys */
+#define gfsm_weighthash_new(key_hash_f,key_equal_f) \
+  gfsm_weighthash_new_full(NULL,(key_hash_f),(key_equal_f),NULL)
+
+/** clear a weight-hash */
+void gfsm_weighthash_clear(gfsmWeightHash *wh);
+
+/** destroy a weight-hash */
+void gfsm_weighthash_free(gfsmWeightHash *wh);
+//@}
+
+
+/*======================================================================
+ * gfsmWeightHash: Accessors
+ */
+///\name gfsmWeightHash: Accessors
+//@{
+
+/** extended lookup: get weight associated with key */
+gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeight *wp);
+
+/** insert a key->weight mapping into the weighthash */
+void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w);
+
+/** Possibly insert a key->weight mapping into the weighthash
+ *  The mapping \a (key=>w) is inserted if either no mapping for \a key exists in \a wh,
+ *  or if \a w is strictly less-than the stored weight for \a key according to \a sr.
+ *
+ *  \returns TRUE if the mapping was updated, otherwise FALSE.
+ */
+gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr);
+
+/** Possibly insert a key->weight mapping into the weighthash
+ *  The mapping \a (key=>w) is inserted if no mapping for \a key exists in \a wh.
+ *  Otherwise, the stored weight \a (stored_w) for \a key is set to \a (w+stored_w)
+ *  just in case \a (w+stored_w) is strictly less than \a stored_w for \a key according to \a sr.
+ *
+ *  \returns TRUE if the mapping was updated, otherwise FALSE.
+ */
+gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr);
+
+/** Traversal (see g_hash_table_foreach) */
+#define gfsm_weighthash_foreach(wh,func,data) \
+  g_hash_table_foreach((wh)->table,(func),(data))
+
 //@}
 
 #endif /* _GFSM_WEIGHTMAP_H */

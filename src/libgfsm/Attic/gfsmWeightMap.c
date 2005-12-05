@@ -21,13 +21,14 @@
  *=============================================================================*/
 
 #include <gfsmWeightMap.h>
+#include <gfsmUtils.h>
 
 /*======================================================================
- * Constructors etc.
+ * gfsmWeightMap: Constructors etc.
  */
 
 /*======================================================================
- * Accessors
+ * gfsmWeightMap: Accessors
  */
 
 //--------------------------------------------------------------
@@ -51,10 +52,111 @@ gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsm
 }
 
 
-/*======================================================================
- * Algebra
- */
 
 /*======================================================================
- * Converters
+ * gfsmWeighHash: Constructors etc.
  */
+//--------------------------------------------------------------
+gfsmWeightHash *gfsm_weighthash_new_full(gfsmDupFunc key_dup_func,
+					 GHashFunc   key_hash_func,
+					 GEqualFunc  key_equal_func,
+					 GDestroyNotify key_destroy_func)
+{
+  gfsmWeightHash *wh = g_new(gfsmWeightHash,1);
+  wh->table   = g_hash_table_new_full(key_hash_func, key_equal_func, key_destroy_func, NULL);
+  wh->key_dup = key_dup_func;
+  return wh;
+}
+
+
+//--------------------------------------------------------------
+void gfsm_weighthash_clear(gfsmWeightHash *wh)
+{
+  g_hash_table_foreach_remove(wh->table, gfsm_hash_clear_func,NULL);
+}
+
+//--------------------------------------------------------------
+void gfsm_weighthash_free(gfsmWeightHash *wh)
+{
+  g_hash_table_destroy(wh->table);
+  g_free(wh);
+}
+
+
+/*======================================================================
+ * gfsmWeightHash: Accessors
+ */
+
+//--------------------------------------------------------------
+gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeight *wp)
+{
+  gpointer s_key;
+  return g_hash_table_lookup_extended(wh->table, key, &s_key, (gpointer*)wp);
+}
+
+//--------------------------------------------------------------
+void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w)
+{
+  gpointer s_key;
+  gpointer s_val;
+  if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
+    //-- already present: steal & replace
+    g_hash_table_steal(wh->table, s_key);
+    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+  }
+  else {
+    //-- not yet present: insert new mapping
+    if (wh->key_dup) s_key = (*(wh->key_dup))(key);
+    else             s_key = (gpointer)key;
+    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+  }
+}
+
+//--------------------------------------------------------------
+gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr)
+{
+  gpointer s_key;
+  gpointer s_val;
+  if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
+    //-- already present 
+    gfsmWeight s_w = gfsm_ptr2weight(s_val);
+    if (!gfsm_sr_less(sr, w, s_w)) return FALSE; //-- (s_w) <= (w) : no update required
+
+    //-- steal & update
+    g_hash_table_steal(wh->table, s_key);
+    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+  }
+  else {
+    //-- not yet present: insert new mapping
+    if (wh->key_dup) s_key = (*(wh->key_dup))(key);
+    else             s_key = (gpointer)key;
+    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+  }
+
+  return TRUE; //-- update performed
+}
+
+//--------------------------------------------------------------
+gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr)
+{
+  gpointer s_key;
+  gpointer s_val;
+  if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
+    //-- already present
+    gfsmWeight s_w = gfsm_ptr2weight(s_val);
+    w = gfsm_sr_plus(sr,w,s_w);
+    if (!gfsm_sr_less(sr,w,s_w)) return FALSE; //-- (s_w) <= (w+s_w) : no update required
+
+    //-- steal & update
+    g_hash_table_steal(wh->table, s_key);
+    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+  }
+  else {
+    //-- not yet present: insert new mapping
+    if (wh->key_dup) s_key = (*(wh->key_dup))(key);
+    else             s_key = (gpointer)key;
+    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+  }
+
+  return TRUE; //-- update performed
+}
