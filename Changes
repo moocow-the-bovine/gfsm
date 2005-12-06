@@ -5,7 +5,7 @@ v0.0.8 Sun, 04 Dec 2005 19:45:49 +0100
    + changed binary format (backwards-compatible with dispatch function)
    + added final-weight operations final_weight_(plus|times)()
    + added optional(), replace(), insert_automaton()
-   + WIP: lookup_viterbi()
+   + added lookup_viterbi(), viterbi_trellis_paths(), viterbi_trellis_bestpath()
 
 v0.0.7 Sun, 20 Nov 2005 14:39:33 +0100
    + added lookup(), paths(), path<->string conversion functions
