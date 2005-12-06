@@ -25,8 +25,9 @@
 #include <gfsmArc.h>
 #include <gfsmArcIter.h>
 
+
 /*======================================================================
- * Methods: Path Utilities
+ * Methods: Path Utilities: gfsmLabelVector
  */
 
 //--------------------------------------------------------------
@@ -39,6 +40,24 @@ gfsmLabelVector *gfsm_label_vector_copy(gfsmLabelVector *dst, gfsmLabelVector *s
   }
   return dst;
 }
+
+//--------------------------------------------------------------
+gfsmLabelVector *gfsm_label_vector_reverse(gfsmLabelVector *v)
+{
+  guint i, mid;
+  gpointer tmp;
+  mid = v->len/2;
+  for (i=0; i < mid; i++) {
+    tmp = g_ptr_array_index(v,i);
+    g_ptr_array_index(v,i) = g_ptr_array_index(v,v->len-i-1);
+    g_ptr_array_index(v,v->len-i-1) = tmp;
+  }
+  return v;
+}
+
+/*======================================================================
+ * Methods: Path Utilities: gfsmPath
+ */
 
 //--------------------------------------------------------------
 gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w)
@@ -118,6 +137,7 @@ void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w,
   p->w = gfsm_sr_times(sr, p->w, w);
 }
 
+
 //--------------------------------------------------------------
 void gfsm_path_pop(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi)
 {
@@ -155,6 +175,14 @@ int gfsm_path_compare_data(const gfsmPath *p1, const gfsmPath *p2, gfsmSemiring 
 }
 
 //--------------------------------------------------------------
+gfsmPath *gfsm_path_reverse(gfsmPath *p)
+{
+  if (p->lo) gfsm_label_vector_reverse(p->lo);
+  if (p->hi) gfsm_label_vector_reverse(p->hi);
+  return p;
+}
+
+//--------------------------------------------------------------
 void gfsm_path_free(gfsmPath *p)
 {
   if (!p) return;
@@ -164,11 +192,17 @@ void gfsm_path_free(gfsmPath *p)
 }
 
 /*======================================================================
- * Methods: Automaton Serialization
+ * Methods: Automaton Serialization: paths()
  */
 
 //--------------------------------------------------------------
 gfsmSet *gfsm_automaton_paths(gfsmAutomaton *fsm, gfsmSet *paths)
+{
+  return gfsm_automaton_paths_full(fsm, paths, (fsm->flags.is_transducer ? gfsmLSBoth : gfsmLSLower));
+}
+
+//--------------------------------------------------------------
+gfsmSet *gfsm_automaton_paths_full(gfsmAutomaton *fsm, gfsmSet *paths, gfsmLabelSide which)
 {
   gfsmPath *tmp = gfsm_path_new(fsm->sr);
   if (paths==NULL) {
@@ -176,13 +210,17 @@ gfsmSet *gfsm_automaton_paths(gfsmAutomaton *fsm, gfsmSet *paths)
 			      (gpointer)fsm->sr,
 			      (GDestroyNotify)gfsm_path_free);
   }
-  _gfsm_automaton_paths_r(fsm, paths, fsm->root_id, tmp);
+  _gfsm_automaton_paths_r(fsm, paths, which, fsm->root_id, tmp);
   gfsm_path_free(tmp);
   return paths;
 }
 
 //--------------------------------------------------------------
-gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm, gfsmSet *paths, gfsmStateId q, gfsmPath *path)
+gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm,
+				 gfsmSet       *paths,
+				 gfsmLabelSide  which, 
+				 gfsmStateId    q,
+				 gfsmPath      *path)
 {
   gfsmArcIter ai;
   gfsmWeight  fw;
@@ -202,18 +240,33 @@ gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm, gfsmSet *paths, gfsmStateId
   for (gfsm_arciter_open(&ai, fsm, q); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
     gfsmArc    *arc = gfsm_arciter_arc(&ai);
     gfsmWeight    w = path->w;
-    gfsmLabelVal hi = fsm->flags.is_transducer ? arc->upper : gfsmEpsilon;
+    gfsmLabelVal lo,hi;
 
-    gfsm_path_push(path, arc->lower, hi, arc->weight, fsm->sr);
-    _gfsm_automaton_paths_r(fsm, paths, arc->target, path);
+    if (which==gfsmLSLower) {
+      lo = arc->lower;
+      hi = gfsmEpsilon;
+    } else if (which==gfsmLSUpper) {
+      lo = gfsmEpsilon;
+      hi = arc->upper;
+    } else {
+      lo = arc->lower;
+      hi = arc->upper;
+    }
 
-    gfsm_path_pop(path, arc->lower, hi);
+    gfsm_path_push(path, lo, hi, arc->weight, fsm->sr);
+    _gfsm_automaton_paths_r(fsm, paths, which, arc->target, path);
+
+    gfsm_path_pop(path, lo, hi);
     path->w = w;
   }
   gfsm_arciter_close(&ai);
 
   return paths;
 }
+
+/*======================================================================
+ * Methods: Automaton Serialization: paths_to_strings()
+ */
 
 //--------------------------------------------------------------
 GSList *gfsm_paths_to_strings(gfsmSet *paths,
@@ -224,37 +277,155 @@ GSList *gfsm_paths_to_strings(gfsmSet *paths,
 			      gboolean att_style,
 			      GSList *strings)
 {
-  struct _gfsm_paths_to_strings_options opts;
-  opts.abet_lo = abet_lo;
-  opts.abet_hi = abet_hi;
-  opts.sr   = sr;
-  opts.warn_on_undefined = warn_on_undefined;
-  opts.att_style = att_style;
-  opts.strings = NULL;
+  struct _gfsm_paths_to_strings_options opts =
+    {
+      abet_lo,
+      abet_hi,
+      sr,
+      warn_on_undefined,
+      att_style,
+      NULL
+    };
 
-  gfsm_set_foreach(paths, (GTraverseFunc)gfsm_paths_to_strings_foreach_func, &opts);
+  gfsm_set_foreach(paths, (GTraverseFunc)_gfsm_paths_to_strings_foreach_func, &opts);
 
   return g_slist_reverse(opts.strings);
 }
 
 //--------------------------------------------------------------
-gboolean gfsm_paths_to_strings_foreach_func(gfsmPath *path,
-					    gpointer value_dummy,
-					    struct _gfsm_paths_to_strings_options *opts)
+gboolean _gfsm_paths_to_strings_foreach_func(gfsmPath *path,
+					     gpointer value_dummy,
+					     struct _gfsm_paths_to_strings_options *opts)
 {
-  GString *gs = g_string_new("");
-  if (opts->abet_lo && path->lo->len > 0) {
-    gfsm_alphabet_labels_to_gstring(opts->abet_lo, path->lo, gs, opts->warn_on_undefined, opts->att_style);
-  }
-  if (opts->abet_hi && path->hi->len > 0) {
-    g_string_append(gs," : ");
-    gfsm_alphabet_labels_to_gstring(opts->abet_hi, path->hi, gs, opts->warn_on_undefined, opts->att_style);
-  }
-  if (gfsm_sr_compare(opts->sr, path->w, opts->sr->one) != 0) {
-    g_string_append_printf(gs," <%g>",path->w);
-  }
+  GString *gs = gfsm_path_to_gstring(path, NULL,
+				     opts->abet_lo, opts->abet_hi, opts->sr,
+				     opts->warn_on_undefined, opts->att_style);
   opts->strings = g_slist_prepend(opts->strings, gs->str);
   g_string_free(gs,FALSE);
 
   return FALSE;
+}
+
+//--------------------------------------------------------------
+GString *gfsm_path_to_gstring(gfsmPath     *path,
+			      GString      *gs,
+			      gfsmAlphabet *abet_lo,
+			      gfsmAlphabet *abet_hi,
+			      gfsmSemiring *sr,
+			      gboolean      warn_on_undefined,
+			      gboolean      att_style)
+{
+  if (!gs) gs = g_string_new("");
+  if (abet_lo && path->lo->len > 0) {
+    gfsm_alphabet_labels_to_gstring(abet_lo, path->lo, gs, warn_on_undefined, att_style);
+  }
+  if (abet_hi && path->hi->len > 0) {
+    g_string_append(gs," : ");
+    gfsm_alphabet_labels_to_gstring(abet_hi, path->hi, gs, warn_on_undefined, att_style);
+  }
+  if (gfsm_sr_compare(sr, path->w, sr->one) != 0) {
+    g_string_append_printf(gs," <%g>",path->w);
+  }
+  return gs;
+}
+
+//--------------------------------------------------------------
+char *gfsm_path_to_string(gfsmPath     *path,
+			  gfsmAlphabet *abet_lo,
+			  gfsmAlphabet *abet_hi,
+			  gfsmSemiring *sr,
+			  gboolean      warn_on_undefined,
+			  gboolean      att_style)
+{
+  GString *gs = gfsm_path_to_gstring(path,NULL,abet_lo,abet_hi,sr,warn_on_undefined,att_style);
+  char    *s  = gs->str;
+  g_string_free(gs,FALSE);
+  return s;
+}
+
+
+/*======================================================================
+ * Methods: Viterbi trellis: paths
+ */
+
+//--------------------------------------------------------------
+gfsmSet *gfsm_viterbi_trellis_paths_full(gfsmAutomaton *trellis, gfsmSet *paths, gfsmLabelSide which)
+{
+  gfsmArcIter ai;
+
+  //-- sanity check: create path-set if given as NULL
+  if (!paths) {
+    paths = gfsm_set_new_full((GCompareDataFunc)gfsm_path_compare_data,
+			      (gpointer)trellis->sr,
+			      (GDestroyNotify)gfsm_path_free);
+  }
+
+  //-- get & follow pseudo-root of all paths
+  for (gfsm_arciter_open(&ai, trellis, trellis->root_id); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    gfsmArc  *arc  = gfsm_arciter_arc(&ai);
+    gfsmPath *path = gfsm_path_new(trellis->sr);
+
+    _gfsm_viterbi_trellis_bestpath_r(trellis, path, which, arc->target);
+    path->w = arc->weight;
+
+    //-- reverse the path we've created
+    gfsm_path_reverse(path);
+
+    //-- ... and maybe insert it
+    if (gfsm_set_contains(paths,path)) {
+      //-- oops: we've already got this one: free it
+      gfsm_path_free(path);
+    } else {
+      //-- it's a bona-fide new path: insert it
+      gfsm_set_insert(paths,path);
+    }
+  }
+
+  return paths;
+}
+
+//--------------------------------------------------------------
+gfsmPath *gfsm_viterbi_trellis_bestpath_full(gfsmAutomaton *trellis, gfsmPath *path, gfsmLabelSide which)
+{
+  gfsmArcIter ai;
+
+  //-- sanity check: create path if NULL
+  if (!path) { path = gfsm_path_new(trellis->sr); }
+
+  //-- get & follow pseudo-root of best path
+  gfsm_arciter_open(&ai, trellis, trellis->root_id);
+  if (gfsm_arciter_ok(&ai)) {
+    gfsmArc *arc = gfsm_arciter_arc(&ai);
+    _gfsm_viterbi_trellis_bestpath_r(trellis, path, which, arc->target);
+    path->w = arc->weight;
+  } else {
+    path->w = trellis->sr->zero;
+  }
+
+  //-- reverse the path we've created
+  gfsm_path_reverse(path);
+
+  return path;
+}
+
+//--------------------------------------------------------------
+void _gfsm_viterbi_trellis_bestpath_r(gfsmAutomaton *trellis,
+				      gfsmPath      *path,
+				      gfsmLabelSide  which,
+				      gfsmStateId    qid)
+{
+  while (TRUE) {
+    gfsmArcIter ai;
+    gfsm_arciter_open(&ai, trellis, qid);
+
+    if (gfsm_arciter_ok(&ai)) {
+      gfsmArc *arc = gfsm_arciter_arc(&ai);
+      gfsm_path_push(path,
+		     (which!=gfsmLSUpper ? arc->lower : gfsmEpsilon),
+		     (which!=gfsmLSLower ? arc->upper : gfsmEpsilon),
+		     trellis->sr->one, trellis->sr);
+      qid = arc->target;
+    }
+    else break;
+  }
 }

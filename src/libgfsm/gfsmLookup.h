@@ -46,48 +46,36 @@ typedef struct {
 typedef GPtrArray gfsmStateIdVector;
 
 
-
+//------------------------------
 
 /** Type for gfsm_automaton_lookup_viterbi(): Trellis (1 per call) */
 typedef GPtrArray gfsmViterbiTable;
 
-/** Type for gfsm_automaton_lookup_viterbi(): Trellis columns (1 per input index)
- *  Key-type is gfsmViterbiNodeKey
- *  Value-type is gfsmViterbiNodeValue
+/** Viterbi algorithm best-successor accumulator
+ *  \arg key   is a gfsmStateId (state in fst)
+ *  \arg value is a gfsmStateId (state in trellis)
  */
-typedef GTree gfsmViterbiColumnMap;
+typedef GTree gfsmViterbiMap;
 
-/** Type for gfsm_automaton_lookup_viterbi(): Trellis columns (1 per input index)
- *  Data-type is (gfsmViterbiNode*)
+/** Key type for gfsmViterbiMap (state-id in fst) */
+typedef gfsmStateId gfsmViterbiMapKey;
+
+/** Value type for gfsmViterbiMap (state-id in trellis) */
+typedef gfsmStateId gfsmViterbiMapValue;
+
+/** Type for Viterbi trellis column (1 per input index)
+ *  \arg data  is a gfsmStateId in trellis automaton
  */
 typedef GSList gfsmViterbiColumn;
 
-/** Type for gfsm_automaton_lookup_viterbi(): Trellis nodes: keys (1 per (input_index,fst_state)-pair) */
-typedef gfsmStateId gfsmViterbiNodeKey;
-
-/** Type for gfsm_automaton_lookup_viterbi(): Trellis nodes: values (1 per (input_index,fst_state)-pair) */
-typedef struct {
-  gfsmStateId qtrellis;  /**< current state in trellis */
-  gfsmStateId pqtrellis; /**< best previous state in trellis */
-  gfsmLabelVal label;    /**< label of best arc to qtrellis */
-  gfsmWeight  w;         /**< weight of best path to qtrellis in fst */
-} gfsmViterbiNodeValue;
-/*---> HEY: could we use a simple gfsmStateId (in trellis) for this?
- * node = qtrellis
- * node->pqtrellis = (gfsmArc*)(gfsm_automaton_get_state(qtrellis)->arcs->data)->target
- * node->label     = (gfsmArc*)(gfsm_automaton_get_state(qtrellis)->arcs->data)->upper
- * node->w         = (gfsmArc*)(gfsm_automaton_get_state(qtrellis)->arcs->data)->weight
- *
- *--> this implies building a REVERSE Viterbi trellis (which is what we have to do anyways),
- *    and we can always use gfsm_automaton_reverse() to get the nice-looking stringifiable-version...
+/** Type for Viterbi trellis nodes: state in trellis automaton
+ *  \arg state \a q has exactly one outgoing arc \a arc=((gfsmArc*)a->ars->data)
+ *  \arg best preceeding state in trellis is \a arc->target
+ *  \arg label of best arc from best preceeding state in trellis is \a arc->lower
+ *  \arg total weight of best path to this state is \a arc->weight
  */
+typedef gfsmState gfsmViterbiNode;
 
-
-/** Type for a full ViterbiNode */
-typedef struct {
-  gfsmViterbiNodeKey    key; /**< node key */
-  gfsmViterbiNodeValue *val; /**< node value */
-} gfsmViterbiNode;
 
 /*======================================================================
  * Constants
@@ -144,73 +132,84 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
  *  \param input input labels (lower)
  *  \param trellis output fsm or NULL
  *  \returns \a trellis if non-NULL, otherwise a new automaton representing the (reversed) Viterbi trellis.
- *           lower&upper labels in \a trellis represent upper labels of \a fst,
- *           and arc-weights in \a trellis represent Viterbi algorithm weights (gamma).
+ *           \arg labels (lower & upper) in \a trellis represent upper labels of \a fst
+ *           \arg arc-weights in \a trellis represent Viterbi algorithm weights (gamma)
+ *           \arg arc-targets in \a trellis represent the best preceeding state (psi)
  */
-gfsmAutomaton *gfsm_automaton_lookup_viterbi(gfsmAutomaton     *fst,
-					     gfsmLabelVector   *input,
-					     gfsmAutomaton     *trellis);
+#define gfsm_automaton_lookup_viterbi(fst,input,trellis) \
+   gfsm_automaton_lookup_viterbi_full((fst),(input),(trellis),NULL)
 
 //------------------------------
-/** Expand lower-epsilon arcs from \a fst into \a col.
- *  Implicitly clears \a cmap.
+/** Get the best path for input \a input in the transducer \a fst using the Viterbi algorithm.
+ *  \param fst transducer (lower-upper)
+ *  \param input input labels (lower)
+ *  \param trellis output fsm or NULL
+ *  \param trellis2fst if non-NULL, maps \a trellis StateIds (indices) to \a fst StateIds (values) on return.
+ *                     If NULL, a temporary vector will be created & freed.
+ *  \returns \a trellis if non-NULL, otherwise a new automaton representing the (reversed) Viterbi trellis.
+ *           \arg lower-labels in \a trellis represent \a input labels
+ *           \arg upper-labels of \a trellis represent upper labels of \a fst
+ *           \arg arc-weights in \a trellis represent Viterbi algorithm weights (gamma)
+ *           \arg arc-targets in \a trellis represent the best preceeding state (psi)
+ *           \arg root state of \a trellis has arcs sorted by total path weight (best-first)
  */
-void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
-				 gfsmAutomaton        *trellis,
-				 gfsmViterbiColumn    *col,
-				 gfsmViterbiColumnMap *cmap);
+gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
+						  gfsmLabelVector   *input,
+						  gfsmAutomaton     *trellis,
+						  gfsmStateIdVector *trellis2fst);
+
+//@}
+
+/*======================================================================
+ * Viterbi: Utilities
+ */
+///\name Viterbi Low-level Utilities
+//@{
+
 
 //------------------------------
-/** Utility: Create a new gfsmViterbiColumnMap: copies but does NOT free keys! */
-#define gfsm_viterbi_column_map_new() \
+// expand_column()
+
+/** Expand lower-epsilon arcs from \a fst into \a col. */
+void _gfsm_viterbi_expand_column(gfsmAutomaton      *fst,
+				 gfsmAutomaton      *trellis,
+				 gfsmViterbiColumn  *col,
+				 gfsmStateIdVector  *trellis2fst,
+				 gfsmViterbiMap     *fst2trellis);
+
+
+//------------------------------
+// gfsmViterbiMap
+
+/** Create a new gfsmViterbiMap */
+#define gfsm_viterbi_map_new() \
   g_tree_new_full((GCompareDataFunc)gfsm_uint_compare, NULL, NULL, NULL)
 
-//------------------------------
-/** Utility: Free a gfsmViterbiColumnMap */
-#define gfsm_viterbi_column_map_free(col) g_tree_destroy(col)
 
-//------------------------------
-/** Utility: Lookup stored value in a gfsmViterbiColumnMap
- *  \returns gpointer to the stored value for \a key in \a col
+/** Free a gfsmViterbiMap */
+#define gfsm_viterbi_map_free(vmap) g_tree_destroy(vmap)
+
+
+/** Lookup stored value in a gfsmViterbiColumnMap
+ *  \returns gpointer to the stored value for \a key in \a vmap
  */
-#define gfsm_viterbi_column_map_lookup(col,key) g_tree_lookup((col),(key))
+#define gfsm_viterbi_map_lookup(vmap,key) g_tree_lookup((vmap),(key))
+
+/** Insert a literal value into a gfsmViterbiColumnMap */
+#define gfsm_viterbi_map_insert(vmap,key,val) g_tree_insert((vmap),(gpointer)(key),(gpointer)(val))
+
 
 //------------------------------
-/** insert a literal value into a gfsmViterbiColumnMap */
-void gfsm_viterbi_column_map_insert(gfsmViterbiColumnMap *cmap,
-				    gfsmViterbiNodeKey    key,
-				    gfsmViterbiNodeValue *val);
+// gfsmViterbiNode
 
-//------------------------------
-/** Possibly insert a key->value mapping into the gfsmViterbiColumnMap.
- *  The mapping \a (key=>val) is inserted if no mapping for \a key exists in \a col.
- *  Otherwise, the weight of the stored value \a (stored_val->w) for \a key is set to \a (w)
- *  just in case \a (w)
- *    is strictly less than
- *  \a (stored_val->w) for \a key according to \a sr.
- *
- *  \returns pointer to the stored value if update occurred, otherwise NULL
- */
-gfsmViterbiNodeValue *gfsm_viterbi_column_map_insert_if_less(gfsmViterbiColumnMap *cmap,
-							     gfsmViterbiNodeKey    key,
-							     gfsmWeight            w,
-							     gfsmSemiring         *sr);
+/** gfsmViterbiNode: Accessor: unique outgoing arc for \a nod */
+#define gfsm_viterbi_node_arc(nod) ((gfsmArc*)((nod)->arcs->data))
 
-//------------------------------
-/** Possibly insert a key->value mapping into the gfsmViterbiColumnMap.
- *  The mapping \a (key=>val) is inserted if no mapping for \a key exists in \a col.
- *  Otherwise, the weight of the stored value \a (stored_val->w) for \a key is set to \a (w+stored_val->w)
- *  just in case \a (w+stored_val->w)
- *    is strictly less than
- *  \a (stored_val->w) for \a key according to \a sr.
- *
- *  \returns pointer to the newly inserted value if one was created, otherwise NULL
- */
-gfsmViterbiNodeValue *gfsm_viterbi_column_map_insert_sum_if_less(gfsmViterbiColumnMap *cmap,
-								 gfsmViterbiNodeKey    key,
-								 gfsmWeight            w,
-								 gfsmSemiring         *sr);
+/** gfsmViterbiNode: Accessor: Best preceeding state accessor for \a nod */
+#define gfsm_viterbi_node_best_prevstate(nod) gfsm_viterbi_node_arc(nod)->target
 
+/** gfsmViterbiNode: Accessor: Total weight of best path to \a nod */
+#define gfsm_viterbi_node_best_weight(nod) gfsm_viterbi_node_arc(nod)->weight
 
 //@}
 

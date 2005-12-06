@@ -131,18 +131,27 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 }
 
 
+/*======================================================================
+ * Methods: Viterbi
+ */
+
 
 //--------------------------------------------------------------
-#if 0
-gfsmAutomaton *gfsm_automaton_lookup_viterbi(gfsmAutomaton     *fst,
-					     gfsmLabelVector   *input,
-					     gfsmAutomaton     *trellis)
+gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
+						  gfsmLabelVector   *input,
+						  gfsmAutomaton     *trellis,
+						  gfsmStateIdVector *trellis2fst)
 {
   //-- cols: array of (GSList <gfsmViterbiConfig*> *)
   gfsmViterbiTable *cols = g_ptr_array_sized_new(input->len+1);
-  gfsmViterbiNode  *node;
+  GSList           *col, *prevcoli;
+  gfsmViterbiMap   *fst2trellis = gfsm_viterbi_map_new();
   guint             i;
-  gfsmViterbiColumnMap *succmap = gfsm_viterbi_column_map_new();
+  gboolean          trellis2fst_is_tmp = FALSE;
+  gfsmStateId       qid_trellis, qid_trellis_nxt, qid_fst;
+  gfsmState        *q_trellis, *q_trellis_nxt, *q_fst;
+  gfsmArcIter       ai;
+  gfsmWeight        w_trellis;
 
   //-- ensure trellis automaton exists and is clear
   if (trellis==NULL) {
@@ -152,138 +161,205 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi(gfsmAutomaton     *fst,
   }
   trellis->flags.is_transducer = TRUE;
 
-  //-- initial config
-  node = g_new(gfsmViterbiNode,1);
-  node->key = fst->root_id;
-  node->val = g_new(gfsmViterbiNodeValue,1);
-  node->val->qtrellis  = gfsm_automaton_add_state(trellis);
-  node->val->pqtrellis = gfsmNoState;
-  node->val->label     = gfsmNoLabel;
-  node->val->w         = fst->sr->one;
-  g_ptr_array_index(cols,0) = g_slist_prepend(NULL, node);
-  _gfsm_viterbi_expand_column(fst, trellis, (gfsmViterbiColumn*)g_ptr_array_index(cols,0), succmap);
-  gfsm_viterbi_column_map_free(succmap);
+  //-- ensure trellis->fst stateid-map exists and is clear
+  if (!trellis2fst) {
+    trellis2fst = g_ptr_array_sized_new(input->len+1);
+    trellis2fst_is_tmp = TRUE;
+  } else if (trellis2fst->len < 2) {
+    g_ptr_array_set_size(trellis2fst, input->len+1);
+  }
 
-  //-- ye olde loope: for each input character (coli)
-  for (i=0; i <= input->len; i++) {
-    GSList *prevcol  = g_ptr_array_index(cols,i);
-    GSList *prevcoli = NULL;
-    GSList *col      = NULL;
-    GSList *coli     = NULL;
-    gfsmLabelVal a  = (i < input->len
-		       ? (gfsmLabelVal)(g_ptr_array_index(input, i))
-		       : gfsmNoLabel);
+  //-- initial config: trellis structure
+  qid_trellis = trellis->root_id = gfsm_automaton_add_state(trellis);
+  q_trellis = gfsm_automaton_find_state(trellis, qid_trellis);
+  gfsm_automaton_set_final_state_full(trellis, qid_trellis, TRUE, fst->sr->one);
+  gfsm_automaton_add_arc(trellis, qid_trellis, qid_trellis, gfsmNoLabel, gfsmNoLabel, fst->sr->one);
 
-    succmap = gfsm_viterbi_column_map_new();
+  //-- initial config: stateid-mappings
+  g_ptr_array_index(trellis2fst, qid_trellis) = (gpointer)fst->root_id;
+  g_tree_insert(fst2trellis, (gpointer)fst->root_id, (gpointer)qid_trellis);
 
-    //-- get possible successors & final-state markers
-    for (prevcoli=prevcol; prevcoli != NULL; prevcoli=prevcoli->next) {
-      const gfsmState *q_fst;
-      gfsmState *q_trellis;
+  //-- initial config: epsilon-expansion on column
+  g_ptr_array_index(cols,0) = col = g_slist_prepend(NULL, (gpointer)qid_trellis);
+  _gfsm_viterbi_expand_column(fst, trellis, col, trellis2fst, fst2trellis);
+
+  //-- initial config: cleanup
+  gfsm_viterbi_map_free(fst2trellis);
+
+
+  //-- ye olde loope: for each input character (i)
+  for (i=0; i < input->len; i++) {
+    gfsmLabelVal a  = (gfsmLabelVal)g_ptr_array_index(input, i);
+
+    fst2trellis = gfsm_viterbi_map_new();
+    col         = NULL;
+
+    //-- get possible successors
+    for (prevcoli=(GSList*)g_ptr_array_index(cols,i); prevcoli != NULL; prevcoli=prevcoli->next) {
 
       //-- get the top element of the queue
-      node = (gfsmViterbiNode*)(prevcoli->data);
+      qid_trellis = (gfsmStateId)(prevcoli->data);
+      qid_fst     = (gfsmStateId)g_ptr_array_index(trellis2fst, qid_trellis);
 
       //-- get state pointers
-      q_fst     = gfsm_automaton_find_state_const(fst,     node->key);
-      q_trellis = gfsm_automaton_find_state      (trellis, node->val->qtrellis);
+      q_trellis = gfsm_automaton_find_state(trellis, qid_trellis);
+      q_fst     = gfsm_automaton_find_state(fst,     qid_fst);
 
-      //-- check for final states
-      if (i >= input->len && gfsm_state_is_final(q_fst)) {
-	gfsm_automaton_set_final_state_full(trellis, node->val->qtrellis, TRUE,
-					    gfsm_sr_times(fst->sr,
-							  gfsm_automaton_get_final_weight(fst, node->key),
-							  node->val->w));
-      }
-      else if (i < input->len) {
-	//-- handle outgoing arcs: add to possible-successors map
-	gfsmArcIter ai;
+      //-- get Viterbi properties
+      w_trellis = gfsm_viterbi_node_best_weight(q_trellis);
 
-	for (gfsm_arciter_open_ptr(&ai, fst, (gfsmState*)q_fst), gfsm_arciter_seek_lower(&ai,a);
-	     gfsm_arciter_ok(&ai);
-	     gfsm_arciter_next(&ai), gfsm_arciter_seek_lower(&ai,a))
-	  {
-	    gfsmArc *arc = gfsm_arciter_arc(&ai);
-	    gfsmViterbiNodeValue *nxtval;
 
-	    if ((nxtval=gfsm_viterbi_column_map_lookup(succmap, (gpointer)arc->target))) {
-	      //-- known successor: possibly update its weight & precessor
-	      gfsmWeight nxtw = gfsm_sr_times(fst->sr, node->val->w, arc->weight);
+      //-- search for input-matching arcs & add them to the successor map for next column
+      for (gfsm_arciter_open_ptr(&ai, fst, q_fst), gfsm_arciter_seek_lower(&ai,a);
+	   gfsm_arciter_ok(&ai);
+	   gfsm_arciter_next(&ai), gfsm_arciter_seek_lower(&ai,a))
+	{
+	  gfsmArc     *arc_fst         = gfsm_arciter_arc(&ai);
+	  gfsmWeight   w_trellis_nxt;
+	  gpointer     orig_key;
 
-	      if (gfsm_sr_less(fst->sr, nxtw, nxtval->w)) {
-		//-- this arc is better: update
-		nxtval->pqtrellis = node->val->qtrellis;
-		nxtval->label     = arc->upper;
-		nxtval->w         = nxtw;
+	  //-- found a matching arc: is its target state already marked as a successor?
+	  if (g_tree_lookup_extended(fst2trellis,
+				     (gpointer)(arc_fst->target),
+				     &orig_key,
+				     (gpointer*)(&qid_trellis_nxt)))
+	    {
+	      //-- yep: known successor: get old ("*_nxt") & new ("*_nxt_new") weights
+	      gfsmWeight w_trellis_nxt_new = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
+	      q_trellis_nxt = gfsm_automaton_find_state(trellis, qid_trellis_nxt);
+	      w_trellis_nxt = gfsm_viterbi_node_best_weight(q_trellis_nxt);
+
+	      //-- is the new path better than the stored path?
+	      if (gfsm_sr_less(fst->sr, w_trellis_nxt_new, w_trellis_nxt)) {
+		//-- yep: update mappings: trellis automaton
+		gfsmArc *arc_trellis_nxt = gfsm_viterbi_node_arc(q_trellis_nxt);
+		arc_trellis_nxt->target  = qid_trellis;
+		arc_trellis_nxt->lower   = a;
+		arc_trellis_nxt->upper   = arc_fst->upper;
+		arc_trellis_nxt->weight  = w_trellis_nxt_new;
+
+		//-- update mappings: trellis->fst stateid-map
+		g_ptr_array_index(trellis2fst, qid_trellis_nxt) = (gpointer)arc_fst->target;
+
+		//-- update mappings: fst->trellis stateid-map
+		g_tree_insert(fst2trellis, (gpointer)arc_fst->target, (gpointer)qid_trellis_nxt);
 	      }
-	    } else {
-	      //-- new successor: create a node
-	      gfsmViterbiNode *nxtnode = g_new(gfsmViterbiNode,1);
-	      nxtnode->key = arc->target;
-	      nxtnode->val = g_new(gfsmViterbiNodeValue,1);
-	      nxtnode->val->qtrellis  = gfsm_automaton_add_state(trellis);
-	      nxtnode->val->pqtrellis = node->val->qtrellis;
-	      nxtnode->val->label     = arc->upper;
-	      nxtnode->val->w         = gfsm_sr_times(fst->sr, node->val->w, arc->weight);
-
-	      //-- ... and add it to the map & to the column
-	      g_tree_insert(succmap, (gpointer)nxtnode->key, nxtnode->val);
-	      col = g_slist_prepend(col,nxtnode);
 	    }
+	else
+	  {
+	    //-- target state not already marked as a successor: mark it
+	    qid_trellis_nxt = gfsm_automaton_add_state(trellis);
+	    q_trellis_nxt   = gfsm_automaton_find_state(trellis,qid_trellis_nxt);
+	    gfsm_automaton_add_arc(trellis,
+				   qid_trellis_nxt, qid_trellis,
+				   a,               arc_fst->upper,
+				   gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight));
+
+	    //-- save trellis->fst stateid-map
+	    if (qid_trellis_nxt >= trellis2fst->len) {
+	      g_ptr_array_set_size(trellis2fst, qid_trellis_nxt + gfsmLookupStateMapGet);
+	    }
+	    g_ptr_array_index(trellis2fst,qid_trellis_nxt) = (gpointer)arc_fst->target;
+
+	    //-- save fst->trellis stateid-map
+	    g_tree_insert(fst2trellis, (gpointer)arc_fst->target, (gpointer)qid_trellis_nxt);
+
+	    //-- add new trellis state to the column
+	    col = g_slist_prepend(col, (gpointer)qid_trellis_nxt);
 	  }
-      }
-    }
 
-    //-- expand epsilons
-    _gfsm_viterbi_expand_column(fst, trellis, col, succmap);
+	} //-- END: seek input-matching arcs
+    } //-- END: previous column iteration (prevcoli)
 
-    //-- annotate best-predecessor of each possible successor in trellis automaton
-    for (coli=col; coli != NULL; coli=coli->next) {
-      node = (gfsmViterbiNode*)(coli->data);
-      gfsm_automaton_add_arc(trellis,
-			     node->val->pqtrellis, node->val->qtrellis,
-			     
-			     node->val->w);
-    }
+    //-- expand epsilons in current column
+    _gfsm_viterbi_expand_column(fst, trellis, col, trellis2fst, fst2trellis);
 
-    //-- update table
+    //-- update column table
     g_ptr_array_index(cols,i+1) = col;
 
-    //-- per-position cleanup
-    gfsm_viterbi_column_map_free(succmap);
+    //-- per-input-index cleanup
+    gfsm_viterbi_map_free(fst2trellis);
   }
 
-  //-- cleanup
-  for (i=0; i < cols->len; i++) {
-    GSList *l;
-    for (l=(GSList*)g_ptr_array_index(cols,i); l != NULL; l = l->next) {
-      node = (gfsmViterbiNode*)(l->data);
-      g_free(node->val);
-      g_free(node);
+  //-- final iteration (EOS): get possible "final" states
+  qid_trellis_nxt = gfsm_automaton_add_state(trellis); //-- qid_trellis_nxt: new root
+  for (prevcoli=(GSList*)g_ptr_array_index(cols,input->len); prevcoli != NULL; prevcoli=prevcoli->next) {
+
+    //-- get the top element of the queue
+    qid_trellis = (gfsmStateId)(prevcoli->data);
+    qid_fst     = (gfsmStateId)g_ptr_array_index(trellis2fst, qid_trellis);
+      
+    //-- get state pointers
+    q_trellis = gfsm_automaton_find_state(trellis, qid_trellis);
+    q_fst     = gfsm_automaton_find_state(fst,     qid_fst);
+    
+    //-- get Viterbi properties
+    w_trellis = gfsm_viterbi_node_best_weight(q_trellis);
+
+    //-- check for finality
+    if (q_fst->is_final) {
+      gfsm_automaton_add_arc(trellis, qid_trellis_nxt, qid_trellis,
+			     gfsmEpsilon, gfsmEpsilon,
+			     gfsm_sr_times(fst->sr,
+					   w_trellis,
+					   gfsm_automaton_get_final_weight(fst,qid_fst)));
     }
+  }
+
+  //-- mark single best path from new root
+  qid_trellis = qid_trellis_nxt;
+  q_trellis = gfsm_automaton_find_state(trellis,qid_trellis);
+  q_trellis->arcs = gfsm_arclist_sort(q_trellis->arcs, &((gfsmArcSortData){gfsmASMWeight,fst->sr}));
+
+  //-- break dummy arc on trellis final state (old root)
+  q_trellis = gfsm_automaton_find_state(trellis,trellis->root_id);
+  gfsm_arclist_free(q_trellis->arcs);
+  q_trellis->arcs = NULL;
+
+  //-- mark new root
+  trellis->root_id = qid_trellis;
+
+
+  //-- cleanup: columns
+  for (i=0; i < cols->len; i++) {
     g_slist_free((GSList*)g_ptr_array_index(cols,i));
   }
+
+  //-- cleanup: column array
   g_ptr_array_free(cols,TRUE);
+  if (trellis2fst_is_tmp) g_ptr_array_free(trellis2fst,TRUE);
+  else {
+    //-- just set length
+    trellis2fst->len = trellis->states->len;
+  }
 
   return trellis;
 }
 
 
+/*======================================================================
+ * Methods: Viterbi: expand_column
+ */
+
 //--------------------------------------------------------------
 void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 				 gfsmAutomaton        *trellis,
 				 gfsmViterbiColumn    *col,
-				 gfsmColumnMap        *cmap)
+				 gfsmStateIdVector    *trellis2fst,
+				 gfsmViterbiMap       *fst2trellis)
 {
   gfsmArcIter ai;
   gfsmViterbiColumn *coli;
-  gfsmViterbiNode   *node;
+  gfsmStateId        qid_trellis, qid_fst;
+  gfsmState         *q_trellis;
+  gfsmArc           *arc_trellis;
+  gfsmWeight         w_trellis;
 
   //-- pass-1: add everything already in the column as a literal
   /*
   for (coli=col; coli != NULL; coli=coli->next) {
     node = (gfsmViterbiNode*)(coli->data);
-    if (!g_tree_lookup(cmap,node->key)) {
+    if (!g_tree_lookup(fst2trellis,node->key)) {
       g_tree_insert(cmap,node->key,node->val);
     }
   }
@@ -292,43 +368,97 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
   //-- pass-2: add epsilon arcs from every literal in the column
   for (coli=col; coli != NULL; coli=coli->next) {
     //-- get node
-    node = (gfsmViterbiNode*)(coli->data);
+    qid_trellis = (gfsmStateId)(coli->data);
+    q_trellis   = gfsm_automaton_find_state(trellis,qid_trellis);
+    arc_trellis = gfsm_viterbi_node_arc(q_trellis);
+    w_trellis   = gfsm_viterbi_node_best_weight(q_trellis);
+    qid_fst     = (gfsmStateId)g_ptr_array_index(trellis2fst,qid_trellis);
 
     //-- search for input-epsilon arcs & add them to this column
     for (gfsm_arciter_open(&ai,fst,qid_fst), gfsm_arciter_seek_lower(&ai,gfsmEpsilon);
 	 gfsm_arciter_ok(&ai);
 	 gfsm_arciter_next(&ai), gfsm_arciter_seek_lower(&ai,gfsmEpsilon))
       {
-	gfsmArc *arc = gfsm_arciter_arc(&ai);
-	gfsmViterbiNodeValue *nxtval;
-	if ((nxtval=gfsm_viterbi_column_map_insert_sum_if_less(cmap,
-							       arc->target,
-							       gfsm_sr_times(fst->sr, node->val->w, arc->w),
-							       fst->sr)))
+	gfsmArc     *arc_fst = gfsm_arciter_arc(&ai);
+	gfsmStateId  qid_trellis_nxt = gfsmNoState;
+	gfsmState   *q_trellis_nxt;
+	gfsmWeight   w_trellis_nxt;
+	gpointer     orig_key;
+
+	//-- found an eps-arc: is its target state already marked as a successor?
+	if (g_tree_lookup_extended(fst2trellis,
+				   (gpointer)(arc_fst->target),
+				   &orig_key,
+				   (gpointer*)(&qid_trellis_nxt)))
 	  {
-	    //-- inserted a new value: queue it up
-	    gfsmViterbiNode *nxtnode = g_new(gfsmViterbiNode,1);
-	    nxtnode->key = qid_fst;
-	    nxtnode->val = nxtval;
-	    nxtval->qtrellis = gfsm_automaton_add_state(qtrellis);
-            nxtval->pqtrellis = node->val->qtrellis;
-	    gfsm_automaton_add_arc(qtrellis, node->val->qtrellis, nxtval->qtrellis,
-				   arc->upper, arc->upper, nxtval->w);
-	    coli->next = g_slist_prepend(coli->next, nxtval);
+	    //-- yep: get the old ("*_eps") & new ("*_nxt") weights
+	    gfsmWeight w_trellis_eps = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
+	    q_trellis_nxt = gfsm_automaton_find_state(trellis,qid_trellis_nxt);
+	    w_trellis_nxt = gfsm_viterbi_node_best_weight(q_trellis_nxt);
+
+	    //-- is the new eps-path better than the stored path?
+	    if (gfsm_sr_less(fst->sr,w_trellis_eps,w_trellis_nxt)) {
+	      //-- yep: update mappings: trellis automaton
+	      gfsmArc *arc_trellis_nxt = gfsm_viterbi_node_arc(q_trellis_nxt);
+	      arc_trellis_nxt->target  = qid_trellis;
+	      arc_trellis_nxt->lower   = gfsmEpsilon;
+	      arc_trellis_nxt->upper   = arc_fst->upper;
+	      arc_trellis_nxt->weight  = w_trellis_eps;
+
+	      //-- update mappings: trellis->fst stateid-map
+	      g_ptr_array_index(trellis2fst, qid_trellis_nxt) = (gpointer)arc_fst->target;
+
+	      //-- update mappings: fst->trellis stateid-map
+	      g_tree_insert(fst2trellis, (gpointer)arc_fst->target, (gpointer)qid_trellis_nxt);
+	    }
+	    else {
+	      //-- eps-path is worse than the existing path: forget about it
+	      ;
+	    }
 	  }
-      }
-  }
+	else
+	  {
+	    //-- eps-target state not already marked as a successor: mark it
+	    qid_trellis_nxt = gfsm_automaton_add_state(trellis);
+	    q_trellis_nxt   = gfsm_automaton_find_state(trellis,qid_trellis_nxt);
+	    gfsm_automaton_add_arc(trellis,
+				   qid_trellis_nxt, qid_trellis,
+				   gfsmEpsilon,     arc_fst->upper,
+				   gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight));
+
+	    //-- save trellis->fst stateid-map
+	    if (qid_trellis_nxt >= trellis2fst->len) {
+	      g_ptr_array_set_size(trellis2fst, qid_trellis_nxt + gfsmLookupStateMapGet);
+	    }
+	    g_ptr_array_index(trellis2fst,qid_trellis_nxt) = (gpointer)arc_fst->target;
+
+	    //-- save fst->trellis stateid-map
+	    g_tree_insert(fst2trellis, (gpointer)arc_fst->target, (gpointer)qid_trellis_nxt);
+
+	    //-- queue-up new trellis state for eps-seek
+	    coli->next = g_slist_prepend(coli->next, (gpointer)qid_trellis_nxt);
+	  }
+
+      } //-- END: seek epsilon arcs
+
+  } //-- END column iteration
+
 }
 
 
+/*======================================================================
+ * Methods: Viterbi: Map
+ */
+
 //--------------------------------------------------------------
-gfsmViterbiNodeValue *gfsm_viterbi_column_map_insert_if_less(gfsmViterbiColumn    *cmap,
+#if 0
+gfsmViterbiNodeValue *gfsm_viterbi_column_map_insert_if_less(gfsmViterbiMap      *vmap,
 							     gfsmViterbiNodeKey    key,
 							     gfsmWeight            w,
 							     gfsmSemiring         *sr)
 {
   gpointer s_val;
-  if (s_val = gfsm_viterbi_column_lookup(col,key)) {
+  if (s_val = gfsm_viterbi_map_lookup(vmap,key)) {
     //-- already present
     if (!gfsm_sr_less(sr,w,s_val->w)) return NULL; //-- (s_val->w) <= (w)
     s_val->w = w;
@@ -342,30 +472,5 @@ gfsmViterbiNodeValue *gfsm_viterbi_column_map_insert_if_less(gfsmViterbiColumn  
   }
   return s_val; //-- update occurred
 }
+#endif
 
-//--------------------------------------------------------------
-gfsmViterbiNodeValue *gfsm_viterbi_column_map_insert_sum_if_less(gfsmViterbiColumn    *cmap,
-								 gfsmViterbiNodeKey    key,
-								 gfsmWeight            w,
-								 gfsmSemiring         *sr)
-{
-  gpointer s_val;
-  if (s_val = gfsm_viterbi_column_lookup(col,key)) {
-    //-- already present
-    gfsmWeight w_sum = gfsm_sr_plus(sr, s_val->w, w);
-    if (gfsm_sr_less(sr,w_sum,s_val->w)) { //-- (s_val->w) > (s_val->w + w)
-      s_val->w = w_sum;
-    }
-    return NULL; //-- no new value inserted
-  } else {
-    //-- not already present: copy & insert
-    s_val  = g_new(gfsmViterbiNodeValue,1);
-    s_val->qtrellis = gfsmNoState;
-    s_val->pqtrellis = gfsmNoState;
-    s_val->w        = w;
-    g_tree_insert(col,key,s_val);
-  }
-  return s_val; //-- new value inserted
-}
-
-#endif /* WIP */
