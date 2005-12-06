@@ -56,10 +56,10 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
   //-- ensure result automaton exists and is clear
   if (result==NULL) {
     result = gfsm_automaton_shadow(fst);
-    result->flags.is_transducer = FALSE;
   } else {
     gfsm_automaton_clear(result);
   }
+  result->flags.is_transducer = TRUE;
 
   //-- initialization
   result->root_id = gfsm_automaton_add_state(result);
