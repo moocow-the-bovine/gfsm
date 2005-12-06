@@ -54,7 +54,13 @@ string "output" F "Specifiy output file (default=stdout)." \
 #-----------------------------------------------------------------------------
 bugs "
 
-None known.
+=over 4
+
+=item
+
+No negative-cost epsilon cycles are allowed in the transducer.
+
+=back
 
 "
 
