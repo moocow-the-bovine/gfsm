@@ -114,7 +114,14 @@ int main (int argc, char **argv)
   
 
   //-- get & stringify full paths
-  paths   = gfsm_automaton_paths(fsm,NULL);
+  if (args.viterbi_flag) {
+    //-- serialize Viterbi trellis automaton
+    paths   = gfsm_viterbi_trellis_paths_full(fsm, NULL, gfsmLSBoth);
+  }
+  else {
+    //-- serialize "normal" automaton
+    paths   = gfsm_automaton_paths_full(fsm, NULL, gfsmLSBoth);
+  }
   strings = gfsm_paths_to_strings(paths,
 				  ilabels,
 				  olabels,

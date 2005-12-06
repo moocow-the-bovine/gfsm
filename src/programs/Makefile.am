@@ -47,7 +47,8 @@ bin_PROGRAMS = \
 	gfsmrmepsilon \
 	gfsmsigma \
 	gfsmstrings \
-	gfsmunion
+	gfsmunion \
+	gfsmviterbi
 
 EXTRA_DIST =
 
@@ -457,6 +458,18 @@ gfsmunion_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmunion_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmunion.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmviterbi_SOURCES = \
+	gfsmviterbi_main.c \
+	gfsmviterbi_cmdparser.c gfsmviterbi_cmdparser.h
+
+gfsmviterbi_main.o: gfsmviterbi_cmdparser.h
+
+gfsmviterbi_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmviterbi_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmviterbi.gog
 
 ##-----------------------------------------------------------------------
 ## headers

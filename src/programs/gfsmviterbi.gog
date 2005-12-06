@@ -2,55 +2,47 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmstrings"
+program "gfsmviterbi"
 #program_version "0.01"
 
-purpose	"Serialize binary acyclic gfsm files to lists of strings"
+purpose	"Compute Viterbi trellis for a linear label sequence in a transducer"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------
 # Details
 #-----------------------------------------------------------------------------
-#details ""
+details ""
 
 #-----------------------------------------------------------------------------
 # Files
 #-----------------------------------------------------------------------------
-#rcfile "/etc/gfsmrc"
-#rcfile "~/.gfsmrc"
+#rcfile "/etc/mootrc"
+#rcfile "~/.mootrc"
 
 #-----------------------------------------------------------------------------
 # Arguments
 #-----------------------------------------------------------------------------
-argument "BINFILE" "Stored binary gfsm file" \
+argument "LABELID..." "Input label IDs" \
+    details="
+In ASCII decimal notation.
+"
+
+#-----------------------------------------------------------------------------
+# Options
+#-----------------------------------------------------------------------------
+#group "Basic Options"
+
+string "fst" f "Weighted transducer to apply (default=stdin)." \
+    arg="FSTFILE" \
+    default="-" \
     details="
 If unspecified, standard input will be read.
 "
 
-#-----------------------------------------------------------------------------
-# Common Options
-#-----------------------------------------------------------------------------
-group "Common Options"
-
-string "ilabels" i "Specify input (lower) labels file." \
-   arg="LABELS"
-
-string "olabels" o "Specify output (upper) labels file." \
-   arg="LABELS"
-
-flag "att" a "Output in AT&T regex format." \
-   default=0
-
-flag "viterbi" v "Treat input automaton as a Viterbi trellis." \
-   default=0
-
-string "output"  F "Output file." \
-   arg="TXTFILE" \
-   details="
-Default behavior is to write to stdout.
-"
-
+string "output" F "Specifiy output file (default=stdout)." \
+    arg="FILE" \
+    default="-"
 
 #-----------------------------------------------------------------------------
 # Addenda
@@ -72,5 +64,5 @@ None known.
 #acknowledge `cat acknowledge.pod`
 
 seealso "
-L<gfsmutils>,
+L<gfsmutils>
 "

@@ -28,6 +28,7 @@ gfsmreverse
 gfsmrmepsilon
 gfsmstrings
 gfsmunion
+gfsmviterbi
 
 *.out
 *.tmp
