@@ -106,7 +106,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 	  cfg_new->qt = arc->target;
 	  cfg_new->qr = gfsm_automaton_add_state(result);
 	  cfg_new->i  = cfg->i;
-	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->upper, arc->upper, arc->weight);
+	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->lower, arc->upper, arc->weight);
 	  stack = g_slist_prepend(stack, cfg_new);
 	}
 	//-- input-matching arcs
@@ -115,7 +115,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 	  cfg_new->qt = arc->target;
 	  cfg_new->qr = gfsm_automaton_add_state(result);
 	  cfg_new->i  = cfg->i+1;
-	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->upper, arc->upper, arc->weight);
+	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->lower, arc->upper, arc->weight);
 	  stack = g_slist_prepend(stack, cfg_new);
 	}
       }

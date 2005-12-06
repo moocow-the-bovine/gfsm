@@ -93,7 +93,7 @@ extern const guint gfsmLookupStateMapGet;
 
 //------------------------------
 /** Compose linear automaton specified by \a input with the transducer
- *  \a fst and project the output tape to \a result.
+ *  \a fst , storing result in \a result.
  *  \param fst transducer (lower-upper)
  *  \param input input labels (lower)
  *  \param result output transducer or NULL
@@ -104,7 +104,7 @@ extern const guint gfsmLookupStateMapGet;
 
 //------------------------------
 /** Compose linear automaton specified by \a input with the transducer
- *  \a fst and project the output tape to \a result, storing state-translation map \a qenum.
+ *  \a fst , storing result in \a result , and storing state-translation map \a statemap.
  *  \param fst transducer (lower-upper)
  *  \param input input labels (lower)
  *  \param result output transducer or NULL
