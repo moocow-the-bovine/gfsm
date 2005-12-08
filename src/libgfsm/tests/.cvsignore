@@ -1,6 +1,17 @@
 *~
 .*~
+
 *.gfst
+*.output
+*.lex.c
+*.lex.h
+*.tab.c
+*.tab.h
+
 pathtest
 ftest
 memtest-general
+calctest
+flextest
+flextest.c
+flextest.h
