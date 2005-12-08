@@ -5,7 +5,7 @@
 program "gfsmarith"
 #program_version "0.01"
 
-purpose	"Perform a semiring arithmetic operation on automaton final weights"
+purpose	"Perform an elementary arithmetic operation on automaton weights"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 
@@ -31,17 +31,70 @@ If unspecified, standard input will be read
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
-#group "Basic Options"
 
-float "multiply" m "Multiply by WEIGHT" \
-  arg="WEIGHT"
-
-float "add" a "Add WEIGHT" \
-  arg="WEIGHT"
+#-------------------------------------------------------
+# Basic Options
 
 string "output" F "Specifiy output file (default=stdout)." \
     arg="FILE" \
     default="-"
+
+#-------------------------------------------------------
+# Operator Selection
+group "Operator Selection"
+
+flag "exp" E "Real exponentiation"
+
+flag "log" L "Real logarithm"
+
+float "multiply" m "Real multiplication by WEIGHT" \
+  arg="WEIGHT"
+
+float "add"      a "Real addition of WEIGHT" \
+  arg="WEIGHT"
+
+flag "positive" p "Set real negative weights to zero"
+
+
+float "times"    - "Semiring multiplication by WEIGHT" \
+  arg="WEIGHT"
+
+float "plus"     - "Semiring addition of WEIGHT" \
+  arg="WEIGHT"
+
+flag "sr-positive" - "Set semiring-negative weights to semiring-zero"
+
+#-------------------------------------------------------
+# Weight Selection
+group "Weight Selection"
+
+flag "no-arcs" A "Exclude arc weights (default: include)"
+
+flag "no-finals" f "Exclude final weights (default: include)"
+
+#flag "potentials" P "Include potentials (default: include)" ##-- what the heck are 'potentials'?
+
+flag "zero" z "Include semiring-zero weights (default: exclude)"
+
+#-------------------------------------------------------
+# State & Label Selection
+group "State & Label Selection"
+
+flag "initial" i "Select only initial state and its arcs/finality"
+
+int  "state"   s "Select only state ID and its arcs/finality (default=all)" \
+  arg="ID" \
+  default="-1"
+
+int "lower"   l "Select only arcs with lower-label LO (default=any)" \
+  arg="LO" \
+  default="-1"
+
+int "upper"   u "Select only arcs with upper-label HI (defualt=any)" \
+  arg="HI" \
+  default="-1"
+
+
 
 #-----------------------------------------------------------------------------
 # Addenda
@@ -53,7 +106,10 @@ string "output" F "Specifiy output file (default=stdout)." \
 #-----------------------------------------------------------------------------
 bugs "
 
-None known.
+Note that the --plus and --times operations are
+sensitive to the semiring associated with the stored FSM file, while
+the --add and --multiply operations have the usual real-number interpretations,
+regardless of the automaton semiring.
 
 "
 

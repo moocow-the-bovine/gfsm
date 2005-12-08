@@ -45,6 +45,20 @@ const char *outfilename = "-";
 gfsmAutomaton *fsm;
 gfsmError     *err = NULL;
 
+//-- arithmetic operation
+gfsmArithOp    op=gfsmAONone;
+gfsmWeight     arg=0;
+
+//-- weight selection
+gboolean       do_arcs;
+gboolean       do_finals;
+gboolean       do_zero;
+
+//-- state & label selection
+gfsmStateId    qid;
+gfsmLabelVal    lo;
+gfsmLabelVal    hi;
+
 /*--------------------------------------------------------------------------
  * Option Processing
  *--------------------------------------------------------------------------*/
@@ -59,6 +73,26 @@ void get_my_options(int argc, char **argv)
   //-- filenames
   if (args.inputs_num > 0) infilename = args.inputs[0];
   outfilename = args.output_arg;
+
+  //-- operator selection
+  if      (args.exp_given)      { op = gfsmAOExp; }
+  else if (args.log_given)      { op = gfsmAOLog; }
+  else if (args.multiply_given) { op = gfsmAOMult; arg=args.multiply_arg; }
+  else if (args.add_given)      { op = gfsmAOAdd;  arg=args.add_arg; }
+  else if (args.positive_given) { op = gfsmAONoNeg; }
+  else if (args.times_given)    { op = gfsmAOSRTimes; arg=args.times_arg; }
+  else if (args.plus_given)     { op = gfsmAOSRPlus;  arg=args.plus_arg; }
+  else if (args.sr_positive_given) { op = gfsmAOSRNoNeg; }
+
+  //-- weight selection
+  do_arcs   = !args.no_arcs_given;
+  do_finals = !args.no_finals_given;
+  do_zero   =  args.zero_given;
+
+  //-- state & label selection
+  qid = args.state_given ? args.state_arg : gfsmNoState;
+  lo  = args.lower_given ? args.lower_arg : gfsmNoLabel;
+  hi  = args.upper_given ? args.upper_arg : gfsmNoLabel;
 
   //-- initialize fsm
   fsm = gfsm_automaton_new();
@@ -78,13 +112,11 @@ int main (int argc, char **argv)
     exit(3);
   }
 
-  //-- perform final-weight aritmetic
-  if (args.multiply_given) {
-    gfsm_automaton_final_weight_times(fsm,args.multiply_arg);
-  }
-  else if (args.add_given) {
-    gfsm_automaton_final_weight_plus(fsm,args.add_arg);
-  }
+  //-- hack: initial-state selection
+  if (args.initial_flag) qid=fsm->root_id;
+
+  //-- perform weight aritmetic
+  gfsm_automaton_arith_state(fsm, qid, op, arg, lo, hi, do_arcs, do_finals, do_zero);
 
   //-- store automaton
   if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {
