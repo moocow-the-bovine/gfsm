@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.8-pre2])
+define([THE_PACKAGE_VERSION], [0.0.8-pre3])
 define([THE_PACKAGE_MAINTAINER],  [moocow@ling.uni-potsdam.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -37,6 +37,45 @@ dnl
 AC_PROG_CC
 dnl AC_PROG_CXX
 dnl AC_LANG(C++)
+
+##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+## flex, bison
+
+AC_ARG_VAR(FLEX, [Path to GNU flex])
+AC_ARG_VAR(BISON, [Path to GNU bison])
+
+if test -z "$FLEX" ; then
+  AC_PATH_PROG(FLEX,flex,[])
+  if test -z "$FLEX" ; then
+    AC_MSG_WARN([GNU flex not found -- CVS builds will fail!])
+  fi
+fi
+
+if test -z "$BISON" ; then
+  AC_PATH_PROG(BISON,bison,[])
+  if test -z "$FLEX" ; then
+    AC_MSG_WARN([GNU flex not found -- CVS builds will fail!])
+  fi
+fi
+
+###-- automake wants these, we want flex & bison
+dnl ... and these wreak havoc
+dnl AM_PROG_LEX
+dnl AC_PROG_YACC
+dnl
+dnl ... these are goofy too
+dnl LEX="$FLEX"
+dnl YACC="$BISON"
+dnl AC_SUBST(LEX)
+dnl AC_SUBST(YACC)
+dnl
+dnl ... with some hacking in src/libgfsm/Makefile.am, we get:
+dnl     : AM_YFLAGS = 
+AM_PROG_LEX
+AC_PROG_YACC
+LEX="$FLEX"
+YACC="$BISON"
+
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## Getline
@@ -92,7 +131,7 @@ AC_PROG_LIBTOOL
 dnl v--- for static-only libraries (non-libtool)
 dnl AC_PROG_RANLIB
 
-dnl v--- needed if Makefile.am uses lex sources
+dnl v--- needed if Makefile.am uses lex sources (see above)
 dnl AM_PROG_LEX
 
 
