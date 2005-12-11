@@ -37,9 +37,10 @@
 
 /// Automaton state structure
 typedef struct {
-  gboolean      is_valid : 1; /**< whether this is a valid state */
-  gboolean      is_final : 1; /**< whether this is a final state */
-  gfsmArcList  *arcs;         /**< list of outgoing arcs */
+  guint32       is_valid : 1;  /**< whether this is a valid state */
+  guint32       is_final : 1;  /**< whether this is a final state */
+  guint32       unused   : 30; /**< reserved */
+  gfsmArcList  *arcs;          /**< list of outgoing arcs */
 } gfsmState;
 
 

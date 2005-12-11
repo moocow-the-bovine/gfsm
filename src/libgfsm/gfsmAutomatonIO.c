@@ -361,8 +361,8 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
     //-- store basic state information
     st           = &g_array_index(fsm->states, gfsmState, id);
     sst.is_valid = st->is_valid;
-    sst.is_final = st->is_final;
-    sst.n_arcs   = gfsm_state_out_degree(st);
+    sst.is_final = sst.is_valid ? st->is_final : FALSE;
+    sst.n_arcs   = sst.is_valid ? gfsm_state_out_degree(st) : 0;
     if (fwrite(&sst, sizeof(sst), 1, f) != 1) {
       g_set_error(errp, g_quark_from_static_string("gfsm"),                      //-- domain
 			g_quark_from_static_string("automaton_save_bin:state"), //-- code
@@ -382,17 +382,19 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
     }
 
     //-- store arcs
-    for (gfsm_arciter_open_ptr(&ai,fsm,st); rc && gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-      gfsmArc *a = gfsm_arciter_arc(&ai);
-      sa.target = a->target;
-      sa.lower  = a->lower;
-      sa.upper  = a->upper;
-      sa.weight = a->weight;
-      if (fwrite(&sa, sizeof(sa), 1, f) != 1) {
-	g_set_error(errp, g_quark_from_static_string("gfsm"),                         //-- domain
-			  g_quark_from_static_string("automaton_save_bin:state:arc"), //-- code
-			  "could not store arcs for state %d", id);
-	rc = FALSE;
+    if (sst.is_valid) {
+      for (gfsm_arciter_open_ptr(&ai,fsm,st); rc && gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+	gfsmArc *a = gfsm_arciter_arc(&ai);
+	sa.target = a->target;
+	sa.lower  = a->lower;
+	sa.upper  = a->upper;
+	sa.weight = a->weight;
+	if (fwrite(&sa, sizeof(sa), 1, f) != 1) {
+	  g_set_error(errp, g_quark_from_static_string("gfsm"),                         //-- domain
+		      g_quark_from_static_string("automaton_save_bin:state:arc"), //-- code
+		      "could not store arcs for state %d", id);
+	  rc = FALSE;
+	} 
       }
     }
   }

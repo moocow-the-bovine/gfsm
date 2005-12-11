@@ -100,3 +100,31 @@ gpointer gfsm_string_dup_n(gconstpointer src, gsize size)
 gpointer gfsm_mem_dup_n(gconstpointer src, gsize size)
 { return g_memdup(src,size); };
 
+/*----------------------------------------------------------------------
+ * gstring_dup()
+ */
+GString *gfsm_gstring_dup (GString *gstr)
+{
+  GString *dst = g_string_sized_new(gstr->len);
+  g_string_append_len(dst, gstr->str, gstr->len);
+  return dst;
+}
+
+/*----------------------------------------------------------------------
+ * gstring_asign_bytes()
+ */
+void gfsm_gstring_assign_bytes (GString *gstr, const gchar *src, gsize len)
+{
+  g_string_truncate(gstr, 0);
+  g_string_append_len(gstr, src, gstr->len);
+}
+
+/*----------------------------------------------------------------------
+ * gstring_new_bytes()
+ */
+GString *gfsm_gstring_new_bytes (const gchar *src, gsize len)
+{
+  GString *dst = g_string_sized_new(src[len]=='\0' ? len : (len+1));
+  g_string_append_len(dst,src,len);
+  return dst;
+}

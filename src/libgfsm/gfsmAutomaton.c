@@ -88,7 +88,7 @@ gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src)
   gfsm_automaton_clear(dst);
   gfsm_automaton_copy_shallow(dst,src);
   gfsm_automaton_reserve(dst,src->states->len);
-  gfsm_set_copy(dst->finals, src->finals);
+  gfsm_weightmap_copy(dst->finals, src->finals);
 
   for (id = 0; id < src->states->len; id++) {
     const gfsmState *src_s = gfsm_automaton_find_state_const(src,id);
@@ -365,16 +365,89 @@ gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWei
   return gfsm_weightmap_lookup(fsm->finals, (gconstpointer)id, wp);
 }
 
+
 /*--------------------------------------------------------------
  * renumber_states()
  */
 void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 {
+  gfsmStateId    oldid, newid, n_states;
+  gfsmState     *s_old, *s_new;
+  gfsmWeightMap *new_finals = gfsm_weightmap_new(gfsm_uint_compare);
+  GArray        *new_states = NULL;
+  GArray        *old2new    = NULL;
+
+  //-- always set root state to zero -- even add one
+  if (fsm->root_id == gfsmNoState) fsm->root_id = gfsm_automaton_add_state(fsm);
+
+  //-- get old-to-new id map
+  old2new = g_array_sized_new(FALSE,FALSE,sizeof(gfsmState),fsm->states->len);
+  g_array_index(old2new,gfsmStateId,fsm->root_id) = 0;
+  for (oldid=0, newid=0; oldid < fsm->states->len; oldid++) {
+    if (oldid==fsm->root_id) continue;
+    if (gfsm_automaton_has_state(fsm,oldid)) {
+      g_array_index(old2new,gfsmStateId,oldid) = ++newid;
+    } else {
+      g_array_index(old2new,gfsmStateId,oldid) = gfsmNoState;
+    }
+  }
+  n_states = newid+1;
+
+  //-- allocate new states
+  new_states = g_array_sized_new(FALSE,TRUE,sizeof(gfsmState),n_states);
+
+  //-- renumber states
+  for (oldid=0; oldid < fsm->states->len; oldid++) {
+    gfsmArcIter ai;  
+    newid = g_array_index(old2new,gfsmStateId,oldid);
+
+    if (newid==gfsmNoState) continue; //-- ignore bad states
+
+    //-- copy state data
+    s_old  = gfsm_automaton_find_state(fsm, oldid);
+    s_new  = &(g_array_index(new_states,gfsmState,newid));
+    *s_new = *s_old;
+
+    //-- check for final state
+    if (s_new->is_final) {
+      gfsmWeight fw;
+      gfsm_weightmap_lookup(fsm->finals, (gpointer)oldid, &fw);
+      gfsm_weightmap_insert(new_finals,  (gpointer)newid,  fw);
+    }
+
+    //-- renumber targets of outgoing arcs
+    for (gfsm_arciter_open_ptr(&ai, fsm, s_new); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
+      {
+	gfsmArc *a = gfsm_arciter_arc(&ai);
+	a->target = g_array_index(old2new,gfsmStateId,a->target);
+      }
+  }
+
+  //-- set new root-id
+  fsm->root_id = 0;
+
+  //-- set new final weights
+  gfsm_weightmap_free(fsm->finals);
+  fsm->finals = new_finals;
+
+  //-- set new state vector
+  g_array_free(fsm->states,TRUE);
+  fsm->states = new_states;
+  fsm->states->len = n_states;
+
+  //-- cleanup
+  g_array_free(old2new,TRUE);
+}
+
+void gfsm_automaton_renumber_states_old(gfsmAutomaton *fsm)
+{
   gfsmStateId  i, oldid, newid;
   gfsmStateId  gap, rgap, gap_max;
   gfsmState   *s_old, *s_new;
   GArray      *i2gap;
-
+  gfsmWeightMap *new_finals = gfsm_weightmap_new(gfsm_uint_compare);
+  
+  //-- allocate iteration-index-to-gap map
   i2gap = g_array_sized_new(FALSE, FALSE, sizeof(gfsmStateId), fsm->states->len);
 
   //-- get root-gap
@@ -395,14 +468,14 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 
   //-- renumber states
   for (i=0; i < fsm->states->len; i++) {
+    gfsmArcIter ai;
     oldid  = (i+rgap)%fsm->states->len;
     gap    = g_array_index(i2gap,gfsmStateId,i);
     newid  = i-gap;
-    s_old  = gfsm_automaton_find_state(fsm,oldid);
-    gfsmArcIter ai;
 
     if (gap == gfsmNoState) continue; //-- bad state
 
+    s_old  = gfsm_automaton_find_state(fsm,oldid);
     s_new  = gfsm_automaton_find_state(fsm, newid);
 
     //-- swap state data
@@ -413,8 +486,9 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 
       //-- check for final state
       if (s_new->is_final) {
-	gfsm_set_remove(fsm->finals, (gpointer)oldid);
-	gfsm_set_insert(fsm->finals, ((gpointer)(newid)));
+	gfsmWeight fw;
+	gfsm_weightmap_lookup(fsm->finals, (gpointer)oldid, &fw);
+	gfsm_weightmap_insert(new_finals,  (gpointer)newid,  fw);
       }
     }
 
@@ -434,6 +508,10 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 
   //-- resize states vector
   g_array_set_size(fsm->states, fsm->states->len - gap_max);
+
+  //-- set new final weights
+  gfsm_weightmap_free(fsm->finals);
+  fsm->finals = new_finals;
 
   //-- cleanup
   g_array_free(i2gap,TRUE);

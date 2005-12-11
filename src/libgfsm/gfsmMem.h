@@ -83,4 +83,14 @@ gpointer gfsm_mem_dup_n (gconstpointer src, gsize size);
 /** String duplication function for NUL-terminated strings */
 #define gfsm_string_dup g_strdup
 
+/** String duplication function for GString*s */
+GString *gfsm_gstring_dup (GString *gstr);
+
+/** Byte-assignment for GString*s */
+void gfsm_gstring_assign_bytes (GString *gstr, const gchar *src, gsize len);
+
+/** Byte-vector creation for GString*s */
+GString *gfsm_gstring_new_bytes (const gchar *src, gsize len);
+
+
 #endif /* _GFSM_MEM_H */

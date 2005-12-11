@@ -344,18 +344,10 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
       //-- handle non-epsilon arcs on fsm1
       for ( ; ai2 != NULL; ai2=ai2->next) {
 	a2 = (gfsmArc*)ai2->data;
-
-	//-- eps: case fsm1:(q1), fsm2:(q2 --eps:*-->  q2')
-	if (a2->lower == gfsmEpsilon) {
-	  qid2 = _gfsm_automaton_compose_visit((gfsmStatePair){sp.id1,a2->target},
-					       fsm1, fsm2, fsm, spenum);
-	  if (qid2 != gfsmNoState)
-	    gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, a2->upper, a2->weight);
-	  continue;
-	}
-	else if (a2->lower < a1->upper) continue;
+	if      (a2->lower < a1->upper) continue;
 	else if (a2->lower > a1->upper) break;
 
+	//-- non-eps: case fsm1:(q1 --a:b--> q1'), fsm2:(q2 --b:c-->  q2')
 	qid2 = _gfsm_automaton_compose_visit((gfsmStatePair){a1->target,a2->target},
 					     fsm1, fsm2, fsm, spenum);
 	if (qid2 != gfsmNoState)
@@ -364,6 +356,19 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
       }
     }
   }
+
+  //-- handle epsilon-arcs on fsm2
+  for (ai2=al2 ; ai2 != NULL; ai2=ai2->next) {
+    a2 = (gfsmArc*)ai2->data;
+    if (a2->lower != gfsmEpsilon) break;
+
+    //-- eps: case fsm1:(q1), fsm2:(q2 --eps:*-->  q2')
+    qid2 = _gfsm_automaton_compose_visit((gfsmStatePair){sp.id1,a2->target},
+					 fsm1, fsm2, fsm, spenum);
+    if (qid2 != gfsmNoState)
+      gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, a2->upper, a2->weight);
+  }
+
 
   //-- cleanup
   if (al1_temp) g_slist_free(al1);
@@ -939,15 +944,7 @@ gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair sp,
       for ( ; ai2 != NULL; ai2=ai2->next) {
 	a2 = (gfsmArc*)ai2->data;
 
-	//-- eps: case fsm1:(q1), fsm2:(q2 --eps-->  q2')
-	if (a2->lower == gfsmEpsilon) {
-	  qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){sp.id1,a2->target},
-						    fsm1, fsm2, fsm, spenum);
-	  if (qid2 != gfsmNoState)
-	    gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon, a2->weight);
-	  continue;
-	}
-	else if (a2->lower < a1->lower) continue;
+	if      (a2->lower < a1->lower) continue;
 	else if (a2->lower > a1->lower) break;
 
 	qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){a1->target,a2->target},
@@ -957,6 +954,18 @@ gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair sp,
 				 gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
       }
     }
+  }
+
+  //-- handle epsilon-arcs on fsm2
+  for (ai2=al2 ; ai2 != NULL; ai2=ai2->next) {
+    a2 = (gfsmArc*)ai2->data;
+    if (a2->lower != gfsmEpsilon) break;
+
+    //-- eps: case fsm1:(q1), fsm2:(q2 --eps-->  q2')
+    qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){sp.id1,a2->target},
+					 fsm1, fsm2, fsm, spenum);
+    if (qid2 != gfsmNoState)
+      gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon, a2->weight);
   }
 
   //-- cleanup
@@ -1164,7 +1173,7 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
     _gfsm_automaton_rmeps_visit_state(fsm, qid, qid, fsm->sr->one, sp2wh);
   }
 
-  //-- pass-2: adopt non-epsilon arcs from eps-reachable states
+  //-- pass-2: adopt non-epsilon arcs & final weights from eps-reachable states
   gfsm_weighthash_foreach(sp2wh, (GHFunc)_gfsm_automaton_rmeps_pass2_foreach_func, fsm);
 
   //-- pass-3: actual removal of now-redundant epsilon arcs
@@ -1227,9 +1236,20 @@ void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
 void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm)
 {
   gfsmWeight  w = gfsm_ptr2weight(pw);
+  gfsmWeight  fw2;
   gfsmArcIter ai;
   gfsmArc     *a;
   if (sp->id1==sp->id2) return; //-- sanity check
+
+  //-- adopt final weights (plus)
+  if (gfsm_automaton_lookup_final(fsm, sp->id2, &fw2)) {
+    gfsm_automaton_set_final_state_full(fsm, sp->id1, TRUE,
+					gfsm_sr_plus(fsm->sr,
+						     gfsm_automaton_get_final_weight(fsm, sp->id1),
+						     gfsm_sr_times(fsm->sr, w, fw2)));
+  }
+
+  //-- adopt non-epsilon arcs
   for (gfsm_arciter_open(&ai,fsm,sp->id2); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
     a = gfsm_arciter_arc(&ai);
     if (a->lower != gfsmEpsilon || a->upper != gfsmEpsilon) {
@@ -1329,13 +1349,22 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   gfsmStateId offset;
   gfsmStateId id2;
+  gfsmStateId oldroot1;
 
   //-- sanity check
-  if (!fsm2 || fsm2->root_id == gfsmNoState) return fsm1;
+  if (!fsm2 || fsm2->root_id==gfsmNoState) return fsm1;
 
-  offset = fsm1->states->len;
+  offset = fsm1->states->len + 1;
   gfsm_automaton_reserve(fsm1, offset + fsm2->states->len);
 
+  //-- add new root and eps-arc to old root for fsm1
+  oldroot1 = fsm1->root_id;
+  fsm1->root_id = gfsm_automaton_add_state(fsm1);
+  if (oldroot1 != gfsmNoState) {
+    gfsm_automaton_add_arc(fsm1, fsm1->root_id, oldroot1, gfsmEpsilon, gfsmEpsilon, fsm1->sr->one);
+  }
+
+  //-- adopt states from fsm2 into fsm1
   for (id2 = 0; id2 < fsm2->states->len; id2++) {
     const gfsmState *s2 = gfsm_automaton_find_state_const(fsm2,id2);
     gfsmState       *s1 = gfsm_automaton_find_state(fsm1,id2+offset);
@@ -1347,23 +1376,18 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
     }
     //-- index final states from @fsm2
     if (s2->is_final) {
-      gfsmWeight fw = gfsm_automaton_get_final_weight(fsm2, id2);
-      _gfsm_weightmap_insert(fsm1->finals, (gpointer)(id2+offset), fw);
+      gfsm_automaton_set_final_state_full(fsm1, id2+offset, TRUE, gfsm_automaton_get_final_weight(fsm2, id2));
     }
   }
 
-  //-- add epsilon arc to translated root state
-  if (fsm1->root_id == gfsmNoState) {
-    fsm1->root_id = offset + fsm2->root_id;
-  } else {
-    gfsm_automaton_add_arc(fsm1,
-			   fsm1->root_id,
-			   offset + fsm2->root_id,
-			   gfsmEpsilon,
-			   gfsmEpsilon,
-			   fsm1->sr->one);
-  }
-	 
+  //-- add epsilon arc to translated root(fsm2) in fsm1
+  gfsm_automaton_add_arc(fsm1,
+			 fsm1->root_id,
+			 offset + fsm2->root_id,
+			 gfsmEpsilon,
+			 gfsmEpsilon,
+			 fsm1->sr->one);
+
   return fsm1;
 }
 

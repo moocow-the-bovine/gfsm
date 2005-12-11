@@ -64,6 +64,8 @@ extern "C" {
 #include <gfsmLookup.h>
 #include <gfsmPaths.h>
 #include <gfsmTrie.h>
+#include <gfsmScanner.h>
+#include <gfsmRegexCompiler.h>
 
 /*
 #ifdef __cplusplus

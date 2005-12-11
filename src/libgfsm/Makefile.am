@@ -62,7 +62,11 @@ libgfsm_la_SOURCES = \
 	gfsmArith.c \
 	gfsmLookup.c \
 	gfsmPaths.c \
-	gfsmTrie.c
+	gfsmTrie.c \
+	gfsmScanner.c \
+	gfsmRegex.lex.l \
+	gfsmRegex.tab.y \
+	gfsmRegexCompiler.c
 
 
 #	gfsmHead.c 
@@ -107,6 +111,8 @@ pkginclude_HEADERS = \
 	gfsmLookup.h \
 	gfsmPaths.h \
 	gfsmTrie.h \
+	gfsmScanner.h \
+	gfsmRegexCompiler.h \
 	gfsm.h
 
 #	gfsmHead.h 
@@ -115,10 +121,22 @@ pkginclude_HEADERS = \
 #noinst_HEADERS = nopackage.h
 
 ##-----------------------------------------------------------------------
-## pre-compile rules: gengetopt ; flex++ ; bison++
+## pre-compile rules: gengetopt ; flex ; bison
 ##-----------------------------------------------------------------------
 SRCDIR = @srcdir@
 
+##-- flex, bison
+LEX = @FLEX@
+
+YACC = @BISON@
+AM_YFLAGS = --defines --fixed-output-files --name-prefix="$(basename $*)_yy"
+
+SUFFIXES = .l .lex.l .y .tab.y .tab.c .tab.h .lex.c .lex.h
+
+##----------------------------------------
+gfsmRegex.lex.o: gfsmRegex.lex.c gfsmRegex.tab.c gfsmRegexCompiler.h
+gfsmRegex.tab.o: gfsmRegex.tab.c gfsmRegex.lex.c gfsmRegexCompiler.h
+gfsmRegexCompiler.o: gfsmRegexCompiler.c gfsmRegexCompiler.h gfsmRegex.lex.c gfsmRegex.tab.c
 
 ##-----------------------------------------------------------------------
 ## compile flags
@@ -186,7 +204,11 @@ MAINTAINERCLEANFILES = \
 ##-----------------------------------------------------------------------
 
 ## --- extra distribution files
-#EXTRA_DIST =
+EXTRA_DIST = \
+	gfsmRegex.lex.c \
+	gfsmRegex.lex.h \
+	gfsmRegex.tab.c \
+	gfsmRegex.tab.h
 
 ## --- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

@@ -57,9 +57,10 @@ typedef struct {
 
 /// Type for a stored state
 typedef struct {
-  gboolean is_valid : 1; /**< valid flag */
-  gboolean is_final : 1; /**< final flag */
-  guint    n_arcs;       /**< number of stored arcs for this state */
+  guint32  is_valid : 1;  /**< valid flag */
+  guint32  is_final : 1;  /**< final flag */
+  guint32  unused   : 30; /**< reserved */
+  guint    n_arcs;        /**< number of stored arcs for this state */
 } gfsmStoredState;
 
 
