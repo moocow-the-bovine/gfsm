@@ -9,5 +9,3 @@ bits2bytes: _gfsm_bitvector_bits2bytes(MyBit)
 
 set: gfsm_bitvector_set(MyVector,MyBit,MyValue)
 
-
-

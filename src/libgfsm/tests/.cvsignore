@@ -12,6 +12,14 @@ pathtest
 ftest
 memtest-general
 calctest
+calc2test
 flextest
+flex2test
+flex3test
+compretest
+comprelex
+compre2test
+structtest
+
 flextest.c
 flextest.h

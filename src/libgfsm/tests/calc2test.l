@@ -1,11 +1,12 @@
 /*======================================================================
  * Flex Options
  */
-%option outfile="calctest.lex.c"
-%option header-file="calctest.lex.h"
-%option prefix="calctest_yy"
+%option outfile="calc2test.lex.c"
+%option header-file="calc2test.lex.h"
+%option prefix="calc2test_yy"
 %option reentrant
 %option 8bit
+%option yylineno
 
 %option bison-bridge
 
@@ -15,7 +16,8 @@
  */
 
 /* bison stuff */
-#include "calctest.tab.h"
+#include <gfsmScanner.h>
+#include "calc2test.tab.h"
 
 %}
 
@@ -40,6 +42,8 @@
 
 \n { return NEWLINE; }
 
+[[:space:]] { /* ignore */ }
+
 .  { return OTHER; /* ignore */ }
 
 %%
@@ -48,5 +52,5 @@
  * User C Code
  */
 
-//-- wrapper: don't
-int calctest_yywrap(yyscan_t yyscanner) { return 1; }
+//-- wrapper: use default
+GFSM_SCANNER_YYWRAP(calc2test_yy)
