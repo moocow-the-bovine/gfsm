@@ -133,7 +133,7 @@ gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 
   case gfsmSRTPLog: return (x > y);
 
-  case gfsmSRTTrivial:  return (x != y);
+  case gfsmSRTTrivial:  return 0;
 
   case gfsmSRTUser:
     if (((gfsmUserSemiring*)sr)->less_func)
@@ -153,8 +153,8 @@ gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
   switch (sr->type) {
   case gfsmSRTLog:
-  case gfsmSRTTropical: 
-  case gfsmSRTTrivial:  return (x < y ? -1 : (x > y ? 1 : 0));
+  case gfsmSRTTropical: return (x < y ? -1 : (x > y ? 1 : 0));
+  case gfsmSRTTrivial:  return 0;
 
   case gfsmSRTPLog: return (x < y ? 1 : (x > y ? -1 : 0));
 
@@ -184,7 +184,7 @@ gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
   case gfsmSRTLog:      return -gfsm_log_add(-x,-y);
   case gfsmSRTPLog:     return  gfsm_log_add( x, y);
   case gfsmSRTTropical: return (x < y ? x : y);
-  case gfsmSRTTrivial:
+  case gfsmSRTTrivial:  return 0;
 
   case gfsmSRTUser:
     if (((gfsmUserSemiring*)sr)->plus_func)
@@ -205,8 +205,8 @@ gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
   case gfsmSRTBoolean:  return x && y;
   case gfsmSRTLog:      
   case gfsmSRTPLog:
-  case gfsmSRTTrivial:
   case gfsmSRTTropical: return x + y;
+  case gfsmSRTTrivial:  return 0;
 
   case gfsmSRTUser:
     if (((gfsmUserSemiring*)sr)->times_func)
