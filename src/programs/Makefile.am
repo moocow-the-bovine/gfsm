@@ -18,27 +18,27 @@
 ## --- executable programs
 #bin_PROGRAMS = ${prog_1} ... ${prog_N}
 bin_PROGRAMS = \
-	gfsmarith \
-	gfsmcompile \
-	gfsmconvert \
-	gfsmprint \
-	gfsminfo \
-	\
 	gfsmarcsort \
+	gfsmarith \
 	gfsmclosure \
+	gfsmcompile \
 	gfsmcomplement \
 	gfsmcompose \
+	gfsmcompre \
 	gfsmconcat \
 	gfsmconnect \
+	gfsmconvert \
 	gfsmdeterminize \
 	gfsmdifference \
 	gfsmdraw \
 	gfsmheader \
+	gfsminfo \
 	gfsmintersect \
 	gfsminvert \
 	gfsmlabels \
 	gfsmlookup \
 	gfsmoptional \
+	gfsmprint \
 	gfsmproduct \
 	gfsmproject \
 	gfsmrenumber \
@@ -204,6 +204,18 @@ gfsmcompose_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmcompose_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmcompose.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmcompre_SOURCES = \
+	gfsmcompre_main.c \
+	gfsmcompre_cmdparser.c gfsmcompre_cmdparser.h
+
+gfsmcompre_main.o: gfsmcompre_cmdparser.h
+
+gfsmcompre_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmcompre_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmcompre.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmconcat_SOURCES = \

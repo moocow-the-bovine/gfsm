@@ -8,6 +8,7 @@ gfsmclosure
 gfsmcompile
 gfsmcomplement
 gfsmcompose
+gfsmcompre
 gfsmconcat
 gfsmconnect
 gfsmconvert

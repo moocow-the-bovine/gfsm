@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow@ling.uni-potsdam.de>
+   Copyright (C) 2005 by Bryan Jurish <moocow@ling.uni-potsdam.de>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,28 +24,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <ctype.h>
 
 #include <gfsm.h>
 
-#include "gfsmcompile_cmdparser.h"
+#include "gfsmcompre_cmdparser.h"
 
 /*--------------------------------------------------------------------------
  * Globals
  *--------------------------------------------------------------------------*/
-char *progname = "gfsmcompile";
+char *progname = "gfsmcompre";
 
 //-- options
 struct gengetopt_args_info args;
 
 //-- files
-const char *infilename = "-";
+const char *fstfilename = "-";
 const char *outfilename = "-";
 
 //-- global structs
-gfsmAutomaton *fsm;
-gfsmAlphabet  *ilabels=NULL, *olabels=NULL, *slabels=NULL;
-gfsmError     *err = NULL;
-gfsmSRType     srtype = gfsmSRTUnknown;
+gfsmRegexCompiler *rec  = NULL;
+gfsmAlphabet      *abet = NULL;
+gfsmError         *err  = NULL;
+gboolean  emit_warnings = TRUE;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -58,74 +60,83 @@ void get_my_options(int argc, char **argv)
   //-- load environmental defaults
   //cmdline_parser_envdefaults(&args);
 
+  //-- sanity checks
+  if (!args.regex_given) {
+    g_printerr("%s: no regex specified!\n", progname);
+    cmdline_parser_print_help();
+    exit(-1);
+  }
+
   //-- filenames
-  if (args.inputs_num > 0) infilename = args.inputs[0];
   outfilename = args.output_arg;
 
-  //-- labels: input
-  if (args.ilabels_given) {
-    ilabels = gfsm_string_alphabet_new();
-    if (!gfsm_alphabet_load_filename(ilabels,args.ilabels_arg,&err)) {
-      g_printerr("%s: load failed for input-labels file '%s': %s\n",
-		 progname, args.ilabels_arg, err->message);
-      exit(2);
-    }
-  }
-  //-- labels: output
-  if (args.olabels_given) {
-    olabels = gfsm_string_alphabet_new();
-    if (!gfsm_alphabet_load_filename(olabels,args.olabels_arg,&err)) {
-      g_printerr("%s: load failed for output-labels file '%s': %s\n",
-		 progname, args.olabels_arg, err->message);
-      exit(2);
-    }
-  }
-  //-- labels: state
-  if (args.slabels_given) {
-    slabels = gfsm_string_alphabet_new();
-    if (!gfsm_alphabet_load_filename(slabels,args.slabels_arg,&err)) {
-      g_printerr("%s: load failed for state-labels file '%s': %s\n",
-		 progname, args.slabels_arg, err->message);
+  //-- alphabet: basic labels
+  abet = gfsm_string_alphabet_new();
+  if (args.labels_given) {
+    if (!gfsm_alphabet_load_filename(abet, args.labels_arg, &err)) {
+      g_printerr("%s: load failed for labels file '%s': %s\n",
+		 progname, args.labels_arg, err->message);
       exit(2);
     }
   }
 
-  //-- initialize fsm
-  fsm = gfsm_automaton_new();
-  if (args.acceptor_given) fsm->flags.is_transducer = FALSE;
-
-  //-- set semiring
-  srtype = gfsm_sr_name_to_type(args.semiring_arg);
-  if (srtype != fsm->sr->type) {
-    gfsm_automaton_set_semiring(fsm, gfsm_semiring_new(srtype));
-  }
+  //-- options for regex compiler
+  rec = gfsm_regex_compiler_new_full("gfsmRegexCompiler",
+				     abet,
+				     gfsm_sr_name_to_type(args.semiring_arg),
+				     emit_warnings);
 }
+
 
 /*--------------------------------------------------------------------------
  * MAIN
  *--------------------------------------------------------------------------*/
 int main (int argc, char **argv)
 {
+  gfsmAutomaton *fsm;
+  char          *regex=NULL;
+
   GFSM_INIT
   get_my_options(argc,argv);
 
-  //-- compile automaton
-  if (!gfsm_automaton_compile_filename_full(fsm,infilename,ilabels,olabels,slabels,&err)) {
-    g_printerr("%s: compile failed for '%s': %s\n", progname, infilename, err->message);
-    exit(3);
+  //-- string-compile hack: escape everything
+  if (args.string_flag) {
+    GString *tmp = g_string_new("");
+    int i;
+    for (i=0; i < strlen(args.regex_arg); i++) {
+      g_string_append_c(tmp,'\\');
+      g_string_append_c(tmp,args.regex_arg[i]);
+    }
+    regex = tmp->str;
+    g_string_free(tmp,FALSE);
+  } else {
+    regex = args.regex_arg;
   }
 
-  //-- store automaton
-  if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {
-    g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
+  //-- parse regex string
+  gfsm_scanner_scan_string(&(rec->scanner), regex);
+  fsm = gfsm_regex_compiler_parse(rec);
+
+  //-- check for errors
+  if (rec->scanner.err) {
+    g_printerr("%s: %s\n", progname, err->message);
+    exit(3);
+  }
+  if (!fsm) {
+    g_printerr("%s: no automaton!\n", progname);
     exit(4);
   }
 
+  
+  //-- save output fsm
+  if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {
+    g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
+    exit(5);
+  }
+
   //-- cleanup
-  if (ilabels) gfsm_alphabet_free(ilabels);
-  if (olabels) gfsm_alphabet_free(olabels);
-  if (slabels) gfsm_alphabet_free(slabels);
-  gfsm_automaton_free(fsm);
+  gfsm_regex_compiler_free(rec,TRUE,TRUE);
+
 
   GFSM_FINISH
   return 0;
