@@ -70,7 +70,7 @@ dnl AC_SUBST(LEX)
 dnl AC_SUBST(YACC)
 dnl
 dnl ... with some hacking in src/libgfsm/Makefile.am, we get:
-dnl     : AM_YFLAGS = 
+dnl     : AM_YFLAGS = --defines --fixed-output-files --name-prefix="$*_yy"
 AM_PROG_LEX
 AC_PROG_YACC
 LEX="$FLEX"
