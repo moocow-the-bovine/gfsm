@@ -19,11 +19,11 @@ The following is a list of the programs
 and user documentation contained in the gfsm package.
 See the individual manpages for details.
 
-=over 4
-
 [@
   foreach my $subog (@subogs) {
-    $OUT .= ("=item $subog->{USER}{program}\n"
+      next if (!defined($subog->{USER}{program})
+	       || $subog->{USER}{program} =~ /^\s*$/);
+    $OUT .= ("=head2 $subog->{USER}{program}\n"
 	     ."\n"
 	     ."$subog->{purpose}\n"
 	     ."\n"
@@ -33,8 +33,6 @@ See the individual manpages for details.
 	    );
   }
 @]
-
-=back
 
 =cut
 
