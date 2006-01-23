@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2006 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -74,11 +74,36 @@ extern const gfsmSRType gfsmTrieDefaultSRType;
  *  \param trie upper string (NULL for epsilon)
  *  \param w    weight which is added (gfsm_sr_plus) to all arcs for this pair
  *  \returns Id of the final state of the added path
+ *
+ *  \note really just a wrapper for \a gfsm_trie_add_paths_full() with
+ *  \a add_to_arcs=true , \a add_to_state_final=true, \a add_to_path_final=true.
  */
 gfsmStateId gfsm_trie_add_paths(gfsmTrie        *trie,
 				gfsmLabelVector *lo,
 				gfsmLabelVector *hi,
 				gfsmWeight       w);
+
+//------------------------------
+/** Add a string-pair \a (lo,hi) to the trie with weight \a w
+ *  \param trie Trie
+ *  \param lo   lower string (NULL for epsilon)
+ *  \param trie upper string (NULL for epsilon)
+ *  \param w    weight associated with this pair
+ *  \param add_to_arcs  whether to add (gfsm_sr_plus) \a w to all arc-weights
+ *  \param add_to_state_final whether to add (gfsm_sr_plus) \a w to all intermediate state final-weights;
+ *                            implies that all states will be marked as final in the resulting automaton
+ *  \param add_to_path_final  whether to add (gfsm_sr_plus) \a w to the final weight for the last node
+ *                            in the path
+ *  \returns Id of the final state of the added path
+ */
+gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
+				     gfsmLabelVector *lo,
+				     gfsmLabelVector *hi,
+				     gfsmWeight       w,
+				     gboolean         add_to_arcs,
+				     gboolean         add_to_state_final,
+				     gboolean         add_to_path_final
+				     );
 
 /** Find an arc from state \a qid with lower label \a lab in trie \a trie.
  *  \param trie Trie
@@ -111,10 +136,11 @@ gfsmArc* gfsm_trie_find_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal l
  *  \param trie Trie
  *  \param qid   outgoing state qid
  *  \param lab   lower label
- *  \param w    arc weight.
+ *  \param w    arc weight
+ *  \param add_weight whether to add weight to the arc
  *  \returns gfsmStateId of the (unique) destination state
  */
-gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w);
+gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight);
 
 /** Find or insert an arc from state \a qid with upper label \a lab in trie \a trie;
  *  adding weight \a w.
@@ -122,9 +148,10 @@ gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVa
  *  \param qid   outgoing state qid
  *  \param lab   upper label
  *  \param w    arc weight
+ *  \param add_weight whether to add weight to the arc
  *  \returns gfsmStateId of the (unique) destination state
  */
-gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w);
+gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight);
 
 /** Find or insert an arc from state \a qid with lower label \a lo and upper label \a hi
  *  with weight \a w in trie \a trie.
@@ -133,9 +160,10 @@ gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVa
  *  \param lo   lower label id
  *  \param hi   upper label id
  *  \param w    arc weight
+ *  \param add_weight whether to add weight to the arc
  *  \returns gfsmStateId of the (unique) destination state
  */
-gfsmStateId gfsm_trie_get_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w);
+gfsmStateId gfsm_trie_get_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gboolean add_weight);
 
 //@}
 

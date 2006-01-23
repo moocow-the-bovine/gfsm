@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2006 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -50,6 +50,20 @@ gfsmStateId gfsm_trie_add_paths(gfsmTrie        *trie,
 				gfsmLabelVector *hi,
 				gfsmWeight       w)
 {
+  return gfsm_trie_add_paths_full(trie,lo,hi,w,TRUE,TRUE,TRUE);
+}
+
+
+//--------------------------------------------------------------
+gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
+				     gfsmLabelVector *lo,
+				     gfsmLabelVector *hi,
+				     gfsmWeight       w,
+				     gboolean         add_to_arcs,
+				     gboolean         add_to_state_final,
+				     gboolean         add_to_path_final
+				     )
+{
   gfsmStateId  qid;
   guint i;
 
@@ -61,20 +75,31 @@ gfsmStateId gfsm_trie_add_paths(gfsmTrie        *trie,
 
   //-- add lower path
   for (i=0; lo && i < lo->len; i++) {
-    qid = gfsm_trie_get_arc_lower(trie, qid, ((gfsmLabelVal)g_ptr_array_index(lo,i)), w);
+    if (add_to_state_final) {
+      gfsm_automaton_set_final_state_full(trie, qid, TRUE,
+					  gfsm_sr_plus(trie->sr, w, gfsm_automaton_get_final_weight(trie, qid)));
+    }
+    qid = gfsm_trie_get_arc_lower(trie, qid, ((gfsmLabelVal)g_ptr_array_index(lo,i)), w, add_to_arcs);
   }
-
-  //-- add separator (do something like this by hand for efficient lookup)
-  //qid = gfsm_trie_get_arc_lower(trie, qid, gfsmNoLabel, w);
 
   //-- add upper path
   for (i=0; hi && i < hi->len; i++) {
-    qid = gfsm_trie_get_arc_upper(trie, qid, ((gfsmLabelVal)g_ptr_array_index(hi,i)), w);
+    if (add_to_state_final) {
+      gfsm_automaton_set_final_state_full(trie, qid, TRUE,
+					  gfsm_sr_plus(trie->sr, w, gfsm_automaton_get_final_weight(trie, qid)));
+    }
+    qid = gfsm_trie_get_arc_upper(trie, qid, ((gfsmLabelVal)g_ptr_array_index(hi,i)), w, add_to_arcs);
   }
 
   //-- add final epsilon-arc
-  qid = gfsm_trie_get_arc_both(trie, qid, gfsmEpsilon, gfsmEpsilon, w);
-  gfsm_automaton_set_final_state(trie,qid,TRUE);
+  //qid = gfsm_trie_get_arc_both(trie, qid, gfsmEpsilon, gfsmEpsilon, w, add_to_arcs);
+
+  if (add_to_state_final || add_to_path_final) {
+    gfsm_automaton_set_final_state_full(trie, qid, TRUE,
+					gfsm_sr_plus(trie->sr, w, gfsm_automaton_get_final_weight(trie, qid)));
+  } else {
+    gfsm_automaton_set_final_state(trie,qid,TRUE);
+  }
 
   return qid;
 }
@@ -137,52 +162,52 @@ gfsmArc* gfsm_trie_find_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal l
  */
 
 //--------------------------------------------------------------
-gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w)
+gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight)
 {
   gfsmArc *a=gfsm_trie_find_arc_lower(trie,qid,lab);
 
   if (a==NULL) {
     gfsmStateId qid2 = gfsm_automaton_add_state(trie);
-    gfsm_automaton_add_arc(trie,qid,qid2,lab,gfsmEpsilon,w);
+    gfsm_automaton_add_arc(trie,qid,qid2,lab,gfsmEpsilon, add_weight ? w : trie->sr->zero);
     return qid2;
   }
 
   //-- found an existing arc
-  a->weight = gfsm_sr_plus(trie->sr, a->weight, w);
+  if (add_weight) a->weight = gfsm_sr_plus(trie->sr, a->weight, w);
   return a->target;
 }
 
 //--------------------------------------------------------------
-gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w)
+gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight)
 {
   gfsmArc *a=gfsm_trie_find_arc_upper(trie,qid,lab);
 
   if (a==NULL) {
     gfsmStateId qid2 = gfsm_automaton_add_state(trie);
-    gfsm_automaton_add_arc(trie,qid,qid2,gfsmEpsilon,lab,w);
+    gfsm_automaton_add_arc(trie,qid,qid2,gfsmEpsilon,lab, add_weight ? w : trie->sr->zero);
     //trie->flags.is_deterministic = TRUE; //-- HACK
     return qid2;
   }
 
   //-- found an existing arc
-  a->weight = gfsm_sr_plus(trie->sr, a->weight, w);
+  if (add_weight) a->weight = gfsm_sr_plus(trie->sr, a->weight, w);
   return a->target;
 }
 
 //--------------------------------------------------------------
-gfsmStateId gfsm_trie_get_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w)
+gfsmStateId gfsm_trie_get_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gboolean add_weight)
 {
   gfsmArc *a=gfsm_trie_find_arc_both(trie,qid,lo,hi);
 
   if (a==NULL) {
     gfsmStateId qid2 = gfsm_automaton_add_state(trie);
-    gfsm_automaton_add_arc(trie,qid,qid2,lo,hi,w);
+    gfsm_automaton_add_arc(trie,qid,qid2,lo,hi, add_weight ? w : trie->sr->zero);
     //trie->flags.is_deterministic = TRUE; //-- HACK
     return qid2;
   }
 
   //-- found an existing arc
-  a->weight = gfsm_sr_plus(trie->sr, a->weight, w);
+  if (add_weight) a->weight = gfsm_sr_plus(trie->sr, a->weight, w);
   return a->target;
 }
 
