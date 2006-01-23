@@ -10,6 +10,7 @@
 *.fst
 *.tfst
 *.lab
+*.loT
 gfsmConfig.h
 gfsmConfig.h.in
 gmon.out

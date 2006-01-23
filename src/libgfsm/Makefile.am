@@ -42,6 +42,7 @@ libgfsm_la_SOURCES = \
 	gfsmCompound.c \
 	gfsmDebug.c \
 	gfsmError.c \
+	gfsmIO.c \
 	gfsmMem.c \
 	gfsmVersion.c \
 	gfsmUtils.c \
@@ -90,6 +91,7 @@ pkginclude_HEADERS = \
 	gfsmCompound.h \
 	gfsmDebug.h \
 	gfsmError.h \
+	gfsmIO.h \
 	gfsmMem.h \
 	gfsmVersion.h \
 	gfsmUtils.h \

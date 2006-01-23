@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.8-pre4])
+define([THE_PACKAGE_VERSION], [0.0.8-pre5])
 define([THE_PACKAGE_MAINTAINER],  [moocow@ling.uni-potsdam.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -76,6 +76,61 @@ AC_PROG_YACC
 LEX="$FLEX"
 YACC="$BISON"
 
+
+dnl vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+dnl zlib
+
+AC_ARG_ENABLE(zlib,
+	AC_HELP_STRING([--disable-zlib],
+	               [Disable zlib compression support]),
+	[ac_cv_enable_zlib="$enableval"],
+	[ac_cv_enable_zlib="yes"])
+
+if test "$ac_cv_enable_zlib" != "no" ; then
+ for h in zlib.h ; do
+  AC_CHECK_HEADER($h,
+		  [gfsm_have_header="yes"], [gfsm_have_header="no"], [ ])
+  if test "$gfsm_have_header" = "no" ; then
+    AC_MSG_WARN([])
+    AC_MSG_WARN([----------------------------------------------------------------])
+    AC_MSG_WARN([                 zlib header '$h' not found!])
+    AC_MSG_WARN([])
+    AC_MSG_WARN([    Is the directory containing the zlib headers in your])
+    AC_MSG_WARN([             'CPPFLAGS' environment variable?])
+    AC_MSG_WARN([----------------------------------------------------------------])
+    AC_MSG_WARN([])
+    ac_cv_enable_zlib="no"
+  fi
+ done
+fi
+
+if test "$ac_cv_enable_zlib" != "no" ; then
+ dnl zlib: library: compile
+ AC_CHECK_LIB(z,deflate,[ac_cv_have_libz="yes"])
+ if test "$ac_cv_have_libz" != "yes" ; then
+    AC_MSG_WARN([])
+    AC_MSG_WARN([----------------------------------------------------------------])
+    AC_MSG_WARN([                   zlib library not found!])
+    AC_MSG_WARN([])
+    AC_MSG_WARN([         Is the directory containing libz.a in your])
+    AC_MSG_WARN([                'LDFLAGS' environment variable?])
+    AC_MSG_WARN([----------------------------------------------------------------])
+    AC_MSG_WARN([])
+    ac_cv_enable_zlib="no"
+ else
+   gfsm_LIBS="$gfsm_LIBS -lz"
+ fi
+fi
+
+##-- zlib: config.h flag
+if test "$ac_cv_enable_zlib" != "no" ; then
+ AC_DEFINE(GFSM_ZLIB_ENABLED,1,
+	   [Define this to enable zlib compression support])
+ DOXY_DEFINES="$DOXY_DEFINES GFSM_ZLIB_ENABLED=1"
+fi
+
+dnl /zlib
+dnl ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## Getline
