@@ -24,271 +24,470 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+#include <gfsmConfig.h>
+
 #include <glib.h>
 #include <gfsmIO.h>
 #include <gfsmCompat.h>
-#include <gfsmConfig.h>
+#include <gfsmUtils.h>
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+//#include <fcntl.h>
+#include <errno.h>
 
 #ifdef GFSM_ZLIB_ENABLED
 # include <zlib.h>
 # define GFSM_DEFAULT_COMPRESSION Z_DEFAULT_COMPRESSION
 #endif
 
+
+/*======================================================================
+ * Protos: I/O: Handles: Methods: Instatiations: C FILE*
+ */
+void gfsmio_close_cfile(FILE *f);
+void gfsmio_flush_cfile(FILE *f);
+gboolean gfsmio_eof_cfile(FILE *f);
+gboolean gfsmio_read_cfile(FILE *f, void *buf, size_t nbytes);
+ssize_t gfsmio_getdelim_cfile(FILE *f, char **lineptr, size_t *n, int delim);
+gboolean gfsmio_write_cfile(FILE *f, const void *buf, size_t nbytes);
+int gfsmio_vprintf_cfile(FILE *f, const char *fmt, va_list *app);
+
+/*======================================================================
+ * Protos: I/O: Handles: Methods: Instatiations: gzFile
+ */
+#ifdef GFSM_ZLIB_ENABLED
+void gfsmio_close_zfile(gzFile zf);
+void gfsmio_flush_zfile(gzFile zf);
+gboolean gfsmio_eof_zfile(gzFile zf);
+gboolean gfsmio_read_zfile(gzFile zf, void *buf, size_t nbytes);
+gboolean gfsmio_write_zfile(gzFile zf, const void *buf, size_t nbytes);
+#endif
+
+/*======================================================================
+ * Protos: I/O: Handles: Methods: Instatiations: GString*
+ */
+void gfsmio_close_gstring(gfsmPosGString *pgs);
+gboolean gfsmio_eof_gstring(gfsmPosGString *pgs);
+gboolean gfsmio_read_gstring(gfsmPosGString *pgs, void *buf, size_t nbytes);
+gboolean gfsmio_write_gstring(gfsmPosGString *pgs, const void *buf, size_t nbytes);
+
+/*======================================================================
+ * I/O: Handles: Constructors etc.
+ */
+
+/*--------------------------------------------------------------*/
+gfsmIOHandle *gfsmio_handle_new(gfsmIOHandleType typ, void *handle_data)
+{
+  gfsmIOHandle *ioh = g_new0(gfsmIOHandle,1);
+  ioh->iotype = typ;
+  ioh->handle = handle_data;
+
+  switch (typ) {
+  //--------------------------------
+  case gfsmIOTCFile:
+#ifndef GFSM_ZLIB_ENABLED
+  case gfsmIOTZFile:
+#endif
+    ioh->read_func    = (gfsmIOReadFunc)gfsmio_read_cfile;
+    ioh->getdelim_func= (gfsmIOGetdelimFunc)gfsmio_getdelim_cfile;
+
+    ioh->write_func   = (gfsmIOWriteFunc)gfsmio_write_cfile;
+    ioh->vprintf_func = (gfsmIOVprintfFunc)gfsmio_vprintf_cfile;
+
+    ioh->flush_func   = (gfsmIOFlushFunc)gfsmio_flush_cfile;
+    ioh->close_func   = (gfsmIOCloseFunc)gfsmio_close_cfile;
+    ioh->eof_func     = (gfsmIOEofFunc)gfsmio_eof_cfile;
+    break;
+
+#ifdef GFSM_ZLIB_ENABLED
+  //--------------------------------
+  case gfsmIOTZFile:
+    ioh->read_func    = (gfsmIOReadFunc)gfsmio_read_zfile;
+    //ioh->getdelim_func= (gfsmIOReadFunc)gfsmio_getdelim_zfile;
+
+    ioh->write_func   = (gfsmIOWriteFunc)gfsmio_write_zfile;
+    //ioh->vprintf_func = (gfsmIOReadFunc)gfsmio_vprintf_zfile;
+
+    ioh->flush_func   = (gfsmIOFlushFunc)gfsmio_flush_zfile;
+    ioh->close_func   = (gfsmIOCloseFunc)gfsmio_close_zfile;
+    ioh->eof_func     = (gfsmIOEofFunc)gfsmio_eof_zfile;
+    break;
+#endif
+
+  //--------------------------------
+  case gfsmIOTGString:
+    ioh->read_func    = (gfsmIOReadFunc)gfsmio_read_gstring;
+    //ioh->getdelim_func= gfsmio_getdelim_gstring;
+
+    ioh->write_func   = (gfsmIOWriteFunc)gfsmio_write_gstring;
+    //ioh->vprintf_func = gfsmio_vprintf_gstring;
+
+    //ioh->flush_func   = gfsmio_flush_gstring;
+    ioh->close_func   = (gfsmIOCloseFunc)gfsmio_close_gstring;
+    ioh->eof_func     = (gfsmIOEofFunc)gfsmio_eof_gstring;
+    break;
+
+  //--------------------------------
+  case gfsmIOTUser:
+  default:
+    break;
+  }
+
+  return ioh;
+}
+
+/*--------------------------------------------------------------*/
+void gfsmio_handle_free(gfsmIOHandle *ioh)
+{
+  g_free(ioh);
+}
+
+/*--------------------------------------------------------------*/
+gfsmIOHandle *gfsmio_new_file(FILE *f)
+{
+#if 0
+  int fd = fileno(f);
+  int flags = fcntl(fd, F_GETFL);
+  if (flags & O_RDWR) {
+    return gfsmio_handle_new(gfsmIOTZFile, gzdopen(fd,"rwb"));
+  } else if (flags & O_WRONLY) {
+    return gfsmio_handle_new(gfsmIOTZFile, gzdopen(fd,"wb"));
+  } else { // if (flags & O_RDONLY) 
+    return gfsmio_handle_new(gfsmIOTZFile, gzdopen(fd,"rb"));
+  }
+#else
+  return gfsmio_handle_new(gfsmIOTCFile, f);
+#endif
+}
+
+/*--------------------------------------------------------------*/
+gfsmIOHandle *gfsmio_new_filename(const char *filename, const char *mode, int compress_level, gfsmError **errp)
+{
+#ifdef GFSM_ZLIB_ENABLED
+  gzFile zf;
+  if (strcmp(filename,"-")==0) {
+    if (strchr(mode,'w')) zf = gzdopen(fileno(stdout), mode);
+    else                  zf = gzdopen(fileno(stdin), mode);
+  }
+  else if (!(zf = gzopen(filename,mode))) {
+    int errnum;
+    const char *zerror = gzerror(zf,&errnum);
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),  //-- domain
+		g_quark_from_static_string("gzopen"), //-- code
+		"gzopen() failed for file '%s': %s",
+		filename, 
+		errnum==Z_ERRNO ? strerror(errno) : zerror);
+    return NULL;
+  }
+
+  //-- set compression level
+  if (compress_level < 0) compress_level = GFSM_DEFAULT_COMPRESSION;
+  if (strchr(mode,'w')) {
+    gzsetparams(zf, compress_level, Z_DEFAULT_STRATEGY);
+  }
+
+  return gfsmio_handle_new(gfsmIOTZFile,zf);
+
+#else
+
+  FILE *f;
+  if (strcmp(filename,"-")==0) {
+    if (strchr(mode,'w')) f = stdout;
+    else f = stdin;
+  }
+  else if (!(f = fopen(filename,mode))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),  //-- domain
+		g_quark_from_static_string("fopen"), //-- code
+		"open failed for file '%s': %s",
+		filename, strerror(errno));
+  }
+  return gfsmio_new_file(f);
+
+#endif
+}
+
+/*--------------------------------------------------------------*/
+gfsmIOHandle *gfsmio_new_gstring(gfsmPosGString *pgs)
+{
+  return gfsmio_handle_new(gfsmIOTGString, pgs);
+}
+
+
+/*======================================================================
+ * I/O: Handles: Methods: Basic
+ */
+
+/*--------------------------------------------------------------*/
+/** flush all data to an output handle (calls \a flush_func) */
+void gfsmio_close(gfsmIOHandle *ioh)
+{
+  if (ioh->close_func) (*ioh->close_func)(ioh->handle);
+}
+
+/*--------------------------------------------------------------*/
+/** flush all data to an output handle (calls \a flush_func) */
+void gfsmio_flush(gfsmIOHandle *ioh)
+{
+  if (ioh->flush_func) (*ioh->flush_func)(ioh->handle);
+}
+
+/*--------------------------------------------------------------*/
+/** returns true if \a h is at EOF, false otherwise or if no \a eof_func is defined */
+gboolean gfsmio_eof(gfsmIOHandle *ioh)
+{
+  if (ioh->eof_func) return (*ioh->eof_func)(ioh->handle);
+  return FALSE;
+}
+
+
+
 /*======================================================================
  * I/O: Handles: Methods: Read
  */
 
 /*--------------------------------------------------------------*/
-gboolean gfsmio_read(gfsmIOHandle *io, void *buf, size_t nbytes)
+int gfsmio_getc(gfsmIOHandle *ioh)
 {
-  switch (io->ioclass) {
-
-  case gfsmIOTCFile:
-    //-- C FILE*
-    return (fread(buf, nbytes, 1, (FILE*)io->handle) == 1);
-    break;
-
-#ifdef GFSM_ZLIB_ENABLED
-  case gfsmIOTZFile:
-    //-- zlib gzFile
-    return (gzread((gzFile)io->handle, buf, nbytes) == nbytes);
-    break;
-#endif
-
-  case gfsmIOTGString:
-    //-- glib GString*
-    if ( io->pos+nbytes <= ((GString*)io->handle)->len ) {
-      memcpy(buf, ((GString*)io->handle)->str, nbytes);
-      io->pos += nbytes;
-      return TRUE;
-    }
-    break;
-
-  case gfsmIOTUser:
-    return (*((gfsmIOUserHandle*)io)->read_func)(io, buf, nbytes);
-    break;
-
-  default:
-    g_printerr("gfsmio_read(): failed for unknown handle type %u\n", io->ioclass);
-    break;
+  if (gfsmio_eof(ioh)) return -1;
+  else {
+    //-- getc() --> read()
+    int c = -1;
+    if (gfsmio_read(ioh, &c, 1)) return c;
   }
+  return -1;
+}
+
+/*--------------------------------------------------------------*/
+gboolean gfsmio_read(gfsmIOHandle *ioh, void *buf, size_t nbytes)
+{
+  if (ioh->read_func) return (*ioh->read_func)(ioh->handle, buf, nbytes);
+
+  g_printerr("gfsmio_read(): no method defined for handle of type %d\n", ioh->iotype);
   return FALSE;
 }
 
-/** wrapper for getline() */
-size_t gfsmio_getline(gfsmIOHandle *io, char **linebuf, size_t *n)
+/*--------------------------------------------------------------*/
+ssize_t gfsmio_getline(gfsmIOHandle *ioh, char **lineptr, size_t *n)
 {
-  return getdelim(io, linebuf, n, '\n');
+  return gfsmio_getdelim(ioh, lineptr, n, '\n');
 }
 
-/** wrapper for getdelim() */
-size_t gfsmio_getdelim(gfsmIOHandle *io, char **linebuf, size_t *n, int delim)
+/*--------------------------------------------------------------*/
+ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
 {
-  switch (io->ioclass) {
-
-  case gfsmIOTCFile:
-    //-- C FILE*
-    return getdelim(linebuf, n, delim, (FILE*)io->handle);
-    break;
-
-#ifdef GFSM_ZLIB_ENABLED
-  case gfsmIOTZFile:
-    {
-      ssize_t i;
-      GString *gs;
-      gzFile   zf = (gzFile)io->handle;
-      for (i=0; i < *n && !gzeof(zf); i++) {
-	(*linebuf)[i] = gzgetc(zf);
-	if ((*linebuf)[i] == delim) return i;
-      }
-      if (gzeof(zf)) return i;
-
-      //-- oops: buffer overflow
-      gs = g_string_new(i>0 ? *linebuf : "");
-      for ( ; !gzeof(zf); i++) {
-	g_string_append_c(gs, gzgetc(zf));
-	if (gs->str[gs->len-1] == delim) break;
-      }
-
-      if (linebuf && *linebuf) free(*linebuf);
-
-      //-- put new buffer into linebuf
-      *linebuf = gs->str;
-      *n       = gs->allocated_len;
-      g_string_free(gs,FALSE);
-
-      return i;
-    }
-    break;
-#endif
-
-  case gfsmIOTGString:
-    {
-      ssize_t i;
-      GString *gs;
-      GString *bufgs = (GString*)io->handle;
-      for (i=0; i < *n && io->pos < bufgs->len; i++) {
-	(*linebuf)[i] = bufgs->str[io->pos++];
-	if ((*linebuf)[i] == delim) return i;
-      }
-      if (io->pos >= bufgs->len) return i;
-
-      //-- oops: buffer overflow
-      gs = g_string_new(i>0 ? *linebuf : "");
-      for ( ; io->pos < bufgs->str; i++) {
-	g_string_append_c(gs, bufgs->str[io->pos++]);
-	if (gs->str[gs->len-1] == delim) break;
-      }
-
-      if (linebuf && *linebuf) free(*linebuf);
-
-      //-- put new buffer into linebuf
-      *linebuf = gs->str;
-      *n       = gs->allocated_len;
-      g_string_free(gs,FALSE);
-
-      return i;
-    }
-    break;
-
-  case gfsmIOTUser:
-    {
-      ssize_t i;
-      char    c;
-      gboolean rc;
-      GString *gs;
-      gfsmIOUserHandle *uio = (gfsmIOUserHandle*)io;
-      gfsmIOReadFunc    rf  = uio->read_func;
-
-      for (i=0; i < *n && (rc=(*rf)(io,&c,1)); i++) {
-	(*linebuf)[i] = c;
-	if (c == delim) return i;
-      }
-      if (!rc) return i;
-
-      //-- oops: buffer overflow
-      gs = g_string_new(i>0 ? *linebuf : "");
-      for ( ; (rc=(*rf)(io,&c,1)); i++) {
-	g_string_append_c(gs, c);
-	if (c == delim) break;
-      }
-
-      if (linebuf && *linebuf) free(*linebuf);
-
-      //-- put new buffer into linebuf
-      *linebuf = gs->str;
-      *n       = gs->allocated_len;
-      g_string_free(gs,FALSE);
-
-      return i;
-    }
-    break;
-
-  default:
-    g_printerr("gfsmio_getdelim(): failed for unknown handle type %u\n", io->ioclass);
-    break;
+  if (ioh->getdelim_func) {
+    return (*ioh->getdelim_func)(ioh->handle, lineptr, n, delim);
   }
+  else {
+    //-- getdelim() --> getc()
+    ssize_t i = 0;
+    int c = -2;
+    GString *gs=NULL;
 
-  return FALSE;
+    while ( *n > 0 && i < (*n-1) && (c=gfsmio_getc(ioh)) != -1 ) {
+      (*lineptr)[i++] = c;
+      fprintf(stderr, "---> getdelim(i=%d) got char %d ~ '%c' to linebuf\n", i, (char)c, c);//--DEBUG
+      if ((char)c == (char)delim) {
+	(*lineptr)[i] = '\0';
+	return i;
+      }
+    }
+    if (c == -1) {
+      fprintf(stderr, "---> getdelim(i=%d) got EOF reading to linebuf\n", i);//--DEBUG
+      (*lineptr)[i] = '\0';
+      return i == 0 ? -1 : i;
+    }
+
+    //-- oops: buffer overflow
+    gs = g_string_new(i>0 ? *lineptr : "");
+    while ( (c=gfsmio_getc(ioh)) != -1 ) {
+      g_string_append_c(gs,c);
+      i++;
+      fprintf(stderr, "---> getdelim(i=%d) got char %d ~ '%c' to GString*\n", i, (char)c, c);//--DEBUG
+      if ((char)c == (char)delim) break;
+    }
+
+    if (c==-1) { fprintf(stderr, "---> getdelim(i=%d) got EOF reading to GString*\n", i); }//--DEBUG
+
+    //-- maybe free old line buffer
+    if (*lineptr) free(*lineptr);
+
+    //-- set up new buffer
+    g_string_append_c(gs,0); //-- this shouldn't be necessary, but weird things happen otherwise (bug?)
+    *lineptr = gs->str;
+    *n       = gs->allocated_len;
+    g_string_free(gs,FALSE);
+
+    return i==0 && c==-1 ? -1 : i;
+  }
+  return -1;
 }
+
 
 
 /*======================================================================
  * I/O: Handles: Methods: Write
  */
 
-/** write \a nbytes of data from \a buf into \a io, as \a fwrite() */
-gboolean gfsmio_write(gfsmIOHandle *io, void *buf, size_t nbytes)
+/*--------------------------------------------------------------*/
+gboolean gfsmio_putc(gfsmIOHandle *ioh, int c)
 {
-  switch (io->ioclass) {
+  return gfsmio_write(ioh, &c, 1);
+}
 
-  case gfsmIOTCFile:
-    return (fwrite(buf, nbytes, 1, (FILE*)io->handle) == 1);
-    break;
+/*--------------------------------------------------------------*/
+gboolean gfsmio_puts(gfsmIOHandle *ioh, const char *s)
+{
+  return gfsmio_write(ioh, s, strlen(s));
+}
 
-#ifdef GFSM_ZLIB_ENABLED
-  case gfsmIOTZFile:
-    return (gzwrite((gzFile)io->handle, buf, nbytes) == nbytes);
-    break;
-#endif
 
-  case gfsmIOTGString:
-    g_string_append_len((GString*)io->handle, buf, nbytes);
-    return TRUE;
-    break;
+/*--------------------------------------------------------------*/
+gboolean gfsmio_write(gfsmIOHandle *ioh, const void *buf, size_t nbytes)
+{
+  if (ioh->write_func) return (*ioh->write_func)(ioh->handle, buf, nbytes);
 
-  case gfsmIOTUser:
-    return (*((gfsmIOUserHandle*)io)->write_func)(io, buf, nbytes);
-    break;
-
-  default:
-    g_printerr("gfsmio_write(): failed for unknown handle type %u\n", io->ioclass);
-    break;
-  }
+  g_printerr("gfsmio_read(): no method defined for handle of type %d\n", ioh->iotype);
   return FALSE;
 }
 
-/** wrapper for puts() */
-gboolean gfsmio_puts(gfsmIOHandle *io, const char *s)
+/*--------------------------------------------------------------*/
+int gfsmio_printf(gfsmIOHandle *io, const char *fmt, ...)
 {
-  return gfsmio_write(io,s,strlen(s));
-}
-
-/** wrapper for putc() */
-gboolean gfsmio_putc(gfsmIOHandle *io, int c)
-{
-  return gfsmio_write(io,\&c,1);
-}
-
-
-/** wrapper for printf() */
-gboolean gfsmio_printf(gfsmIOHandle *io, const char *fmt, ...)
-{
-  gboolean rc;
+  int len;
   va_list ap;
 
   va_start(ap,fmt);
-  rc = gfsmio_vprintf(io, fmt, &ap);
+  len = gfsmio_vprintf(io, fmt, &ap);
   va_end(ap);
 
-  return rc;
+  return len;
 }
 
-/** wrapper for vprintf() */
-gboolean gfsmio_printf(gfsmIOHandle *io, const char *fmt, va_list *ap)
+/*--------------------------------------------------------------*/
+int gfsmio_vprintf(gfsmIOHandle *io, const char *fmt, va_list *app)
 {
-  switch (io->ioclass) {
-  case gfsmIOTCFile:
-    vfprintf(buf, fmt, *ap);
-    return TRUE;
-    break;
+  char *obuf = NULL;
+  size_t len = 0;
+  gboolean rc;
+  len = vasprintf(&obuf, fmt, *app);
+  rc = gfsmio_write(io, obuf, len);
+  if (obuf) free(obuf);
+  return rc ? len : 0;
+}
 
+
+/*======================================================================
+ * I/O: Handles: Methods: FILE*
+ */
+
+/*--------------------------------------------------------------
+ * FILE*: Basic Methods
+ */
+void gfsmio_flush_cfile(FILE *f)
+{ if (f) fflush(f); }
+
+void gfsmio_close_cfile(FILE *f)
+{ if (f) fclose(f); }
+
+gboolean gfsmio_eof_cfile(FILE *f)
+{ return f ? feof(f) : FALSE; }
+
+/*--------------------------------------------------------------
+ * FILE*: Read Methods
+ */
+gboolean gfsmio_read_cfile(FILE *f, void *buf, size_t nbytes)
+{ return f ? (fread(buf,nbytes,1,f)==1) : FALSE; }
+
+ssize_t gfsmio_getdelim_cfile(FILE *f, char **lineptr, size_t *n, int delim)
+{ return f ? getdelim(lineptr, n, delim, f) : 0; }
+
+/*--------------------------------------------------------------
+ * FILE*: Write Methods
+ */
+gboolean gfsmio_write_cfile(FILE *f, const void *buf, size_t nbytes)
+{ return f ? (fwrite(buf, nbytes, 1, f)==1) : FALSE; }
+
+int gfsmio_vprintf_cfile(FILE *f, const char *fmt, va_list *app)
+{ return f ? vfprintf(f, fmt, *app) : 0; }
+
+
+/*======================================================================
+ * I/O: Handles: Methods: gzFile
+ */
 #ifdef GFSM_ZLIB_ENABLED
-  case gfsmIOTZFile:
-#endif
-  case gfsmIOTGString:
-  case gfsmIOTUser:
-    {
-      char *obuf = NULL;
-      size_t len = 0;
-      gboolean rc;
-      len = vasprintf(&obuf, fmt, *ap);
-      rc  = gfsmio_write(io, obuf, len);
-      if (obuf) free(obuf);
-      return rc;
-    }
-    break;
 
-  default:
-    g_printerr("gfsmio_write(): failed for unknown handle type %u\n", io->ioclass);
-    break;
+/*--------------------------------------------------------------
+ * gzFile: Basic Methods
+ */
+void gfsmio_close_zfile(gzFile zf)
+{ if (zf) gzclose(zf); }
+
+void gfsmio_flush_zfile(gzFile zf)
+{ if (zf) gzflush(zf,Z_SYNC_FLUSH); }
+
+gboolean gfsmio_eof_zfile(gzFile zf)
+{ return zf ? gzeof(zf) : FALSE; }
+
+/*--------------------------------------------------------------
+ * gzFile: Read Methods
+ */
+gboolean gfsmio_read_zfile(gzFile zf, void *buf, size_t nbytes)
+{ return zf ? (gzread(zf,buf,nbytes)==nbytes) : FALSE; }
+
+/*--------------------------------------------------------------
+ * gzFile: Write Methods
+ */
+gboolean gfsmio_write_zfile(gzFile zf, const void *buf, size_t nbytes)
+{ return zf ? (gzwrite(zf, buf, nbytes)==nbytes) : FALSE; }
+
+#endif /* GFSM_ZLIB_ENABLED */
+
+
+/*======================================================================
+ * I/O: Handles: Methods: GString*
+ */
+
+/*--------------------------------------------------------------
+ * GString*: Basic Methods
+ */
+
+void gfsmio_close_gstring(gfsmPosGString *pgs)
+{ if (pgs) pgs->pos = 0; }
+
+gboolean gfsmio_eof_gstring(gfsmPosGString *pgs)
+{ return pgs && pgs->gs ? (pgs->pos >= pgs->gs->len) : TRUE; }
+
+/*--------------------------------------------------------------
+ * GString*: Read Methods
+ */
+gboolean gfsmio_read_gstring(gfsmPosGString *pgs, void *buf, size_t nbytes)
+{
+  if (!pgs || !pgs->gs || pgs->pos > pgs->gs->len) return FALSE;
+  if (pgs->pos+nbytes <= pgs->gs->len) {
+    //-- normal case: read it in
+    memcpy(buf, pgs->gs->str + pgs->pos, nbytes);
+    pgs->pos += nbytes;
+    return TRUE;
   }
-
+  //-- overflow: grab what we can
+  memcpy(buf, pgs->gs->str + pgs->pos, pgs->gs->len-pgs->pos);
+  pgs->pos = pgs->gs->len;
   return FALSE;
 }
 
-#endif /* _GFSM_IO_H */
+/*--------------------------------------------------------------
+ * GString*: Write Methods
+ */
+gboolean gfsmio_write_gstring(gfsmPosGString *pgs, const void *buf, size_t nbytes)
+{
+  if (pgs && pgs->gs) {
+    g_string_append_len(pgs->gs, buf, nbytes);
+    return TRUE;
+  }
+  return FALSE;
+}

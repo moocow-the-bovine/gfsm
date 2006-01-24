@@ -1,4 +1,3 @@
-
 /*=============================================================================*\
  * File: gfsmIO.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
@@ -32,75 +31,171 @@
 #define _GFSM_IO_H
 
 #include <glib.h>
+#include <gfsmError.h>
+
 #include <stdarg.h>
 #include <string.h>
+#include <unistd.h>
+#include <stdio.h>
+
+
 
 /*======================================================================
  * I/O: types
  */
-/** Builtin I/O classes */
+/** Builtin I/O types */
 typedef enum {
   gfsmIOTCFile,         ///< I/O on a C FILE*
-  gfsmIOTZFile,         ///< I/O on a zlib gzFile*
-  //gfsmIOCString,        ///< I/O on a C char*
+  gfsmIOTZFile,         ///< I/O on a zlib gzFile* (only if GFSM_ZLIB_ENABLED is defined)
   gfsmIOTGString,       ///< I/O on a GString*
   gfsmIOTUser = 255     ///< user I/O
-} gfsmIOClass;
+} gfsmIOHandleType;
+
+/*======================================================================
+ * I/O: Handles: Function types
+ */
+
+/** Generic I/O Handle function type: fflush() and friends */
+typedef void (*gfsmIOFlushFunc) (void *handle);
+
+/** Generic I/O Handle function type: fclose() and friends */
+typedef void (*gfsmIOCloseFunc) (void *handle);
+
+/** Generic I/O Handle function type: feof() and friends */
+typedef gboolean (*gfsmIOEofFunc) (void *handle);
+
+
+/** Generic I/O Handle function type: fread() and friends */
+typedef gboolean (*gfsmIOReadFunc)  (void *handle, void *buf, size_t nbytes);
+
+/** Generic I/O Handle function type: getdelim() and friends */
+typedef ssize_t (*gfsmIOGetdelimFunc)  (void *handle, char **lineptr, size_t *n, int delim);
+
+
+/** Generic I/O Handle function type: fwrite() and friends */
+typedef gboolean (*gfsmIOWriteFunc) (void *handle, const void *buf, size_t nbytes);
+
+/** Generic I/O Handle function type: vprintf() and friends */
+typedef int (*gfsmIOVprintfFunc) (void *handle, const char *fmt, va_list *app);
+
+
 
 /*======================================================================
  * I/O: Handles: structs
  */
-/** Generic I/O handle */
+
+/** Generic I/O handle struct */
 typedef struct {
-  gfsmIOClass  ioclass; ///< class of this type
-  void        *handle;  ///< underlying handle data
-  size_t       pos;     ///< read position (really only for strings)
+  gfsmIOHandleType    iotype;  ///< I/O class of this handle
+  void               *handle;  ///< underlying handle data
+
+  gfsmIOReadFunc     read_func;       /** fread() and friends (either read or getc must be defined) */
+  gfsmIOGetdelimFunc getdelim_func;   /** getdelim() and friends (optional) */
+
+  gfsmIOWriteFunc    write_func;     /** fwrite() and friends (either write or putc must be defined) */
+  gfsmIOVprintfFunc  vprintf_func;   /** vprintf() and friends (optional) */
+
+  gfsmIOFlushFunc    flush_func;     /** fflush() and friends (optional) */
+  gfsmIOCloseFunc    close_func;     /** fclose() and friends (optional) */
+  gfsmIOEofFunc      eof_func;       /** eof() and friends (optional) */
 } gfsmIOHandle;
 
-/*======================================================================
- * I/O: Handles: User: types
- */
-typedef gboolean (*gfsmIOReadFunc)  (gfsmIOHandle *io, void *buf, size_t nbytes);
-typedef gboolean (*gfsmIOWriteFunc) (gfsmIOHandle *io, void *buf, size_t nbytes);
+
+/** GString with an associated index (read head) */
+typedef struct {
+  GString *gs;  ///< associated string
+  size_t   pos; ///< (read-)position
+} gfsmPosGString;
 
 /*======================================================================
- * I/O: Handles: User: struct
+ * I/O: Handles: Constructors etc.
  */
-/** User-defined I/O handle */
-typedef struct {
-  gfsmIOHandle h; ///< inheritance magic
-  gfsmIOReadFunc  read_func;  ///< read function
-  gfsmIOWriteFunc write_func; ///< write function
-} gfsmIOUserHandle;
+
+/** create, initialize, and return a new gfsmIOHandle
+ *  \param typ type of this handle
+ *  \param handle_data value of the \a handle structure datum:
+ *    \li for \a typ==gfsmIOTCFile , \a handle_data should be a FILE*
+ *    \li for \a typ==gfsmIOTGString , \a handle_data should be a gfsmPosGString*
+ *    \li for \a typ==gfsmIOTZFile   , \a handle_data should be a gzFile
+ *    \li for \a typ==gfsmIOTUser , \a handle_data is whatever you want
+ *
+ * \returns new gfsmIOHandle
+ */
+gfsmIOHandle *gfsmio_handle_new(gfsmIOHandleType typ, void *handle_data);
+
+/** destroy a gfsmIOHandle: does NOT implicitly call \a close or anything else */
+void gfsmio_handle_free(gfsmIOHandle *ioh);
+
+/* TODO: utilities ? file_handle_new, zfile_handle_new, gstring_handle_new, user_handle_new ? */
+
+/** Create and return a new gfsmIOHandle to a C FILE*
+ *  Caller is responsible for closing the handle.
+ */
+gfsmIOHandle *gfsmio_new_file(FILE *f);
+
+/** Create and return a new gfsmIOHandle to a named file.
+ *  Uses gzFile if zlib support was enabled, otherwise C FILE*.
+ *  Caller is responsible for closing the handle.
+ */
+gfsmIOHandle *gfsmio_new_filename(const char *filename, const char *mode, int compress_level, gfsmError **errp);
+
+/** Create and return a new gfsmIOHandle for a PosGString*
+ *  Caller is responsible for allocation and de-allocation of the PosGString*.
+ */
+gfsmIOHandle *gfsmio_new_gstring(gfsmPosGString *pgs);
+
+/*======================================================================
+ * I/O: Handles: Methods: Basic
+ */
+
+/** close an open I/O handle (calls \a close_func) */
+void gfsmio_close(gfsmIOHandle *ioh);
+
+/** flush all data to an output handle (calls \a flush_func) */
+void gfsmio_flush(gfsmIOHandle *ioh);
+
+/** returns true if \a h is at EOF, false otherwise (or if no \a eof_func is defined) */
+gboolean gfsmio_eof(gfsmIOHandle *ioh);
+
+
 
 /*======================================================================
  * I/O: Handles: Methods: Read
  */
 
+/** read a single byte of data from \a h, should return -1 on EOF */
+int gfsmio_getc(gfsmIOHandle *ioh);
+
 /** read \a nbytes of data from \a io into \a buf, as \a fread() */
-gboolean gfsmio_read(gfsmIOHandle *io, void *buf, size_t nbytes);
+gboolean gfsmio_read(gfsmIOHandle *ioh, void *buf, size_t nbytes);
 
-/** wrapper for getline() */
-size_t gfsmio_getline(gfsmIOHandle *io, char **linebuf, size_t *n);
+/** wrapper for getline(), returns number of bytes read (0 on error) */
+ssize_t gfsmio_getline(gfsmIOHandle *ioh, char **lineptr, size_t *n);
 
-/** wrapper for getdelim() */
-size_t gfsmio_getdelim(gfsmIOHandle *io, char **linebuf, size_t *n, int delim);
+
+/** wrapper for getdelim(), returns number of bytes read (0 on error) */
+ssize_t gfsmio_getdelim(gfsmIOHandle *io, char **lineptr, size_t *n, int delim);
+
 
 
 /*======================================================================
  * I/O: Handles: Methods: Write
  */
 
-/** write \a nbytes of data from \a buf into \a io, as \a fwrite() */
-gboolean gfsmio_write(gfsmIOHandle *io, void *buf, size_t nbytes);
+/** write a single byte to handle \a ioh, as \a fputc() */
+gboolean gfsmio_putc(gfsmIOHandle *ioh, int c);
 
 /** wrapper for puts() */
 gboolean gfsmio_puts(gfsmIOHandle *io, const char *s);
 
-/** wrapper for putc() */
-gboolean gfsmio_putc(gfsmIOHandle *io, int c);
+/** write \a nbytes of data from \a buf into \a io, as \a fwrite() */
+gboolean gfsmio_write(gfsmIOHandle *io, const void *buf, size_t nbytes);
 
-/** wrapper for printf() */
-gboolean gfsmio_printf(gfsmIOHandle *io, const char *fmt, ...);
+/** wrapper for printf(): calls \a gfsmio_vprintf() */
+int gfsmio_printf(gfsmIOHandle *io, const char *fmt, ...);
+
+/** wrapper for vprintf(): calls \a vprintf_func */
+int gfsmio_vprintf(gfsmIOHandle *io, const char *fmt, va_list *app);
+
 
 #endif /* _GFSM_IO_H */
