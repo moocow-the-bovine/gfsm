@@ -1,6 +1,7 @@
-TARGETS = compre2test
+TARGETS = iotest
 
 KNOWN_TARGETS = \
+	iotest \
 	structtest \
 	pathtest \
 	memtest \
@@ -25,7 +26,7 @@ CPPFLAGS = -I. -I.. -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
 CFLAGS    += -Wall -g
 
 LDFLAGS  = -L../libgfsm/.libs -L/usr/local/lib -L/usr/lib
-LIBS     =  -lglib-2.0 -lm
+LIBS     =  -lz -lglib-2.0 -lm
 GFSMLIBS = ../.libs/libgfsm.a
 
 LEX ?= flex
@@ -75,6 +76,10 @@ comprelex: comprelex.lex.o $(GFSMLIBS)
 	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
 
 compre2test: compre2test.o $(GFSMLIBS)
+	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
+
+##-- io
+iotest: iotest.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
 
 ##-- .c -> .o
