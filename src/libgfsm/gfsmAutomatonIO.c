@@ -59,12 +59,13 @@ const gchar gfsm_header_magic[16] = "gfsm_automaton\0";
 /*======================================================================
  * Methods: Binary I/O: load()
  */
+
 /*--------------------------------------------------------------
  * load_bin_header()
  */
-gboolean gfsm_automaton_load_bin_header(gfsmAutomatonHeader *hdr, FILE *f, gfsmError **errp)
+gboolean gfsm_automaton_load_bin_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *ioh, gfsmError **errp)
 {
-  if (fread(hdr, sizeof(gfsmAutomatonHeader), 1, f) != 1) {
+  if (!gfsmio_read(ioh, hdr, sizeof(gfsmAutomatonHeader))) {
     g_set_error(errp,
 		g_quark_from_static_string("gfsm"),                      //-- domain
 		g_quark_from_static_string("automaton_load_bin_header:size"), //-- code
@@ -112,10 +113,10 @@ gboolean gfsm_automaton_load_bin_header(gfsmAutomatonHeader *hdr, FILE *f, gfsmE
 }
 
 /*--------------------------------------------------------------
- * load_bin_file_0_0_8()
+ * load_bin_handle_0_0_8()
  *   + supports stored file versions v0.0.8 -- CURRENT
  */
-gboolean gfsm_automaton_load_bin_file_0_0_8(gfsmAutomatonHeader *hdr, gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomatonHeader *hdr, gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp)
 {
   gfsmStateId     id;
   guint           arci;
@@ -135,7 +136,7 @@ gboolean gfsm_automaton_load_bin_file_0_0_8(gfsmAutomatonHeader *hdr, gfsmAutoma
 
   //------ load states (one-by-one)
   for (id=0; rc && id < hdr->n_states; id++) {
-    if (fread(&s_state, sizeof(gfsmStoredState), 1, f) != 1) {
+    if (!gfsmio_read(ioh, &s_state, sizeof(gfsmStoredState))) {
       g_set_error(errp,
 		  g_quark_from_static_string("gfsm"),                     //-- domain
 		  g_quark_from_static_string("automaton_load_bin:state"), //-- code
@@ -151,7 +152,7 @@ gboolean gfsm_automaton_load_bin_file_0_0_8(gfsmAutomatonHeader *hdr, gfsmAutoma
 
     if (s_state.is_final) {
       //-- read final weight
-      if (fread(&w, sizeof(gfsmWeight), 1, f) != 1) {
+      if (!gfsmio_read(ioh, &w, sizeof(gfsmWeight))) {
 	g_set_error(errp,
 		    g_quark_from_static_string("gfsm"),                                  //-- domain
 		    g_quark_from_static_string("automaton_load_bin:state:final_weight"), //-- code
@@ -171,7 +172,7 @@ gboolean gfsm_automaton_load_bin_file_0_0_8(gfsmAutomatonHeader *hdr, gfsmAutoma
     //-- read arcs (one-by-one)
     st->arcs = NULL;
     for (arci=0; arci < s_state.n_arcs; arci++) {
-      if (fread(&s_arc, sizeof(gfsmStoredArc), 1, f) != 1) {
+      if (!gfsmio_read(ioh, &s_arc, sizeof(gfsmStoredArc))) {
 	g_set_error(errp, g_quark_from_static_string("gfsm"),                   //-- domain
 		    g_quark_from_static_string("automaton_load_bin:state:arc"), //-- code
 		    "could not read stored arcs for state %d", id);
@@ -194,8 +195,9 @@ gboolean gfsm_automaton_load_bin_file_0_0_8(gfsmAutomatonHeader *hdr, gfsmAutoma
   return rc;
 }
 
+
 /*--------------------------------------------------------------
- * load_bin_file_0_0_7()
+ * load_bin_handle_0_0_7()
  *   + supports stored file versions 0.0.2 -- 0.0.7
  */
 /// Type for a stored state (v0.0.2 .. v0.0.7)
@@ -206,7 +208,7 @@ typedef struct {
   guint    min_arc;      /**< index of stored minimum arc (not really necessary) */
 } gfsmStoredState_007;
 
-gboolean gfsm_automaton_load_bin_file_0_0_7(gfsmAutomatonHeader *hdr, gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomatonHeader *hdr, gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp)
 {
   gfsmStateId     id;
   guint           arci, n_arcs;
@@ -225,7 +227,7 @@ gboolean gfsm_automaton_load_bin_file_0_0_7(gfsmAutomatonHeader *hdr, gfsmAutoma
 
   //------ load states (one-by-one)
   for (id=0; rc && id < hdr->n_states; id++) {
-    if (fread(&s_state, sizeof(gfsmStoredState_007), 1, f) != 1) {
+    if (!gfsmio_read(ioh, &s_state, sizeof(gfsmStoredState_007))) {
       g_set_error(errp,
 		  g_quark_from_static_string("gfsm"),                     //-- domain
 		  g_quark_from_static_string("automaton_load_bin:state"), //-- code
@@ -260,7 +262,7 @@ gboolean gfsm_automaton_load_bin_file_0_0_7(gfsmAutomatonHeader *hdr, gfsmAutoma
     n_arcs   = (guint)(st->arcs);
     st->arcs = NULL;
     for (arci=0; arci < n_arcs; arci++) {
-      if (fread(&s_arc, sizeof(gfsmStoredArc), 1, f) != 1) {
+      if (!gfsmio_read(ioh, &s_arc, sizeof(gfsmStoredArc))) {
 	g_set_error(errp, g_quark_from_static_string("gfsm"),             //-- domain
 		    g_quark_from_static_string("automaton_load_bin:arc"), //-- code
 		    "could not read stored arcs for state %d", id);
@@ -283,50 +285,63 @@ gboolean gfsm_automaton_load_bin_file_0_0_7(gfsmAutomatonHeader *hdr, gfsmAutoma
 }
 
 /*--------------------------------------------------------------
- * load_bin_file()
+ * load_bin_handle()
  *   + dispatch
  */
-gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+gboolean gfsm_automaton_load_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp)
 {
   gfsmAutomatonHeader hdr;
 
   gfsm_automaton_clear(fsm);
 
   //-- load header
-  if (!gfsm_automaton_load_bin_header(&hdr,f,errp)) return FALSE;
+  if (!gfsm_automaton_load_bin_header(&hdr,ioh,errp)) return FALSE;
 
   if (gfsm_version_ge(hdr.version,((gfsmVersionInfo){0,0,8}))) {
     //-- v0.0.8 .. CURRENT
-    return gfsm_automaton_load_bin_file_0_0_8(&hdr,fsm,f,errp);
+    return gfsm_automaton_load_bin_handle_0_0_8(&hdr,fsm,ioh,errp);
   }
   else {
     //-- v0.0.2 .. v0.0.7
-    return gfsm_automaton_load_bin_file_0_0_7(&hdr,fsm,f,errp);
+    return gfsm_automaton_load_bin_handle_0_0_7(&hdr,fsm,ioh,errp);
   }
 }
 
+/*--------------------------------------------------------------
+ * load_bin_file()
+ */
+gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+{
+  gfsmIOHandle *ioh = gfsmio_new_file(f);
+  gboolean rc = gfsm_automaton_load_bin_handle(fsm, ioh, errp);
+  gfsmio_handle_free(ioh);
+  return rc;
+}
 
 /*--------------------------------------------------------------
  * load_bin_filename()
  */
 gboolean gfsm_automaton_load_bin_filename(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp)
 {
-  FILE *f;
-  gboolean rc;
-  if (!(f=gfsm_open_filename(filename,"rb",errp))) return FALSE;
-  rc = gfsm_automaton_load_bin_file(fsm, f, errp);
-  if (f != stdin) fclose(f);
+  gfsmIOHandle *ioh = gfsmio_new_filename(filename, "rb", -1, errp);
+  gboolean rc = ioh && !(*errp) && gfsm_automaton_load_bin_handle(fsm, ioh, errp);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
   return rc;
 }
+
 
 
 /*======================================================================
  * Methods: Binary I/O: save()
  */
+
 /*--------------------------------------------------------------
- * save_bin_file()
+ * save_bin_handle()
  */
-gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp)
 {
   gfsmAutomatonHeader hdr;
   gfsmStateId         id;
@@ -349,7 +364,7 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
   hdr.srtype      = gfsm_automaton_get_semiring(fsm)->type;
 
   //-- write header
-  if (fwrite(&hdr, sizeof(gfsmAutomatonHeader), 1, f) != 1) {
+  if (!gfsmio_write(ioh, &hdr, sizeof(gfsmAutomatonHeader))) {
     g_set_error(errp, g_quark_from_static_string("gfsm"),                      //-- domain
 		      g_quark_from_static_string("automaton_save_bin:header"), //-- code
 		      "could not store header");
@@ -363,7 +378,7 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
     sst.is_valid = st->is_valid;
     sst.is_final = sst.is_valid ? st->is_final : FALSE;
     sst.n_arcs   = sst.is_valid ? gfsm_state_out_degree(st) : 0;
-    if (fwrite(&sst, sizeof(sst), 1, f) != 1) {
+    if (!gfsmio_write(ioh, &sst, sizeof(sst))) {
       g_set_error(errp, g_quark_from_static_string("gfsm"),                      //-- domain
 			g_quark_from_static_string("automaton_save_bin:state"), //-- code
 			"could not store state %d", id);
@@ -373,7 +388,7 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
     //-- store final weight (maybe)
     if (rc && sst.is_final) {
       w = gfsm_automaton_get_final_weight(fsm,id);
-      if (fwrite(&w, sizeof(gfsmWeight), 1, f) != 1) {
+      if (!gfsmio_write(ioh, &w, sizeof(gfsmWeight))) {
 	g_set_error(errp, g_quark_from_static_string("gfsm"),                            //-- domain
 		    g_quark_from_static_string("automaton_save_bin:state:final_weight"), //-- code
 		    "could not store final weight for state %d", id);
@@ -389,7 +404,7 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
 	sa.lower  = a->lower;
 	sa.upper  = a->upper;
 	sa.weight = a->weight;
-	if (fwrite(&sa, sizeof(sa), 1, f) != 1) {
+	if (!gfsmio_write(ioh, &sa, sizeof(sa))) {
 	  g_set_error(errp, g_quark_from_static_string("gfsm"),                         //-- domain
 		      g_quark_from_static_string("automaton_save_bin:state:arc"), //-- code
 		      "could not store arcs for state %d", id);
@@ -403,9 +418,21 @@ gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
 }
 
 /*--------------------------------------------------------------
- * save_bin_filename()
+ * save_bin_file()
  */
-gboolean gfsm_automaton_save_bin_filename(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp)
+gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
+{
+  gfsmIOHandle *ioh = gfsmio_new_file(f);
+  gboolean rc = gfsm_automaton_save_bin_handle(fsm, ioh, errp);
+  gfsmio_close(ioh);
+  gfsmio_handle_free(ioh);
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * save_bin_filename_nc()
+ */
+gboolean gfsm_automaton_save_bin_filename_nc(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp)
 {
   FILE *f;
   gboolean rc;
@@ -415,6 +442,19 @@ gboolean gfsm_automaton_save_bin_filename(gfsmAutomaton *fsm, const gchar *filen
   return rc;
 }
 
+/*--------------------------------------------------------------
+ * save_bin_filename()
+ */
+gboolean gfsm_automaton_save_bin_filename(gfsmAutomaton *fsm, const gchar *filename, int zlevel, gfsmError **errp)
+{
+  gfsmIOHandle *ioh = gfsmio_new_filename(filename, "wb", zlevel, errp);
+  gboolean rc = ioh && !(*errp) && gfsm_automaton_save_bin_handle(fsm, ioh, errp);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
 
 
 /*======================================================================

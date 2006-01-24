@@ -121,7 +121,7 @@ void test_io_zfile(void) {
   gfsmError *err=NULL;
 
   //-- I/O to gzGile: output
-  ioh = gfsmio_new_filename("iotest-out.gz", "wb", -1, &err);
+  ioh = gfsmio_new_filename("iotest-out.gz", "wb", 0, &err);
   test_output_generic(ioh, "gzFile (iotest-out.gz)");
   gfsmio_close(ioh);
   gfsmio_handle_free(ioh);

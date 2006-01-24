@@ -69,6 +69,10 @@ string "output" F "Specifiy output file (default=stdout)." \
     arg="FILE" \
     default="-"
 
+int "compress" z "Specify compression level of output file." \
+    arg="LEVEL" \
+    default="-1"
+
 #-----------------------------------------------------------------------------
 # Addenda
 #-----------------------------------------------------------------------------

@@ -35,6 +35,7 @@
 #include <gfsmAutomaton.h>
 #include <gfsmVersion.h>
 #include <gfsmError.h>
+#include <gfsmIO.h>
 #include <stdio.h>
 
 /*======================================================================
@@ -89,7 +90,10 @@ extern const gfsmVersionInfo gfsm_version_bincompat_min_check;
 //@{
 /** Load an automaton header from a stored binary file.
  *  Returns TRUE iff the header looks valid. */
-gboolean gfsm_automaton_load_header(gfsmAutomatonHeader *hdr, FILE *f, gfsmError **errp);
+gboolean gfsm_automaton_load_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *ioh, gfsmError **errp);
+
+/** Load an automaton from a named binary file (implicitly clear()s \a fsm) */
+gboolean gfsm_automaton_load_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
 
 /** Load an automaton from a stored binary file (implicitly clear()s \a fsm) */
 gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp);
@@ -97,11 +101,22 @@ gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
 /** Load an automaton from a named binary file (implicitly clear()s \a fsm) */
 gboolean gfsm_automaton_load_bin_filename(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp);
 
-/** Store an automaton from to a binary file */
+
+/** Store an automaton in binary form to a gfsmIOHandle* */
+gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
+
+/** Store an automaton in binary form to a file */
 gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp);
 
-/** Store an automaton to a named binary file */
-gboolean gfsm_automaton_save_bin_filename(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp);
+/** Store an automaton to a named binary file (no compression) */
+gboolean gfsm_automaton_save_bin_filename_nc(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp);
+
+/** Store an automaton to a named binary file, possibly compressing.
+ *  Set \a zlevel=-1 for default compression, and
+ *  set \a zlevel=0  for no compression, otherwise should be as for zlib (1 <= zlevel <= 9)
+ */
+gboolean gfsm_automaton_save_bin_filename(gfsmAutomaton *fsm, const gchar *filename, int zlevel, gfsmError **errp);
+
 //@}
 
 /*======================================================================

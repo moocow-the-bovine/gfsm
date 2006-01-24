@@ -166,47 +166,49 @@ gfsmIOHandle *gfsmio_new_file(FILE *f)
 gfsmIOHandle *gfsmio_new_filename(const char *filename, const char *mode, int compress_level, gfsmError **errp)
 {
 #ifdef GFSM_ZLIB_ENABLED
-  gzFile zf;
-  if (strcmp(filename,"-")==0) {
-    if (strchr(mode,'w')) zf = gzdopen(fileno(stdout), mode);
-    else                  zf = gzdopen(fileno(stdin), mode);
-  }
-  else if (!(zf = gzopen(filename,mode))) {
-    int errnum;
-    const char *zerror = gzerror(zf,&errnum);
-    g_set_error(errp,
-		g_quark_from_static_string("gfsm"),  //-- domain
-		g_quark_from_static_string("gzopen"), //-- code
-		"gzopen() failed for file '%s': %s",
-		filename, 
-		errnum==Z_ERRNO ? strerror(errno) : zerror);
-    return NULL;
-  }
+  if (compress_level != 0) {
+    gzFile zf;
+    if (strcmp(filename,"-")==0) {
+      if (strchr(mode,'w')) zf = gzdopen(dup(fileno(stdout)), mode);
+      else                  zf = gzdopen(dup(fileno(stdin)), mode);
+    }
+    else if (!(zf = gzopen(filename,mode))) {
+      int errnum;
+      const char *zerror = gzerror(zf,&errnum);
+      g_set_error(errp,
+		  g_quark_from_static_string("gfsm"),  //-- domain
+		  g_quark_from_static_string("gzopen"), //-- code
+		  "gzopen() failed for file '%s': %s",
+		  filename, 
+		  errnum==Z_ERRNO ? strerror(errno) : zerror);
+      return NULL;
+    }
 
-  //-- set compression level
-  if (compress_level < 0) compress_level = GFSM_DEFAULT_COMPRESSION;
-  if (strchr(mode,'w')) {
-    gzsetparams(zf, compress_level, Z_DEFAULT_STRATEGY);
+    //-- set compression level
+    if (compress_level < 0) compress_level = GFSM_DEFAULT_COMPRESSION;
+    if (strchr(mode,'w')) {
+      gzsetparams(zf, compress_level, Z_DEFAULT_STRATEGY);
+    }
+
+    return gfsmio_handle_new(gfsmIOTZFile,zf);
   }
-
-  return gfsmio_handle_new(gfsmIOTZFile,zf);
-
-#else
-
-  FILE *f;
-  if (strcmp(filename,"-")==0) {
-    if (strchr(mode,'w')) f = stdout;
-    else f = stdin;
+  else {
+#endif
+    FILE *f;
+    if (strcmp(filename,"-")==0) {
+      if (strchr(mode,'w')) f = stdout;
+      else f = stdin;
+    }
+    else if (!(f = fopen(filename,mode))) {
+      g_set_error(errp,
+		  g_quark_from_static_string("gfsm"),  //-- domain
+		  g_quark_from_static_string("fopen"), //-- code
+		  "open failed for file '%s': %s",
+		  filename, strerror(errno));
+    }
+    return gfsmio_new_file(f);
+#ifdef GFSM_ZLIB_ENABLED
   }
-  else if (!(f = fopen(filename,mode))) {
-    g_set_error(errp,
-		g_quark_from_static_string("gfsm"),  //-- domain
-		g_quark_from_static_string("fopen"), //-- code
-		"open failed for file '%s': %s",
-		filename, strerror(errno));
-  }
-  return gfsmio_new_file(f);
-
 #endif
 }
 
@@ -392,7 +394,9 @@ void gfsmio_flush_cfile(FILE *f)
 { if (f) fflush(f); }
 
 void gfsmio_close_cfile(FILE *f)
-{ if (f) fclose(f); }
+{
+  if (f && f != stdin && f != stdout && f != stderr) fclose(f);
+}
 
 gboolean gfsmio_eof_cfile(FILE *f)
 { return f ? feof(f) : FALSE; }
