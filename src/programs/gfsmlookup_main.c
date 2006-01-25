@@ -111,7 +111,7 @@ int main (int argc, char **argv)
   result = lookup_labels(fst, args.inputs_num, args.inputs);
 
   //-- save output
-  if (!gfsm_automaton_save_bin_filename(result,outfilename,&err)) {
+  if (!gfsm_automaton_save_bin_filename(result,outfilename,args.compress_arg,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }

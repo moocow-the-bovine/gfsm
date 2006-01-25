@@ -73,24 +73,24 @@ void get_my_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
   gfsmError *err = NULL;
-  FILE *f=NULL;
+  gfsmIOHandle *ioh = NULL;
 
   GFSM_INIT
 
   get_my_options(argc,argv);
 
   //-- open file
-  if (!(f = gfsm_open_filename(infilename,"rb",&err))) {
+  if (!(ioh = gfsmio_new_filename(infilename,"rb",-1,&err)) || err) {
     g_printerr("%s: open failed for '%s': %s\n", progname, infilename, err->message);
     exit(2);
   }
 
   //-- read header
-  if (fread(&hdr, sizeof(gfsmAutomatonHeader), 1, f) != 1) {
+  if (!gfsmio_read(ioh, &hdr, sizeof(gfsmAutomatonHeader))) {
     g_printerr("%s: failed to read header!\n", progname);
     exit(3);
   }
-  if (f!=stdin) fclose(f);
+  gfsmio_close(ioh);
 
   //-- print header information
   printf("%-24s: %s\n", "Filename", infilename);

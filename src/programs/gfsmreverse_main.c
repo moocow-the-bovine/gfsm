@@ -87,7 +87,7 @@ int main (int argc, char **argv)
   gfsm_automaton_reverse(fsm);
 
   //-- spew automaton
-  if (!gfsm_automaton_save_bin_filename(fsm,outfilename,&err)) {
+  if (!gfsm_automaton_save_bin_filename(fsm,outfilename,args.compress_arg,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }

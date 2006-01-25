@@ -108,7 +108,7 @@ int main (int argc, char **argv)
   if (args.inputs_num == 1) compute_operation("-");
 
   //-- spew automaton
-  if (!gfsm_automaton_save_bin_filename(fsmOut,outfilename,&err)) {
+  if (!gfsm_automaton_save_bin_filename(fsmOut,outfilename,args.compress_arg,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }

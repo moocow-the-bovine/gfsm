@@ -87,7 +87,7 @@ int main (int argc, char **argv)
   gfsm_automaton_optional(fsm);
 
   //-- store automaton
-  if (!gfsm_automaton_save_bin_filename(fsm,args.output_arg,&err)) {
+  if (!gfsm_automaton_save_bin_filename(fsm,args.output_arg,args.compress_arg,&err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, args.output_arg, err->message);
     exit(4);
   }
