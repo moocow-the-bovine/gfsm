@@ -23,6 +23,9 @@ SUFFIXES = .pc .pod .txt .html
 ## --- package config data
 pkgconfig_DATA = @PACKAGE@.pc
 
+##-- for gnulib
+ACLOCAL_AMFLAGS = -I m4
+
 #-----------------------------------------------------------------------
 # Variables: cleanup
 #-----------------------------------------------------------------------

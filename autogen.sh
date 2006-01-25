@@ -12,7 +12,7 @@ MY_LTDIRS="."
 MY_AMDIRS="."
 MY_ACDIRS="."
 
-test -z "$ACLOCAL" && ACLOCAL=aclocal
+test -z "$ACLOCAL" && ACLOCAL="aclocal -I m4"
 test -z "$AUTOHEADER" && AUTOHEADER=autoheader
 test -z "$LIBTOOLIZE" && LIBTOOLIZE="libtoolize --automake"
 test -z "$AUTOMAKE" && AUTOMAKE=automake

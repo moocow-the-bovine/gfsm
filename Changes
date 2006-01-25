@@ -12,6 +12,12 @@ v0.0.8 Sun, 11 Dec 2005 15:53:37 +0100
    + added gfsmScanner.[ch], gfsmRegexCompiler.[ch]
    + added gfsmTrie, (quasi-)deterministic input acceptor (i/o pairs)
      - currently geared towards storing frequencies
+   + added gfsmIO.[ch] : abstract I/O layer
+     - includes basic zlib compression support
+     - currently used only for binary automaton I/O
+     - TODO: use I/O layer for text I/O, especially input operations
+   + added gnulib code for vasprintf(), getdelim()
+     - removed old gfsmCompat.h hack
 
 v0.0.7 Sun, 20 Nov 2005 14:39:33 +0100
    + added lookup(), paths(), path<->string conversion functions
