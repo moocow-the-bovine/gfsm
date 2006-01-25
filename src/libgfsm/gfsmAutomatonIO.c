@@ -27,7 +27,7 @@
 #include <gfsmAutomatonIO.h>
 #include <gfsmArcIter.h>
 #include <gfsmUtils.h>
-#include <gfsmCompat.h>
+//#include <gfsmCompat.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -332,6 +332,20 @@ gboolean gfsm_automaton_load_bin_filename(gfsmAutomaton *fsm, const gchar *filen
   return rc;
 }
 
+/*--------------------------------------------------------------
+ * load_bin_gstring()
+ */
+gboolean gfsm_automaton_load_bin_gstring(gfsmAutomaton *fsm, GString *gs, gfsmError **errp)
+{
+  gfsmPosGString pgs = { gs, 0 };
+  gfsmIOHandle *ioh = gfsmio_new_gstring(&pgs);
+  gboolean rc = ioh && !(*errp) && gfsm_automaton_load_bin_handle(fsm, ioh, errp);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
 
 
 /*======================================================================
@@ -448,6 +462,21 @@ gboolean gfsm_automaton_save_bin_filename_nc(gfsmAutomaton *fsm, const gchar *fi
 gboolean gfsm_automaton_save_bin_filename(gfsmAutomaton *fsm, const gchar *filename, int zlevel, gfsmError **errp)
 {
   gfsmIOHandle *ioh = gfsmio_new_filename(filename, "wb", zlevel, errp);
+  gboolean rc = ioh && !(*errp) && gfsm_automaton_save_bin_handle(fsm, ioh, errp);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * save_bin_gstring()
+ */
+gboolean gfsm_automaton_save_bin_gstring(gfsmAutomaton *fsm, GString *gs, gfsmError **errp)
+{
+  gfsmPosGString pgs = { gs, gs->len };
+  gfsmIOHandle *ioh = gfsmio_new_gstring(&pgs);
   gboolean rc = ioh && !(*errp) && gfsm_automaton_save_bin_handle(fsm, ioh, errp);
   if (ioh) {
     gfsmio_close(ioh);

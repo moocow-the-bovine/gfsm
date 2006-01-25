@@ -28,7 +28,7 @@
 
 #include <glib.h>
 #include <gfsmIO.h>
-#include <gfsmCompat.h>
+//#include <gfsmCompat.h>
 #include <gfsmUtils.h>
 
 #include <string.h>
@@ -42,6 +42,8 @@
 # define GFSM_DEFAULT_COMPRESSION Z_DEFAULT_COMPRESSION
 #endif
 
+#include "vasprintf.h"
+#include "getdelim.h"
 
 /*======================================================================
  * Protos: I/O: Handles: Methods: Instatiations: C FILE*
@@ -52,7 +54,9 @@ gboolean gfsmio_eof_cfile(FILE *f);
 gboolean gfsmio_read_cfile(FILE *f, void *buf, size_t nbytes);
 ssize_t gfsmio_getdelim_cfile(FILE *f, char **lineptr, size_t *n, int delim);
 gboolean gfsmio_write_cfile(FILE *f, const void *buf, size_t nbytes);
+#ifdef HAVE_VFPRINTF
 int gfsmio_vprintf_cfile(FILE *f, const char *fmt, va_list *app);
+#endif
 
 /*======================================================================
  * Protos: I/O: Handles: Methods: Instatiations: gzFile
@@ -94,7 +98,9 @@ gfsmIOHandle *gfsmio_handle_new(gfsmIOHandleType typ, void *handle_data)
     ioh->getdelim_func= (gfsmIOGetdelimFunc)gfsmio_getdelim_cfile;
 
     ioh->write_func   = (gfsmIOWriteFunc)gfsmio_write_cfile;
+#ifdef HAVE_VFPRINTF
     ioh->vprintf_func = (gfsmIOVprintfFunc)gfsmio_vprintf_cfile;
+#endif
 
     ioh->flush_func   = (gfsmIOFlushFunc)gfsmio_flush_cfile;
     ioh->close_func   = (gfsmIOCloseFunc)gfsmio_close_cfile;
@@ -416,9 +422,10 @@ ssize_t gfsmio_getdelim_cfile(FILE *f, char **lineptr, size_t *n, int delim)
 gboolean gfsmio_write_cfile(FILE *f, const void *buf, size_t nbytes)
 { return f ? (fwrite(buf, nbytes, 1, f)==1) : FALSE; }
 
+#ifdef HAVE_VFPRINTF
 int gfsmio_vprintf_cfile(FILE *f, const char *fmt, va_list *app)
 { return f ? vfprintf(f, fmt, *app) : 0; }
-
+#endif
 
 /*======================================================================
  * I/O: Handles: Methods: gzFile

@@ -101,6 +101,9 @@ gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **e
 /** Load an automaton from a named binary file (implicitly clear()s \a fsm) */
 gboolean gfsm_automaton_load_bin_filename(gfsmAutomaton *fsm, const gchar *filename, gfsmError **errp);
 
+/** Load an automaton from an in-memory buffer */
+gboolean gfsm_automaton_load_bin_gstring(gfsmAutomaton *fsm, GString *gs, gfsmError **errp);
+
 
 /** Store an automaton in binary form to a gfsmIOHandle* */
 gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
@@ -116,6 +119,9 @@ gboolean gfsm_automaton_save_bin_filename_nc(gfsmAutomaton *fsm, const gchar *fi
  *  set \a zlevel=0  for no compression, otherwise should be as for zlib (1 <= zlevel <= 9)
  */
 gboolean gfsm_automaton_save_bin_filename(gfsmAutomaton *fsm, const gchar *filename, int zlevel, gfsmError **errp);
+
+/** Append an uncompressed binary automaton to an in-memory buffer */
+gboolean gfsm_automaton_save_bin_gstring(gfsmAutomaton *fsm, GString *gs, gfsmError **errp);
 
 //@}
 

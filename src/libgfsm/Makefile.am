@@ -9,7 +9,7 @@
 ##-----------------------------------------------------------------------
 ## subdirectories
 ##-----------------------------------------------------------------------
-#SUBDIRS = 
+SUBDIRS = gnulib
 
 ##-----------------------------------------------------------------------
 ## primary targets
@@ -37,8 +37,8 @@ lib_LTLIBRARIES = libgfsm.la
 #${prog_i}_SOURCES =
 #${lib_i}_la_SOURCES =
 libgfsm_la_SOURCES = \
+	config.h \
 	gfsmCommon.c \
-	gfsmCompat.c \
 	gfsmCompound.c \
 	gfsmDebug.c \
 	gfsmError.c \
@@ -87,7 +87,6 @@ libgfsm_la_SOURCES = \
 pkginclude_HEADERS = \
 	gfsmConfig.h \
 	gfsmCommon.h \
-	gfsmCompat.h \
 	gfsmCompound.h \
 	gfsmDebug.h \
 	gfsmError.h \
@@ -148,6 +147,7 @@ gfsmRegexCompiler.o: gfsmRegexCompiler.c gfsmRegexCompiler.h gfsmRegex.lex.c gfs
 
 ## --- preprocessor flags
 #AM_CPPFLAGS =
+AM_CPPFLAGS = -I$(SRCDIR)/gnulib
 
 ## --- compiler flags (cc)
 AM_CFLAGS = $(gfsm_WFLAGS) $(gfsm_OFLAGS)
@@ -181,7 +181,7 @@ LIBREV = $(GFSM_VERSION_MINOR)
 #${lib_i}_la_LIBADD  = -lotherlib
 
 libgfsm_la_LDFLAGS = -version-info $(LIBCUR):$(LIBREV):$(LIBAGE)
-libgfsm_la_LIBADD  = @gfsm_LIBS@ $(LIBS)
+libgfsm_la_LIBADD  = gnulib/libgnu.la @gfsm_LIBS@ $(LIBS)
 
 ##-----------------------------------------------------------------------
 ## Variables: cleanup
