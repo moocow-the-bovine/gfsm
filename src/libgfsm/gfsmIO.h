@@ -128,10 +128,15 @@ void gfsmio_handle_free(gfsmIOHandle *ioh);
 
 /* TODO: utilities ? file_handle_new, zfile_handle_new, gstring_handle_new, user_handle_new ? */
 
-/** Create and return a new gfsmIOHandle to a C FILE*
+/** Create and return a new gfsmIOHandle to an uncompressed C FILE*
  *  Caller is responsible for closing the handle.
  */
 gfsmIOHandle *gfsmio_new_file(FILE *f);
+
+/** Create and return a new gfsmIOHandle to a C FILE* using compression (if available)
+ *  Caller is responsible for closing the handle.
+ */
+gfsmIOHandle *gfsmio_new_zfile(FILE *f, const char *mode, int compress_level);
 
 /** Create and return a new gfsmIOHandle to a named file.
  *  Uses gzFile if zlib support was enabled, otherwise C FILE*.

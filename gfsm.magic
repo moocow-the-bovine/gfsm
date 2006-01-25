@@ -1,0 +1,7 @@
+## magic data for binary gfsm automata, for use with file(1).
+## Add the contents of this file to /etc/magic or equivalent.
+
+0       string  gfsm_automaton\0        gfsm stored automaton data
+>16     ulong   x                       (major %u)
+>20     ulong   x                       (minor %u)
+>24     ulong   x                       (micro %u)

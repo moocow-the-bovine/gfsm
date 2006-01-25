@@ -34,7 +34,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-//#include <fcntl.h>
+#if 0
+#include <fcntl.h>
+#endif
 #include <errno.h>
 
 #ifdef GFSM_ZLIB_ENABLED
@@ -153,18 +155,55 @@ void gfsmio_handle_free(gfsmIOHandle *ioh)
 /*--------------------------------------------------------------*/
 gfsmIOHandle *gfsmio_new_file(FILE *f)
 {
-#if 0
+  return gfsmio_handle_new(gfsmIOTCFile, f);
+}
+
+/*--------------------------------------------------------------*/
+#undef GFSM_ZFILE_USE_FCNTL
+gfsmIOHandle *gfsmio_new_zfile(FILE *f, const char *mode, int compress_level)
+{
+#ifdef GFSM_ZLIB_ENABLED
+# ifdef GFSM_ZFILE_USE_FCNTL
   int fd = fileno(f);
   int flags = fcntl(fd, F_GETFL);
-  if (flags & O_RDWR) {
-    return gfsmio_handle_new(gfsmIOTZFile, gzdopen(fd,"rwb"));
-  } else if (flags & O_WRONLY) {
-    return gfsmio_handle_new(gfsmIOTZFile, gzdopen(fd,"wb"));
-  } else { // if (flags & O_RDONLY) 
-    return gfsmio_handle_new(gfsmIOTZFile, gzdopen(fd,"rb"));
+  gzFile zf;
+#  if 0 /* DEBUG */
+  //-- DEBUG
+  const int o_rdwr = O_RDWR;
+  const int o_rdonly = O_RDONLY;
+  const int o_wronly = O_WRONLY;
+  //-- /DEBUG
+#  endif /* DEBUG */
+  if ( (flags&O_RDWR) == O_RDWR ) {
+    zf = gzdopen(dup(fd),"rwb");
+    gzsetparams(zf, compress_level, Z_DEFAULT_STRATEGY);
   }
-#else
-  return gfsmio_handle_new(gfsmIOTCFile, f);
+  else
+  if ( (flags&O_WRONLY) == O_WRONLY ) {
+    zf = gzdopen(fd,"wb");
+    gzsetparams(zf, compress_level, Z_DEFAULT_STRATEGY);
+  }
+  else { // if ( (flags&O_RDONLY) == O_RDONLY ) 
+    zf = gzdopen(fd,"rb");
+    gzsetparams(zf, compress_level, Z_DEFAULT_STRATEGY);
+  }
+  return gfsmio_handle_new(gfsmIOTZFile, zf);
+
+# else /* !defined(GFSM_ZFILE_USE_FCNTL) */
+
+  if (compress_level != 0) {
+    //-- use compression
+    gzFile zf = gzdopen(fileno(f), mode);
+    if (strchr(mode,'w')) gzsetparams(zf, compress_level, Z_DEFAULT_STRATEGY);
+    return gfsmio_handle_new(gfsmIOTZFile, zf);
+  } else {
+    return gfsmio_new_file(f);
+  }
+
+# endif /* GFSM_ZFILE_USE_FCNTL */
+
+#else /* !defined(GFSM_ZLIB_ENABLED) */
+  return gfsmio_new_file(f);
 #endif
 }
 

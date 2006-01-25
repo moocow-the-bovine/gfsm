@@ -133,19 +133,48 @@ void test_io_zfile(void) {
   gfsmio_handle_free(ioh);
 }
 
+/*---------------------------------------------------
+ * test: gzFile from FILE*
+ */
+void test_io_zcfile(void) {
+  gfsmIOHandle *ioh=NULL;
+  int zlevel = -1;
+
+  //-- I/O to gzGile: output
+  ioh = gfsmio_new_zfile(stdout, "wb", zlevel);
+  test_output_generic(ioh, "gzFile(fileno(stdout))");
+  gfsmio_close(ioh);
+  gfsmio_handle_free(ioh);
+
+  //-- I/O from gzFile: input
+  ioh = gfsmio_new_zfile(stdin, "rb", zlevel);
+  test_input_generic(ioh, "gzFile(fileno(stdin))");
+  gfsmio_close(ioh);
+  gfsmio_handle_free(ioh);
+}
+
 
 /*---------------------------------------------------
  * MAIN
  */
 int main (void) {
+  /*
   fprintf(stderr, "\n=================================\n");
-  //test_io_cfile();
+  test_io_cfile();
+  */
 
+  /*
   fprintf(stderr, "\n=================================\n");
   test_io_gstring();
+  */
 
+  /*
   fprintf(stderr, "\n=================================\n");
   test_io_zfile();
+  */
+
+  fprintf(stderr, "\n=================================\n");
+  test_io_zcfile();
 
   return 0;
 }
