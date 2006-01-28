@@ -418,29 +418,36 @@ if test "$gfsm_doc_formats" != "none" ; then
   ### -- docs: .gog file linkup
   gfsm_program_gogs="\
 	gfsmarcsort.gog \
+	gfsmarith.gog \
 	gfsmclosure.gog \
 	gfsmcompile.gog \
 	gfsmcomplement.gog \
 	gfsmcompose.gog \
+	gfsmcompre.gog \
 	gfsmconcat.gog \
-	gfsmconvert.gog \
 	gfsmconnect.gog \
+	gfsmconvert.gog \
 	gfsmdeterminize.gog \
 	gfsmdifference.gog \
 	gfsmdraw.gog \
+	gfsmheader.gog \
 	gfsminfo.gog \
 	gfsmintersect.gog \
 	gfsminvert.gog \
 	gfsmlabels.gog \
 	gfsmlookup.gog \
+	gfsmoptional.gog \
 	gfsmprint.gog \
 	gfsmproduct.gog \
 	gfsmproject.gog \
 	gfsmrenumber.gog \
+	gfsmreplace.gog \
 	gfsmreverse.gog \
 	gfsmrmepsilon.gog \
+	gfsmsigma.gog \
 	gfsmstrings.gog \
 	gfsmunion.gog \
+	gfsmviterbi.gog \
 	"
 
   gfsm_sec5_pods=""
