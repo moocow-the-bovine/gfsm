@@ -312,9 +312,12 @@ gboolean gfsm_automaton_load_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
  */
 gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
 {
-  gfsmIOHandle *ioh = gfsmio_new_file(f);
+  gfsmIOHandle *ioh = gfsmio_new_zfile(f,"rb",-1);
   gboolean rc = gfsm_automaton_load_bin_handle(fsm, ioh, errp);
-  gfsmio_handle_free(ioh);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
   return rc;
 }
 
@@ -437,9 +440,11 @@ gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
 gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp)
 {
   gfsmIOHandle *ioh = gfsmio_new_file(f);
-  gboolean rc = gfsm_automaton_save_bin_handle(fsm, ioh, errp);
-  gfsmio_close(ioh);
-  gfsmio_handle_free(ioh);
+  gboolean rc = ioh && !(*errp) && gfsm_automaton_save_bin_handle(fsm, ioh, errp);
+  if (ioh) {
+    //gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
   return rc;
 }
 
@@ -491,14 +496,14 @@ gboolean gfsm_automaton_save_bin_gstring(gfsmAutomaton *fsm, GString *gs, gfsmEr
  */
 
 /*--------------------------------------------------------------
- * compile_file()
+ * compile_handle()
  */
-gboolean gfsm_automaton_compile_file_full (gfsmAutomaton *fsm,
-					   FILE          *f,
-					   gfsmAlphabet  *lo_alphabet,
-					   gfsmAlphabet  *hi_alphabet,
-					   gfsmAlphabet  *state_alphabet,
-					   gfsmError     **errp)
+gboolean gfsm_automaton_compile_handle (gfsmAutomaton *fsm,
+					gfsmIOHandle  *ioh,
+					gfsmAlphabet  *lo_alphabet,
+					gfsmAlphabet  *hi_alphabet,
+					gfsmAlphabet  *state_alphabet,
+					gfsmError     **errp)
 {
   gfsmStateId q1, q2;
   gfsmLabelId lo, hi;
@@ -512,7 +517,7 @@ gboolean gfsm_automaton_compile_file_full (gfsmAutomaton *fsm,
   gboolean    rc = TRUE;
 
   extern int getline(char **, size_t *, FILE *);
-  for (lineno=1; rc && getline(&buf,&buflen,f) != EOF; ++lineno) {
+  for (lineno=1; rc && gfsmio_getline(ioh,&buf,&buflen) > 0; ++lineno) {
     b1 = b2 = b3 = b4 = b5 = end = NULL;
     short int nfields = 0;
 
@@ -620,7 +625,27 @@ gboolean gfsm_automaton_compile_file_full (gfsmAutomaton *fsm,
 }
 
 /*--------------------------------------------------------------
- * compile_filename()
+ * compile_file_full()
+ */
+gboolean gfsm_automaton_compile_file_full (gfsmAutomaton *fsm,
+					   FILE          *f,
+					   gfsmAlphabet  *lo_alphabet,
+					   gfsmAlphabet  *hi_alphabet,
+					   gfsmAlphabet  *state_alphabet,
+					   gfsmError     **errp)
+{
+  gfsmIOHandle *ioh = gfsmio_new_zfile(f,"rb",-1);
+  gboolean rc = (ioh && !(*errp) &&
+		 gfsm_automaton_compile_handle(fsm,ioh,lo_alphabet,hi_alphabet,state_alphabet,errp));
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * compile_filename_full()
  */
 gboolean gfsm_automaton_compile_filename_full (gfsmAutomaton *fsm,
 					       const gchar   *filename,
@@ -629,11 +654,34 @@ gboolean gfsm_automaton_compile_filename_full (gfsmAutomaton *fsm,
 					       gfsmAlphabet  *state_alphabet,
 					       gfsmError     **errp)
 {
-  FILE *f;
-  gboolean rc;
-  if (!(f=gfsm_open_filename(filename,"r",errp))) return FALSE;
-  rc = gfsm_automaton_compile_file_full(fsm, f, lo_alphabet, hi_alphabet, state_alphabet, errp);
-  if (f != stdin) fclose(f);
+  gfsmIOHandle *ioh = gfsmio_new_filename(filename,"rb",-1,errp);
+  gboolean rc = (ioh && !(*errp) &&
+		 gfsm_automaton_compile_handle(fsm,ioh,lo_alphabet,hi_alphabet,state_alphabet,errp));
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * compile_gstring_full()
+ */
+gboolean gfsm_automaton_compile_gstring_full (gfsmAutomaton *fsm,
+					      GString       *gs,
+					      gfsmAlphabet  *lo_alphabet,
+					      gfsmAlphabet  *hi_alphabet,
+					      gfsmAlphabet  *state_alphabet,
+					      gfsmError     **errp)
+{
+  gfsmPosGString pgs = { gs, 0 };
+  gfsmIOHandle *ioh = gfsmio_new_gstring(&pgs);
+  gboolean rc = (ioh && !(*errp) &&
+		 gfsm_automaton_compile_handle(fsm,ioh,lo_alphabet,hi_alphabet,state_alphabet,errp));
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
   return rc;
 }
 
@@ -643,14 +691,14 @@ gboolean gfsm_automaton_compile_filename_full (gfsmAutomaton *fsm,
  */
 
 /*--------------------------------------------------------------
- * print_file()
+ * print_handle()
  */
-gboolean gfsm_automaton_print_file_full (gfsmAutomaton *fsm,
-					 FILE          *f,
-					 gfsmAlphabet  *lo_alphabet,
-					 gfsmAlphabet  *hi_alphabet,
-					 gfsmAlphabet  *state_alphabet,
-					 gfsmError     **errp)
+gboolean gfsm_automaton_print_handle (gfsmAutomaton *fsm,
+				      gfsmIOHandle  *ioh,
+				      gfsmAlphabet  *lo_alphabet,
+				      gfsmAlphabet  *hi_alphabet,
+				      gfsmAlphabet  *state_alphabet,
+				      gfsmError     **errp)
 {
   guint i;
   GString *gs = g_string_new("");
@@ -671,70 +719,91 @@ gboolean gfsm_automaton_print_file_full (gfsmAutomaton *fsm,
       //-- source state
       if (state_alphabet && (key=gfsm_alphabet_find_key(state_alphabet,id)) != gfsmNoKey) {
 	gfsm_alphabet_key2string(state_alphabet,key,gs);
-	fputs(gs->str, f);
+	gfsmio_puts(ioh, gs->str);
       } else {
 	if (state_alphabet) g_printerr("Warning: no label defined for state '%u'!\n", id);
-	fprintf(f, "%u", id);
+	gfsmio_printf(ioh, "%u", id);
       }
-      fputc('\t',f);
+      gfsmio_putc(ioh, '\t');
 
       //-- sink state
       if (state_alphabet && (key=gfsm_alphabet_find_key(state_alphabet,a->target)) != gfsmNoKey) {
 	gfsm_alphabet_key2string(state_alphabet,key,gs);
-	fputs(gs->str,f);
+	gfsmio_puts(ioh,gs->str);
       } else {
 	if (state_alphabet) g_printerr("Warning: no label defined for state '%u'!\n", a->target);
-	fprintf(f, "%u", a->target);
+	gfsmio_printf(ioh, "%u", a->target);
       }
-      fputc('\t',f);
+      gfsmio_putc(ioh,'\t');
 
       //-- lower label
       if (lo_alphabet && (key=gfsm_alphabet_find_key(lo_alphabet,a->lower)) != gfsmNoKey) {
 	gfsm_alphabet_key2string(lo_alphabet,key,gs);
-	fputs(gs->str,f);
+	gfsmio_puts(ioh, gs->str);
       } else {
 	if (lo_alphabet) g_printerr("Warning: no lower label defined for Id '%u'!\n", a->lower);
-	fprintf(f, "%u", a->lower);
+	gfsmio_printf(ioh, "%u", a->lower);
       }
 
       //-- upper label
       if (fsm->flags.is_transducer) {
-	fputc('\t',f);
+	gfsmio_putc(ioh, '\t');
 	if (hi_alphabet && (key=gfsm_alphabet_find_key(hi_alphabet,a->upper)) != gfsmNoKey) {
 	  gfsm_alphabet_key2string(hi_alphabet,key,gs);
-	  fputs(gs->str,f);
+	  gfsmio_puts(ioh, gs->str);
 	} else {
 	  if (hi_alphabet) g_printerr("Warning: no upper label defined for Id '%u'!\n", a->upper);
-	  fprintf(f, "%u", a->upper);
+	  gfsmio_printf(ioh, "%u", a->upper);
 	}
       }
 
       //-- weight
       if (fsm->flags.is_weighted) { // && a->weight != fsm->sr->one
-	fprintf(f, "\t%g", a->weight);
+	gfsmio_printf(ioh, "\t%g", a->weight);
       }
 
-      fputc('\n', f);
+      gfsmio_putc(ioh, '\n');
     }
 
     //-- final?
     if (gfsm_state_is_final(st)) {
       if (state_alphabet && (key=gfsm_alphabet_find_key(state_alphabet,id)) != NULL) {
 	gfsm_alphabet_key2string(state_alphabet,key,gs);
-	fputs(gs->str,f);
+	gfsmio_puts(ioh, gs->str);
       } else {
-	fprintf(f, "%u", id);
+	gfsmio_printf(ioh, "%u", id);
       }
       if (fsm->flags.is_weighted) {
-	fprintf(f, "\t%g", gfsm_automaton_get_final_weight(fsm,id));
+	gfsmio_printf(ioh, "\t%g", gfsm_automaton_get_final_weight(fsm,id));
       }
-      fputc('\n', f);
+      gfsmio_putc(ioh, '\n');
     }
   }
 
   //-- cleanup
   g_string_free(gs,TRUE);
   
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * print_file_full()
+ */
+gboolean gfsm_automaton_print_file_full (gfsmAutomaton *fsm,
+					 FILE          *f,
+					 gfsmAlphabet  *lo_alphabet,
+					 gfsmAlphabet  *hi_alphabet,
+					 gfsmAlphabet  *state_alphabet,
+					 int            zlevel,
+					 gfsmError     **errp)
+{
+  gfsmIOHandle *ioh = gfsmio_new_zfile(f,"wb",zlevel);
+  gboolean rc = (ioh && !(*errp) &&
+		 gfsm_automaton_print_handle(fsm,ioh,lo_alphabet,hi_alphabet,state_alphabet,errp));
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
   return rc;
 }
 
@@ -746,13 +815,36 @@ gboolean gfsm_automaton_print_filename_full (gfsmAutomaton *fsm,
 					     gfsmAlphabet  *lo_alphabet,
 					     gfsmAlphabet  *hi_alphabet,
 					     gfsmAlphabet  *state_alphabet,
+					     int            zlevel,
 					     gfsmError     **errp)
 {
-  FILE *f;
-  gboolean rc;
-  if (!(f=gfsm_open_filename(filename, "w", errp))) return FALSE;
-  rc = gfsm_automaton_print_file_full(fsm, f, lo_alphabet, hi_alphabet, state_alphabet, errp);
-  if (f != stdout) fclose(f);
+  gfsmIOHandle *ioh = gfsmio_new_filename(filename,"wb",zlevel,errp);
+  gboolean rc = (ioh && !(*errp) &&
+		 gfsm_automaton_print_handle(fsm,ioh,lo_alphabet,hi_alphabet,state_alphabet,errp));
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
+/*--------------------------------------------------------------
+ * print_gstring_full()
+ */
+gboolean gfsm_automaton_print_gstring_full (gfsmAutomaton *fsm,
+					    GString      *gs,
+					    gfsmAlphabet  *lo_alphabet,
+					    gfsmAlphabet  *hi_alphabet,
+					    gfsmAlphabet  *state_alphabet,
+					    gfsmError     **errp)
+{
+  gfsmPosGString pgs = { gs, gs->len };
+  gfsmIOHandle *ioh = gfsmio_new_gstring(&pgs);
+  gboolean rc = (ioh && !(*errp) &&
+		 gfsm_automaton_print_handle(fsm,ioh,lo_alphabet,hi_alphabet,state_alphabet,errp));
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
   return rc;
 }
 

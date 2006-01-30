@@ -135,11 +135,12 @@ gfsmIOHandle *gfsmio_new_file(FILE *f);
 
 /** Create and return a new gfsmIOHandle to a C FILE* using compression (if available)
  *  Caller is responsible for closing the handle.
+ *  The handle returned can always be closed without closing \a f itself.
  */
 gfsmIOHandle *gfsmio_new_zfile(FILE *f, const char *mode, int compress_level);
 
 /** Create and return a new gfsmIOHandle to a named file.
- *  Uses gzFile if zlib support was enabled, otherwise C FILE*.
+ *  Uses gzFile if zlib support was enabled, otherwise C FILE* (uncompressed)
  *  Caller is responsible for closing the handle.
  */
 gfsmIOHandle *gfsmio_new_filename(const char *filename, const char *mode, int compress_level, gfsmError **errp);

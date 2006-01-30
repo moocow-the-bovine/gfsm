@@ -130,6 +130,16 @@ gboolean gfsm_automaton_save_bin_gstring(gfsmAutomaton *fsm, GString *gs, gfsmEr
  */
 /// \name Automaton Methods: Text I/O
 //@{
+
+/** Load an automaton in Ma-Bell-compatible text-format from a gfsmIOHandle*  */
+gboolean gfsm_automaton_compile_handle (gfsmAutomaton *fsm,
+					gfsmIOHandle  *ioh,
+					gfsmAlphabet  *lo_alphabet,
+					gfsmAlphabet  *hi_alphabet,
+					gfsmAlphabet  *state_alphabet,
+					gfsmError     **errp);
+
+
 /** Load an automaton in Ma-Bell-compatible text-format from a FILE*  */
 gboolean gfsm_automaton_compile_file_full (gfsmAutomaton *fsm,
 					   FILE          *f,
@@ -142,7 +152,7 @@ gboolean gfsm_automaton_compile_file_full (gfsmAutomaton *fsm,
 #define gfsm_automaton_compile_file(fsm,file,errp) \
    gfsm_automaton_compile_file_full(fsm,f,NULL,NULL,NULL,errp)
 
-/** Load an automaton in Ma-Bell-compatible text-format from a named file */
+/** Load an automaton in Ma-Bell-compatible text-format from a named file, possibly compressed. */
 gboolean gfsm_automaton_compile_filename_full (gfsmAutomaton *fsm,
 					       const gchar   *filename,
 					       gfsmAlphabet  *lo_alphabet,
@@ -154,7 +164,25 @@ gboolean gfsm_automaton_compile_filename_full (gfsmAutomaton *fsm,
 #define gfsm_automaton_compile_filename(fsm,filename,errp) \
    gfsm_automaton_compile_filename_full(fsm,filename,NULL,NULL,NULL,errp)
 
+/** Load an automaton in Ma-Bell-compatible text-format from an in-memory buffer */
+gboolean gfsm_automaton_compile_gstring_full (gfsmAutomaton *fsm,
+					      GString       *gs,
+					      gfsmAlphabet  *lo_alphabet,
+					      gfsmAlphabet  *hi_alphabet,
+					      gfsmAlphabet  *state_alphabet,
+					      gfsmError     **errp);
+
+
 /*-----------------------*/
+
+/** Print an automaton in Ma-Bell-compatible text-format to a gfsmIOHandle* */
+gboolean gfsm_automaton_print_handle (gfsmAutomaton *fsm,
+				      gfsmIOHandle  *ioh,
+				      gfsmAlphabet  *lo_alphabet,
+				      gfsmAlphabet  *hi_alphabet,
+				      gfsmAlphabet  *state_alphabet,
+				      gfsmError     **errp);
+
 
 /** Print an automaton in Ma-Bell-compatible text-format to a FILE*  */
 gboolean gfsm_automaton_print_file_full (gfsmAutomaton *fsm,
@@ -162,11 +190,12 @@ gboolean gfsm_automaton_print_file_full (gfsmAutomaton *fsm,
 					 gfsmAlphabet  *lo_alphabet,
 					 gfsmAlphabet  *hi_alphabet,
 					 gfsmAlphabet  *state_alphabet,
+					 int            zlevel,
 					 gfsmError     **errp);
 
-/** Convenience macro for printing to all-numeric-id text streams */
+/** Convenience macro for printing to uncompresed all-numeric-id text streams  */
 #define gfsm_automaton_print_file(fsm,f,errp) \
-  gfsm_automaton_print_file_full(fsm,f,NULL,NULL,NULL,errp)
+  gfsm_automaton_print_file_full(fsm,f,NULL,NULL,NULL,0,errp)
 
 /** Print an automaton in Ma-Bell-compatible text-format to a named file */
 gboolean gfsm_automaton_print_filename_full (gfsmAutomaton *fsm,
@@ -174,11 +203,21 @@ gboolean gfsm_automaton_print_filename_full (gfsmAutomaton *fsm,
 					     gfsmAlphabet  *lo_alphabet,
 					     gfsmAlphabet  *hi_alphabet,
 					     gfsmAlphabet  *state_alphabet,
+					     int            zlevel,
 					     gfsmError     **errp);
 
-/** Convenience macro for printing to all-numeric-id named text files */
+/** Convenience macro for printing to uncompressed all-numeric-id named text files */
 #define gfsm_automaton_print_filename(fsm,f,errp) \
-  gfsm_automaton_print_filename_full(fsm,f,NULL,NULL,NULL,errp)
+  gfsm_automaton_print_filename_full(fsm,f,NULL,NULL,NULL,0,errp)
+
+/** Print an automaton in Ma-Bell-compatible text-format to an in-memory buffer */
+gboolean gfsm_automaton_print_gstring_full (gfsmAutomaton *fsm,
+					    GString       *gs,
+					    gfsmAlphabet  *lo_alphabet,
+					    gfsmAlphabet  *hi_alphabet,
+					    gfsmAlphabet  *state_alphabet,
+					    gfsmError     **errp);
+
 //@}
 
 #endif /* _GFSM_AUTOMATON_IO_H */

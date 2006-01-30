@@ -47,6 +47,15 @@ string "olabels" o "Specify output (upper) labels file." \
 string "slabels" s "Specify state labels file." \
    arg="LABELS"
 
+int "compress" z "Specify compression level of output file." \
+    arg="LEVEL" \
+    default="0" \
+    details="
+Specify zlib compression level of output file. -1 indicates
+the library default compression level, 0 (default) indicates no zlib compression at all,
+and 9 indicates the best possible compression.
+"
+
 #-----------------------------------------------------------------------------
 # Addenda
 #-----------------------------------------------------------------------------

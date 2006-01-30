@@ -109,7 +109,7 @@ int main (int argc, char **argv)
   }
 
   //-- print automaton
-  if (!gfsm_automaton_print_filename_full(fsm,outfilename,ilabels,olabels,slabels,&err)) {
+  if (!gfsm_automaton_print_filename_full(fsm,outfilename,ilabels,olabels,slabels,args.compress_arg,&err)) {
     g_printerr("%s: print failed to '%s': %s\n", progname, outfilename, err->message);
     exit(3);
   }

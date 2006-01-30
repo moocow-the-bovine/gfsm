@@ -197,13 +197,14 @@ gfsmIOHandle *gfsmio_new_zfile(FILE *f, const char *mode, int compress_level)
     if (strchr(mode,'w')) gzsetparams(zf, compress_level, Z_DEFAULT_STRATEGY);
     return gfsmio_handle_new(gfsmIOTZFile, zf);
   } else {
-    return gfsmio_new_file(f);
+    return gfsmio_new_file( fdopen(dup(fileno(f)), mode) );
   }
 
 # endif /* GFSM_ZFILE_USE_FCNTL */
 
 #else /* !defined(GFSM_ZLIB_ENABLED) */
-  return gfsmio_new_file(f);
+
+  return gfsmio_new_file( fdopen(dup(fileno(f)), mode) );
 #endif
 }
 
@@ -337,14 +338,18 @@ ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
 
     while ( *n > 0 && i < (*n-1) && (c=gfsmio_getc(ioh)) != -1 ) {
       (*lineptr)[i++] = c;
+#ifdef GFSM_DEBUG_GETDELIM
       fprintf(stderr, "---> getdelim(i=%d) got char %d ~ '%c' to linebuf\n", i, (char)c, c);//--DEBUG
+#endif
       if ((char)c == (char)delim) {
 	(*lineptr)[i] = '\0';
 	return i;
       }
     }
     if (c == -1) {
+#ifdef GFSM_DEBUG_GETDELIM
       fprintf(stderr, "---> getdelim(i=%d) got EOF reading to linebuf\n", i);//--DEBUG
+#endif
       (*lineptr)[i] = '\0';
       return i == 0 ? -1 : i;
     }
@@ -354,11 +359,15 @@ ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
     while ( (c=gfsmio_getc(ioh)) != -1 ) {
       g_string_append_c(gs,c);
       i++;
+#ifdef GFSM_DEBUG_GETDELIM
       fprintf(stderr, "---> getdelim(i=%d) got char %d ~ '%c' to GString*\n", i, (char)c, c);//--DEBUG
+#endif
       if ((char)c == (char)delim) break;
     }
 
+#ifdef GFSM_DEBUG_GETDELIM
     if (c==-1) { fprintf(stderr, "---> getdelim(i=%d) got EOF reading to GString*\n", i); }//--DEBUG
+#endif
 
     //-- maybe free old line buffer
     if (*lineptr) free(*lineptr);
