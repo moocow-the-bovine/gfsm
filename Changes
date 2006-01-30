@@ -14,8 +14,8 @@ v0.0.8 Sun, 11 Dec 2005 15:53:37 +0100
      - currently geared towards storing frequencies
    + added gfsmIO.[ch] : abstract I/O layer
      - includes basic zlib compression support
-     - currently used only for text & binary automaton I/O
-     - TODO: use I/O layer for alphabet (text) I/O, draw methods?  regex compiler?
+     - currently used only for text & binary automaton I/O, also text alphabet I/O
+     - TODO: use I/O layer for alphabet draw methods?  regex compiler?
    + added gnulib code for vasprintf(), getdelim()
      - removed old gfsmCompat.h hack
 

@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-
+#define GFSMIO_EOF -1
 
 /*======================================================================
  * I/O: types
@@ -169,7 +169,7 @@ gboolean gfsmio_eof(gfsmIOHandle *ioh);
  * I/O: Handles: Methods: Read
  */
 
-/** read a single byte of data from \a h, should return -1 on EOF */
+/** read a single byte of data from \a h, should return GFSMIO_EOF on EOF */
 int gfsmio_getc(gfsmIOHandle *ioh);
 
 /** read \a nbytes of data from \a io into \a buf, as \a fread() */

@@ -654,9 +654,9 @@ void gfsm_alphabet_key2string(gfsmAlphabet *a, gpointer key, GString *gstr)
 }
 
 /*--------------------------------------------------------------
- * load_file()
+ * load_handle()
  */
-gboolean gfsm_alphabet_load_file (gfsmAlphabet *a, FILE *f, gfsmError **errp)
+gboolean gfsm_alphabet_load_handle (gfsmAlphabet *a, gfsmIOHandle *ioh, gfsmError **errp)
 {
   char c;
   gpointer    key;
@@ -666,20 +666,20 @@ gboolean gfsm_alphabet_load_file (gfsmAlphabet *a, FILE *f, gfsmError **errp)
 
   //if (!myname) myname = "gfsm_string_alphabet_load_file()";
 
-  while (!feof(f)) {
+  while (!gfsmio_eof(ioh)) {
     g_string_truncate(s_key,0);
     g_string_truncate(s_lab,0);
 
     //-- read data fields into temp strings
-    while ((c = getc(f)) != EOF && isspace(c)) ; if (c==EOF) break;
-    for(g_string_append_c(s_key,c); (c = getc(f)) != EOF && !isspace(c); ) {
+    while ((c = gfsmio_getc(ioh)) != GFSMIO_EOF && isspace(c)) ; if (c==GFSMIO_EOF) break;
+    for(g_string_append_c(s_key,c); (c = gfsmio_getc(ioh)) != GFSMIO_EOF && !isspace(c); ) {
       g_string_append_c(s_key,c);
     }
-    while ((c = getc(f)) != EOF && isspace(c)) ; if (c==EOF) break;
-    for(g_string_append_c(s_lab,c); (c = getc(f)) != EOF && !isspace(c); ) {
+    while ((c = gfsmio_getc(ioh)) != GFSMIO_EOF && isspace(c)) ; if (c==GFSMIO_EOF) break;
+    for(g_string_append_c(s_lab,c); (c = gfsmio_getc(ioh)) != GFSMIO_EOF && !isspace(c); ) {
       g_string_append_c(s_lab,c);
     }
-    while (c != '\n' && (c = getc(f)) != EOF) ;
+    while (c != '\n' && (c = gfsmio_getc(ioh)) != GFSMIO_EOF) ;
 
     //-- get actual key and label
     key   = gfsm_alphabet_string2key(a,s_key);
@@ -696,39 +696,43 @@ gboolean gfsm_alphabet_load_file (gfsmAlphabet *a, FILE *f, gfsmError **errp)
 }
 
 /*--------------------------------------------------------------
+ * load_file()
+ */
+gboolean gfsm_alphabet_load_file (gfsmAlphabet *a, FILE *f, gfsmError **errp)
+{
+  gfsmIOHandle *ioh = gfsmio_new_zfile(f,"rb",-1);
+  gboolean rc = gfsm_alphabet_load_handle(a, ioh, errp);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
+
+/*--------------------------------------------------------------
  * load_filename()
  */
 gboolean gfsm_alphabet_load_filename (gfsmAlphabet *a, const gchar *filename, gfsmError **errp)
 {
-  FILE *f;
-  gboolean rc;
-  if (!(f = gfsm_open_filename(filename, "r", errp))) return FALSE;
-  rc = gfsm_alphabet_load_file(a, f, errp);
-  if (f != stdin) fclose(f);
+  gfsmIOHandle *ioh = gfsmio_new_filename(filename, "rb", -1, errp);
+  gboolean rc = ioh && !(*errp) && gfsm_alphabet_load_handle(a, ioh, errp);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
   return rc;
 }
 
-/*--------------------------------------------------------------
- * save_filename()
- */
-gboolean gfsm_alphabet_save_filename (gfsmAlphabet *a, const gchar *filename, gfsmError **errp)
-{
-  FILE *f;
-  gboolean rc;
-  if (!(f=gfsm_open_filename(filename,"w",errp))) return FALSE;
-  rc = gfsm_alphabet_save_file(a, f, errp);
-  if (f != stdout) fclose(f);
-  return rc;
-}
+
 
 /*--------------------------------------------------------------
  * save_file()
  */
-gboolean gfsm_alphabet_save_file(gfsmAlphabet *a, FILE *f, gfsmError **errp)
+gboolean gfsm_alphabet_save_handle(gfsmAlphabet *a, gfsmIOHandle *ioh, gfsmError **errp)
 {
-  gfsmSaveFileData sfdata;
+  gfsmAlphabetSaveFileData sfdata;
   gboolean rc;
-  sfdata.file = f;
+  sfdata.ioh = ioh;
   sfdata.errp = errp;
   sfdata.gstr = g_string_new("");
   sfdata.field_sep = "\t";
@@ -743,18 +747,65 @@ gboolean gfsm_alphabet_save_file(gfsmAlphabet *a, FILE *f, gfsmError **errp)
   return !rc;
 }
 
+
+/*--------------------------------------------------------------
+ * save_file_full()
+ */
+gboolean gfsm_alphabet_save_file_full(gfsmAlphabet *a, FILE *f, int zlevel, gfsmError **errp)
+{
+  gfsmIOHandle *ioh = gfsmio_new_zfile(f,"wb",zlevel);
+  gboolean rc = ioh && !(*errp) && gfsm_alphabet_save_handle(a, ioh, errp);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * save_file()
+ */
+gboolean gfsm_alphabet_save_file(gfsmAlphabet *a, FILE *f, gfsmError **errp)
+{
+  return gfsm_alphabet_save_file_full(a,f,0,errp);
+}
+
+
+/*--------------------------------------------------------------
+ * save_filename_full()
+ */
+gboolean gfsm_alphabet_save_filename_full (gfsmAlphabet *a, const gchar *filename, int zlevel, gfsmError **errp)
+{
+  gfsmIOHandle *ioh = gfsmio_new_filename(filename,"wb",zlevel,errp);
+  gboolean rc = ioh && !(*errp) && gfsm_alphabet_save_handle(a, ioh, errp);
+  if (ioh) {
+    gfsmio_close(ioh);
+    gfsmio_handle_free(ioh);
+  }
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * save_filename()
+ */
+gboolean gfsm_alphabet_save_filename (gfsmAlphabet *a, const gchar *filename, gfsmError **errp)
+{
+  return gfsm_alphabet_save_filename_full(a,filename,0,errp);
+}
+
+
 /*--------------------------------------------------------------
  * save_file_func()
  */
 gboolean gfsm_alphabet_save_file_func(gfsmAlphabet     *a,
 				      gpointer          key,
 				      gfsmLabelVal      lab,
-				      gfsmSaveFileData *sfdata)
+				      gfsmAlphabetSaveFileData *sfdata)
 {
   gfsm_alphabet_key2string(a,key,sfdata->gstr);
-  fprintf(sfdata->file,
-	  "%s%s%u%s",
-	  sfdata->gstr->str, sfdata->field_sep, lab, sfdata->record_sep);
+  gfsmio_printf(sfdata->ioh,
+		"%s%s%u%s",
+		sfdata->gstr->str, sfdata->field_sep, lab, sfdata->record_sep);
   return (sfdata->errp && *(sfdata->errp));
 }
 

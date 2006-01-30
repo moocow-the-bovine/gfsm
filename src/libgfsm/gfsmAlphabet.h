@@ -32,6 +32,7 @@
 #include <gfsmCommon.h>
 #include <gfsmSet.h>
 #include <gfsmError.h>
+#include <gfsmIO.h>
 
 /*======================================================================
  * Alphabet: Flags
@@ -337,32 +338,43 @@ gpointer gfsm_alphabet_string2key(gfsmAlphabet *a, GString *gstr);
 /** Convert a key to a constant string, used by save() */
 void gfsm_alphabet_key2string(gfsmAlphabet *a, gpointer key, GString *gstr);
 
+
+/** Load a string alphabet from a stream.  Returns true on success */
+gboolean gfsm_alphabet_load_handle (gfsmAlphabet *a, gfsmIOHandle *ioh, gfsmError **errp);
+
+/** Load a string alphabet from a stream.  Returns true on success */
+gboolean gfsm_alphabet_load_file (gfsmAlphabet *a, FILE *f, gfsmError **errp);
+
 /** Load a string alphabet from a named file */
 gboolean gfsm_alphabet_load_filename (gfsmAlphabet *a, const gchar *filename, gfsmError **errp);
 
-/** Load a string alphabet from a stream.  Returns \a NULL on success */
-gboolean gfsm_alphabet_load_file (gfsmAlphabet *a, FILE *f, gfsmError **errp);
 
-/** Save a string alphabet to a named file */
-gboolean gfsm_alphabet_save_filename (gfsmAlphabet *a, const gchar *filename, gfsmError **errp);
-
-/** Save a string alphabet to a stream */
+/** Save a string alphabet to a stream (uncompressed) */
 gboolean gfsm_alphabet_save_file (gfsmAlphabet *a, FILE *f, gfsmError **errp);
 
+/** Save a string alphabet to a (compressed) stream */
+gboolean gfsm_alphabet_save_file_full (gfsmAlphabet *a, FILE *f, int zlevel, gfsmError **errp);
+
+/** Save a string alphabet to a named file (uncompressed) */
+gboolean gfsm_alphabet_save_filename (gfsmAlphabet *a, const gchar *filename, gfsmError **errp);
+
+/** Save a string alphabet to a (compressed) named file */
+gboolean gfsm_alphabet_save_filename_full (gfsmAlphabet *a, const gchar *filename, int zlevel, gfsmError **errp);
+
 /// datatype used for save_file() iteration
-typedef struct _gfsmSaveFileData {
-  FILE        *file;
-  gfsmError  **errp;
-  GString     *gstr;
-  gchar       *field_sep;
-  gchar       *record_sep;
-} gfsmSaveFileData;
+typedef struct {
+  gfsmIOHandle  *ioh;
+  gfsmError    **errp;
+  GString       *gstr;
+  gchar         *field_sep;
+  gchar         *record_sep;
+} gfsmAlphabetSaveFileData;
 
 /** save_file iterator func */
 gboolean gfsm_alphabet_save_file_func(gfsmAlphabet     *a,
 				      gpointer          key,
 				      gfsmLabelVal      lab,
-				      gfsmSaveFileData *sfdata);
+				      gfsmAlphabetSaveFileData *sfdata);
 //@}
 
 /*======================================================================

@@ -300,13 +300,13 @@ gboolean gfsmio_eof(gfsmIOHandle *ioh)
 /*--------------------------------------------------------------*/
 int gfsmio_getc(gfsmIOHandle *ioh)
 {
-  if (gfsmio_eof(ioh)) return -1;
+  if (gfsmio_eof(ioh)) return GFSMIO_EOF;
   else {
     //-- getc() --> read()
-    int c = -1;
+    int c = GFSMIO_EOF;
     if (gfsmio_read(ioh, &c, 1)) return c;
   }
-  return -1;
+  return GFSMIO_EOF;
 }
 
 /*--------------------------------------------------------------*/
@@ -336,7 +336,7 @@ ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
     int c = -2;
     GString *gs=NULL;
 
-    while ( *n > 0 && i < (*n-1) && (c=gfsmio_getc(ioh)) != -1 ) {
+    while ( *n > 0 && i < (*n-1) && (c=gfsmio_getc(ioh)) != GFSMIO_EOF ) {
       (*lineptr)[i++] = c;
 #ifdef GFSM_DEBUG_GETDELIM
       fprintf(stderr, "---> getdelim(i=%d) got char %d ~ '%c' to linebuf\n", i, (char)c, c);//--DEBUG
@@ -346,17 +346,17 @@ ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
 	return i;
       }
     }
-    if (c == -1) {
+    if (c == GFSMIO_EOF) {
 #ifdef GFSM_DEBUG_GETDELIM
       fprintf(stderr, "---> getdelim(i=%d) got EOF reading to linebuf\n", i);//--DEBUG
 #endif
       (*lineptr)[i] = '\0';
-      return i == 0 ? -1 : i;
+      return i == 0 ? GFSMIO_EOF : i;
     }
 
     //-- oops: buffer overflow
     gs = g_string_new(i>0 ? *lineptr : "");
-    while ( (c=gfsmio_getc(ioh)) != -1 ) {
+    while ( (c=gfsmio_getc(ioh)) != GFSMIO_EOF ) {
       g_string_append_c(gs,c);
       i++;
 #ifdef GFSM_DEBUG_GETDELIM
@@ -366,7 +366,7 @@ ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
     }
 
 #ifdef GFSM_DEBUG_GETDELIM
-    if (c==-1) { fprintf(stderr, "---> getdelim(i=%d) got EOF reading to GString*\n", i); }//--DEBUG
+    if (c==GFSMIO_EOF) { fprintf(stderr, "---> getdelim(i=%d) got EOF reading to GString*\n", i); }//--DEBUG
 #endif
 
     //-- maybe free old line buffer
@@ -378,9 +378,9 @@ ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
     *n       = gs->allocated_len;
     g_string_free(gs,FALSE);
 
-    return i==0 && c==-1 ? -1 : i;
+    return i==0 && c==GFSMIO_EOF ? GFSMIO_EOF : i;
   }
-  return -1;
+  return GFSMIO_EOF;
 }
 
 
