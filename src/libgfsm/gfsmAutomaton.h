@@ -274,7 +274,7 @@ gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWei
 
 /** Get number of outgoing arcs. \returns guint */
 #define gfsm_automaton_out_degree(fsm,id) \
-  gfsm_state_out_degree(gfsm_automaton_get_state(fsm,id))
+  ((id) < (fsm)->states_len ? gfsm_state_out_degree(gfsm_automaton_get_state((fsm),(id))) : 0)
 
 /** Renumber states of an FSM */
 void gfsm_automaton_renumber_states(gfsmAutomaton *fsm);
