@@ -349,6 +349,9 @@ gboolean gfsm_alphabet_load_file (gfsmAlphabet *a, FILE *f, gfsmError **errp);
 gboolean gfsm_alphabet_load_filename (gfsmAlphabet *a, const gchar *filename, gfsmError **errp);
 
 
+/** Save a string alphabet to a gfsmIOHandle* */
+gboolean gfsm_alphabet_save_handle(gfsmAlphabet *a, gfsmIOHandle *ioh, gfsmError **errp);
+
 /** Save a string alphabet to a stream (uncompressed) */
 gboolean gfsm_alphabet_save_file (gfsmAlphabet *a, FILE *f, gfsmError **errp);
 

@@ -726,7 +726,7 @@ gboolean gfsm_alphabet_load_filename (gfsmAlphabet *a, const gchar *filename, gf
 
 
 /*--------------------------------------------------------------
- * save_file()
+ * save_handle()
  */
 gboolean gfsm_alphabet_save_handle(gfsmAlphabet *a, gfsmIOHandle *ioh, gfsmError **errp)
 {
