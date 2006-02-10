@@ -65,10 +65,10 @@ group "dot Options"
 
 flag "dot" d "Request dot output (default)"
 
-float "width" W "Specify output width." \
+float "width" W "Specify output width (default=bbox)." \
    arg="WIDTH" \
    default="8.5"
-float "height" H "Specify output height." \
+float "height" H "Specify output height (default=bbox)." \
    arg="HEIGHT" \
    default="11"
 
