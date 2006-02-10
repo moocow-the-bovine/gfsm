@@ -183,7 +183,9 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
 
   fprintf(f, "digraph GFSM {\n");
   fprintf(f, " rankdir = %s;\n", vertical ? "TB" : "LR");
-  fprintf(f, " size = \"%g,\%g\";\n", (width ? width : 8.5), (height ? height : 11));
+  if (width>0 && height>0) {
+    fprintf(f, " size = \"%g,\%g\";\n", (width ? width : 8.5), (height ? height : 11));
+  }
   fprintf(f, " label = \"%s\";\n", (title ? title : "(gfsm)"));
   fprintf(f, " center = 1;\n");
   fprintf(f, " nodesep = \"%f\";\n", (nodesep ? nodesep : 0.25));
