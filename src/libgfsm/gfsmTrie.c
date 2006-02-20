@@ -105,6 +105,53 @@ gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
 }
 
 /*======================================================================
+ * Methods: find prefix
+ */
+gfsmStateId gfsm_trie_find_prefix(gfsmTrie        *trie,
+				  gfsmLabelVector *lo,
+				  gfsmLabelVector *hi,
+				  guint           *lo_i,
+				  guint           *hi_i,
+				  gfsmWeight      *w_last)
+{
+  gfsmStateId qid = trie->root_id;
+  gfsmWeight fw, w = gfsm_sr_zero(trie->sr);
+  guint i, j=0;
+  gfsmArc *a;
+
+  //-- find lower path
+  for (i=0; lo && i < lo->len; i++) {
+    if ( !(a=gfsm_trie_find_arc_lower(trie, qid, ((gfsmLabelVal)g_ptr_array_index(lo,i)))) )
+      break;
+
+    qid = a->target;
+    w = a->weight;
+  }
+
+  //-- find upper path
+  if (i==lo->len) {
+    for (j=0; hi && j < hi->len; j++) {
+      if ( !(a = gfsm_trie_find_arc_upper(trie, qid, ((gfsmLabelVal)g_ptr_array_index(hi,j)))) )
+	break;
+      
+      qid = a->target;
+      w = a->weight;
+    }
+
+    //-- final state?
+    if (j==hi->len && gfsm_automaton_lookup_final(trie, qid, &fw))
+      w = fw;
+  }
+
+  //-- output variables
+  if (lo_i)   *lo_i = i;
+  if (hi_i)   *hi_i = j;
+  if (w_last) *w_last = w;
+
+  return qid;
+}
+
+/*======================================================================
  * Methods: find arcs
  */
 

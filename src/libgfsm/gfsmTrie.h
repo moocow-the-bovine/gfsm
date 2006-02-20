@@ -87,7 +87,7 @@ gfsmStateId gfsm_trie_add_paths(gfsmTrie        *trie,
 /** Add a string-pair \a (lo,hi) to the trie with weight \a w
  *  \param trie Trie
  *  \param lo   lower string (NULL for epsilon)
- *  \param trie upper string (NULL for epsilon)
+ *  \param hi   upper string (NULL for epsilon)
  *  \param w    weight associated with this pair
  *  \param add_to_arcs  whether to add (gfsm_sr_plus) \a w to all arc-weights
  *  \param add_to_state_final whether to add (gfsm_sr_plus) \a w to all intermediate state final-weights;
@@ -105,6 +105,29 @@ gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
 				     gboolean         add_to_path_final
 				     );
 
+/*======================================================================
+ * Methods: find paths
+ */
+/** Find state of longest prefix for a string-pair \a (lo,hi) in the trie.
+ *  \param trie Trie
+ *  \param lo   lower string (NULL for epsilon)
+ *  \param hi   upper string (NULL for epsilon)
+ *  \param lo_i on return holds number of labels in \a lo which were matched
+ *  \param hi_i on return holds number of labels in \a hi which were matched
+ *  \param w_last pointer to weight of last arc followed or final weight
+ *  \returns Id of the state matching the longest prefix of \a (lo,hi)
+ */
+gfsmStateId gfsm_trie_find_prefix(gfsmTrie        *trie,
+				  gfsmLabelVector *lo,
+				  gfsmLabelVector *hi,
+				  guint           *lo_i,
+				  guint           *hi_i,
+				  gfsmWeight      *w_last);
+
+
+/*======================================================================
+ * Methods: find arcs
+ */
 /** Find an arc from state \a qid with lower label \a lab in trie \a trie.
  *  \param trie Trie
  *  \param qid   outgoing state qid
@@ -131,6 +154,9 @@ gfsmArc* gfsm_trie_find_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal 
 gfsmArc* gfsm_trie_find_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi);
 
 
+/*======================================================================
+ * Methods: find or insert arcs
+ */
 /** Find or insert an arc from state \a qid with lower label \a lab in trie \a trie;
  *  adding weight \a w.
  *  \param trie Trie
