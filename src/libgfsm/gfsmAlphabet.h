@@ -386,9 +386,6 @@ gboolean gfsm_alphabet_save_file_func(gfsmAlphabet     *a,
 ///\name String Alphabet Utilities
 //@{
 
-/** Type for sequence of (gfsmLabelVal)s */
-typedef GPtrArray gfsmLabelVector;
-
 /** Convert an ASCII string character-wise to a vector of (gfsmLabel)s.
  *  \a vec is not cleared -- use g_ptr_array_set_size() for that.
  *  \returns \a vec if non-\a NULL, otherwise a new gfsmLabelVector.

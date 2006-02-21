@@ -41,28 +41,29 @@ const gfsmSRType gfsmTrieDefaultSRType = gfsmSRTReal;
 
 
 /*======================================================================
- * Methods: ensure paths (adding weight)
+ * Methods: ensure path (adding weight)
  */
 
 //--------------------------------------------------------------
-gfsmStateId gfsm_trie_add_paths(gfsmTrie        *trie,
-				gfsmLabelVector *lo,
-				gfsmLabelVector *hi,
-				gfsmWeight       w)
+gfsmStateId gfsm_trie_add_path(gfsmTrie        *trie,
+			       gfsmLabelVector *lo,
+			       gfsmLabelVector *hi,
+			       gfsmWeight       w)
 {
-  return gfsm_trie_add_paths_full(trie,lo,hi,w,TRUE,TRUE,TRUE);
+  return gfsm_trie_add_path_full(trie,lo,hi,w,TRUE,TRUE,TRUE,NULL);
 }
 
 
 //--------------------------------------------------------------
-gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
-				     gfsmLabelVector *lo,
-				     gfsmLabelVector *hi,
-				     gfsmWeight       w,
-				     gboolean         add_to_arcs,
-				     gboolean         add_to_state_final,
-				     gboolean         add_to_path_final
-				     )
+gfsmStateId gfsm_trie_add_path_full(gfsmTrie          *trie,
+				    gfsmLabelVector   *lo,
+				    gfsmLabelVector   *hi,
+				    gfsmWeight         w,
+				    gboolean           add_to_arcs,
+				    gboolean           add_to_state_final,
+				    gboolean           add_to_path_final,
+				    gfsmStateIdVector *path_states
+				    )
 {
   gfsmStateId  qid;
   guint i;
@@ -73,6 +74,13 @@ gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
   }
   qid = trie->root_id;
 
+  //-- initialize state-path, if specified
+  if (path_states) {
+    g_ptr_array_set_size(path_states, (lo ? lo->len : 0) + (hi ? hi->len : 0));
+    path_states->len = 0;
+    g_ptr_array_add(path_states, (gpointer)qid);
+  }
+
   //-- add lower path
   for (i=0; lo && i < lo->len; i++) {
     if (add_to_state_final) {
@@ -80,6 +88,7 @@ gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
 					  gfsm_sr_plus(trie->sr, w, gfsm_automaton_get_final_weight(trie, qid)));
     }
     qid = gfsm_trie_get_arc_lower(trie, qid, ((gfsmLabelVal)g_ptr_array_index(lo,i)), w, add_to_arcs);
+    if (path_states) g_ptr_array_add(path_states, (gpointer)qid);
   }
 
   //-- add upper path
@@ -89,10 +98,12 @@ gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
 					  gfsm_sr_plus(trie->sr, w, gfsm_automaton_get_final_weight(trie, qid)));
     }
     qid = gfsm_trie_get_arc_upper(trie, qid, ((gfsmLabelVal)g_ptr_array_index(hi,i)), w, add_to_arcs);
+    if (path_states) g_ptr_array_add(path_states, (gpointer)qid);
   }
 
   //-- add final epsilon-arc
   //qid = gfsm_trie_get_arc_both(trie, qid, gfsmEpsilon, gfsmEpsilon, w, add_to_arcs);
+  //if (path_states) g_ptr_array_add(path_states,qid);
 
   if (add_to_state_final || add_to_path_final) {
     gfsm_automaton_set_final_state_full(trie, qid, TRUE,
@@ -107,17 +118,26 @@ gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
 /*======================================================================
  * Methods: find prefix
  */
-gfsmStateId gfsm_trie_find_prefix(gfsmTrie        *trie,
-				  gfsmLabelVector *lo,
-				  gfsmLabelVector *hi,
-				  guint           *lo_i,
-				  guint           *hi_i,
-				  gfsmWeight      *w_last)
+gfsmStateId gfsm_trie_find_prefix(gfsmTrie          *trie,
+				  gfsmLabelVector   *lo,
+				  gfsmLabelVector   *hi,
+				  guint             *lo_i,
+				  guint             *hi_i,
+				  gfsmWeight        *w_last,
+				  gfsmStateIdVector *path_states
+				  )
 {
   gfsmStateId qid = trie->root_id;
   gfsmWeight fw, w = gfsm_sr_zero(trie->sr);
   guint i, j=0;
   gfsmArc *a;
+
+  //-- initialize state-path, if specified
+  if (path_states) {
+    g_ptr_array_set_size(path_states, (lo ? lo->len : 0) + (hi ? hi->len : 0));
+    path_states->len = 0;
+    g_ptr_array_add(path_states, (gpointer)qid);
+  }
 
   //-- find lower path
   for (i=0; lo && i < lo->len; i++) {
@@ -126,6 +146,7 @@ gfsmStateId gfsm_trie_find_prefix(gfsmTrie        *trie,
 
     qid = a->target;
     w = a->weight;
+    if (path_states) g_ptr_array_add(path_states, (gpointer)qid);
   }
 
   //-- find upper path
@@ -136,6 +157,7 @@ gfsmStateId gfsm_trie_find_prefix(gfsmTrie        *trie,
       
       qid = a->target;
       w = a->weight;
+      if (path_states) g_ptr_array_add(path_states, (gpointer)qid);
     }
 
     //-- final state?

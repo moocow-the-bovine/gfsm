@@ -42,10 +42,6 @@ typedef struct {
   guint32     i;   /**< current position in input vector */
 } gfsmLookupConfig;
 
-/** Type for a StateId map */
-typedef GPtrArray gfsmStateIdVector;
-
-
 //------------------------------
 
 /** Type for gfsm_automaton_lookup_viterbi(): Trellis (1 per call) */

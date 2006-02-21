@@ -49,6 +49,16 @@ typedef gfsmStateId gfsmNodeId;
 typedef gfloat gfsmWeight;
 
 /*======================================================================
+ * Vector types
+ */
+/** Type for sequence of (gfsmLabelVal)s */
+typedef GPtrArray gfsmLabelVector;
+
+/** Type for a sequence of (gfsmStateId)s */
+typedef GPtrArray gfsmStateIdVector;
+
+
+/*======================================================================
  * Constants
  */
 /** Constant epsilon label */

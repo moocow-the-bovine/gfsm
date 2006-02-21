@@ -75,13 +75,13 @@ extern const gfsmSRType gfsmTrieDefaultSRType;
  *  \param w    weight which is added (gfsm_sr_plus) to all arcs for this pair
  *  \returns Id of the final state of the added path
  *
- *  \note really just a wrapper for \a gfsm_trie_add_paths_full() with
+ *  \note really just a wrapper for \a gfsm_trie_add_path_full() with
  *  \a add_to_arcs=true , \a add_to_state_final=true, \a add_to_path_final=true.
  */
-gfsmStateId gfsm_trie_add_paths(gfsmTrie        *trie,
-				gfsmLabelVector *lo,
-				gfsmLabelVector *hi,
-				gfsmWeight       w);
+gfsmStateId gfsm_trie_add_path(gfsmTrie        *trie,
+			       gfsmLabelVector *lo,
+			       gfsmLabelVector *hi,
+			       gfsmWeight       w);
 
 //------------------------------
 /** Add a string-pair \a (lo,hi) to the trie with weight \a w
@@ -94,19 +94,21 @@ gfsmStateId gfsm_trie_add_paths(gfsmTrie        *trie,
  *                            implies that all states will be marked as final in the resulting automaton
  *  \param add_to_path_final  whether to add (gfsm_sr_plus) \a w to the final weight for the last node
  *                            in the path
+ *  \param path_states If non-NULL, contains the state-path corresponding to \a (lo,hi) on return
  *  \returns Id of the final state of the added path
  */
-gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
-				     gfsmLabelVector *lo,
-				     gfsmLabelVector *hi,
-				     gfsmWeight       w,
-				     gboolean         add_to_arcs,
-				     gboolean         add_to_state_final,
-				     gboolean         add_to_path_final
-				     );
+gfsmStateId gfsm_trie_add_path_full(gfsmTrie          *trie,
+				    gfsmLabelVector   *lo,
+				    gfsmLabelVector   *hi,
+				    gfsmWeight         w,
+				    gboolean           add_to_arcs,
+				    gboolean           add_to_state_final,
+				    gboolean           add_to_path_final,
+				    gfsmStateIdVector *path_states
+				    );
 
 /*======================================================================
- * Methods: find paths
+ * Methods: find path
  */
 /** Find state of longest prefix for a string-pair \a (lo,hi) in the trie.
  *  \param trie Trie
@@ -115,14 +117,17 @@ gfsmStateId gfsm_trie_add_paths_full(gfsmTrie        *trie,
  *  \param lo_i on return holds number of labels in \a lo which were matched
  *  \param hi_i on return holds number of labels in \a hi which were matched
  *  \param w_last pointer to weight of last arc followed or final weight
+ *  \param path_states if non-NULL, contains the state-path corresponding to the prefix on return
  *  \returns Id of the state matching the longest prefix of \a (lo,hi)
  */
-gfsmStateId gfsm_trie_find_prefix(gfsmTrie        *trie,
-				  gfsmLabelVector *lo,
-				  gfsmLabelVector *hi,
-				  guint           *lo_i,
-				  guint           *hi_i,
-				  gfsmWeight      *w_last);
+gfsmStateId gfsm_trie_find_prefix(gfsmTrie          *trie,
+				  gfsmLabelVector   *lo,
+				  gfsmLabelVector   *hi,
+				  guint             *lo_i,
+				  guint             *hi_i,
+				  gfsmWeight        *w_last,
+				  gfsmStateIdVector *path_states
+				  );
 
 
 /*======================================================================
