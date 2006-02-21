@@ -69,7 +69,7 @@ gfsmStateId gfsm_trie_add_path_full(gfsmTrie          *trie,
   guint i;
 
   //-- ensure trie has a root state
-  if (trie->root_id==gfsmNoState) {
+  if (!gfsm_automaton_has_state(trie,trie->root_id)) {
     trie->root_id = gfsm_automaton_add_state(trie);
   }
   qid = trie->root_id;
