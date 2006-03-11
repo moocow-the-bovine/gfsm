@@ -341,7 +341,7 @@ gfsmLabelVal gfsm_alphabet_insert(gfsmAlphabet *a, gpointer key, gfsmLabelVal la
       if (((gfsmPointerAlphabet*)a)->key_dup_func) {
 	key = (*(((gfsmPointerAlphabet*)a)->key_dup_func))(((gfsmPointerAlphabet*)a),key);
       }
-      (*(((gfsmUserAlphabet*)a)->methods.insert))((gfsmUserAlphabet*)a, key, label);
+      label = (*(((gfsmUserAlphabet*)a)->methods.insert))((gfsmUserAlphabet*)a, key, label);
       break;
     }
 
