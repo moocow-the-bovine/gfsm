@@ -192,6 +192,10 @@ gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 /*--------------------------------------------------------------
  * compose_full()
  */
+//#define GFSM_DEBUG_COMPOSE
+#ifdef GFSM_DEBUG_COMPOSE
+# include <gfsmAutomatonIO.h>
+#endif
 gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 					   gfsmAutomaton *fsm2,
 					   gfsmAutomaton *composition,
@@ -203,6 +207,9 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
   gfsmArcSortMode fsm2sm = (gfsmArcSortMode)fsm2->flags.sort_mode;
   gfsmAutomaton *filter, *fsm1f, *result;
   gfsmAlphabet  *abet;
+#ifdef GFSM_DEBUG_COMPOSE
+  gfsmError *err =NULL;
+#endif
 
   //--------------------
   // Phase 0: prepare automata and generate filter
@@ -214,18 +221,32 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 
   //--------------------
   // Phase 1: compose (fsm1 ° filter)=fsm1f
+#ifdef GFSM_DEBUG_COMPOSE
+  fprintf(stderr, "\ncompose(): Phase 1: fsm1f = (fsm1 ° filter):\n");
+#endif
   gfsm_automaton_arcsort(filter, gfsmASMLower);
   fsm1f = _gfsm_automaton_compose_intersect_wrapper(fsm1,filter,NULL,NULL,TRUE);
 
   // Phase 1: cleanup: filter
+#ifdef GFSM_DEBUG_COMPOSE
+  gfsm_automaton_save_bin_filename(filter, "_compose_filter.gfst", 0, &err);
+  gfsm_automaton_save_bin_filename(fsm1,   "_compose_prep_fsm1.gfst", 0, &err);
+  gfsm_automaton_save_bin_filename(fsm2,   "_compose_prep_fsm2.gfst", 0, &err);
+#endif
   gfsm_automaton_free(filter);
 
   //--------------------
   // Phase 2: compose (fsm1f ° fsm2)
+#ifdef GFSM_DEBUG_COMPOSE
+  fprintf(stderr, "\ncompose(): Phase 2: result = (fsm1f ° fsm2):\n");
+#endif
   gfsm_automaton_arcsort(fsm1f, gfsmASMUpper);
   result = _gfsm_automaton_compose_intersect_wrapper(fsm1f,fsm2,composition,spenum,TRUE);
 
   // Phase 2: cleanup: fsm1f
+#ifdef GFSM_DEBUG_COMPOSE
+  gfsm_automaton_save_bin_filename(fsm1f, "_compose_fsm1f.gfst", 0, &err);
+#endif
   gfsm_automaton_free(fsm1f);
 
   // Phase 2: restore: fsm1,fsm2
@@ -245,10 +266,11 @@ gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton 
   gfsmAlphabet  *abet   = gfsm_identity_alphabet_new();
 
   //-- prepare fsm1 and get alphabet
+  fsm1->flags.sort_mode = gfsmASMNone;
   for (qid=0; qid < fsm1->states->len; qid++) {
     for (gfsm_arciter_open(&ai,fsm1,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
       {
-	arc        = gfsm_arciter_arc(&ai);
+	arc = gfsm_arciter_arc(&ai);
 
 	//-- fill alphabet
 	gfsm_alphabet_insert(abet, (gpointer)((gfsmLabelVal)arc->upper), arc->upper);
@@ -261,6 +283,7 @@ gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton 
   }
 
   //-- prepare fsm2
+  fsm2->flags.sort_mode = gfsmASMNone;
   for (qid=0; qid < fsm2->states->len; qid++) {
     for (gfsm_arciter_open(&ai,fsm2,qid), gfsm_arciter_seek_lower(&ai,gfsmEpsilon);
 	 gfsm_arciter_ok(&ai);
@@ -437,6 +460,7 @@ gfsmAutomaton *_gfsm_automaton_compose_intersect_wrapper(gfsmAutomaton *fsm1,
 /*--------------------------------------------------------------
  * compose_visit()
  */
+//#define GFSM_DEBUG_COMPOSE_VISIT
 gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
 					  gfsmAutomaton *fsm1,
 					  gfsmAutomaton *fsm2,
@@ -446,7 +470,7 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
   gfsmState   *q1, *q2;
   gfsmStateId qid = gfsm_enum_lookup(spenum,&sp);
   gfsmStateId qid2;
-  gfsmArcList *al1, *al2, *ai1, *ai2;
+  gfsmArcList *al1, *al2, *ai1, *ai2, *ai2saved;
   gboolean     al1_temp=FALSE, al2_temp=FALSE;
   gfsmArc     *a1,*a2;
 
@@ -496,15 +520,28 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
 
   //--------------------------------
   // recurse: arcs: iterate
-  for (ai1=al1, ai2=al2; ai1 != NULL; ai1=ai1->next) {
+  for (ai1=al1, ai2saved=al2; ai1 != NULL; ai1=ai1->next) {
     a1 = (gfsmArc*)ai1->data;
-    //-- handle non-epsilon arcs on fsm1
+    //-- handle non-epsilon arcs in fsm1
     //   : output-epsilon arcs should already have been replaced by gfsmEpsilon1
-    //   : i.e. by gfsm_compose_filter()
-    for ( ; ai2 != NULL; ai2=ai2->next) {
+    //   : i.e. by gfsm_automaton_compose_prepare()
+    for (ai2=ai2saved ; ai2 != NULL; ai2=ai2->next) {
       a2 = (gfsmArc*)ai2->data;
-      if      (a2->lower < a1->upper) continue;
-      else if (a2->lower > a1->upper) break;
+
+#ifdef GFSM_DEBUG_COMPOSE_VISIT
+      fprintf(stderr, "compose(): check: (q%u --%d:%d--> q%u) ~ (q%u --%d:%d--> q%u)\n",	
+      sp.id1, a1->lower, a1->upper, a1->target,
+	      sp.id2, a2->lower, a2->upper, a2->target);
+#endif
+
+      if      (a2->lower < a1->upper) { ai2saved=ai2->next; continue; }
+      else if (a2->lower > a1->upper) { break; }
+
+#ifdef GFSM_DEBUG_COMPOSE_VISIT
+      fprintf(stderr, "compose(): MATCH: (q%u --%d:%d--> q%u) ~ (q%u --%d:%d--> q%u) ***\n",
+	      sp.id1, a1->lower, a1->upper, a1->target,
+	      sp.id2, a2->lower, a2->upper, a2->target);
+#endif
 
       //-- non-eps: case fsm1:(q1 --a:b--> q1'), fsm2:(q2 --b:c-->  q2')
       qid2 = _gfsm_automaton_compose_visit((gfsmStatePair){a1->target,a2->target},
@@ -516,8 +553,8 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
   }
 
   //-- handle epsilon-arcs on fsm2
-  //   : don't: input-eps arcs ion fsm2 should already have been replaced by gfsmEpsilon2
-  //   : i.e. by gfsm_compose_filter()
+  //   : don't: input-eps arcs in fsm2 should already have been replaced by gfsmEpsilon2
+  //   : i.e. by gfsm_automaton_compose_prepare()
 
   //-- cleanup
   if (al1_temp) g_slist_free(al1);
