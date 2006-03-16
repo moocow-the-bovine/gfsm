@@ -32,6 +32,10 @@ const gpointer    gfsmNoKey   = NULL;
 
 const gfsmLabelId gfsmNoLabel = (gfsmLabelId)-1;
 
+const gfsmLabelId gfsmEpsilon1 = (gfsmLabelId)-2;
+
+const gfsmLabelId gfsmEpsilon2 = (gfsmLabelId)-3;
+
 const gfsmStateId gfsmNoState = (gfsmStateId)-1;
 
 const gfsmWeight gfsmNoWeight = 0;

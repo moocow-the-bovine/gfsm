@@ -9,6 +9,11 @@ v0.0.8 Sun, 11 Dec 2005 15:53:37 +0100
    + fixed a bug in gfsm_automaton_renumber_states()
    + fixed some bugs in gfsm_automaton_rmepsilon()
    + fixed an epsilon-related bug in compose() and intersect()
+   + fixed another epsilon-related bug in compose()
+     - implemented algorithm from:
+	  Mohri, Pereira, & Riley (1996), "Weighted Automata in Text and Speech
+	  Processing", Proc. ECAI '96, John Wiley & Sons, Ltd.
+     - calling conventions changed for compose_full()
    + added gfsmScanner.[ch], gfsmRegexCompiler.[ch]
    + added gfsmTrie, (quasi-)deterministic input acceptor (i/o pairs)
      - currently geared towards storing frequencies

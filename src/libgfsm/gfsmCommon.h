@@ -64,6 +64,12 @@ typedef GPtrArray gfsmStateIdVector;
 /** Constant epsilon label */
 extern const gfsmLabelId gfsmEpsilon;
 
+/** Constant label for pseudo-epsilon moves in 1st argument to compose() */
+extern const gfsmLabelId gfsmEpsilon1;
+
+/** Constant label for pseudo-epsilon moves in 2nd argument to compose() */
+extern const gfsmLabelId gfsmEpsilon2;
+
 /** Constant indicating missing alphabet key */
 extern const gpointer    gfsmNoKey;
 

@@ -127,13 +127,55 @@ gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
  *  \param spenum
  *    Mapping from (\a fsm1,\a fsm2) gfsmStatePairs to \a composition gfsmStateIds,
  *    if it is passed as \a NULL, a temporary enum will be created and freed.
+ *  \param restore1
+ *    Both \fsm1 and \fsm2 are destructively altered in the course of computation.
+ *    If \a restorefsm1 is true, the changes made to \a fsm1 will be eliminated
+ *    before the call returns.
+ *  \param restore2
+ *    If true, changes to \a fsm2 will be changed back before the call returns.
+ *
+ *    \warning the data in \a spenum won't be kosher if \a fsm1 has any output-epsilon arcs --
+ *    see [Mohri, Pereira, and Riley (1996) "Weighted Automata in Text and Speech Processing",
+ *    ECAI '96, John Wiley & Sons, Ltd.] for details.
  *
  *  \returns \a composition
  */
 gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 					   gfsmAutomaton *fsm2,
 					   gfsmAutomaton *composition,
-					   gfsmStatePairEnum *spenum);
+					   gfsmStatePairEnum *spenum,
+					   gboolean restore1,
+					   gboolean restore2);
+
+/** Prepare FSTs \a (fsm1,fsm2) for composition: inserts and alters
+ *  epsilon-arcs in both \a fsm1 and \a fsm2.
+ *  Called by gfsm_automaton_compose_full().
+ *
+ *  \param fsm1 first argument of compose()
+ *  \param fsm2 second argument of compose()
+ *  \returns gfsmIdentityAlphabet* for output-alphabet of \a fsm1
+ */
+gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+
+
+/* Create a composition filter for the intersection alphabet \a abet
+ * in the manner described in Mohri, Pereira, and Riley (1996).
+ *
+ * \param abet   intersection alphabet (only labels are required)
+ * \param srtype semiring type of the filter (only zero weights are added)
+ */
+gfsmAutomaton *gfsm_automaton_composition_filter(gfsmAlphabet *abet, gfsmSRType srtype);
+
+/** Possibly restore any changes made to \a fsm1 and/or \a fsm2 by
+ *  gfsm_automaton_compose_prepare().  Called by gfsm_automaton_compose_full()
+ */
+void gfsm_automaton_compose_restore(gfsmAutomaton   *fsm1,
+				    gfsmAutomaton   *fsm2,
+				    gfsmArcSortMode fsm1sm,
+				    gfsmArcSortMode fsm2sm,
+				    gboolean        restore1,
+				    gboolean        restore2);
+
 
 /** Guts for gfsm_automaton_compose() \returns (new) StateId for \a sp. */
 gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair  sp,
