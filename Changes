@@ -7,6 +7,7 @@ v0.0.8 Sun, 11 Dec 2005 15:53:37 +0100
    + added optional(), replace(), insert_automaton()
    + added lookup_viterbi(), viterbi_trellis_paths(), viterbi_trellis_bestpath()
    + fixed a bug in gfsm_automaton_renumber_states()
+   + fixed a really stupid bug in gfsm_arclist_insert_link() for sorted insertion
    + fixed some bugs in gfsm_automaton_rmepsilon()
    + fixed an epsilon-related bug in compose() and intersect()
    + fixed another epsilon-related bug in compose()

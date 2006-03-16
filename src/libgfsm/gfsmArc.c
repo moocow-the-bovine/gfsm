@@ -111,7 +111,7 @@ gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al,
   if (!sdata || sdata->mode == gfsmASMNone) return g_slist_concat(link,al);
 
   for (; al != NULL; al_prev=al, al=al->next) {
-    if (gfsm_arc_compare(a, (gfsmArc*)(al->data), sdata) >= 0) break;
+    if (gfsm_arc_compare(a, (gfsmArc*)(al->data), sdata) <= 0) break;
   }
 
   if (al_prev == NULL) return g_slist_concat(link,al);
