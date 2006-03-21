@@ -35,6 +35,7 @@
 #include <gfsmEnum.h>
 #include <gfsmCompound.h>
 #include <gfsmArcIter.h>
+#include <gfsmArcIndex.h>
 
 /*======================================================================
  * Methods: algebra
@@ -225,6 +226,7 @@ gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer dummy, gfsmA
 //------------------------------
 /**
  * Remove non-coaccessible states from \a fsm.
+ * Calls connect_fw() and connect_bw()
  * \note Destructively alters \a fsm
  *
  * \param fsm Automaton
@@ -232,6 +234,53 @@ gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer dummy, gfsmA
  */
 gfsmAutomaton *gfsm_automaton_connect(gfsmAutomaton *fsm);
 
+//------------------------------
+/**
+ * Remove non root-accessible states from \a fsm.
+ * Called by connect().
+ * \note Destructively alters \a fsm
+ *
+ * \param fsm Automaton
+ * \param visited
+ *   Bit-vector for traversal.  Should have all bits set to zero.
+ *   If passed as NULL, a new bit-vector will be created and freed.
+ * \returns modified \a fsm
+ */
+gfsmAutomaton *gfsm_automaton_connect_fw(gfsmAutomaton *fsm, gfsmBitVector *visited);
+
+//------------------------------
+/**
+ * Remove non-finalizable states from \a fsm.
+ * Called by connect().
+ * \note Destructively alters \a fsm
+ *
+ * \param fsm Automaton
+ * \param rarcs
+ *   Reverse arc-index as returned by gfsm_automaton_reverse_arc_index().
+ *   If passed as NULL, gfsm_automaton_reverse_arc_index() will be called
+ *   on a temporary arc index.
+ * \param finalizable
+ *   Bit-vector for traversal.  Should have all bits set to zero.
+ *   If passed as NULL, a new bit-vector will be created and freed.
+ * \returns modified \a fsm
+ */
+gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
+					 gfsmReverseArcIndex *rarcs,
+					 gfsmBitVector       *finalizable);
+
+//------------------------------
+/**
+ * Utility for gfsm_automaton_connect_*()
+ * Prunes states from \a fsm whose id bit is not set in \a want
+ *
+ * \param fsm    Automaton
+ * \param wanted
+ *   Bit-vector indexed by state id: bit \a id should be unset
+ *   iff state \a id is to be removed.
+ *
+ * \returns modified \a fsm
+ */
+gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wanted);
 
 //------------------------------
 /** Utility for \a gfsm_automaton_determinize(). */
@@ -415,6 +464,7 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
  *  \returns \a fsm
  */
 gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm);
+
 
 //------------------------------
 /**

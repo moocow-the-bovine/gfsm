@@ -123,7 +123,7 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton *fsm, gfsmAlphabet *alph, g
 
   if (!fsm->flags.is_deterministic) fsm = gfsm_automaton_determinize(fsm);
   gfsm_automaton_arcsort(fsm,gfsmASMLower);
-  fsm->flags.sort_mode = gfsmASMNone; //-- avoid "smart" sorting
+  fsm->flags.sort_mode = gfsmASMNone; //-- avoid "smart" arc insertion
 
   //-- add sink-id
   sinkid = gfsm_automaton_add_state(fsm);
@@ -237,6 +237,8 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 
   //--------------------
   // Phase 2: compose (fsm1f ° fsm2)
+  //gfsm_automaton_connect(fsm1f);
+  //gfsm_automaton_renumber_states(fsm1f);
 #ifdef GFSM_DEBUG_COMPOSE
   fprintf(stderr, "\ncompose(): Phase 2: result = (fsm1f ° fsm2):\n");
 #endif
@@ -474,6 +476,11 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
   gboolean     al1_temp=FALSE, al2_temp=FALSE;
   gfsmArc     *a1,*a2;
 
+#ifdef GFSM_DEBUG_COMPOSE_VISIT
+  fprintf(stderr, "compose(): visit : (q%u,q%u) => q%d\n", sp.id1, sp.id2,
+	  (int)(qid==gfsmEnumNone ? -1 : qid));
+#endif
+
   //-- ignore already-visited states
   if (qid != gfsmEnumNone) return qid;
 
@@ -482,11 +489,20 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
   q2 = gfsm_automaton_find_state(fsm2,sp.id2);
 
   //-- sanity check
-  if ( !(q1 && q2 && q1->is_valid && q2->is_valid) ) return gfsmNoState;
+  if ( !(q1 && q2 && q1->is_valid && q2->is_valid) ) {
+#ifdef GFSM_DEBUG_COMPOSE_VISIT
+      fprintf(stderr, "compose(): BAD   : (q%u,q%u)     XXXXX\n", sp.id1, sp.id2);
+#endif
+    return gfsmNoState;
+  }
 
   //-- insert new state into output automaton
   qid = gfsm_automaton_add_state(fsm);
   gfsm_enum_insert_full(spenum,&sp,qid);
+
+#ifdef GFSM_DEBUG_COMPOSE_VISIT
+      fprintf(stderr, "compose(): CREATE: (q%u,q%u) => q%u ***\n", sp.id1, sp.id2, qid);
+#endif
 
   //-- check for final states
   if (q1->is_final && q2->is_final) {
@@ -698,69 +714,173 @@ gfsmAutomaton *gfsm_automaton_n_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2
   return fsm1;
 }
 
-/*--------------------------------------------------------------
- * connect(): visit_state()
- *  + returns true if this state is on a path to a final state
- */
-gboolean gfsm_connect_visit_state(gfsmAutomaton *fsm,
-				  gfsmStateId id,
-				  gfsmBitVector *visited,
-				  gfsmBitVector *coaccessible)
-{
-  gfsmState *s;
-  gfsmArcIter ai;
-  gboolean rc=FALSE;
-
-  //-- already visited
-  if (gfsm_bitvector_get(visited,id))
-    return gfsm_bitvector_get(coaccessible,id); 
-
-  s = gfsm_automaton_find_state(fsm,id);
-  if (!s || !s->is_valid) return FALSE;              //-- ignore invalid states
-
-  //-- mark node as visited on this path
-  gfsm_bitvector_set(visited,id,1);
-
-  //-- check final
-  if (s->is_final) rc = TRUE;
-
-  //-- visit targets of outgoing arcs
-  for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-    gboolean arc_rc =
-      gfsm_connect_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited, coaccessible);
-    rc = rc || arc_rc;
-  }
-
-  //-- mark as co-accessible
-  if (rc) {
-    gfsm_bitvector_set(coaccessible,id,1);
-  }
-
-  return rc;
-}
 
 /*--------------------------------------------------------------
  * connect()
  */
 gfsmAutomaton *gfsm_automaton_connect(gfsmAutomaton *fsm)
 {
-  gfsmBitVector *visited, *coaccessible;
-  gfsmStateId    id;
-  gfsmArcIter    ai;
-  if (!fsm || fsm->root_id == gfsmNoState) return fsm;
+  gfsmBitVector *wanted;
 
-  visited      = gfsm_bitvector_sized_new(fsm->states->len);
-  coaccessible = gfsm_bitvector_sized_new(fsm->states->len);
-  if (gfsm_connect_visit_state(fsm, fsm->root_id, visited, coaccessible)) {
-    //-- root state id co-accessible; prune other states
-    for (id=0; id < fsm->states->len; id++) {
-      if (!gfsm_bitvector_get(coaccessible,id)) {
-	gfsm_automaton_remove_state(fsm,id);
-      }
-      //-- prune outgoing arcs to non-coaccessible states, too
+  //-- sanity check
+  if (!fsm) return fsm;
+
+  wanted = gfsm_bitvector_sized_new(fsm->states->len);
+  gfsm_automaton_connect_fw(fsm, wanted);
+
+  gfsm_bitvector_zero(wanted);
+  gfsm_automaton_connect_bw(fsm, NULL, wanted);
+
+  gfsm_bitvector_free(wanted);
+  return fsm;
+}
+
+
+/*--------------------------------------------------------------
+ * connect_fw_visit_state()
+ *  + marks all states on a path from (id) in (visited)
+ */
+void gfsm_connect_fw_visit_state(gfsmAutomaton *fsm,
+				 gfsmStateId    id,
+				 gfsmBitVector *visited)
+{
+  gfsmState *s;
+  gfsmArcIter ai;
+
+  //-- already visited
+  if (gfsm_bitvector_get(visited,id)) return;
+
+  s = gfsm_automaton_find_state(fsm,id);
+  if (!s || !s->is_valid) return;                    //-- ignore invalid states
+
+  //-- mark node as visited on this path
+  gfsm_bitvector_set(visited,id,1);
+
+  //-- visit targets of outgoing arcs
+  for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    gfsm_connect_fw_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited);
+  }
+
+  return;
+}
+
+/*--------------------------------------------------------------
+ * connect_fw()
+ */
+gfsmAutomaton *gfsm_automaton_connect_fw(gfsmAutomaton *fsm, gfsmBitVector *visited)
+{
+  gboolean  visited_is_temp = FALSE;
+
+  //-- sanity check
+  if (!fsm || fsm->root_id == gfsmNoState)
+    return gfsm_automaton_prune_states(fsm,NULL);
+
+  //-- traversal record
+  if (visited==NULL) {
+    visited = gfsm_bitvector_sized_new(fsm->states->len);
+    visited_is_temp = TRUE;
+  }
+
+  //-- traverse
+  gfsm_connect_fw_visit_state(fsm, fsm->root_id, visited);
+  gfsm_automaton_prune_states(fsm, visited);
+
+  //-- cleanup
+  if (visited_is_temp) gfsm_bitvector_free(visited);
+
+  return fsm;
+}
+
+/*--------------------------------------------------------------
+ * connect_bw(): final_foreach()
+ */
+struct _gfsm_connect_bw_data {
+  gfsmAutomaton *fsm;
+  GPtrArray     *rarcs;
+  gfsmBitVector *finalizable;
+};
+
+gboolean gfsm_connect_bw_visit_state(gfsmStateId id,
+				     gpointer    pw,
+				     struct      _gfsm_connect_bw_data *data)
+{
+  gfsmArcList *al;
+
+  //-- already visited
+  if (gfsm_bitvector_get(data->finalizable,id)     //-- already visited?
+      || !gfsm_automaton_has_state(data->fsm, id)) //-- bad state?
+    return FALSE;                                  //-----> continue traversal
+
+  //-- mark state as finalizable
+  gfsm_bitvector_set(data->finalizable,id,1);
+
+  //-- visit sources of incoming arcs
+  for (al=g_ptr_array_index(data->rarcs,id); al != NULL; al=al->next) {
+    gfsmArc *arc = (gfsmArc*)al->data;
+    gfsm_connect_bw_visit_state(arc->target,pw,data);
+  }
+
+  return FALSE; //-- continue traversal
+}
+
+/*--------------------------------------------------------------
+ * connect_bw()
+ */
+gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
+					 gfsmReverseArcIndex *rarcs,
+					 gfsmBitVector       *finalizable)
+{
+  gboolean rarcs_is_temp = FALSE;
+  gboolean finalizable_is_temp = FALSE;
+  struct _gfsm_connect_bw_data data = {fsm,rarcs,finalizable};
+
+  //-- sanity check(s)
+  if (!fsm || gfsm_automaton_n_final_states(fsm)==0)
+    return gfsm_automaton_prune_states(fsm,NULL);
+
+  //-- reverse arc-index
+  if (rarcs==NULL) {
+    rarcs = data.rarcs = gfsm_automaton_reverse_arc_index(fsm,NULL);
+    rarcs_is_temp = TRUE;
+  }
+
+  //-- traversal record
+  if (finalizable==NULL) {
+    finalizable = data.finalizable = gfsm_bitvector_sized_new(fsm->states->len);
+    finalizable_is_temp = TRUE;
+  }
+
+  //-- traverse
+  g_tree_foreach(fsm->finals, (GTraverseFunc)gfsm_connect_bw_visit_state,  &data);
+  gfsm_automaton_prune_states(fsm, finalizable);
+
+  //-- cleanup
+  if (finalizable_is_temp) gfsm_bitvector_free(finalizable);
+  if (rarcs_is_temp) gfsm_reverse_arc_index_free(rarcs,TRUE,TRUE);
+
+  return fsm;
+}
+
+
+/*--------------------------------------------------------------
+ * prune_states()
+ */
+gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wanted)
+{
+  gfsmStateId id, maxwanted;
+  gfsmArcIter ai;
+
+  for (id=0; id < fsm->states->len; id++) {
+    if (!wanted || !gfsm_bitvector_get(wanted,id)) {
+      //-- unwanted state: chuck it
+      gfsm_automaton_remove_state(fsm,id);
+    }
+    else {
+      maxwanted = id;
+      //-- prune outgoing arcs to any unwanted states, too
       for (gfsm_arciter_open(&ai, fsm, id); gfsm_arciter_ok(&ai); ) {
 	gfsmArc *arc = gfsm_arciter_arc(&ai);
-	if (!gfsm_bitvector_get(coaccessible,arc->target)) {
+	if (!wanted || !gfsm_bitvector_get(wanted,arc->target)) {
 	  gfsm_arciter_remove(&ai);
 	} else {
 	  gfsm_arciter_next(&ai);
@@ -768,18 +888,12 @@ gfsmAutomaton *gfsm_automaton_connect(gfsmAutomaton *fsm)
       }
     }
   }
-  else {
-    //-- root state is not co-accessible: just clear the whole fsm
-    gfsm_automaton_clear(fsm);
-  }
 
-  //-- cleanup
-  gfsm_bitvector_free(visited);
-  gfsm_bitvector_free(coaccessible);
+  //-- update number of states
+  g_array_set_size(fsm->states, maxwanted+1);
 
   return fsm;
 }
-
 
 /*--------------------------------------------------------------
  * _determinize_lp2ec_foreach_func()
@@ -1445,6 +1559,7 @@ void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gf
   }
 }
 
+
 /*--------------------------------------------------------------
  * reverse()
  */
@@ -1455,6 +1570,10 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
   gfsmState   *s, *ts;
   gfsmArcList *al, *al_next, *al_prev;
   gfsmWeight   w;
+  //gfsmArcSortMode sm = gfsm_automaton_sortmode(fsm);
+
+  //-- mark automaton as unsorted (avoid "smart" arc-insertion)
+  fsm->flags.sort_mode = gfsmASMNone;
 
   //-- reverse arc directions, assigning reversed arcs 'target' values as 'old_src+new_root'
   for (id = 0; id < new_root; id++) {
@@ -1521,6 +1640,7 @@ gboolean _gfsm_automaton_sigma_foreach_func(gfsmAlphabet *abet, gpointer key, gf
 gfsmAutomaton *gfsm_automaton_sigma(gfsmAutomaton *fsm, gfsmAlphabet *abet)
 {
   gfsm_automaton_clear(fsm);
+  fsm->flags.sort_mode = gfsmASMNone; //-- avoid "smart" arc-insertion
   fsm->root_id = gfsm_automaton_add_state_full(fsm,0);
   gfsm_automaton_add_state_full(fsm,1);
   gfsm_automaton_set_final_state_full(fsm,1,TRUE,fsm->sr->one);
@@ -1536,6 +1656,7 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
   gfsmStateId offset;
   gfsmStateId id2;
   gfsmStateId oldroot1;
+  gfsmArcSortData sortdata;
 
   //-- sanity check
   if (!fsm2 || fsm2->root_id==gfsmNoState) return fsm1;
@@ -1543,12 +1664,18 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
   offset = fsm1->states->len + 1;
   gfsm_automaton_reserve(fsm1, offset + fsm2->states->len);
 
+
   //-- add new root and eps-arc to old root for fsm1
   oldroot1 = fsm1->root_id;
   fsm1->root_id = gfsm_automaton_add_state(fsm1);
   if (oldroot1 != gfsmNoState) {
     gfsm_automaton_add_arc(fsm1, fsm1->root_id, oldroot1, gfsmEpsilon, gfsmEpsilon, fsm1->sr->one);
   }
+
+  //-- avoid "smart" arc-insertion (temporary)
+  sortdata.mode = gfsm_automaton_sortmode(fsm1);
+  sortdata.sr   = fsm1->sr;
+  fsm1->flags.sort_mode = gfsmASMNone;
 
   //-- adopt states from fsm2 into fsm1
   for (id2 = 0; id2 < fsm2->states->len; id2++) {
@@ -1564,7 +1691,17 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
     if (s2->is_final) {
       gfsm_automaton_set_final_state_full(fsm1, id2+offset, TRUE, gfsm_automaton_get_final_weight(fsm2, id2));
     }
+    //-- maybe sort new arcs
+    if (sortdata.mode != gfsmASMNone
+	&& (fsm2->flags.sort_mode != sortdata.mode
+	    || (sortdata.mode == gfsmASMWeight && fsm2->sr->type != fsm1->sr->type)))
+      {
+	s1->arcs = gfsm_arclist_sort(s1->arcs, &sortdata);
+      }
   }
+
+  //-- re-instate "smart" arc-insertion
+  fsm1->flags.sort_mode = sortdata.mode;
 
   //-- add epsilon arc to translated root(fsm2) in fsm1
   gfsm_automaton_add_arc(fsm1,
