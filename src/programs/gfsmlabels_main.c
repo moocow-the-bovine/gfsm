@@ -29,6 +29,9 @@
 
 #include <gfsm.h>
 
+/*-- use gnulib --*/
+#include "gnulib/getdelim.h"
+
 #include "gfsmlabels_cmdparser.h"
 
 /*--------------------------------------------------------------------------
@@ -50,7 +53,7 @@ gfsmAlphabet  *labels=NULL;
 gfsmError     *err = NULL;
 
 /* HACK */
-extern ssize_t getline(char **LINEPTR, size_t *N, FILE *STREAM);
+//extern ssize_t getline(char **LINEPTR, size_t *N, FILE *STREAM);
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -98,14 +101,15 @@ void get_my_options(int argc, char **argv)
 void apply_labels_file(gfsmAlphabet *labels, FILE *infile, FILE *outfile)
 {
   char            *str = NULL;
-  ssize_t          buflen = 0;
+  size_t           buflen = 0;
   ssize_t          linelen = 0;
   ssize_t          i;
   gfsmLabelVal     lab;
   char             cs[2] = {'\0', '\0'};
 
   while (!feof(infile)) {
-    linelen = getline(&str,&buflen,infile);
+    /*linelen = getline(&str,&buflen,infile);*/
+    linelen = getdelim(&str,&buflen,'\n',infile);
     for (i=0; i < linelen; i++) {
       if (isspace(str[i])) continue;
       cs[0] = str[i];
