@@ -76,8 +76,9 @@ IMAGE_PATH             =
 ## Our input-filter runs the real C preprocessor,
 ## because doxygen is too stupid to handle heavy-duty
 ## macro usage a la flex++/bison++.
-##
-#INPUT_FILTER           = "@PERL@ @srcdir@/doxy-filter.perl"
+## --> disabled!
+#INPUT_FILTER           = "perl ./doxy-filter.perl"
+#INPUT_FILTER           = "@DOXY_INPUT_FILTER@"
 ##
 ## Whether to use filtered output for the source browser
 ##

@@ -2,7 +2,7 @@
 ## Package: mootm
 ## Description:
 ##   + automake file for documentation subdir for
-##     KDWDS PoS-tagger library
+##     libgfsm library
 ##
 ## Process this file with Automake to create Makefile.in.
 ##-----------------------------------------------------------------------
@@ -10,22 +10,67 @@
 SUFFIXES = .doxy .stamp .tag .log
 
 ##-----------------------------------------------------------------------
-## Primaries: documentation
+## Literals
+##-----------------------------------------------------------------------
+
+LIBBASE=libgfsm
+LIBCSS=$(LIBBASE).css
+
+##-----------------------------------------------------------------------
+## Conditional targets
+##-----------------------------------------------------------------------
+
+DOXY_MAN3_MANS=
+DOXY_HTML_STATIC=
+DOXY_INSTALL_SUBDIRS=
+DOXY_LATEX_TARGETS=
+
+if HAVE_DOXYGEN
+
+if DOC_WANT_MAN
+DOXY_MAN3_MANS +=man/man3/*
+endif
+
+if DOC_WANT_HTML
+DOXY_HTML_STATIC     +=$(LIBCSS)
+DOXY_INSTALL_SUBDIRS +=html
+endif
+
+##-- LaTeX
+if DOC_WANT_LATEX
+if DOC_WANT_DVI
+DOXY_LATEX_TARGETS +=refman.dvi
+endif
+if DOC_WANT_PS
+DOXY_LATEX_TARGETS +=refman.ps
+endif
+
+if DOC_WANT_PDF
+DOXY_LATEX_TARGETS +=refman.pdf
+endif
+endif
+##--/DOC_WANT_LATEX
+
+endif
+##--/HAVE_DOXYGEN
+
+##-----------------------------------------------------------------------
+## Primaries: documentation (real)
 ##-----------------------------------------------------------------------
 
 ## --- recursion subdirectories
 #SUBDIRS =
 
-## -- section 3 manpages
-man3_MANS = @DOC_MAN3_MANS@
-
 ## --- doxygen hack: doxy config files
-DOXYBASE = libgfsm
+DOXYBASE = $(LIBBASE)
 DOXYFILE = $(DOXYBASE).doxy
 
 ## --- doxygen hack: doxy stamp files: dependencies
 STAMPFILE = $(DOXYFILE:.doxy=.stamp)
-TAGFILE = $(DOXYFILE:.doxy=.tag)
+TAGFILE   = $(DOXYFILE:.doxy=.tag)
+
+## -- section 3 manpages
+man3_MANS = $(DOXY_MAN3_MANS)
 
 all-local: $(STAMPFILE)
 
@@ -46,35 +91,57 @@ DOXY_INPUTS = \
 #-----------------------------------------------------------------------
 
 ## --- doxygen hacks: dependencies
+DOXY_FILTER_DEPS=
+
+if HAVE_DOXY_FILTER
+DOXY_FILTER_DEPS += doxy-filter.cfg
+endif
+
+if HAVE_DOXYGEN
 $(man3_MANS): $(STAMPFILE)
 
-$(STAMPFILE): $(DOXY_INPUTS) doxy-filter.cfg
+$(STAMPFILE): $(DOXY_INPUTS) $(DOXY_FILTER_DEPS)
+endif
+
 
 #-----------------------------------------------------------------------
 # doxygen hack: build rules (recurse in this directory)
 #-----------------------------------------------------------------------
 doxy-filter.cfg:
-	echo -e '$$config_cppflags .= "$(patsubst %,-I%,$(DOXY_INCLUDES))";\n1;' > doxy-filter.cfg
+	echo '$$config_cppflags .= "-C -x c $(patsubst %,-I%,$(DOXY_INCLUDES))";' > $@
+	echo '$$config_cpp    = "$(CPP)";' >> $@
+	echo '$$config_tmpdir = "$(PWD)";' >> $@
+	echo '1;' >> $@
 
 builddir ?= $(top_builddir)/doc/libgfsm
 
-.doxy.stamp: doxy-filter.cfg
-	@(if test -n "$(DOXYGEN)" ; then \
-	  echo "$(DOXYGEN) $<" ;\
-	  $(DOXYGEN) $< ;\
-	  if test \( -n "$(DOC_LATEX_TARGETS)" -a -d ./latex \) ; then \
-	    $(MAKE) -i -C ./latex $(DOC_LATEX_TARGETS) ;\
-	  fi ;\
-	  if test \( -d "$(builddir)/html" \) ; then \
-	    $(INSTALL_DATA) @srcdir@/libgfsm.css $(builddir)/html/libgfsm.css ;\
-	  fi ;\
-	 else \
-	  echo "-------------------------------------------------------------------" ;\
-	  echo "doxygen not found or unspecified:" ;\
-	  echo "cannot build documentation from $(DOXYFILE)" ;\
-	  echo "-------------------------------------------------------------------" ;\
-	 fi)
-	 touch $@
+if HAVE_DOXYGEN
+.doxy.stamp: $(DOXY_FILTER_DEPS) @srcdir@/$(LIBCSS)
+	$(DOXYGEN) $<
+if DOC_WANT_LATEX
+	if test \( -n "$(DOXY_LATEX_TARGETS)" -a -d ./latex \) ; then \
+	  for t in $(DOXY_LATEX_TARGETS); do \
+	    $(MAKE) -i -C ./latex $$t ;\
+	  done;\
+	fi
+endif
+##--/DOC_WANT_LATEX
+if DOC_WANT_HTML
+	if test \( -d "$(builddir)html" \) ; then \
+	  $(INSTALL_DATA) @srcdir@/$(LIBCSS) $(builddir)html/$(LIBCSS) ;\
+	fi
+endif
+##--/DOC_WANT_HTML
+else
+##--!HAVE_DOXYGEN
+.doxy.stamp:
+	@echo "-------------------------------------------------------------------"
+	@echo "doxygen support disabled:"
+	@echo "not building library documentation from $(DOXYFILE)"
+	@echo "-------------------------------------------------------------------"
+endif
+	touch $@
+##--/HAVE_DOXYGEN
 
 #-----------------------------------------------------------------------
 # Variables: cleanup
@@ -99,25 +166,27 @@ MAINTAINERCLEANFILES = \
 	*~ .*~ Makefile Makefile.in \
 	$(DOXYFILE) $(DOXYFILE:.doxy=.log)
 
-#-----------------------------------------------------------------------
-# install rules: multi-doxy hack
-#-----------------------------------------------------------------------
+##-----------------------------------------------------------------------
+## installation rules: local
+##-----------------------------------------------------------------------
 .PHONY: install-data-local install-doc-sub install-latex-sub
 
+##-- always install the .doxy file
+pkgdoclib_DATA = $(DOXYBASE).doxy
+
+
+if HAVE_DOXYGEN
+
+pkgdoclib_DATA +=$(DOXYBASE).tag
+
 install-data-local:
-	if test -n "$(DOC_SUBDIRS)" ; then \
+	if test -n "$(DOXY_INSTALL_SUBDIRS)"; then \
 	  $(MAKE) $(AM_MAKEFLAGS) install-doc-sub ;\
-	fi
-	if test -n "$(DOC_LATEX_TARGETS)" ; then \
-	  $(MAKE) $(AM_MAKEFLAGS) install-latex-sub ;\
 	fi
 
 install-doc-sub:
 	  $(mkinstalldirs) $(DESTDIR)$(pkgdocdir)/$(DOXYBASE)
-	  if test -e $(DOXYBASE).tag ; then \
-	    $(INSTALL_DATA) $(TAGFILE) $(DESTDIR)$(pkgdocdir)/$(DOXYBASE)/$(DOXYBASE).tag ;\
-	  fi
-	  for d in $(DOC_SUBDIRS) ; do \
+	  for d in $(DOXY_INSTALL_SUBDIRS) ; do \
 	    if test -d "$$d" ; then \
 	      $(mkinstalldirs) $(DESTDIR)$(pkgdocdir)/$(DOXYBASE)/$$d ;\
 	      (cd $$d ;\
@@ -127,12 +196,21 @@ install-doc-sub:
 	    fi ;\
 	  done
 
-install-latex-sub:
-	  $(mkinstalldirs) $(DESTDIR)$(pkgdocdir)/$(DOXYBASE)
-	  for f in $(DOC_LATEX_TARGETS) ; do \
-	    $(INSTALL_DATA) latex/$$f $(DESTDIR)$(pkgdocdir)/$(DOXYBASE)/$$f ;\
-	  done
+if DOC_WANT_LATEX
+if DOC_WANT_DVI
+pkgdoclib_DATA += latex/refman.dvi
+endif
+if DOC_WANT_PS
+pkgdoclib_DATA += latex/refman.ps
+endif
+if DOC_WANT_PDF
+pkgdoclib_DATA += latex/refman.pdf
+endif
+endif
+##--/DOC_WANT_LATEX
 
+endif
+##--/HAVE_DOXYGEN
 
 #-----------------------------------------------------------------------
 # Variables: distribution
@@ -140,9 +218,9 @@ install-latex-sub:
 
 ## --- extra distribution files
 EXTRA_DIST = \
+	doxy-filter.perl \
 	mainpage.dox \
-	mainpage.dox.in \
-	libgfsm.css \
+	$(LIBCSS) \
 	libgfsm-header.html
 
 ## --- recursion subdirectories for 'make dist'

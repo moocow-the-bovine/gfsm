@@ -64,7 +64,7 @@ void get_my_options(int argc, char **argv)
   //-- mode?
   if (args.lower_given || args.i_given) mode = gfsmASMLower;
   else if (args.upper_given || args.o_given) mode = gfsmASMUpper;
-  else if (args.weight_given || args.c_given) mode = gfsmASMWeight;
+  else if (args.weight_given || args.cost_given) mode = gfsmASMWeight;
 
   //-- initialize automaton
   fsm = gfsm_automaton_new();

@@ -50,6 +50,8 @@ MAINTAINERCLEANFILES = *~ \
 	install-sh \
 	stamp-h.in \
 	config.h.in \
+	magic.local \
+	magic \
 	*.tmp
 
 maintainer-clean-local:
@@ -65,13 +67,45 @@ maintainer-clean-local:
 #-----------------------------------------------------------------------
 PODS = README.pod
 
+if HAVE_POD2TEXT
 .pod.txt:
 	pod2text $< $@
+endif
 
+if HAVE_POD2HTML
 .pod.html:
-	pod2html --outfile=$@ $<
+	pod2html --outfile $@ $<
+endif
 
-all-local: $(PODS:.pod=.txt)
+pkgdoc_DATA = \
+	$(PODS:.pod=.txt) \
+	$(PODS:.pod=.html)
+
+#-----------------------------------------------------------------------
+# Additional Variables & Rules: magic
+#-----------------------------------------------------------------------
+
+pkgdoc_DATA += gfsm.magic
+
+##-- phony
+.PHONY: install-magic unintall-magic
+
+MAGIC_ADDRS='/^\#\#--BEGIN gfsm\.magic$$/,/^\#\#--END gfsm\.magic/'
+magic     ?=/etc/magic
+
+install-magic: magic
+	$(INSTALL_DATA) $< $(magic)
+
+uninstall-magic: magic.local
+	$(INSTALL_DATA) $< $(magic)
+
+magic: gfsm.magic magic.local
+	cat magic.local > "$@"
+	sed -n -e$(MAGIC_ADDRS)p @srcdir@/gfsm.magic >> "$@"
+
+magic.local: $(ETC_MAGIC)
+	sed -e$(MAGIC_ADDRS)d $(magic) > $@
+
 
 #-----------------------------------------------------------------------
 # Variables: distribution
@@ -79,8 +113,15 @@ all-local: $(PODS:.pod=.txt)
 
 ## --- extra distribution files
 EXTRA_DIST = \
-	$(PODS:.pod=.txt) autogen.sh configure \
-	README.cvs
+	INSTALL \
+	AUTHORS \
+	$(PODS) \
+	$(PODS:.pod=.txt) \
+	$(PODS:.pod=.html) \
+	autogen.sh \
+	configure \
+	README.cvs \
+	gfsm.magic
 
 #COPYING
 

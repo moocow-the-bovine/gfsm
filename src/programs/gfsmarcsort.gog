@@ -40,7 +40,7 @@ flag "upper"  u "Sort by (upper,lower,target)."
 flag -        o "Alias for '-u'"
 
 flag "weight" w "Sort by weight (ascending)."
-flag -        c "Alias for '-w'"
+flag "cost"   C "Alias for '-w'"
 
 
 int "compress" z "Specify compression level of output file." \

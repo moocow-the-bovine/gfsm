@@ -1,4 +1,6 @@
 gfsm.pc
+magic
+magic.local
 *~
 .*~
 *.o

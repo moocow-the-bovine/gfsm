@@ -1,6 +1,12 @@
 Change log for gfsm
 
-v0.0.8 Sun, 11 Dec 2005 15:53:37 +0100
+v0.0.8 Thu, 15 Feb 2007 12:05:41 +0100
+   + updated build system to build more cleanly on non-development systems
+     - e.g. missing optgen.perl, flex, bison, pod2x, perl, etc.
+   + added gfsm.magic snippet for /etc/magic
+     - added 'install-magic' and 'uninstall-magic' targets for
+       manual magic maintainance, since there seems to be no good and safe
+       way to do this automagically (ugh)...
    + added support for final weights
    + changed binary format (backwards-compatible with dispatch function)
    + added final-weight operations final_weight_(plus|times)()

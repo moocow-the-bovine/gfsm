@@ -504,6 +504,8 @@ noinst_HEADERS = config.h
 
 OPTGENFLAGS = -u -l --no-handle-rcfile
 
+if HAVE_OPTGEN
+
 .gog_cmdparser.h:
 	optgen.perl $(OPTGENFLAGS) --nopod -F $*_cmdparser $<
 
@@ -512,6 +514,8 @@ OPTGENFLAGS = -u -l --no-handle-rcfile
 
 .gog.pod:
 	optgen.perl $(OPTGENFLAGS) --nocfile --nohfile -F $* $<
+
+endif
 
 ##-----------------------------------------------------------------------
 ## compile flags

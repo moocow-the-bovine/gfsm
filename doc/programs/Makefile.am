@@ -7,24 +7,140 @@
 ##-----------------------------------------------------------------------
 
 ##-----------------------------------------------------------------------
-## subdirectories
-##-----------------------------------------------------------------------
-#SUBDIRS =
-
-##-----------------------------------------------------------------------
-## primary targets
+## Misc flags
 ##-----------------------------------------------------------------------
 
-## --- manpages (section 1)
-man1_MANS = @DOC_PROG_MAN1_TARGETS@
-man5_MANS = @DOC_PROG_MAN5_TARGETS@
+HTML_CSS_FILE       =gfsmprogs.css
+POD2MAN_CENTER_STR  ="GFSM Utiltiies"
+POD2MAN_RELEASE_STR ="GFSM v$(VERSION)"
 
-pkgdocprog_DATA = \
-	@DOC_PROG_TXT_TARGETS@ \
-	@DOC_PROG_HTML_TARGETS@ \
-	@DOC_PROG_DVI_TARGETS@ \
-	@DOC_PROG_PS_TARGETS@ \
-	@DOC_PROG_PDF_TARGETS@
+##-----------------------------------------------------------------------
+## static vs. built: PODs
+##-----------------------------------------------------------------------
+
+DYNAMIC_MAN1_PODS =$(DOC_MAN1_GOGS:.gog=.pod) $(DOC_PROG_INDEX_SKEL:.skel=.pod)
+DYNAMIC_MAN5_PODS =
+STATIC_MAN1_PODS  =
+STATIC_MAN5_PODS  =
+
+DYNAMIC_PODS = $(DYNAMIC_MAN1_PODS) $(DYNAMIC_MAN5_PODS)
+STATIC_PODS  = $(STATIC_MAN1_PODS)  $(STATIC_MAN5_PODS)
+
+##-----------------------------------------------------------------------
+## Potential targets
+##-----------------------------------------------------------------------
+
+##-- pods
+DOC_MAN1_PODS = $(DYNAMIC_MAN1_PODS) $(STATIC_MAN1_PODS)
+DOC_MAN5_PODS = $(DYNAMIC_MAN5_PODS) $(STATIC_MAN5_PODS)
+DOC_PODS      = $(DOC_MAN1_PODS) $(DOC_MAN5_PODS)
+
+##--- manpages (section 1: always)
+DOC_MAN1_TARGETS = $(DOC_MAN1_PODS:.pod=.1)
+DOC_MAN5_TARGETS = $(DOC_MAN5_PODS:.pod=.5)
+DOC_MAN_TARGETS  = $(DOC_MAN1_TARGETS) $(DOC_MAN5_TARGETS)
+
+##-- text
+DOC_TXT_TARGETS = $(DOC_PODS:.pod=.txt)
+
+##-- html
+DOC_HTML_STATIC  = $(HTML_CSS_FILE)
+DOC_HTML_TARGETS = $(DOC_PODS:.pod=.html)
+
+##-- latex
+DOC_LATEX_TARGETS = $(DOC_PODS:.pod=.tex)
+DOC_DVI_TARGETS   = $(DOC_PODS:.pod=.dvi)
+DOC_PS_TARGETS    = $(DOC_PODS:.pod=.ps)
+DOC_PDF_TARGETS   = $(DOC_PODS:.pod=.pdf)
+
+
+##-----------------------------------------------------------------------
+## Conditional targets: chosen by 'configure' & co. [should be safe]
+##-----------------------------------------------------------------------
+
+##-- automake 'EXTRA_*' vars
+EXTRA_man1_MANS = $(DOC_MAN1_TARGETS)
+EXTRA_man5_MANS = $(DOC_MAN5_TARGETS)
+
+##-- automake doesn't appear to understand EXTRA_${whatever}_DATA
+EXTRA_pkgdocprog_DATAFILES = \
+	$(DOC_PODS) \
+	$(DOC_TXT_TARGETS) \
+	$(DOC_HTML_TARGETS) $(DOC_HTML_STATIC) \
+	$(DOC_DVI_TARGETS) \
+	$(DOC_PS_TARGETS) \
+	$(DOC_PDF_TARGETS)
+
+##-- accumulation variables
+BUILD_PODS=
+BUILD_MAN1_MANS=
+BUILD_MAN5_MANS=
+BUILD_DOCS=
+
+STATIC_MAN1_MANS=
+STATIC_MAN5_MANS=
+STATIC_DOCS=
+
+##--- selected: pods
+if HAVE_OPTGEN
+BUILD_PODS  += $(DYNAMIC_PODS)
+else
+STATIC_PODS += $(DYNAMIC_PODS)
+endif
+
+##--- selected: manpages (section 1: always)
+if DOC_WANT_MAN
+if HAVE_POD2MAN
+BUILD_MAN1_MANS += $(DYNAMIC_MAN1_PODS:.pod=.1)
+BUILD_MAN5_MANS += $(DYNAMIC_MAN5_PODS:.pod=.5)
+else
+STATIC_MAN1_MANS += $(DYNAMIC_MAN1_PODS:.pod=.1)
+STATIC_MAN5_MANS += $(DYNAMIC_MAN5_PODS:.pod=.5)
+endif
+endif
+
+##-- selected: text
+if DOC_WANT_TXT
+if HAVE_POD2TEXT
+BUILD_DOCS += $(DYNAMIC_PODS:.pod=.txt)
+endif
+endif
+
+##-- selected: html
+if DOC_WANT_HTML
+if HAVE_POD2HTML
+BUILD_DOCS  += $(DYNAMIC_PODS:.pod=.html)
+STATIC_DOCS += $(DOC_HTML_STATIC)
+else
+STATIC_DOCS += $(DYNAMIC_PODS:.pod=.html) $(DOC_HTML_STATIC)
+endif
+endif
+
+##-- selected: latex->(dvi|ps|pdf)
+if HAVE_POD2LATEX
+
+if DOC_WANT_DVI
+BUILD_DOCS += $(DYNAMIC_PODS:.pod=.dvi)
+endif
+
+if DOC_WANT_PS
+BUILD_DOCS += $(DYNAMIC_PODS:.pod=.ps)
+endif
+
+if DOC_WANT_PDF
+BUILD_DOCS += $(DYNAMIC_PODS:.pod=.pdf)
+endif
+
+endif
+
+##-----------------------------------------------------------------------
+## Primary targets
+##-----------------------------------------------------------------------
+
+##-- primaries
+man1_MANS       = $(BUILD_MAN1_MANS) $(STATIC_MAN1_MANS)
+man5_MANS       = $(BUILD_MAN5_MANS) $(STATIC_MAN5_MANS)
+pkgdocprog_DATA = $(BUILD_DOCS)      $(STATIC_DOCS)
 
 ##-----------------------------------------------------------------------
 ## sources
@@ -37,31 +153,26 @@ SUFFIXES = .skel .gog .pod .txt .1 .5 .html .tex .dvi .ps .pdf
 ##-----------------------------------------------------------------------
 all-local: $(man_MANS)
 
-txt: $(gfsm_program_gogs:.gog=.txt)
+txt: $(DOC_TXT_TARGETS)
+man: $(DOC_MAN_TARGETS)
+html: $(DOC_HTML_TARGETS)
+latex: $(DOC_LATEX_TARGETS)
+dvi-doc: $(DOC_DVI_TARGETS)
+ps: $(DOC_PS_TARGETS)
+pdf: $(DOC_PDF_TARGETS)
 
-man: $(man1_MANS) $(MAN5_MANS)
-
-html: $(gfsm_program_gogs:.gog=.html)
-
-latex: $(gfsm_program_gogs:.gog=.tex)
-
-man-dvi: $(gfsm_program_gogs:.gog=.dvi)
-
-ps: $(gfsm_program_gogs:.gog=.ps)
-
-pdf: $(gfsm_program_gogs:.gog=.pdf)
-
+.SECONDARY:
 
 ##-----------------------------------------------------------------------
 ## pod compilation rules: Getopt::Gen
 ##-----------------------------------------------------------------------
 
-.SECONDARY:
-
 OPTGENFLAGS = -l
 
+if HAVE_OPTGEN
 .gog.pod:
-	optgen.perl $(OPTGENFLAGS) --nocfile --nohfile --no-handle-rcfile -F $* $<
+	$(OPTGEN_PERL) $(OPTGENFLAGS) --nocfile --nohfile -F $* $<
+endif
 
 ##-----------------------------------------------------------------------
 ## pod compilation rules: Getopt::Gen (from skel)
@@ -73,46 +184,56 @@ OPTGEN_SKELFLAGS = \
 	--no-handle-rcfile \
 	--no-handle-error
 
+if HAVE_OPTGEN
 .skel.pod:
-	echo | optgen.perl $(OPTGEN_SKELFLAGS) --template=$< - > $@ 2>/dev/null
+	echo | $(OPTGEN_PERL) $(OPTGEN_SKELFLAGS) --template=$< - > $@ 2>/dev/null
+endif
 
 ##-----------------------------------------------------------------------
 ## pod conversion rules
 ##-----------------------------------------------------------------------
 
 POD2MANFLAGS = \
-	--center="GFSM Utilities" \
-	--release="GFSM v$(VERSION)"
-POD2HTMLFLAGS = --podpath="$(srcdir):." --htmlroot="." --css="gfsmprogs.css"
+	--center  $(POD2MAN_CENTER_STR) \
+	--release $(POD2MAN_RELEASE_STR)
 
+POD2HTMLFLAGS = --podpath="$(srcdir):." --htmlroot="." --css "$(HTML_CSS_FILE)"
+
+if HAVE_POD2MAN
 .pod.1:
 	$(POD2MAN) $(POD2MANFLAGS) --section=1 $< $@
 
 .pod.5:
 	$(POD2MAN) $(POD2MANFLAGS) --section=5 $< $@
+endif
 
+if HAVE_POD2TEXT
 .pod.txt:
 	$(POD2TEXT) $< $@
+endif
 
+if HAVE_POD2HTML
 .pod.html:
 	$(POD2HTML) $(POD2HTMLFLAGS) --infile=$< --outfile=$@
+endif
 
+if HAVE_POD2LATEX
 .pod.tex:
 	$(POD2LATEX) --full --out $@ $<
+endif
 
 ##-----------------------------------------------------------------------
 ## latex compilation
 ##-----------------------------------------------------------------------
 .tex.dvi:
-	latex $*
-	latex $*
+	latex -interaction=nonstopmode $*
+	latex -interaction=nonstopmode $*
 
 .dvi.ps:
 	dvips $*
 
 .tex.pdf:
-	pdflatex $*
-	pdflatex $*
+	ps2pdf $* $@
 
 ##-----------------------------------------------------------------------
 ## Variables: cleanup
@@ -123,18 +244,35 @@ POD2HTMLFLAGS = --podpath="$(srcdir):." --htmlroot="." --css="gfsmprogs.css"
 
 ## --- clean:  built by 'make'
 CLEANFILES = \
-	$(filter-out acknowledge.pod,$(wildcard *.pod)) \
-	*.man *.1 *.5 *.html *.txt *.tex *.dvi *.ps *.pdf \
-	*.log *.aux *.toc *.idx *.tmp *~~
+	*.dvi *.ps *.pdf \
+	*.log *.aux *.toc *.idx *~~ *.tmp
+
+if HAVE_OPTGEN
+CLEANFILES += $(DYNAMIC_PODS)
+endif
+if HAVE_POD2MAN
+CLEANFILES += *.man *.1 *.5
+endif
+if HAVE_POD2HTML
+CLEANFILES += *.html
+endif
+if HAVE_POD2TEXT
+CLEANFILES += *.txt
+endif
+if HAVE_POD2LATEX
+CLEANFILES += *.tex
+endif
 
 ## --- distclean: built by 'configure'
 DISTCLEANFILES = \
-	*.pod *.gog
+	*.gog acknowledge.pod
 
 ## -- maintainerclean: built by maintainer / by hand
 MAINTAINERCLEANFILES = \
 	*~ .*~ Makefile Makefile.in \
-	*.pod *.man *.1 *.html *.txt *.tex *.dvi *.ps *.pdf
+	*.man *.1 *.5 *.html *.txt *.tex \
+	$(CLEANFILES) \
+	$(DYNAMIC_PODS)
 
 ##-----------------------------------------------------------------------
 ## Variables: distribution
@@ -142,12 +280,11 @@ MAINTAINERCLEANFILES = \
 
 ## --- extra distribution files
 EXTRA_DIST = \
-	gfsmprogs.css \
-	gfsmutils.skel \
-	@DOC_PROG_TXT_TARGETS@ \
-	@DOC_PROG_MAN1_TARGETS@ \
-	@DOC_PROG_MAN5_TARGETS@ \
-	@DOC_PROG_HTML_TARGETS@
+	$(DOC_PROG_INDEX_SKEL) \
+	$(DOC_PODS) \
+	$(DOC_MAN_TARGETS) \
+	$(DOC_HTML_TARGETS) \
+	$(HTML_CSS_FILE)
 
 ## --- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

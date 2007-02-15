@@ -124,15 +124,29 @@ pkginclude_HEADERS = \
 #noinst_HEADERS = nopackage.h
 
 ##-----------------------------------------------------------------------
-## pre-compile rules: gengetopt ; flex ; bison
+## pre-compile rules: flex ; bison
 ##-----------------------------------------------------------------------
 SRCDIR = @srcdir@
 
-##-- flex, bison
-LEX = @FLEX@
+if HAVE_FLEX
+MY_LEX    = @FLEX@
+MY_LFLAGS =
+else
+MY_LEX    = sh $(SRCDIR)/dummy-flex.sh
+MY_LFLAGS =
+endif
+LEX       = $(MY_LEX)
+AM_LFLAGS = $(MY_LFLAGS)
 
-YACC = @BISON@
-AM_YFLAGS = --defines --fixed-output-files --name-prefix="$(basename $*)_yy"
+if HAVE_BISON
+MY_YACC   = @BISON@
+MY_YFLAGS = --defines --fixed-output-files --name-prefix="$(basename $*)_yy"
+else
+MY_YACC   = sh $(SRCDIR)/dummy-bison.sh
+MY_YFLAGS =
+endif
+YACC      = $(MY_YACC)
+AM_YFLAGS = $(MY_YFLAGS)
 
 SUFFIXES = .l .lex.l .y .tab.y .tab.c .tab.h .lex.c .lex.h
 
@@ -144,12 +158,10 @@ gfsmRegexCompiler.o: gfsmRegexCompiler.c gfsmRegexCompiler.h gfsmRegex.lex.c gfs
 ##-----------------------------------------------------------------------
 ## compile flags
 ##-----------------------------------------------------------------------
-#SRCDIR = @srcdir@
-#SRCINCLUDE = $(SRCDIR)/../include
 
 ## --- preprocessor flags
 #AM_CPPFLAGS =
-AM_CPPFLAGS = -I$(SRCDIR)/gnulib
+AM_CPPFLAGS = -I. -I$(SRCDIR)/gnulib
 
 ## --- compiler flags (cc)
 AM_CFLAGS = $(gfsm_WFLAGS) $(gfsm_OFLAGS)
@@ -209,10 +221,13 @@ MAINTAINERCLEANFILES = \
 
 ## --- extra distribution files
 EXTRA_DIST = \
+	config.h \
 	gfsmRegex.lex.c \
 	gfsmRegex.lex.h \
 	gfsmRegex.tab.c \
-	gfsmRegex.tab.h
+	gfsmRegex.tab.h \
+	dummy-flex.sh \
+	dummy-bison.sh
 
 ## --- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)

@@ -5,7 +5,7 @@
 program "gfsmviterbi"
 #program_version "0.01"
 
-purpose	"Compute Viterbi trellis for a linear label sequence in a transducer"
+purpose	"EXPERIMENTAL: Compute Viterbi trellis for a linear label sequence in a transducer"
 author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
 on_reparse "warn"
 
@@ -68,6 +68,11 @@ bugs "
 =item
 
 No negative-cost epsilon cycles are allowed in the transducer.
+
+=item
+
+The Viterbi API, the existence of the gfsmviterbi command-line program,
+its arguments & optiosn, etc. are HIGHLY UNSTABLE.
 
 =back
 

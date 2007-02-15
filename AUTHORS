@@ -1,0 +1,4 @@
+Bryan Jurish <moocow@ling.uni-potsdam.de> wrote and maintains the 'gfsm' package.
+
+Code from the gnulib project is included.
+See the files in src/libgfsm/gnulib for details.
