@@ -102,7 +102,7 @@ Issue the following commands to the shell:
  make
  make install
 
-=head2 Additional installation tarbets
+=head2 Additional installation targets
 
 The build system supports the following optional installation targets;
 call them with:
