@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-int main (void) {
+int main (int argc, char **argv) {
   gfsmStringAlphabet *sa = (gfsmStringAlphabet*)gfsm_string_alphabet_new();
   gfsmAlphabet        *a = (gfsmAlphabet*)sa;
   gfsmError          *err = NULL;
+  char               *filename= NULL;
   gfsmLabelVal lv1,lv2;
   char *key;
 
@@ -31,8 +32,10 @@ int main (void) {
   printf("%s\n", gfsm_alphabet_size(a)==0 ? "ok" : "FAILED");
 
   /*-- load labels file --*/
-  printf("\nLoading alphabet from stdin: ");
-  if (!a || !gfsm_alphabet_load_file(a, stdin, &err)) {
+  if (argc > 0) { filename=argv[1]; }
+  else { filename="-"; }
+  printf("\nLoading alphabet from file %s: ", argc==0 ? "(stdin)" : filename);
+  if (!a || !gfsm_alphabet_load_filename(a, filename, &err)) {
     g_printerr("couldn't load labels from stdin: %s\n", err->message);
     exit(1);
   }

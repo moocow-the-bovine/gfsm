@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#define GFSMIO_EOF -1
+#define GFSMIO_EOF ((int)-1)
 
 /*======================================================================
  * I/O: types

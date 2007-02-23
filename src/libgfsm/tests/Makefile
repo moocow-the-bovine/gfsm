@@ -1,6 +1,7 @@
 TARGETS = iotest
 
 KNOWN_TARGETS = \
+	gfsmlabdump \
 	iotest \
 	structtest \
 	pathtest \
@@ -51,6 +52,10 @@ calc2test.lex.o: calc2test.tab.h ../gfsmRegexCompiler.h
 compretest.lex.o: compretest.tab.h ../gfsmRegexCompiler.h
 
 comprelex.lex.o: compretest.lex.c compretest.lex.h ../gfsmRegexCompiler.h
+
+##-- gfsmlabdump
+gfsmlabdump: gfsmlabdump.o ../.libs/libgfsm.a
+	$(LD) $(LDFLAGS) -o $@ $< $(GFSMLIBS) $(LIBS)
 
 ##-- bison
 %.tab.c %.tab.h: %.y

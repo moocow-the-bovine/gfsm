@@ -658,7 +658,7 @@ void gfsm_alphabet_key2string(gfsmAlphabet *a, gpointer key, GString *gstr)
  */
 gboolean gfsm_alphabet_load_handle (gfsmAlphabet *a, gfsmIOHandle *ioh, gfsmError **errp)
 {
-  char c;
+  int c;
   gpointer    key;
   gfsmLabelVal label;
   GString *s_key = g_string_new("");
@@ -666,20 +666,32 @@ gboolean gfsm_alphabet_load_handle (gfsmAlphabet *a, gfsmIOHandle *ioh, gfsmErro
 
   //if (!myname) myname = "gfsm_string_alphabet_load_file()";
 
-  while (!gfsmio_eof(ioh)) {
+  do {
     g_string_truncate(s_key,0);
     g_string_truncate(s_lab,0);
 
     //-- read data fields into temp strings
-    while ((c = gfsmio_getc(ioh)) != GFSMIO_EOF && isspace(c)) ; if (c==GFSMIO_EOF) break;
-    for(g_string_append_c(s_key,c); (c = gfsmio_getc(ioh)) != GFSMIO_EOF && !isspace(c); ) {
-      g_string_append_c(s_key,c);
-    }
-    while ((c = gfsmio_getc(ioh)) != GFSMIO_EOF && isspace(c)) ; if (c==GFSMIO_EOF) break;
-    for(g_string_append_c(s_lab,c); (c = gfsmio_getc(ioh)) != GFSMIO_EOF && !isspace(c); ) {
-      g_string_append_c(s_lab,c);
-    }
-    while (c != '\n' && (c = gfsmio_getc(ioh)) != GFSMIO_EOF) ;
+    for (c=gfsmio_getc(ioh); !gfsmio_eof(ioh) && isspace((char)c); c=gfsmio_getc(ioh)) ;
+    if (gfsmio_eof(ioh)) break;
+
+    for (g_string_append_c(s_key,c), c=gfsmio_getc(ioh);
+	 !gfsmio_eof(ioh) && !isspace((char)c);
+	 c=gfsmio_getc(ioh))
+      {
+	g_string_append_c(s_key,c);
+      }
+
+    for ( ; !gfsmio_eof(ioh) && isspace((char)c); c=gfsmio_getc(ioh)) ;
+    if (gfsmio_eof(ioh)) break;
+
+    for (g_string_append_c(s_lab,c), c=gfsmio_getc(ioh);
+	 !gfsmio_eof(ioh) && !isspace((char)c);
+	 c=gfsmio_getc(ioh))
+      {
+	g_string_append_c(s_lab,c);
+      }
+
+    for ( ; (char)c != '\n' && !gfsmio_eof(ioh); c=gfsmio_getc(ioh) ) ;
 
     //-- get actual key and label
     key   = gfsm_alphabet_string2key(a,s_key);
@@ -688,12 +700,14 @@ gboolean gfsm_alphabet_load_handle (gfsmAlphabet *a, gfsmIOHandle *ioh, gfsmErro
       gfsm_alphabet_remove_key(a, key);
       gfsm_alphabet_insert(a, key, label);
     }
-  }
+  } while (!gfsmio_eof(ioh));
+
   //-- cleanup
   g_string_free(s_key,TRUE);
   g_string_free(s_lab,TRUE);
   return TRUE;
 }
+
 
 /*--------------------------------------------------------------
  * load_file()

@@ -1,4 +1,3 @@
-
 /*=============================================================================*\
  * File: gfsmIO.c
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
@@ -303,8 +302,8 @@ int gfsmio_getc(gfsmIOHandle *ioh)
   if (gfsmio_eof(ioh)) return GFSMIO_EOF;
   else {
     //-- getc() --> read()
-    int c = GFSMIO_EOF;
-    if (gfsmio_read(ioh, &c, 1)) return c;
+    unsigned char c = 0;
+    if (gfsmio_read(ioh, &c, 1)) return (int)c;
   }
   return GFSMIO_EOF;
 }

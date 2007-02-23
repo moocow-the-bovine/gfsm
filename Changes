@@ -1,5 +1,9 @@
 Change log for gfsm
 
+v0.0.9 Fri, 23 Feb 2007 18:38:36 +0100
+   + fixed nasty bug in gfsm_alphabet_load_handle() and gfsmio_getc() causing
+     char decimal 255 to return as EOF
+
 v0.0.8 Thu, 15 Feb 2007 12:05:41 +0100
    + updated build system to build more cleanly on non-development systems
      - e.g. missing optgen.perl, flex, bison, pod2x, perl, etc.
