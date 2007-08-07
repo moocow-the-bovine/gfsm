@@ -148,16 +148,37 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 					   gboolean restore1,
 					   gboolean restore2);
 
-/** Prepare FSTs \a (fsm1,fsm2) for composition: inserts and alters
- *  epsilon-arcs in both \a fsm1 and \a fsm2.
- *  Called by gfsm_automaton_compose_full().
+/** Prepare FST \a fsm1 for composition: inserts and alters
+ *  epsilon-arcs, and optionally populates an alphabet.
+ *  - \c fsm1 changes:
+ *    - alters arcs   (q --a:eps--> r) to (q --a:eps2--> r)
+ *    - adds new arcs (q --eps:eps1--> q)
+ *  \param fsm1 FST for composition (lower-middle)
+ *  \param abet identity alphabet or NULL, populated with \a fsm1 upper labels if given
+ */
+void gfsm_automaton_compose_prepare_fsm1(gfsmAutomaton *fsm1, gfsmAlphabet *abet);
+
+/** Prepare FST \a fsm2 for composition: inserts and alters
+ *  epsilon-arcs, and optionally populates an alphabet.
+ *  - \c fsm2 changes:
+ *    - alters arcs   (q --eps:b--> r) to (q --eps1:b--> r)
+ *    - adds new arcs (q --eps2:eps--> q)
+ *  \param fsm2 FST for composition (middle-upper)
+ *  \param abet identity alphabet or NULL, populated with \a fsm2 upper labels if given
+ */
+void gfsm_automaton_compose_prepare_fsm2(gfsmAutomaton *fsm2, gfsmAlphabet *abet);
+
+
+/** Prepare FSTs \a (fsm1,fsm2) for composition.  Really just a wrapper
+ *  for gfsm_automaton_compose_prepare_fsm1(), gfsm_automaton_compose_prepare_fsm2()
+ *  which creates and populates an identity alphabet from upper labels of \a fsm1.
  *
  *  \param fsm1 first argument of compose()
  *  \param fsm2 second argument of compose()
- *  \returns gfsmIdentityAlphabet* for output-alphabet of \a fsm1
+ *
+ *  \returns gfsmIdentityAlphabet* for upper-alphabet of \a fsm1
  */
 gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
-
 
 /* Create a composition filter for the intersection alphabet \a abet
  * in the manner described in Mohri, Pereira, and Riley (1996).

@@ -258,24 +258,25 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 }
 
 /*--------------------------------------------------------------
- * compose_prepare()
+ * compose_prepare_fsm1()
  */
-gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+void gfsm_automaton_compose_prepare_fsm1(gfsmAutomaton *fsm1, gfsmAlphabet *abet)
 {
   gfsmStateId    qid;
   gfsmArcIter    ai;
   gfsmArc       *arc;
-  gfsmAlphabet  *abet   = gfsm_identity_alphabet_new();
 
-  //-- prepare fsm1 and get alphabet
+  //-- prepare fsm1 (and maybe get alphabet)
   fsm1->flags.sort_mode = gfsmASMNone;
   for (qid=0; qid < fsm1->states->len; qid++) {
     for (gfsm_arciter_open(&ai,fsm1,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
       {
 	arc = gfsm_arciter_arc(&ai);
 
-	//-- fill alphabet
-	gfsm_alphabet_insert(abet, (gpointer)((gfsmLabelVal)arc->upper), arc->upper);
+	//-- maybe populate alphabet
+	if (abet) {
+	  gfsm_alphabet_insert(abet, (gpointer)((gfsmLabelVal)arc->upper), arc->upper);
+	}
 
 	//-- alter arcs (q --a:eps--> r) to (q --a:eps1--> r)
 	if (arc->upper == gfsmEpsilon) arc->upper = gfsmEpsilon2;
@@ -283,22 +284,48 @@ gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton 
     //-- add new arc (q --eps:eps1--> q)
     gfsm_automaton_add_arc(fsm1, qid,qid, gfsmEpsilon,gfsmEpsilon1, fsm1->sr->one);
   }
+}
+
+/*--------------------------------------------------------------
+ * compose_prepare_fsm2()
+ */
+void gfsm_automaton_compose_prepare_fsm2(gfsmAutomaton *fsm2, gfsmAlphabet *abet)
+{
+  gfsmStateId    qid;
+  gfsmArcIter    ai;
+  gfsmArc       *arc;
 
   //-- prepare fsm2
   fsm2->flags.sort_mode = gfsmASMNone;
   for (qid=0; qid < fsm2->states->len; qid++) {
-    for (gfsm_arciter_open(&ai,fsm2,qid), gfsm_arciter_seek_lower(&ai,gfsmEpsilon);
-	 gfsm_arciter_ok(&ai);
-	 gfsm_arciter_seek_lower(&ai,gfsmEpsilon))
+    for (gfsm_arciter_open(&ai,fsm2,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
+      /*(gfsm_arciter_open(&ai,fsm2,qid), gfsm_arciter_seek_lower(&ai,gfsmEpsilon);
+	gfsm_arciter_ok(&ai);
+	gfsm_arciter_seek_lower(&ai,gfsmEpsilon))*/
       {
+	arc = gfsm_arciter_arc(&ai);
+	
+	//-- maybe populate alphabet
+	if (abet) {
+	  gfsm_alphabet_insert(abet, (gpointer)((gfsmLabelVal)arc->lower), arc->lower);
+	}
+	
 	//-- alter arcs (q --eps:b--> r) to (q --eps1:b--> r)
-	arc        = gfsm_arciter_arc(&ai);
-	arc->lower = gfsmEpsilon1;
+	if (arc->lower == gfsmEpsilon) arc->lower = gfsmEpsilon1;
       }
     //-- add new arc (q --eps2:eps--> q)
     gfsm_automaton_add_arc(fsm2, qid,qid, gfsmEpsilon2,gfsmEpsilon, fsm2->sr->one);
   }
+}
 
+/*--------------------------------------------------------------
+ * compose_prepare()
+ */
+gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+{
+  gfsmAlphabet  *abet = gfsm_identity_alphabet_new();
+  gfsm_automaton_compose_prepare_fsm1(fsm1,abet);
+  gfsm_automaton_compose_prepare_fsm2(fsm2,NULL);
   return abet;
 }
 
