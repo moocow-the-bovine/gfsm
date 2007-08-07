@@ -150,21 +150,25 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 
 /** Prepare FST \a fsm1 for composition: inserts and alters
  *  epsilon-arcs, and optionally populates an alphabet.
- *  - \c fsm1 changes:
- *    - alters arcs   (q --a:eps--> r) to (q --a:eps2--> r)
- *    - adds new arcs (q --eps:eps1--> q)
+ *
  *  \param fsm1 FST for composition (lower-middle)
  *  \param abet identity alphabet or NULL, populated with \a fsm1 upper labels if given
+ *
+ *  - alters arcs   (q --a:eps--> r) to (q --a:eps2--> r)
+ *  - adds new arcs (q --eps:eps1--> q)
+ *  .
  */
 void gfsm_automaton_compose_prepare_fsm1(gfsmAutomaton *fsm1, gfsmAlphabet *abet);
 
 /** Prepare FST \a fsm2 for composition: inserts and alters
  *  epsilon-arcs, and optionally populates an alphabet.
- *  - \c fsm2 changes:
- *    - alters arcs   (q --eps:b--> r) to (q --eps1:b--> r)
- *    - adds new arcs (q --eps2:eps--> q)
+ *
  *  \param fsm2 FST for composition (middle-upper)
  *  \param abet identity alphabet or NULL, populated with \a fsm2 upper labels if given
+ *
+ *  - alters arcs   (q --eps:b--> r) to (q --eps1:b--> r)
+ *  - adds new arcs (q --eps2:eps--> q)
+ *  .
  */
 void gfsm_automaton_compose_prepare_fsm2(gfsmAutomaton *fsm2, gfsmAlphabet *abet);
 
