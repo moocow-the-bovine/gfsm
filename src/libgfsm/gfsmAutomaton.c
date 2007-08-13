@@ -66,7 +66,7 @@ gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srty
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src)
 {
   dst->flags   = src->flags;
-  dst->root_id = src->root_id;
+  dst->root_id = src->root_id; //-- DANGEROUS!
 
   //-- copy semiring
   if (dst->sr && dst->sr->type != src->sr->type) {
@@ -257,7 +257,7 @@ gboolean gfsm_automaton_is_cyclic(gfsmAutomaton *fsm)
   gfsmBitVector *completed;  //-- records which states we've completed
   gboolean       rc;         //-- return value
 
-  if (!fsm || fsm->root_id == gfsmNoState) return FALSE;
+  if (!fsm || fsm->root_id == gfsmNoState || fsm->states->len <= 0) return FALSE;
 
   visited   = gfsm_bitvector_sized_new(fsm->states->len);
   completed = gfsm_bitvector_sized_new(fsm->states->len);

@@ -6,6 +6,10 @@ v0.0.9 Fri, 23 Feb 2007 18:38:36 +0100
    + decomposed compose_prepare() into compose_prepare_fsm1(), compose_prepare_fsm2()
      - should make it easier to hack a cascade implementation
    + fixed output-filename parsing bug in gfsmlabels
+   + added check for fsm->states->len==0 in is_cyclic(), fixes bug in gfsminfo
+     for empty automata created with gfsm_automaton_copy_shallow() (aka 'shadow')
+     - the real problem here is probably that copy_shallow() also copies root_id, even
+       though the corresponding state doesn't exist
 
 v0.0.8 Thu, 15 Feb 2007 12:05:41 +0100
    + updated build system to build more cleanly on non-development systems
