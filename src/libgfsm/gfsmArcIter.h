@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arc iterators
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -58,7 +58,15 @@ void gfsm_arciter_reset(gfsmArcIter *aip);
 
 /** close an arc-iterator pointer \a aip */
 void gfsm_arciter_close(gfsmArcIter *aip);
-/* does nothing */
+/* does nothing (useful) */
+
+/** Copy an arc-iterator.
+ * \returns dst
+ */
+gfsmArcIter *gfsm_arciter_copy(gfsmArcIter *dst, const gfsmArcIter *src);
+
+/** Clone an arc-iterator */
+gfsmArcIter *gfsm_arciter_clone(const gfsmArcIter *src);
 
 //@}
 
