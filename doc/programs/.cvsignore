@@ -1,5 +1,8 @@
 *.tmp
-*.pod
+
+#*.pod
+acknowledge.pod
+
 *.gog
 *.html
 *.txt

@@ -1,0 +1,413 @@
+
+=pod
+
+=head1 NAME
+
+gfsmarith - Perform an elementary arithmetic operation on automaton weights
+
+
+
+=head1 SYNOPSIS
+
+gfsmarith [OPTIONS] FSMFILE
+
+ Arguments:
+    FSMFILE  Stored binary gfsm file
+
+ Options
+    -h       --help            Print help and exit.
+    -V       --version         Print version and exit.
+    -cFILE   --rcfile=FILE     Read an alternate configuration file.
+    -zLEVEL  --compress=LEVEL  Specify compression level of output file.
+    -FFILE   --output=FILE     Specifiy output file (default=stdout).
+
+ Operator Selection
+    -E       --exp             Real exponentiation
+    -L       --log             Real logarithm
+    -mFLOAT  --multiply=FLOAT  Real multiplication by WEIGHT
+    -aFLOAT  --add=FLOAT       Real addition of WEIGHT
+    -p       --positive        Set real negative weights to zero
+             --times=FLOAT     Semiring multiplication by WEIGHT
+             --plus=FLOAT      Semiring addition of WEIGHT
+             --sr-positive     Set semiring-negative weights to semiring-zero
+
+ Weight Selection
+    -A       --no-arcs         Exclude arc weights (default: include)
+    -f       --no-finals       Exclude final weights (default: include)
+    -Z       --zero            Include semiring-zero weights (default: exclude)
+
+ State & Label Selection
+    -i       --initial         Select only initial state and its arcs/finality
+    -sID     --state=ID        Select only state ID and its arcs/finality (default=all)
+    -lLO     --lower=LO        Select only arcs with lower-label LO (default=any)
+    -uHI     --upper=HI        Select only arcs with upper-label HI (defualt=any)
+
+=cut
+
+###############################################################
+# Description
+###############################################################
+=pod
+
+=head1 DESCRIPTION
+
+Perform an elementary arithmetic operation on automaton weights
+
+
+
+=cut
+
+###############################################################
+# Arguments
+###############################################################
+=pod
+
+=head1 ARGUMENTS
+
+=over 4
+
+=item C<FSMFILE>
+
+Stored binary gfsm file
+
+
+If unspecified, standard input will be read
+
+
+=back
+
+
+
+=cut
+
+
+###############################################################
+# Options
+###############################################################
+=pod
+
+=head1 OPTIONS
+
+=over 4
+
+=item C<--help> , C<-h>
+
+Print help and exit.
+
+Default: '0'
+
+
+
+
+=item C<--version> , C<-V>
+
+Print version and exit.
+
+Default: '0'
+
+
+
+
+=item C<--rcfile=FILE> , C<-cFILE>
+
+Read an alternate configuration file.
+
+Default: 'NULL'
+
+See also: L<CONFIGURATION FILES>.
+
+
+
+
+=item C<--compress=LEVEL> , C<-zLEVEL>
+
+Specify compression level of output file.
+
+Default: '-1'
+
+
+Specify zlib compression level of output file. -1 (default) indicates
+the default compression level, 0 (zero) indicates no zlib compression at all,
+and 9 indicates the best possible compression.
+
+
+
+
+
+=item C<--output=FILE> , C<-FFILE>
+
+Specifiy output file (default=stdout).
+
+Default: '-'
+
+
+
+
+=back
+
+=cut
+
+#--------------------------------------------------------------
+# Option-Group Operator Selection
+#--------------------------------------------------------------
+=pod
+
+=head2 Operator Selection
+
+=over 4
+
+=item C<--exp> , C<-E>
+
+Real exponentiation
+
+Default: '0'
+
+
+
+
+=item C<--log> , C<-L>
+
+Real logarithm
+
+Default: '0'
+
+
+
+
+=item C<--multiply=FLOAT> , C<-mFLOAT>
+
+Real multiplication by WEIGHT
+
+Default: '0'
+
+
+
+
+=item C<--add=FLOAT> , C<-aFLOAT>
+
+Real addition of WEIGHT
+
+Default: '0'
+
+
+
+
+=item C<--positive> , C<-p>
+
+Set real negative weights to zero
+
+Default: '0'
+
+
+
+
+=item C<--times=FLOAT>
+
+Semiring multiplication by WEIGHT
+
+Default: '0'
+
+
+
+
+=item C<--plus=FLOAT>
+
+Semiring addition of WEIGHT
+
+Default: '0'
+
+
+
+
+=item C<--sr-positive>
+
+Set semiring-negative weights to semiring-zero
+
+Default: '0'
+
+
+
+
+=back
+
+=cut
+
+#--------------------------------------------------------------
+# Option-Group Weight Selection
+#--------------------------------------------------------------
+=pod
+
+=head2 Weight Selection
+
+=over 4
+
+=item C<--no-arcs> , C<-A>
+
+Exclude arc weights (default: include)
+
+Default: '0'
+
+
+
+
+=item C<--no-finals> , C<-f>
+
+Exclude final weights (default: include)
+
+Default: '0'
+
+
+
+
+=item C<--zero> , C<-Z>
+
+Include semiring-zero weights (default: exclude)
+
+Default: '0'
+
+
+
+
+=back
+
+=cut
+
+#--------------------------------------------------------------
+# Option-Group State & Label Selection
+#--------------------------------------------------------------
+=pod
+
+=head2 State & Label Selection
+
+=over 4
+
+=item C<--initial> , C<-i>
+
+Select only initial state and its arcs/finality
+
+Default: '0'
+
+
+
+
+=item C<--state=ID> , C<-sID>
+
+Select only state ID and its arcs/finality (default=all)
+
+Default: '-1'
+
+
+
+
+=item C<--lower=LO> , C<-lLO>
+
+Select only arcs with lower-label LO (default=any)
+
+Default: '-1'
+
+
+
+
+=item C<--upper=HI> , C<-uHI>
+
+Select only arcs with upper-label HI (defualt=any)
+
+Default: '-1'
+
+
+
+
+=back
+
+
+
+
+=cut
+
+###############################################################
+# configuration files
+###############################################################
+=pod
+
+=head1 CONFIGURATION FILES
+
+Configuration files are expected to contain lines of the form:
+
+    LONG_OPTION_NAME    OPTION_VALUE
+
+where LONG_OPTION_NAME is the long name of some option,
+without the leading '--', and OPTION_VALUE is the value for
+that option, if any.  Fields are whitespace-separated.
+Blank lines and comments (lines beginning with '#')
+are ignored.
+
+No configuration files are read by default.
+
+=cut
+
+
+
+###############################################################
+# Addenda
+###############################################################
+=pod
+
+=head1 ADDENDA
+
+
+
+=head2 About this Document
+
+Documentation file auto-generated by optgen.perl version 0.05.
+Translation was initiated on
+Tue Oct 16 12:08:15 CEST 2007
+as:
+
+   /usr/local/bin/optgen.perl -l --nocfile --nohfile -F gfsmarith gfsmarith.gog
+
+=cut
+
+
+###############################################################
+# Bugs
+###############################################################
+=pod
+
+=head1 BUGS AND LIMITATIONS
+
+
+
+Note that the --plus and --times operations are
+sensitive to the semiring associated with the stored FSM file, while
+the --add and --multiply operations have the usual real-number interpretations,
+regardless of the automaton semiring.
+
+
+
+=cut
+
+###############################################################
+# Footer
+###############################################################
+=pod
+
+=head1 ACKNOWLEDGEMENTS
+
+Perl by Larry Wall.
+
+Getopt::Gen by Bryan Jurish.
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>moocow@ling.uni-potsdam.deE<gt>
+
+=head1 SEE ALSO
+
+
+L<gfsmutils>
+
+
+=cut
+
+
+
