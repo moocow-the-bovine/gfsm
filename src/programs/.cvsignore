@@ -61,8 +61,8 @@ SFST*
 #*.lab
 *.scl
 
-*_cmdparser.c
-*_cmdparser.h
+#*_cmdparser.c
+#*_cmdparser.h
 
 argh
 save
