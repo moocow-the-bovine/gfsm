@@ -71,20 +71,6 @@ void gfsm_arciter_close(gfsmArcIter *aip) {
   aip->arcs  = NULL;
 }
 
-/*--------------------------------------------------------------
- * copy()
- */
-gfsmArcIter *gfsm_arciter_copy(gfsmArcIter *dst, const gfsmArcIter *src) {
-  *dst = *src;
-  return dst;
-}
-
-/*--------------------------------------------------------------
- * clone()
- */
-gfsmArcIter *gfsm_arciter_clone(const gfsmArcIter *src) {
-  return (gfsmArcIter*)gfsm_mem_dup_n(src,sizeof(gfsmArcIter));
-}
 
 /*======================================================================
  * Methods: Arc iterators: Accessors

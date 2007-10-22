@@ -139,7 +139,7 @@ guint gfsm_state_weight_pair_hash(gfsmStateWeightPair *swp)
 //--------------------------------------------------------------
 gint gfsm_state_weight_pair_compare(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2, gfsmSemiring *sr)
 {
-  gint rc = gfsm_uint_compare(GINT_TO_POINTER(swp1->id),GINT_TO_POINTER(swp2->id));
+  gint rc = gfsm_uint_compare((gconstpointer)swp1->id,(gconstpointer)swp2->id);
   if (!rc) rc = gfsm_sr_compare(sr,swp1->w,swp2->w);
   return rc;
 }

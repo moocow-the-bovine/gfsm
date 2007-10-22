@@ -79,14 +79,14 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
       if (cfg->qr >= statemap->len) {
 	g_ptr_array_set_size(statemap, cfg->qr + gfsmLookupStateMapGet);
       }
-      g_ptr_array_index(statemap, cfg->qr) = GUINT_TO_POINTER(cfg->qt);
+      g_ptr_array_index(statemap, cfg->qr) = (gpointer)cfg->qt;
     }
 
     //-- get states
     qt = gfsm_automaton_find_state_const(fst,    cfg->qt);
     qr = gfsm_automaton_find_state      (result, cfg->qr);
     a  = (cfg->i < input->len
-	  ? (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(input, cfg->i))
+	  ? (gfsmLabelVal)(g_ptr_array_index(input, cfg->i))
 	  : gfsmNoLabel);
 
     //-- check for final states
@@ -176,11 +176,11 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
   gfsm_automaton_add_arc(trellis, qid_trellis, qid_trellis, gfsmNoLabel, gfsmNoLabel, fst->sr->one);
 
   //-- initial config: stateid-mappings
-  g_ptr_array_index(trellis2fst, qid_trellis) = GUINT_TO_POINTER(fst->root_id);
-  g_tree_insert(fst2trellis, GUINT_TO_POINTER(fst->root_id), GUINT_TO_POINTER(qid_trellis));
+  g_ptr_array_index(trellis2fst, qid_trellis) = (gpointer)fst->root_id;
+  g_tree_insert(fst2trellis, (gpointer)fst->root_id, (gpointer)qid_trellis);
 
   //-- initial config: epsilon-expansion on column
-  g_ptr_array_index(cols,0) = col = g_slist_prepend(NULL, GUINT_TO_POINTER(qid_trellis));
+  g_ptr_array_index(cols,0) = col = g_slist_prepend(NULL, (gpointer)qid_trellis);
   _gfsm_viterbi_expand_column(fst, trellis, col, trellis2fst, fst2trellis);
 
   //-- initial config: cleanup
@@ -189,7 +189,7 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 
   //-- ye olde loope: for each input character (i)
   for (i=0; i < input->len; i++) {
-    gfsmLabelVal a  = (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(input, i));
+    gfsmLabelVal a  = (gfsmLabelVal)g_ptr_array_index(input, i);
 
     fst2trellis = gfsm_viterbi_map_new();
     col         = NULL;
@@ -198,8 +198,8 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
     for (prevcoli=(GSList*)g_ptr_array_index(cols,i); prevcoli != NULL; prevcoli=prevcoli->next) {
 
       //-- get the top element of the queue
-      qid_trellis = (gfsmStateId)GPOINTER_TO_UINT(prevcoli->data);
-      qid_fst     = (gfsmStateId)GPOINTER_TO_UINT(g_ptr_array_index(trellis2fst, qid_trellis));
+      qid_trellis = (gfsmStateId)(prevcoli->data);
+      qid_fst     = (gfsmStateId)g_ptr_array_index(trellis2fst, qid_trellis);
 
       //-- get state pointers
       q_trellis = gfsm_automaton_find_state(trellis, qid_trellis);
@@ -220,7 +220,7 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 
 	  //-- found a matching arc: is its target state already marked as a successor?
 	  if (g_tree_lookup_extended(fst2trellis,
-				     GUINT_TO_POINTER(arc_fst->target),
+				     (gpointer)(arc_fst->target),
 				     &orig_key,
 				     (gpointer*)(&qid_trellis_nxt)))
 	    {
@@ -239,10 +239,10 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 		arc_trellis_nxt->weight  = w_trellis_nxt_new;
 
 		//-- update mappings: trellis->fst stateid-map
-		g_ptr_array_index(trellis2fst, qid_trellis_nxt) = GUINT_TO_POINTER(arc_fst->target);
+		g_ptr_array_index(trellis2fst, qid_trellis_nxt) = (gpointer)arc_fst->target;
 
 		//-- update mappings: fst->trellis stateid-map
-		g_tree_insert(fst2trellis, GUINT_TO_POINTER(arc_fst->target), GUINT_TO_POINTER(qid_trellis_nxt));
+		g_tree_insert(fst2trellis, (gpointer)arc_fst->target, (gpointer)qid_trellis_nxt);
 	      }
 	    }
 	else
@@ -259,13 +259,13 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 	    if (qid_trellis_nxt >= trellis2fst->len) {
 	      g_ptr_array_set_size(trellis2fst, qid_trellis_nxt + gfsmLookupStateMapGet);
 	    }
-	    g_ptr_array_index(trellis2fst,qid_trellis_nxt) = GUINT_TO_POINTER(arc_fst->target);
+	    g_ptr_array_index(trellis2fst,qid_trellis_nxt) = (gpointer)arc_fst->target;
 
 	    //-- save fst->trellis stateid-map
-	    g_tree_insert(fst2trellis, GUINT_TO_POINTER(arc_fst->target), GUINT_TO_POINTER(qid_trellis_nxt));
+	    g_tree_insert(fst2trellis, (gpointer)arc_fst->target, (gpointer)qid_trellis_nxt);
 
 	    //-- add new trellis state to the column
-	    col = g_slist_prepend(col, GUINT_TO_POINTER(qid_trellis_nxt));
+	    col = g_slist_prepend(col, (gpointer)qid_trellis_nxt);
 	  }
 
 	} //-- END: seek input-matching arcs
@@ -286,8 +286,8 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
   for (prevcoli=(GSList*)g_ptr_array_index(cols,input->len); prevcoli != NULL; prevcoli=prevcoli->next) {
 
     //-- get the top element of the queue
-    qid_trellis = (gfsmStateId)GPOINTER_TO_UINT(prevcoli->data);
-    qid_fst     = (gfsmStateId)GPOINTER_TO_UINT(g_ptr_array_index(trellis2fst, qid_trellis));
+    qid_trellis = (gfsmStateId)(prevcoli->data);
+    qid_fst     = (gfsmStateId)g_ptr_array_index(trellis2fst, qid_trellis);
       
     //-- get state pointers
     q_trellis = gfsm_automaton_find_state(trellis, qid_trellis);
@@ -368,11 +368,11 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
   //-- pass-2: add epsilon arcs from every literal in the column
   for (coli=col; coli != NULL; coli=coli->next) {
     //-- get node
-    qid_trellis = (gfsmStateId)GPOINTER_TO_UINT(coli->data);
+    qid_trellis = (gfsmStateId)(coli->data);
     q_trellis   = gfsm_automaton_find_state(trellis,qid_trellis);
     arc_trellis = gfsm_viterbi_node_arc(q_trellis);
     w_trellis   = gfsm_viterbi_node_best_weight(q_trellis);
-    qid_fst     = (gfsmStateId)GPOINTER_TO_UINT(g_ptr_array_index(trellis2fst,qid_trellis));
+    qid_fst     = (gfsmStateId)g_ptr_array_index(trellis2fst,qid_trellis);
 
     //-- search for input-epsilon arcs & add them to this column
     for (gfsm_arciter_open(&ai,fst,qid_fst), gfsm_arciter_seek_lower(&ai,gfsmEpsilon);
@@ -387,7 +387,7 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 
 	//-- found an eps-arc: is its target state already marked as a successor?
 	if (g_tree_lookup_extended(fst2trellis,
-				   GUINT_TO_POINTER(arc_fst->target),
+				   (gpointer)(arc_fst->target),
 				   &orig_key,
 				   (gpointer*)(&qid_trellis_nxt)))
 	  {
@@ -406,10 +406,10 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 	      arc_trellis_nxt->weight  = w_trellis_eps;
 
 	      //-- update mappings: trellis->fst stateid-map
-	      g_ptr_array_index(trellis2fst, qid_trellis_nxt) = GUINT_TO_POINTER(arc_fst->target);
+	      g_ptr_array_index(trellis2fst, qid_trellis_nxt) = (gpointer)arc_fst->target;
 
 	      //-- update mappings: fst->trellis stateid-map
-	      g_tree_insert(fst2trellis, GUINT_TO_POINTER(arc_fst->target), GUINT_TO_POINTER(qid_trellis_nxt));
+	      g_tree_insert(fst2trellis, (gpointer)arc_fst->target, (gpointer)qid_trellis_nxt);
 	    }
 	    else {
 	      //-- eps-path is worse than the existing path: forget about it
@@ -430,13 +430,13 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 	    if (qid_trellis_nxt >= trellis2fst->len) {
 	      g_ptr_array_set_size(trellis2fst, qid_trellis_nxt + gfsmLookupStateMapGet);
 	    }
-	    g_ptr_array_index(trellis2fst,qid_trellis_nxt) = GUINT_TO_POINTER(arc_fst->target);
+	    g_ptr_array_index(trellis2fst,qid_trellis_nxt) = (gpointer)arc_fst->target;
 
 	    //-- save fst->trellis stateid-map
-	    g_tree_insert(fst2trellis, GUINT_TO_POINTER(arc_fst->target), GUINT_TO_POINTER(qid_trellis_nxt));
+	    g_tree_insert(fst2trellis, (gpointer)arc_fst->target, (gpointer)qid_trellis_nxt);
 
 	    //-- queue-up new trellis state for eps-seek
-	    coli->next = g_slist_prepend(coli->next, GUINT_TO_POINTER(qid_trellis_nxt));
+	    coli->next = g_slist_prepend(coli->next, (gpointer)qid_trellis_nxt);
 	  }
 
       } //-- END: seek epsilon arcs
