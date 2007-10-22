@@ -78,7 +78,7 @@ gfsmStateId gfsm_trie_add_path_full(gfsmTrie          *trie,
   if (path_states) {
     g_ptr_array_set_size(path_states, (lo ? lo->len : 0) + (hi ? hi->len : 0));
     path_states->len = 0;
-    g_ptr_array_add(path_states, GUINT_TO_POINTER(qid));
+    g_ptr_array_add(path_states, (gpointer)qid);
   }
 
   //-- add lower path
@@ -87,8 +87,8 @@ gfsmStateId gfsm_trie_add_path_full(gfsmTrie          *trie,
       gfsm_automaton_set_final_state_full(trie, qid, TRUE,
 					  gfsm_sr_plus(trie->sr, w, gfsm_automaton_get_final_weight(trie, qid)));
     }
-    qid = gfsm_trie_get_arc_lower(trie, qid, ((gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(lo,i))), w, add_to_arcs);
-    if (path_states) g_ptr_array_add(path_states, GUINT_TO_POINTER(qid));
+    qid = gfsm_trie_get_arc_lower(trie, qid, ((gfsmLabelVal)g_ptr_array_index(lo,i)), w, add_to_arcs);
+    if (path_states) g_ptr_array_add(path_states, (gpointer)qid);
   }
 
   //-- add upper path
@@ -97,8 +97,8 @@ gfsmStateId gfsm_trie_add_path_full(gfsmTrie          *trie,
       gfsm_automaton_set_final_state_full(trie, qid, TRUE,
 					  gfsm_sr_plus(trie->sr, w, gfsm_automaton_get_final_weight(trie, qid)));
     }
-    qid = gfsm_trie_get_arc_upper(trie, qid, ((gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(hi,i))), w, add_to_arcs);
-    if (path_states) g_ptr_array_add(path_states, GUINT_TO_POINTER(qid));
+    qid = gfsm_trie_get_arc_upper(trie, qid, ((gfsmLabelVal)g_ptr_array_index(hi,i)), w, add_to_arcs);
+    if (path_states) g_ptr_array_add(path_states, (gpointer)qid);
   }
 
   //-- add final epsilon-arc
@@ -136,28 +136,28 @@ gfsmStateId gfsm_trie_find_prefix(gfsmTrie          *trie,
   if (path_states) {
     g_ptr_array_set_size(path_states, (lo ? lo->len : 0) + (hi ? hi->len : 0));
     path_states->len = 0;
-    g_ptr_array_add(path_states, GUINT_TO_POINTER(qid));
+    g_ptr_array_add(path_states, (gpointer)qid);
   }
 
   //-- find lower path
   for (i=0; lo && i < lo->len; i++) {
-    if ( !(a=gfsm_trie_find_arc_lower(trie, qid, ((gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(lo,i))))) )
+    if ( !(a=gfsm_trie_find_arc_lower(trie, qid, ((gfsmLabelVal)g_ptr_array_index(lo,i)))) )
       break;
 
     qid = a->target;
     w = a->weight;
-    if (path_states) g_ptr_array_add(path_states, GUINT_TO_POINTER(qid));
+    if (path_states) g_ptr_array_add(path_states, (gpointer)qid);
   }
 
   //-- find upper path
   if (i==lo->len) {
     for (j=0; hi && j < hi->len; j++) {
-      if ( !(a = gfsm_trie_find_arc_upper(trie, qid, ((gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(hi,j))))) )
+      if ( !(a = gfsm_trie_find_arc_upper(trie, qid, ((gfsmLabelVal)g_ptr_array_index(hi,j)))) )
 	break;
       
       qid = a->target;
       w = a->weight;
-      if (path_states) g_ptr_array_add(path_states, GUINT_TO_POINTER(qid));
+      if (path_states) g_ptr_array_add(path_states, (gpointer)qid);
     }
 
     //-- final state?
