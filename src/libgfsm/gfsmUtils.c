@@ -35,7 +35,7 @@
  */
 gint gfsm_int_compare(gconstpointer a, gconstpointer b)
 {
-  return (GPOINTER_TO_INT(b) - GPOINTER_TO_INT(a));
+  return ((gint)b) - ((gint)a);
 }
 
 /*--------------------------------------------------------------
@@ -43,19 +43,19 @@ gint gfsm_int_compare(gconstpointer a, gconstpointer b)
  */
 gint gfsm_int_compare_data(gconstpointer a, gconstpointer b, gpointer data)
 {
-  return (GPOINTER_TO_INT(b) - GPOINTER_TO_INT(a));
+  return ((gint)b) - ((gint)a);
 }
 
 /*--------------------------------------------------------------
  * uint_compare()
  */
 #define gfsm_uint_compare_code(a,b) \
-    ( GPOINTER_TO_UINT(a) < GPOINTER_TO_UINT(b) ? (-1) : (GPOINTER_TO_UINT(a) == GPOINTER_TO_UINT(b) ? 0 : 1) )
+    ( ((guint)a) < ((guint)b) ? -1 : ( ((guint)a) == ((guint)b) ? 0 : 1 ) )
     //( (gint) ((glong((guint)b)) - (glong((guint)a))) );
 
 gint gfsm_uint_compare(gconstpointer a, gconstpointer b)
 {
-  return gfsm_uint_compare_code(GPOINTER_TO_UINT(a),GPOINTER_TO_UINT(b));
+  return gfsm_uint_compare_code(a,b);
 }
 
 /*--------------------------------------------------------------

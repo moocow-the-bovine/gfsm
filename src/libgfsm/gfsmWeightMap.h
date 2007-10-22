@@ -89,8 +89,7 @@ typedef struct {
 #define gfsm_ptr2weight(p) (*((gfsmWeight*)(&(p))))
 
 /** Macro to convert gfsmWeight->gpointer */
-//#define gfsm_weight2ptr(w) ((gpointer)(*((int*)(&(w)))))
-#define gfsm_weight2ptr(w) GINT_TO_POINTER( *((gint*)(&(w))) )
+#define gfsm_weight2ptr(w) ((gpointer)(*((int*)(&(w)))))
 
 /** lookup: check weightmap membership */
 gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key);
