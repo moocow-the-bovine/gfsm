@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -85,25 +85,26 @@ typedef struct {
 ///\name gfsmWeightmap: Accessors
 //@{
 
-/** Macro to convert gpointer->gfsmWeight */
-#define gfsm_ptr2weight(p) (*((gfsmWeight*)(&(p))))
+/* Macro to convert gpointer->gfsmWeight */
+//#define gfsm_ptr2weight(p) (*((gfsmWeight*)(&(p))))
 
-/** Macro to convert gfsmWeight->gpointer */
+/* Macro to convert gfsmWeight->gpointer */
 //#define gfsm_weight2ptr(w) ((gpointer)(*((int*)(&(w)))))
-#define gfsm_weight2ptr(w) GINT_TO_POINTER( *((gint*)(&(w))) )
+//#define gfsm_weight2ptr(w) GINT_TO_POINTER( *((gint*)(&(w))) )
 
 /** lookup: check weightmap membership */
 gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key);
 
 /** extended lookup: get weight associated with key */
-gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight *wp);
+gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeightU *wp);
 
 /** insert a new key->weight mapping into the weightmap */
 #define _gfsm_weightmap_insert(weightmap,key,w) \
-   g_tree_insert((weightmap),((gpointer)(key)),gfsm_weight2ptr(w))
+     g_tree_insert((weightmap),((gpointer)(key)),((w).p))
+//   g_tree_insert((weightmap),((gpointer)(key)),gfsm_weight2ptr(w))
 
 /** insert a new key->weight mapping into the weightmap */
-void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w);
+void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeightU w);
 
 /** get size of weightmap */
 #define gfsm_weightmap_size(weightmap) g_tree_nnodes(weightmap)
@@ -147,10 +148,10 @@ void gfsm_weighthash_free(gfsmWeightHash *wh);
 //@{
 
 /** extended lookup: get weight associated with key */
-gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeight *wp);
+gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeightU *wp);
 
 /** insert a key->weight mapping into the weighthash */
-void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w);
+void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeightU w);
 
 /** Possibly insert a key->weight mapping into the weighthash
  *  The mapping \a (key=>w) is inserted if either no mapping for \a key exists in \a wh,
@@ -158,7 +159,7 @@ void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w)
  *
  *  \returns TRUE if the mapping was updated, otherwise FALSE.
  */
-gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr);
+gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeightU w, gfsmSemiring *sr);
 
 /** Possibly insert a key->weight mapping into the weighthash
  *  The mapping \a (key=>w) is inserted if no mapping for \a key exists in \a wh.
@@ -167,7 +168,7 @@ gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, g
  *
  *  \returns TRUE if the mapping was updated, otherwise FALSE.
  */
-gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr);
+gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeightU w, gfsmSemiring *sr);
 
 /** Traversal (see g_hash_table_foreach) */
 #define gfsm_weighthash_foreach(wh,func,data) \

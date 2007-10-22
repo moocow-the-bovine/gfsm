@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,7 @@ gfsmLabelVector *gfsm_label_vector_reverse(gfsmLabelVector *v)
  */
 
 //--------------------------------------------------------------
-gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w)
+gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeightU w)
 {
   gfsmPath *p = g_new(gfsmPath,1);
   p->lo = lo ? lo : g_ptr_array_new();
@@ -86,7 +86,7 @@ gfsmPath *gfsm_path_new_copy(gfsmPath *p1)
 }
 
 //--------------------------------------------------------------
-gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr)
+gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeightU w, gfsmSemiring *sr)
 {
   gfsmPath *p = g_new(gfsmPath,1);
 
@@ -114,7 +114,7 @@ gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, g
 }
 
 //--------------------------------------------------------------
-gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr)
+gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeightU w, gfsmSemiring *sr)
 {
   gfsmPath *p = g_new(gfsmPath,1);
 
@@ -130,7 +130,7 @@ gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr)
 }
 
 //--------------------------------------------------------------
-void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr)
+void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeightU w, gfsmSemiring *sr)
 {
   if (lo != gfsmEpsilon) g_ptr_array_add(p->lo, GUINT_TO_POINTER(lo));
   if (hi != gfsmEpsilon) g_ptr_array_add(p->hi, GUINT_TO_POINTER(hi));
@@ -223,11 +223,11 @@ gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm,
 				 gfsmPath      *path)
 {
   gfsmArcIter ai;
-  gfsmWeight  fw;
+  gfsmWeightU fw;
 
   //-- if final state, add to set of full paths
   if (gfsm_automaton_lookup_final(fsm,q,&fw)) {
-    gfsmWeight path_w = path->w;
+    gfsmWeightU path_w = path->w;
     path->w = gfsm_sr_times(fsm->sr, fw, path_w);
 
     if (!gfsm_set_contains(paths,path)) {
@@ -239,7 +239,7 @@ gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm,
   //-- investigate all outgoing arcs
   for (gfsm_arciter_open(&ai, fsm, q); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
     gfsmArc    *arc = gfsm_arciter_arc(&ai);
-    gfsmWeight    w = path->w;
+    gfsmWeightU   w = path->w;
     gfsmLabelVal lo,hi;
 
     if (which==gfsmLSLower) {
@@ -324,7 +324,7 @@ GString *gfsm_path_to_gstring(gfsmPath     *path,
     gfsm_alphabet_labels_to_gstring(abet_hi, path->hi, gs, warn_on_undefined, att_style);
   }
   if (gfsm_sr_compare(sr, path->w, sr->one) != 0) {
-    g_string_append_printf(gs," <%g>",path->w);
+    g_string_append_printf(gs," <%g>",path->w.f);
   }
   return gs;
 }

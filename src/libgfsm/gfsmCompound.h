@@ -49,7 +49,7 @@ typedef struct {
 /// Type for a (stateid,weight) pair (used by algebraic operations)
 typedef struct {
   gfsmStateId id; /**< state-id */
-  gfsmWeight   w; /**< weight */
+  gfsmWeightU  w; /**< weight */
 } gfsmStateWeightPair;
 
 
@@ -123,7 +123,7 @@ gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2
 //@{
 
 /** Create a new gfsmStateWeightPair */
-gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeight w);
+gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeightU w);
 
 /** Clone an existing gfsmStateWeightPair */
 gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp);

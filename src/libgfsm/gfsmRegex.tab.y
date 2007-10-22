@@ -2,6 +2,7 @@
  * Bison Options
  */
 %pure_parser
+%name-prefix="gfsmRegex_yy"
 
 %{
 /*======================================================================
@@ -32,7 +33,7 @@
    GString       *gs;  //-- needs to be freed by hand
    gchar          c;
    guint32        u;
-   gfsmWeight     w;
+   gfsmWeightU    w;
 }
 
 %token <c>      TOK_UNKNOWN TOK_CHAR

@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -228,12 +228,12 @@ gboolean gfsm_stateset_has_final_state(gfsmStateSet *sset, gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * lookup_final_weight()
  */
-gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeight *wp)
+gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeightU *wp)
 {
   guint i;
   gboolean rc=FALSE;
   *wp = fsm->sr->one;
-  gfsmWeight w;
+  gfsmWeightU w;
   for (i = 0; i < sset->len; i++) {
     gfsmStateId id = g_array_index(sset,gfsmStateId,i);
     if (gfsm_automaton_lookup_final(fsm,id,&w)) {

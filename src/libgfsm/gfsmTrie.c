@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2006 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -48,7 +48,7 @@ const gfsmSRType gfsmTrieDefaultSRType = gfsmSRTReal;
 gfsmStateId gfsm_trie_add_path(gfsmTrie        *trie,
 			       gfsmLabelVector *lo,
 			       gfsmLabelVector *hi,
-			       gfsmWeight       w)
+			       gfsmWeightU      w)
 {
   return gfsm_trie_add_path_full(trie,lo,hi,w,TRUE,TRUE,TRUE,NULL);
 }
@@ -58,7 +58,7 @@ gfsmStateId gfsm_trie_add_path(gfsmTrie        *trie,
 gfsmStateId gfsm_trie_add_path_full(gfsmTrie          *trie,
 				    gfsmLabelVector   *lo,
 				    gfsmLabelVector   *hi,
-				    gfsmWeight         w,
+				    gfsmWeightU        w,
 				    gboolean           add_to_arcs,
 				    gboolean           add_to_state_final,
 				    gboolean           add_to_path_final,
@@ -123,12 +123,12 @@ gfsmStateId gfsm_trie_find_prefix(gfsmTrie          *trie,
 				  gfsmLabelVector   *hi,
 				  guint             *lo_i,
 				  guint             *hi_i,
-				  gfsmWeight        *w_last,
+				  gfsmWeightU       *w_last,
 				  gfsmStateIdVector *path_states
 				  )
 {
   gfsmStateId qid = trie->root_id;
-  gfsmWeight fw, w = gfsm_sr_zero(trie->sr);
+  gfsmWeightU fw, w = gfsm_sr_zero(trie->sr);
   guint i, j=0;
   gfsmArc *a;
 
@@ -231,7 +231,7 @@ gfsmArc* gfsm_trie_find_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal l
  */
 
 //--------------------------------------------------------------
-gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight)
+gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeightU w, gboolean add_weight)
 {
   gfsmArc *a=gfsm_trie_find_arc_lower(trie,qid,lab);
 
@@ -247,7 +247,7 @@ gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVa
 }
 
 //--------------------------------------------------------------
-gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight)
+gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeightU w, gboolean add_weight)
 {
   gfsmArc *a=gfsm_trie_find_arc_upper(trie,qid,lab);
 
@@ -264,7 +264,7 @@ gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVa
 }
 
 //--------------------------------------------------------------
-gfsmStateId gfsm_trie_get_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gboolean add_weight)
+gfsmStateId gfsm_trie_get_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeightU w, gboolean add_weight)
 {
   gfsmArc *a=gfsm_trie_find_arc_both(trie,qid,lo,hi);
 

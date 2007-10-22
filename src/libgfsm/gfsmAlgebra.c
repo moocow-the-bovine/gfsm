@@ -39,7 +39,8 @@
  */
 gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm)
 {
-  gfsmWeight w = gfsm_ptr2weight(pw);
+  gfsmWeightU w;
+  w.p = pw;
   if (id != fsm->root_id)
     gfsm_automaton_add_arc(fsm, id, fsm->root_id, gfsmEpsilon, gfsmEpsilon, w);
   return FALSE;
@@ -615,7 +616,8 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair sp,
  */
 gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm)
 {
-  gfsmWeight w = gfsm_ptr2weight(pw);
+  gfsmWeightU w;
+  w.p = pw;
   gfsm_automaton_add_arc(fsm, id, fsm->root_id, gfsmEpsilon, gfsmEpsilon, w);
   gfsm_automaton_find_state(fsm,id)->is_final = FALSE;
   return FALSE;
@@ -627,15 +629,15 @@ gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAuto
  *  + BAD if singleton final of @fsm has outgoing arcs!
  */
 struct _gfsm_automaton_concat_1_final_data {
-  gfsmStateId *rootxp;
-  gfsmWeight  *weightp;
+  gfsmStateId  *rootxp;
+  gfsmWeightU  *weightp;
 };
 gboolean _gfsm_automaton_concat_final_func_1(gfsmStateId id,
 					     gpointer pw,
 					     struct _gfsm_automaton_concat_1_final_data *data)
 {
-  *(data->rootxp) = id;
-  *(data->weightp) = gfsm_ptr2weight(pw);
+  *(data->rootxp)  = id;
+  data->weightp->p = pw;
   return TRUE;
 }
 
@@ -684,7 +686,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
     const gfsmState *s2;
     gfsmState       *s1;
     gfsmArcIter      ai;
-    gfsmWeight       s2fw;
+    gfsmWeightU      s2fw;
 
     s2 = gfsm_automaton_find_state_const(fsm2,id2);
     id1 = id2+offset;
@@ -988,7 +990,7 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
   gfsmStateSetIter  eci;
   gfsmStateId       ecid;
   gfsmLp2EcForeachData lp2ec_foreach_data;
-  gfsmWeight           fw;
+  gfsmWeightU       fw;
 
   //-- check for final state
   if (gfsm_stateset_lookup_final_weight(nfa_ec,nfa,&fw)) {
@@ -1432,7 +1434,7 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
 					       gfsmStateId    q1from,
 					       gfsmStateId    q1to,
 					       gfsmAutomaton *fsm2,
-					       gfsmWeight     w)
+					       gfsmWeightU    w)
 {
   gfsmStateId offset;
   gfsmStateId size2;
@@ -1441,7 +1443,7 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
   const gfsmState *s2;
   gfsmState       *s1;
   gfsmArcIter      ai;
-  gfsmWeight       s2fw;
+  gfsmWeightU      s2fw;
 
   //-- reserve size
   offset = fsm1->states->len;
@@ -1524,9 +1526,9 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
  * rmepsilon_visit_state()
  */
 void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
-				       gfsmStateId qid_noeps, //-- state reachable by non-eps arcs
-				       gfsmStateId qid_eps,   //-- eps-reachable state from qid_noeps
-				       gfsmWeight weight_eps, //-- total weight of followed eps-arcs
+				       gfsmStateId qid_noeps,  //-- state reachable by non-eps arcs
+				       gfsmStateId qid_eps,    //-- eps-reachable state from qid_noeps
+				       gfsmWeightU weight_eps, //-- total weight of followed eps-arcs
 				       gfsmStatePair2WeightHash *sp2wh //-- maps (qid_noeps,qid_noeps)=>sum_weight_eps
 				       )
 {
@@ -1561,13 +1563,15 @@ void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
  */
 void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm)
 {
-  gfsmWeight  w = gfsm_ptr2weight(pw);
-  gfsmWeight  fw2;
+  gfsmWeightU  w; // = gfsm_ptr2weight(pw);
+  gfsmWeightU fw2;
   gfsmArcIter ai;
   gfsmArc     *a;
+
   if (sp->id1==sp->id2) return; //-- sanity check
 
   //-- adopt final weights (plus)
+  w.p = pw;
   if (gfsm_automaton_lookup_final(fsm, sp->id2, &fw2)) {
     gfsm_automaton_set_final_state_full(fsm, sp->id1, TRUE,
 					gfsm_sr_plus(fsm->sr,
@@ -1595,7 +1599,7 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
   gfsmStateId id;
   gfsmState   *s, *ts;
   gfsmArcList *al, *al_next, *al_prev;
-  gfsmWeight   w;
+  gfsmWeightU  w;
   //gfsmArcSortMode sm = gfsm_automaton_sortmode(fsm);
 
   //-- mark automaton as unsorted (avoid "smart" arc-insertion)

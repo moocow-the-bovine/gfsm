@@ -116,7 +116,7 @@ gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2
  */
 
 //--------------------------------------------------------------
-gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeight w)
+gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeightU w)
 {
   gfsmStateWeightPair *swp = g_new(gfsmStateWeightPair,1);
   swp->id = id;
@@ -147,7 +147,7 @@ gint gfsm_state_weight_pair_compare(const gfsmStateWeightPair *swp1, const gfsmS
 //--------------------------------------------------------------
 gboolean gfsm_state_weight_pair_equal(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2)
 {
-  return swp1->id==swp2->id && swp1->w==swp2->w;
+  return swp1->id==swp2->id && swp1->w.f==swp2->w.f;
 }
 
 

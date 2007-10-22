@@ -151,7 +151,7 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
   gfsmStateId       qid_trellis, qid_trellis_nxt, qid_fst;
   gfsmState        *q_trellis, *q_trellis_nxt, *q_fst;
   gfsmArcIter       ai;
-  gfsmWeight        w_trellis;
+  gfsmWeightU       w_trellis;
 
   //-- ensure trellis automaton exists and is clear
   if (trellis==NULL) {
@@ -215,7 +215,7 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 	   gfsm_arciter_next(&ai), gfsm_arciter_seek_lower(&ai,a))
 	{
 	  gfsmArc     *arc_fst         = gfsm_arciter_arc(&ai);
-	  gfsmWeight   w_trellis_nxt;
+	  gfsmWeightU  w_trellis_nxt;
 	  gpointer     orig_key;
 
 	  //-- found a matching arc: is its target state already marked as a successor?
@@ -225,7 +225,7 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 				     (gpointer*)(&qid_trellis_nxt)))
 	    {
 	      //-- yep: known successor: get old ("*_nxt") & new ("*_nxt_new") weights
-	      gfsmWeight w_trellis_nxt_new = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
+	      gfsmWeightU w_trellis_nxt_new = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
 	      q_trellis_nxt = gfsm_automaton_find_state(trellis, qid_trellis_nxt);
 	      w_trellis_nxt = gfsm_viterbi_node_best_weight(q_trellis_nxt);
 
@@ -353,7 +353,7 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
   gfsmStateId        qid_trellis, qid_fst;
   gfsmState         *q_trellis;
   gfsmArc           *arc_trellis;
-  gfsmWeight         w_trellis;
+  gfsmWeightU        w_trellis;
 
   //-- pass-1: add everything already in the column as a literal
   /*
@@ -382,7 +382,7 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 	gfsmArc     *arc_fst = gfsm_arciter_arc(&ai);
 	gfsmStateId  qid_trellis_nxt = gfsmNoState;
 	gfsmState   *q_trellis_nxt;
-	gfsmWeight   w_trellis_nxt;
+	gfsmWeightU  w_trellis_nxt;
 	gpointer     orig_key;
 
 	//-- found an eps-arc: is its target state already marked as a successor?
@@ -392,7 +392,7 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 				   (gpointer*)(&qid_trellis_nxt)))
 	  {
 	    //-- yep: get the old ("*_eps") & new ("*_nxt") weights
-	    gfsmWeight w_trellis_eps = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
+	    gfsmWeightU w_trellis_eps = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
 	    q_trellis_nxt = gfsm_automaton_find_state(trellis,qid_trellis_nxt);
 	    w_trellis_nxt = gfsm_viterbi_node_best_weight(q_trellis_nxt);
 
@@ -454,7 +454,7 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 #if 0
 gfsmViterbiNodeValue *gfsm_viterbi_column_map_insert_if_less(gfsmViterbiMap      *vmap,
 							     gfsmViterbiNodeKey    key,
-							     gfsmWeight            w,
+							     gfsmWeightU           w,
 							     gfsmSemiring         *sr)
 {
   gpointer s_val;

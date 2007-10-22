@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow@ling.uni-potsdam.de>
+   Copyright (C) 2004-2007 by Bryan Jurish <moocow@ling.uni-potsdam.de>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ gfsmError     *err = NULL;
 
 //-- arithmetic operation
 gfsmArithOp    op=gfsmAONone;
-gfsmWeight     arg=0;
+gfsmWeightU    arg={0};
 
 //-- weight selection
 gboolean       do_arcs;
@@ -77,11 +77,11 @@ void get_my_options(int argc, char **argv)
   //-- operator selection
   if      (args.exp_given)      { op = gfsmAOExp; }
   else if (args.log_given)      { op = gfsmAOLog; }
-  else if (args.multiply_given) { op = gfsmAOMult; arg=args.multiply_arg; }
-  else if (args.add_given)      { op = gfsmAOAdd;  arg=args.add_arg; }
+  else if (args.multiply_given) { op = gfsmAOMult; arg.f=args.multiply_arg; }
+  else if (args.add_given)      { op = gfsmAOAdd;  arg.f=args.add_arg; }
   else if (args.positive_given) { op = gfsmAONoNeg; }
-  else if (args.times_given)    { op = gfsmAOSRTimes; arg=args.times_arg; }
-  else if (args.plus_given)     { op = gfsmAOSRPlus;  arg=args.plus_arg; }
+  else if (args.times_given)    { op = gfsmAOSRTimes; arg.f=args.times_arg; }
+  else if (args.plus_given)     { op = gfsmAOSRPlus;  arg.f=args.plus_arg; }
   else if (args.sr_positive_given) { op = gfsmAOSRNoNeg; }
 
   //-- weight selection

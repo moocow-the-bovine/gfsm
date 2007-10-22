@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arcs
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 		       gfsmStateId dst,
 		       gfsmLabelId lo,
 		       gfsmLabelId hi,
-		       gfsmWeight wt)
+		       gfsmWeightU wt)
 {
   if (a) {
     a->target = dst;
@@ -78,7 +78,7 @@ gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
 				 gfsmStateId  dst,
 				 gfsmLabelVal lo,
 				 gfsmLabelVal hi,
-				 gfsmWeight   wt,
+				 gfsmWeightU  wt,
 				 gfsmArcSortData *sdata)
 {
   gfsmArc *a = gfsm_arc_new_full(dst,lo,hi,wt);
@@ -127,7 +127,7 @@ gfsmArcList *gfsm_arclist_init(gfsmArcList *al,
 			       gfsmStateId dst,
 			       gfsmLabelId lo,
 			       gfsmLabelId hi,
-			       gfsmWeight wt,
+			       gfsmWeightU wt,
 			       gfsmArcList *nxt)
 {
   if (al) {

@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: automata
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -264,13 +264,13 @@ void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id);
 void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 					 gfsmStateId    id,
 					 gboolean       is_final,
-					 gfsmWeight     final_weight);
+					 gfsmWeightU    final_weight);
 
 /** Get final weight. \returns final weight if state \a id is final, else \a fsm->sr->zero */
-gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id);
+gfsmWeightU gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id);
 
 /** Lookup final weight. \returns TRUE iff state \a id is final, and sets \a *wp to its final weight. */
-gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeight *wp);
+gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeightU *wp);
 
 /** Get number of outgoing arcs. \returns guint */
 #define gfsm_automaton_out_degree(fsm,id) \
@@ -293,7 +293,7 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
 			    gfsmStateId q2,
 			    gfsmLabelId lo,
 			    gfsmLabelId hi,
-			    gfsmWeight  w);
+			    gfsmWeightU w);
 
 /** Add an arc given pointers \a sp to the state and \a link to a
  *  single-element arclist to be added.  No states are

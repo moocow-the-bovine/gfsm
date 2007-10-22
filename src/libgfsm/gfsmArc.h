@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arcs
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ typedef struct _gfsmArc {
   gfsmStateId       target;  /**< ID of target node */
   gfsmLabelId       lower;   /**< Lower label */
   gfsmLabelId       upper;   /**< Upper label */
-  gfsmWeight        weight;  /**< arc weight */
+  gfsmWeightU       weight;  /**< arc weight */
 } gfsmArc;
 
 /// "Heavy" arc-list structure, data is a (gfsmArc*)
@@ -83,7 +83,7 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 		       gfsmStateId dst,
 		       gfsmLabelId lo,
 		       gfsmLabelId hi,
-		       gfsmWeight wt);
+		       gfsmWeightU wt);
 
 /** Convenience macro */
 #define gfsm_arc_new_full(dst,lo,hi,wt) \
@@ -115,7 +115,7 @@ gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
 				 gfsmStateId  dst,
 				 gfsmLabelVal lo,
 				 gfsmLabelVal hi,
-				 gfsmWeight   wt,
+				 gfsmWeightU  wt,
 				 gfsmArcSortData *sdata);
 
 /** Insert a single arc-link into a (possibly sorted) arclist.

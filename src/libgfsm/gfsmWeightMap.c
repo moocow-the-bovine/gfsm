@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,27 +32,23 @@
  */
 
 //--------------------------------------------------------------
-void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w)
+void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeightU w)
 {
-   g_tree_insert(weightmap, (gpointer)key, gfsm_weight2ptr(w));
+   g_tree_insert(weightmap, (gpointer)key, w.p);
 }
 
 //--------------------------------------------------------------
 gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key)
 {
-  gfsmWeight w;
+  gfsmWeightU w;
   return gfsm_weightmap_lookup(weightmap, key, &w);
 }
 
 //--------------------------------------------------------------
-gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight *wp)
+gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeightU *wp)
 {
-  gpointer orig_key, orig_value;
-  if (g_tree_lookup_extended(weightmap, key, &orig_key, &orig_value)) {
-    *wp = gfsm_ptr2weight(orig_value);
-    return TRUE;
-  }
-  return FALSE;
+  gpointer orig_key;
+  return g_tree_lookup_extended(weightmap, key, &orig_key, &(wp->p));
 }
 
 
@@ -92,74 +88,76 @@ void gfsm_weighthash_free(gfsmWeightHash *wh)
  */
 
 //--------------------------------------------------------------
-gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeight *wp)
+gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeightU *wp)
 {
   gpointer s_key;
-  return g_hash_table_lookup_extended(wh->table, key, &s_key, (gpointer*)wp);
+  return g_hash_table_lookup_extended(wh->table, key, &s_key, &(wp->p));
 }
 
 //--------------------------------------------------------------
-void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w)
+void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeightU w)
 {
   gpointer s_key;
   gpointer s_val;
   if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
     //-- already present: steal & replace
     g_hash_table_steal(wh->table, s_key);
-    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+    g_hash_table_insert(wh->table, s_key, w.p);
   }
   else {
     //-- not yet present: insert new mapping
     if (wh->key_dup) s_key = (*(wh->key_dup))(key);
     else             s_key = (gpointer)key;
-    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+    g_hash_table_insert(wh->table, s_key, w.p);
   }
 }
 
 //--------------------------------------------------------------
-gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr)
+gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeightU w, gfsmSemiring *sr)
 {
   gpointer s_key;
   gpointer s_val;
   if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
     //-- already present 
-    gfsmWeight s_w = gfsm_ptr2weight(s_val);
+    gfsmWeightU s_w;
+    s_w.p = s_val;
     if (!gfsm_sr_less(sr, w, s_w)) return FALSE; //-- (s_w) <= (w) : no update required
 
     //-- steal & update
     g_hash_table_steal(wh->table, s_key);
-    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+    g_hash_table_insert(wh->table, s_key, w.p);
   }
   else {
     //-- not yet present: insert new mapping
     if (wh->key_dup) s_key = (*(wh->key_dup))(key);
     else             s_key = (gpointer)key;
-    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+    g_hash_table_insert(wh->table, s_key, w.p);
   }
 
   return TRUE; //-- update performed
 }
 
 //--------------------------------------------------------------
-gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr)
+gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeightU w, gfsmSemiring *sr)
 {
   gpointer s_key;
   gpointer s_val;
   if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
     //-- already present
-    gfsmWeight s_w = gfsm_ptr2weight(s_val);
+    gfsmWeightU s_w;
+    s_w.p = s_val;
     w = gfsm_sr_plus(sr,w,s_w);
     if (!gfsm_sr_less(sr,w,s_w)) return FALSE; //-- (s_w) <= (w+s_w) : no update required
 
     //-- steal & update
     g_hash_table_steal(wh->table, s_key);
-    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+    g_hash_table_insert(wh->table, s_key, w.p);
   }
   else {
     //-- not yet present: insert new mapping
     if (wh->key_dup) s_key = (*(wh->key_dup))(key);
     else             s_key = (gpointer)key;
-    g_hash_table_insert(wh->table, s_key, gfsm_weight2ptr(w));
+    g_hash_table_insert(wh->table, s_key, w.p);
   }
 
   return TRUE; //-- update performed

@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@
 typedef struct _gfsmPath {
   gfsmLabelVector *lo;  /**< lower label sequence */
   gfsmLabelVector *hi;  /**< upper label sequence */
-  gfsmWeight       w;   /**< weight attached to this path */
+  gfsmWeightU       w;  /**< weight attached to this path */
 } gfsmPath;
 
 
@@ -69,7 +69,7 @@ gfsmLabelVector *gfsm_label_vector_reverse(gfsmLabelVector *v);
 /** Create and return a new gfsmPath, specifying components
  *  If either of \a lo or \a hi are NULL, a new vector will be created.
  */
-gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w);
+gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeightU w);
 
 /** Create and return a new empty gfsmPath, specifying semiring. */
 #define gfsm_path_new(sr) \
@@ -79,13 +79,13 @@ gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeigh
 gfsmPath *gfsm_path_new_copy(gfsmPath *p1);
 
 /** Create and return a new gfsmPath, appending to an existing path */
-gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr);
+gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeightU w, gfsmSemiring *sr);
 
 /** Create and return a new gfsmPath as a copy of an existing gfsmPath with weight multiplied by \a w */
-gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr);
+gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeightU w, gfsmSemiring *sr);
 
 /** Append an arc to a gfsmPath */
-void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr);
+void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeightU w, gfsmSemiring *sr);
 
 /** Pop an arc from a gfsmPath */
 void gfsm_path_pop(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi);

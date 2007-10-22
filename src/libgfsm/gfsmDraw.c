@@ -81,7 +81,7 @@ gboolean gfsm_automaton_draw_vcg_file_full (gfsmAutomaton *fsm,
       fprintf(f, "%u", id);
     }
     if (fsm->flags.is_weighted) {
-      fprintf(f, "/%g", gfsm_automaton_get_final_weight(fsm,id));
+      fprintf(f, "/%g", gfsm_automaton_get_final_weight(fsm,id).f);
     }
     fprintf(f, "\"");
 
@@ -116,7 +116,7 @@ gboolean gfsm_automaton_draw_vcg_file_full (gfsmAutomaton *fsm,
 	}
       }
 
-      if (fsm->flags.is_weighted) fprintf(f, "/%g", a->weight);
+      if (fsm->flags.is_weighted) fprintf(f, "/%g", a->weight.f);
       fprintf(f, "\"}\n");
     }
   }
@@ -212,7 +212,7 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
       fprintf(f, "%u", id);
     }
     if (fsm->flags.is_weighted && s->is_final) {
-      fprintf(f, "/%g", gfsm_automaton_get_final_weight(fsm,id));
+      fprintf(f, "/%g", gfsm_automaton_get_final_weight(fsm,id).f);
     }
     fprintf(f, "\", shape=%s, style=%s, fontsize=%d",
 	    (s->is_final ? "doublecircle" : "circle"),
@@ -246,7 +246,7 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
 	}
       }
 
-      if (fsm->flags.is_weighted) fprintf(f, "/%g", a->weight);
+      if (fsm->flags.is_weighted) fprintf(f, "/%g", a->weight.f);
       
       fprintf(f, "\", fontsize=%d", (fontsize ? fontsize : 14));
       if (fontname && *fontname) fprintf(f, ", fontname=\"%s\"", fontname);

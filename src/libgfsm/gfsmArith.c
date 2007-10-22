@@ -33,7 +33,7 @@
 //--------------------------------------------------------------
 gfsmAutomaton *gfsm_automaton_arith(gfsmAutomaton    *fsm,
 				    gfsmArithOp       op,
-				    gfsmWeight        arg,
+				    gfsmWeightU       arg,
 				    gfsmLabelVal      lo,
 				    gfsmLabelVal      hi,
 				    gboolean          do_arcs,
@@ -71,7 +71,7 @@ gfsmAutomaton *gfsm_automaton_arith(gfsmAutomaton    *fsm,
 gfsmAutomaton *gfsm_automaton_arith_state(gfsmAutomaton    *fsm,
 					  gfsmStateId       qid,
 					  gfsmArithOp       op,
-					  gfsmWeight        arg,
+					  gfsmWeightU       arg,
 					  gfsmLabelVal      lo,
 					  gfsmLabelVal      hi,
 					  gboolean          do_arcs,
@@ -112,34 +112,34 @@ gfsmAutomaton *gfsm_automaton_arith_state(gfsmAutomaton    *fsm,
 }
 
 //--------------------------------------------------------------
-gfsmWeight gfsm_weight_arith(gfsmSemiring *sr,
-			     gfsmArithOp   op,
-			     gfsmWeight    w1,
-			     gfsmWeight    w2,
-			     gboolean      do_zero)
+gfsmWeightU gfsm_weight_arith(gfsmSemiring *sr,
+			      gfsmArithOp   op,
+			      gfsmWeightU   w1,
+			      gfsmWeightU   w2,
+			      gboolean      do_zero)
 {
-  if (!do_zero && w1==sr->zero) return w1;
+  if (!do_zero && w1.f==sr->zero.f) return w1;
 
   switch (op) {
 
   case gfsmAOExp:   ///< Exponentiate
-    return expf(w1);
+    return (gfsmWeightU){expf(w1.f)};
     break;
 
   case gfsmAOLog:   ///< Logarithm
-    return logf(w1);
+    return (gfsmWeightU){logf(w1.f)};
     break;
 
   case gfsmAONoNeg:   ///< Real force-positive
-    return (w1 < 0 ? (-w1) : w1);
+    return (gfsmWeightU){w1.f < 0 ? (-w1.f) : w1.f};
     break;
 
   case gfsmAOAdd: ///< Real Addition
-    return w1+w2;
+    return (gfsmWeightU){w1.f+w2.f};
     break;
 
   case gfsmAOMult: ///< Real Multiplication
-    return w1*w2;
+    return (gfsmWeightU){w1.f*w2.f};
     break;
 
   case gfsmAOSRNoNeg: ///< Semiring Force positive
@@ -172,7 +172,8 @@ gboolean _gfsm_automaton_arith_final_foreach_func(gfsmStateId      id,
 						  gpointer         pw,
 						  gfsmArithParams *params)
 {
-  gfsmWeight w = gfsm_ptr2weight(pw);
+  gfsmWeightU w; // = gfsm_ptr2weight(pw);
+  w.p=pw;
   gfsm_weightmap_insert(params->fsm->finals,
 			GUINT_TO_POINTER(id),
 			gfsm_weight_arith(params->fsm->sr,
@@ -187,7 +188,7 @@ gboolean _gfsm_automaton_arith_final_foreach_func(gfsmStateId      id,
 //--------------------------------------------------------------
 gfsmAutomaton *gfsm_automaton_arith_final(gfsmAutomaton    *fsm,
 					  gfsmArithOp       op,
-					  gfsmWeight        arg,
+					  gfsmWeightU       arg,
 					  gboolean          do_zero)
 {
   gfsmArithParams params = { fsm, op, arg, do_zero };

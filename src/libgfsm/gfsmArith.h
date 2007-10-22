@@ -54,7 +54,7 @@ typedef enum {
 typedef struct {
   gfsmAutomaton    *fsm;            ///< Automaton
   gfsmArithOp       op;             ///< Operation
-  gfsmWeight        arg;            ///< 2nd operation argument (if any)
+  gfsmWeightU       arg;            ///< 2nd operation argument (if any)
   gboolean          do_zero;        ///< operate on semiring-zeroes?
 } gfsmArithParams;
 
@@ -82,7 +82,7 @@ typedef struct {
  */
 gfsmAutomaton *gfsm_automaton_arith(gfsmAutomaton    *fsm,
 				    gfsmArithOp       op,
-				    gfsmWeight        arg,
+				    gfsmWeightU       arg,
 				    gfsmLabelVal      lo,
 				    gfsmLabelVal      hi,
 				    gboolean          do_arcs,
@@ -108,7 +108,7 @@ gfsmAutomaton *gfsm_automaton_arith(gfsmAutomaton    *fsm,
 gfsmAutomaton *gfsm_automaton_arith_state(gfsmAutomaton    *fsm,
 					  gfsmStateId       qid,
 					  gfsmArithOp       op,
-					  gfsmWeight        arg,
+					  gfsmWeightU       arg,
 					  gfsmLabelVal      lo,
 					  gfsmLabelVal      hi,
 					  gboolean          do_arcs,
@@ -122,18 +122,18 @@ gfsmAutomaton *gfsm_automaton_arith_state(gfsmAutomaton    *fsm,
  */
 gfsmAutomaton *gfsm_automaton_arith_final(gfsmAutomaton    *fsm,
 					  gfsmArithOp       op,
-					  gfsmWeight        arg,
+					  gfsmWeightU       arg,
 					  gboolean          do_zero);
 
 //------------------------------
 /** Perform a generic arithmetic operation on a gfsmWeight.
  *  \returns result of operation
  */
-gfsmWeight gfsm_weight_arith(gfsmSemiring *sr,
-			     gfsmArithOp   op,
-			     gfsmWeight    w1,
-			     gfsmWeight    w2,
-			     gboolean      do_zero);
+gfsmWeightU gfsm_weight_arith(gfsmSemiring *sr,
+			      gfsmArithOp   op,
+			      gfsmWeightU   w1,
+			      gfsmWeightU   w2,
+			      gboolean      do_zero);
 
 //@}
 #endif /* _GFSM_ARITH_H */

@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: common definitions
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -45,8 +45,17 @@ typedef guint32 gfsmStateId;
 /** Alias for state identifiers */
 typedef gfsmStateId gfsmNodeId;
 
-/** Type for arc weights */
-typedef gfloat gfsmWeight;
+/** Type for arc weights.
+ *  Implemented as a union for easy pointer<->float conversion.
+ *  This will only work if sizeof(gpointer) >= sizeof(gfloat).
+ */
+//typedef gfloat gfsmWeight;
+typedef union {
+  gfloat   f;  ///< the actual data (MUST be first union member!)
+  gpointer p;  ///< for easy pointer-ification
+} gfsmWeightU;
+
+
 
 /*======================================================================
  * Vector types
@@ -79,7 +88,7 @@ extern const gfsmLabelId gfsmNoLabel;
 /** Constant indicating missing state */
 extern const gfsmStateId gfsmNoState;
 
-/** Constant indicating missing weight \todo FIX THIS */
-extern const gfsmWeight gfsmNoWeight;
+/* Constant indicating missing weight \todo FIX THIS */
+//extern const gfsmWeightU gfsmNoWeight;
 
 #endif /* _GFSM_COMMON_H */

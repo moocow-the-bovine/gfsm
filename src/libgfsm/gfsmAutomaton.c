@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: automata
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -340,7 +340,7 @@ void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id)
 void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 					 gfsmStateId    id,
 					 gboolean       is_final,
-					 gfsmWeight     final_weight)
+					 gfsmWeightU    final_weight)
 {
   gfsm_state_set_final(gfsm_automaton_get_state(fsm,id),is_final);
   if (is_final) gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(id), final_weight);
@@ -350,9 +350,9 @@ void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 /*--------------------------------------------------------------
  * get_final_weight
  */
-gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id)
+gfsmWeightU gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id)
 {
-  gfsmWeight w;
+  gfsmWeightU w;
   if (gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(id), &w)) return w;
   return fsm->sr->zero;
 }
@@ -360,7 +360,7 @@ gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id)
 /*--------------------------------------------------------------
  * lookup_final
  */
-gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeight *wp)
+gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeightU *wp)
 {
   return gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(id), wp);
 }
@@ -410,7 +410,7 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 
     //-- check for final state
     if (s_new->is_final) {
-      gfsmWeight fw;
+      gfsmWeightU fw;
       gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
       gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
     }
@@ -486,7 +486,7 @@ void gfsm_automaton_renumber_states_old(gfsmAutomaton *fsm)
 
       //-- check for final state
       if (s_new->is_final) {
-	gfsmWeight fw;
+	gfsmWeightU fw;
 	gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
 	gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
       }
@@ -529,7 +529,7 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
 			    gfsmStateId q2,
 			    gfsmLabelId lo,
 			    gfsmLabelId hi,
-			    gfsmWeight  w)
+			    gfsmWeightU w)
 {
   gfsmState *q1s;
   gfsm_automaton_ensure_state(fsm,q2);

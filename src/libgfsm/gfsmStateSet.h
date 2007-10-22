@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ typedef GArray gfsmStateSet;
 /** \brief typedef for weighted sets of automaton state-Ids */
 typedef struct {
   gfsmStateSet *set;    /**< Set of gfsmStateIds */
-  gfsmWeight    weight; /**< Weight of this set */
+  gfsmWeightU   weight; /**< Weight of this set */
 } gfsmWeightedStateSet;
 
 
@@ -202,7 +202,7 @@ gboolean gfsm_stateset_has_final_state(gfsmStateSet *sset, gfsmAutomaton *fsm);
  *  Returns TRUE iff at least one state in \a sset is final, and
  *  sets \a *wp to the sum of final weights.
  */
-gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeight *wp);
+gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeightU *wp);
 
 //@}
 

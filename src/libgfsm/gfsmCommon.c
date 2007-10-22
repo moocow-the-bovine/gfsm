@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: common definitions
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -38,5 +38,5 @@ const gfsmLabelId gfsmEpsilon2 = (gfsmLabelId)-3;
 
 const gfsmStateId gfsmNoState = (gfsmStateId)-1;
 
-const gfsmWeight gfsmNoWeight = 0;
+//const gfsmWeightU gfsmNoWeight = {0};
 

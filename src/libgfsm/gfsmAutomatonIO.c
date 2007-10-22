@@ -124,7 +124,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomatonHeader *hdr, gfsmAuto
   gfsmStoredState s_state;
   gfsmState       *st;
   gboolean         rc = TRUE;
-  gfsmWeight       w;
+  gfsmWeightU      w;
 
   //-- allocate states
   gfsm_automaton_reserve(fsm, hdr->n_states);
@@ -152,7 +152,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomatonHeader *hdr, gfsmAuto
 
     if (s_state.is_final) {
       //-- read final weight
-      if (!gfsmio_read(ioh, &w, sizeof(gfsmWeight))) {
+      if (!gfsmio_read(ioh, &w, sizeof(gfsmWeightU))) {
 	g_set_error(errp,
 		    g_quark_from_static_string("gfsm"),                                  //-- domain
 		    g_quark_from_static_string("automaton_load_bin:state:final_weight"), //-- code
@@ -365,7 +365,7 @@ gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
   gfsmState           *st;
   gfsmStoredState     sst;
   gfsmStoredArc       sa;
-  gfsmWeight           w;
+  gfsmWeightU          w;
   gfsmArcIter         ai;
   gboolean            rc = TRUE;
 
@@ -406,7 +406,7 @@ gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
     //-- store final weight (maybe)
     if (rc && sst.is_final) {
       w = gfsm_automaton_get_final_weight(fsm,id);
-      if (!gfsmio_write(ioh, &w, sizeof(gfsmWeight))) {
+      if (!gfsmio_write(ioh, &w, sizeof(gfsmWeightU))) {
 	g_set_error(errp, g_quark_from_static_string("gfsm"),                            //-- domain
 		    g_quark_from_static_string("automaton_save_bin:state:final_weight"), //-- code
 		    "could not store final weight for state %d", id);
@@ -508,7 +508,7 @@ gboolean gfsm_automaton_compile_handle (gfsmAutomaton *fsm,
 {
   gfsmStateId q1, q2;
   gfsmLabelId lo, hi;
-  gfsmWeight  w;
+  gfsmWeightU w;
   char       *buf = NULL;
   size_t      buflen = 0;
   guint       lineno = 1;
@@ -565,7 +565,7 @@ gboolean gfsm_automaton_compile_handle (gfsmAutomaton *fsm,
     }
     //-- weighted final state?
     else if (nfields == 2) {
-      w = strtod(b2,NULL);
+      w.f = strtod(b2,NULL);
       gfsm_automaton_set_final_state_full(fsm,q1,TRUE,w);
       continue;
     }
@@ -612,9 +612,9 @@ gboolean gfsm_automaton_compile_handle (gfsmAutomaton *fsm,
     }
 
     //-- w: arc weight
-    if      ( fsm->flags.is_transducer && nfields >= 5) { w = strtod(b5,NULL); }
-    else if (!fsm->flags.is_transducer && nfields >= 4) { w = strtod(b4,NULL); }
-    else                                                { w = fsm->sr->one; }
+    if      ( fsm->flags.is_transducer && nfields >= 5) { w.f = strtod(b5,NULL); }
+    else if (!fsm->flags.is_transducer && nfields >= 4) { w.f = strtod(b4,NULL); }
+    else                                                { w   = fsm->sr->one; }
 
     gfsm_automaton_add_arc(fsm,q1,q2,lo,hi,w);
   }
@@ -760,7 +760,7 @@ gboolean gfsm_automaton_print_handle (gfsmAutomaton *fsm,
 
       //-- weight
       if (fsm->flags.is_weighted) { // && a->weight != fsm->sr->one
-	gfsmio_printf(ioh, "\t%g", a->weight);
+	gfsmio_printf(ioh, "\t%g", a->weight.f);
       }
 
       gfsmio_putc(ioh, '\n');
@@ -775,7 +775,7 @@ gboolean gfsm_automaton_print_handle (gfsmAutomaton *fsm,
 	gfsmio_printf(ioh, "%u", id);
       }
       if (fsm->flags.is_weighted) {
-	gfsmio_printf(ioh, "\t%g", gfsm_automaton_get_final_weight(fsm,id));
+	gfsmio_printf(ioh, "\t%g", gfsm_automaton_get_final_weight(fsm,id).f);
       }
       gfsmio_putc(ioh, '\n');
     }

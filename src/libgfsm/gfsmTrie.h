@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2006 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -81,7 +81,7 @@ extern const gfsmSRType gfsmTrieDefaultSRType;
 gfsmStateId gfsm_trie_add_path(gfsmTrie        *trie,
 			       gfsmLabelVector *lo,
 			       gfsmLabelVector *hi,
-			       gfsmWeight       w);
+			       gfsmWeightU      w);
 
 //------------------------------
 /** Add a string-pair \a (lo,hi) to the trie with weight \a w
@@ -100,7 +100,7 @@ gfsmStateId gfsm_trie_add_path(gfsmTrie        *trie,
 gfsmStateId gfsm_trie_add_path_full(gfsmTrie          *trie,
 				    gfsmLabelVector   *lo,
 				    gfsmLabelVector   *hi,
-				    gfsmWeight         w,
+				    gfsmWeightU        w,
 				    gboolean           add_to_arcs,
 				    gboolean           add_to_state_final,
 				    gboolean           add_to_path_final,
@@ -125,7 +125,7 @@ gfsmStateId gfsm_trie_find_prefix(gfsmTrie          *trie,
 				  gfsmLabelVector   *hi,
 				  guint             *lo_i,
 				  guint             *hi_i,
-				  gfsmWeight        *w_last,
+				  gfsmWeightU       *w_last,
 				  gfsmStateIdVector *path_states
 				  );
 
@@ -171,7 +171,7 @@ gfsmArc* gfsm_trie_find_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal l
  *  \param add_weight whether to add weight to the arc
  *  \returns gfsmStateId of the (unique) destination state
  */
-gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight);
+gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeightU w, gboolean add_weight);
 
 /** Find or insert an arc from state \a qid with upper label \a lab in trie \a trie;
  *  adding weight \a w.
@@ -182,7 +182,7 @@ gfsmStateId gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVa
  *  \param add_weight whether to add weight to the arc
  *  \returns gfsmStateId of the (unique) destination state
  */
-gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight);
+gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeightU w, gboolean add_weight);
 
 /** Find or insert an arc from state \a qid with lower label \a lo and upper label \a hi
  *  with weight \a w in trie \a trie.
@@ -194,7 +194,7 @@ gfsmStateId gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVa
  *  \param add_weight whether to add weight to the arc
  *  \returns gfsmStateId of the (unique) destination state
  */
-gfsmStateId gfsm_trie_get_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gboolean add_weight);
+gfsmStateId gfsm_trie_get_arc_both(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeightU w, gboolean add_weight);
 
 //@}
 

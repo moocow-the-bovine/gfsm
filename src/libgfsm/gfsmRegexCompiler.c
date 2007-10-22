@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -174,8 +174,10 @@ struct _gfsm_regex_append_lab_data {
 gboolean _gfsm_regex_append_lab_foreach_func(gfsmStateId qid, gpointer pw,
 					     struct _gfsm_regex_append_lab_data *data)
 {
+  gfsmWeightU w;
+  w.p = pw;
   gfsm_automaton_get_state(data->fsm,qid)->is_final = FALSE;
-  gfsm_automaton_add_arc(data->fsm, qid, data->newid, data->lab, data->lab, gfsm_ptr2weight(pw));
+  gfsm_automaton_add_arc(data->fsm, qid, data->newid, data->lab, data->lab, w);
   return FALSE;
 }
 
@@ -279,7 +281,7 @@ gfsmAutomaton *gfsm_regex_compiler_difference(gfsmRegexCompiler *rec, gfsmAutoma
 
 //--------------------------------------------------------------
 /** Weight */
-gfsmAutomaton *gfsm_regex_compiler_weight(gfsmRegexCompiler *rec, gfsmAutomaton *fsm, gfsmWeight w)
+gfsmAutomaton *gfsm_regex_compiler_weight(gfsmRegexCompiler *rec, gfsmAutomaton *fsm, gfsmWeightU w)
 {
   gfsm_automaton_arith_final(fsm, gfsmAOSRTimes, w, FALSE);
   RETURN(rec,fsm);

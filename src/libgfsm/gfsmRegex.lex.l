@@ -94,7 +94,7 @@ UTF8PREFIX "Ã"
 
 
 <STATE_WEIGHT>([\+\-])?({DIGIT}*\.)?({DIGIT}+)([Ee]([\+\-]?){DIGIT}+)? {
-  yylval->w = strtod(yytext,NULL);
+  yylval->w.f = strtod(yytext,NULL);
   return TOK_WEIGHT;
 }
 

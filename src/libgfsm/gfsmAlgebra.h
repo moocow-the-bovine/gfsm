@@ -478,7 +478,7 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
 					       gfsmStateId    q1from,
 					       gfsmStateId    q1to,
 					       gfsmAutomaton *fsm2,
-					       gfsmWeight     w);
+					       gfsmWeightU    w);
 
 
 //------------------------------
@@ -510,7 +510,7 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm);
 void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
 				       gfsmStateId qid_noeps,
 				       gfsmStateId qid_eps,
-				       gfsmWeight weight_eps,
+				       gfsmWeightU weight_eps,
 				       gfsmStatePair2WeightHash *sp2wh
 				       );
 

@@ -13,7 +13,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 31
+#define YY_FLEX_SUBMINOR_VERSION 33
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -35,7 +35,15 @@
 
 /* C99 systems have <inttypes.h>. Non-C99 systems may or may not. */
 
-#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#if __STDC_VERSION__ >= 199901L
+
+/* C99 says to define __STDC_LIMIT_MACROS before including stdint.h,
+ * if you want the limit (max/min) macros for int types. 
+ */
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS 1
+#endif
+
 #include <inttypes.h>
 typedef int8_t flex_int8_t;
 typedef uint8_t flex_uint8_t;
@@ -232,8 +240,6 @@ void gfsmRegex_yyfree (void * ,yyscan_t yyscanner );
 #define YY_EXTRA_TYPE void *
 #endif
 
-static int yy_init_globals (yyscan_t yyscanner );
-
 /* Accessor methods to globals.
    These are made visible to non-reentrant scanners for convenience. */
 
@@ -319,16 +325,16 @@ extern int gfsmRegex_yylex (YYSTYPE * yylval_param ,yyscan_t yyscanner);
 #undef yy_set_bol
 #undef yy_new_buffer
 #undef yy_set_interactive
-#undef yytext_ptr
 #undef YY_DO_BEFORE_ACTION
 
 #ifdef YY_DECL_IS_OURS
 #undef YY_DECL_IS_OURS
 #undef YY_DECL
 #endif
+
 #line 195 "gfsmRegex.lex.l"
 
 
-#line 333 "gfsmRegex.lex.h"
+#line 339 "gfsmRegex.lex.h"
 #undef gfsmRegex_yyIN_HEADER
 #endif /* gfsmRegex_yyHEADER_H */
