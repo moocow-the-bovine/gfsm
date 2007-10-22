@@ -93,7 +93,7 @@ gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, g
   if (lo != gfsmEpsilon) {
     p->lo = g_ptr_array_sized_new(p1->lo->len+1);
     gfsm_label_vector_copy(p->lo, p1->lo);
-    g_ptr_array_add(p->lo, (gpointer)lo);
+    g_ptr_array_add(p->lo, GUINT_TO_POINTER(lo));
   } else {
     p->lo = g_ptr_array_sized_new(p1->lo->len);
     gfsm_label_vector_copy(p->lo, p1->lo);
@@ -102,7 +102,7 @@ gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, g
   if (hi != gfsmEpsilon) {
     p->hi = g_ptr_array_sized_new(p1->hi->len+1);
     gfsm_label_vector_copy(p->hi, p1->hi);
-    g_ptr_array_add(p->hi, (gpointer)hi);
+    g_ptr_array_add(p->hi, GUINT_TO_POINTER(hi));
   } else {
     p->hi = g_ptr_array_sized_new(p1->hi->len);
     gfsm_label_vector_copy(p->hi, p1->hi);
@@ -132,8 +132,8 @@ gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr)
 //--------------------------------------------------------------
 void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr)
 {
-  if (lo != gfsmEpsilon) g_ptr_array_add(p->lo, (gpointer)lo);
-  if (hi != gfsmEpsilon) g_ptr_array_add(p->hi, (gpointer)hi);
+  if (lo != gfsmEpsilon) g_ptr_array_add(p->lo, GUINT_TO_POINTER(lo));
+  if (hi != gfsmEpsilon) g_ptr_array_add(p->hi, GUINT_TO_POINTER(hi));
   p->w = gfsm_sr_times(sr, p->w, w);
 }
 
@@ -153,8 +153,8 @@ int gfsm_label_vector_compare(const gfsmLabelVector *v1, const gfsmLabelVector *
   if (v1==v2) return 0;
 
   for (i=0; i < v1->len && i < v2->len; i++) {
-    lab1 = (gfsmLabelVal)g_ptr_array_index(v1,i);
-    lab2 = (gfsmLabelVal)g_ptr_array_index(v2,i);
+    lab1 = (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(v1,i));
+    lab2 = (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(v2,i));
     if (lab1 < lab2) return -1;
     if (lab1 > lab2) return  1;
   }

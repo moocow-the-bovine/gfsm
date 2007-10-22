@@ -333,7 +333,7 @@ gfsmLabelVal gfsm_alphabet_insert(gfsmAlphabet *a, gpointer key, gfsmLabelVal la
 
   case gfsmATIdentity:
     gfsm_set_insert(((gfsmIdentityAlphabet*)a)->labels, key);
-    label = (gfsmLabelVal)key;
+    label = (gfsmLabelVal) GPOINTER_TO_INT(key);
     break;
 
   case gfsmATUser:
@@ -357,7 +357,7 @@ gfsmLabelVal gfsm_alphabet_insert(gfsmAlphabet *a, gpointer key, gfsmLabelVal la
       key = (*(((gfsmPointerAlphabet*)a)->key_dup_func))(((gfsmPointerAlphabet*)a),key);
 
     g_ptr_array_index(((gfsmPointerAlphabet*)a)->labels2keys, label) = key;
-    g_hash_table_insert(((gfsmPointerAlphabet*)a)->keys2labels, key, (gpointer)(label));
+    g_hash_table_insert(((gfsmPointerAlphabet*)a)->keys2labels, key, GUINT_TO_POINTER(label));
     break;
 
   case gfsmATUnknown:
@@ -400,7 +400,7 @@ gfsmLabelVal gfsm_alphabet_find_label (gfsmAlphabet *a, gconstpointer key)
 
   case gfsmATIdentity:
     if (gfsm_set_contains(((gfsmIdentityAlphabet*)a)->labels, key))
-      return (gfsmLabelVal)((guint)key);
+      return (gfsmLabelVal)GPOINTER_TO_UINT(key);
     break;
 
   case gfsmATUser:
@@ -410,16 +410,16 @@ gfsmLabelVal gfsm_alphabet_find_label (gfsmAlphabet *a, gconstpointer key)
   case gfsmATPointer:
   case gfsmATString:
     if ( g_hash_table_lookup_extended(((gfsmPointerAlphabet*)a)->keys2labels, key, &k, &l) )
-      return (gfsmLabelVal)((guint)l);
+      return (gfsmLabelVal)GPOINTER_TO_UINT(l);
     break;
 
   case gfsmATUnknown:
   case gfsmATRange:
   default:
-    return ( ((gfsmLabelVal)((guint)key)) >= a->lab_min
+    return ( ((gfsmLabelVal)GPOINTER_TO_UINT(key)) >= a->lab_min
 	       &&
-	     ((gfsmLabelVal)((guint)key)) <= a->lab_max 
-	     ? ((gfsmLabelVal)((guint)key))
+	     ((gfsmLabelVal)GPOINTER_TO_UINT(key)) <= a->lab_max
+	     ? ((gfsmLabelVal)GPOINTER_TO_UINT(key))
 	     : gfsmNoLabel );
   }
 
@@ -434,8 +434,8 @@ gpointer gfsm_alphabet_find_key(gfsmAlphabet *a, gfsmLabelVal label)
   switch (a->type) {
 
   case gfsmATIdentity:
-    if ( gfsm_set_contains(((gfsmIdentityAlphabet*)a)->labels, (gpointer)(label)) )
-      return (gpointer)(label);
+    if ( gfsm_set_contains(((gfsmIdentityAlphabet*)a)->labels, GUINT_TO_POINTER(label)) )
+      return GUINT_TO_POINTER(label);
     break;
 
   case gfsmATUser:
@@ -452,7 +452,7 @@ gpointer gfsm_alphabet_find_key(gfsmAlphabet *a, gfsmLabelVal label)
   case gfsmATRange:
   default:
     if (label >= a->lab_min && label <= a->lab_max)
-      return (gpointer)(label);
+      return GUINT_TO_POINTER(label);
   }
 
   return gfsmNoKey;
@@ -521,7 +521,7 @@ void gfsm_alphabet_remove_label(gfsmAlphabet *a, gfsmLabelVal label)
 
   switch (a->type) {
   case gfsmATIdentity:
-    gfsm_set_remove(((gfsmIdentityAlphabet*)a)->labels, (gpointer)(label));
+    gfsm_set_remove(((gfsmIdentityAlphabet*)a)->labels, GUINT_TO_POINTER(label));
     break;
   
   case gfsmATUser:
@@ -576,7 +576,7 @@ gboolean gfsm_alphabet_labels_to_array_func(gfsmAlphabet *alph,
 					    GPtrArray    *ary)
 {
   //g_array_append_val(ary, lab);
-  g_ptr_array_add(ary, (gpointer)lab);
+  g_ptr_array_add(ary, GUINT_TO_POINTER(lab));
   return FALSE;
 }
 
@@ -648,7 +648,7 @@ void gfsm_alphabet_key2string(gfsmAlphabet *a, gpointer key, GString *gstr)
   case gfsmATRange:
   case gfsmATIdentity:
   default:
-    g_string_printf(gstr,"%u",(guint)key);
+    g_string_printf(gstr,"%u", GPOINTER_TO_UINT(key));
     break;
   }
 }
@@ -862,7 +862,7 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
       continue;
     }
 
-    g_ptr_array_add(vec, (gpointer)lab);
+    g_ptr_array_add(vec, GUINT_TO_POINTER(lab));
   }
 
   return vec;
@@ -888,7 +888,7 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
 
   //-- lookup & append symbols
   for (i=0; i < vec->len; i++) {
-    lab = (gfsmLabelVal)g_ptr_array_index(vec,i);
+    lab = (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(vec,i));
     sym = (const gchar*)gfsm_alphabet_find_key(abet,lab);
 
     //-- check for unknown labels

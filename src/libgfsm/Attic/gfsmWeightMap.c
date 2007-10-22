@@ -34,7 +34,7 @@
 //--------------------------------------------------------------
 void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w)
 {
-  g_tree_insert(weightmap, (gpointer)key, gfsm_weight2ptr(w));
+   g_tree_insert(weightmap, (gpointer)key, gfsm_weight2ptr(w));
 }
 
 //--------------------------------------------------------------
@@ -47,8 +47,12 @@ gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key)
 //--------------------------------------------------------------
 gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight *wp)
 {
-  gpointer orig_key;
-  return g_tree_lookup_extended(weightmap, key, &orig_key, (gpointer*)wp);
+  gpointer orig_key, orig_value;
+  if (g_tree_lookup_extended(weightmap, key, &orig_key, &orig_value)) {
+    *wp = gfsm_ptr2weight(orig_value);
+    return TRUE;
+  }
+  return FALSE;
 }
 
 

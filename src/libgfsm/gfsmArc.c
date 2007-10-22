@@ -222,7 +222,7 @@ gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
 
   case gfsmASMNone:
   default:
-    return ((gint)(a2))-((gint)a1);
+    return (GPOINTER_TO_INT(a2)-GPOINTER_TO_INT(a1));
   }
 
   return 0;

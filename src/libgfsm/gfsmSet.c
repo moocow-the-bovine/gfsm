@@ -179,7 +179,7 @@ gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrAr
  */
 gboolean gfsm_set_print_foreach_func(gpointer key, gpointer data, FILE *f)
 {
-  fprintf(f, " %u", (guint)key);
+  fprintf(f, " %u", GPOINTER_TO_UINT(key));
   return FALSE;
 }
 void gfsm_set_print_uint(gfsmSet *set, FILE *f)

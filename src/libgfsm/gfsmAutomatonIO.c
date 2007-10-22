@@ -163,7 +163,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomatonHeader *hdr, gfsmAuto
 
       //-- set final weight
       st->is_final = TRUE;
-      gfsm_weightmap_insert(fsm->finals,(gpointer)id,w);
+      gfsm_weightmap_insert(fsm->finals,GINT_TO_POINTER(id),w);
     } else {
       st->is_final = FALSE;
     }
@@ -243,13 +243,13 @@ gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomatonHeader *hdr, gfsmAuto
 
     if (s_state.is_final) {
       st->is_final = TRUE;
-      gfsm_weightmap_insert(fsm->finals,(gpointer)(id),fsm->sr->one);
+      gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(id), fsm->sr->one);
     } else {
       st->is_final = FALSE;
     }
 
     //-- HACK: remember number of arcs!
-    st->arcs = (gfsmArcList*)(s_state.n_arcs);
+    st->arcs = (gfsmArcList*) GUINT_TO_POINTER(s_state.n_arcs);
   }
 
   //------ load arcs (state-by-state)
@@ -259,7 +259,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomatonHeader *hdr, gfsmAuto
     if (!st || !st->is_valid) continue;
 
     //-- read in arcs (one-by-one)
-    n_arcs   = (guint)(st->arcs);
+    n_arcs   = GPOINTER_TO_UINT(st->arcs);
     st->arcs = NULL;
     for (arci=0; arci < n_arcs; arci++) {
       if (!gfsmio_read(ioh, &s_arc, sizeof(gfsmStoredArc))) {
@@ -395,6 +395,7 @@ gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
     sst.is_valid = st->is_valid;
     sst.is_final = sst.is_valid ? st->is_final : FALSE;
     sst.n_arcs   = sst.is_valid ? gfsm_state_out_degree(st) : 0;
+    sst.unused   = 0; //-- set unused=0 to allow zlib compression to work better
     if (!gfsmio_write(ioh, &sst, sizeof(sst))) {
       g_set_error(errp, g_quark_from_static_string("gfsm"),                      //-- domain
 			g_quark_from_static_string("automaton_save_bin:state"), //-- code

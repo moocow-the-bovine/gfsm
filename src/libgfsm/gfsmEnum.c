@@ -90,7 +90,7 @@ gboolean gfsm_enum_lookup_extended(gfsmEnum      *en,
 guint gfsm_enum_lookup(gfsmEnum *en, gconstpointer key)
 {
   gpointer s_val;
-  if (g_hash_table_lookup_extended(en->table, key, NULL, &s_val)) return (guint)s_val;
+  if (g_hash_table_lookup_extended(en->table, key, NULL, &s_val)) return GPOINTER_TO_UINT(s_val);
   return gfsmEnumNone;
 }
 
@@ -108,7 +108,7 @@ guint gfsm_enum_insert_full(gfsmEnum *en, gpointer key, guint val)
       val = s_val;
     } else {
       g_hash_table_steal(en->table, s_key);
-      g_hash_table_insert(en->table, s_key, (gpointer)val);
+      g_hash_table_insert(en->table, s_key, GUINT_TO_POINTER(val));
     }
   }
   else {
@@ -116,7 +116,7 @@ guint gfsm_enum_insert_full(gfsmEnum *en, gpointer key, guint val)
     if (en->key_dup) s_key = (*(en->key_dup))(key);
     else             s_key = key;
     if (val == gfsmEnumNone) val = en->nxtval;
-    g_hash_table_insert(en->table, s_key, (gpointer)val);
+    g_hash_table_insert(en->table, s_key, GUINT_TO_POINTER(val));
   }
 
   //-- keep track of available values

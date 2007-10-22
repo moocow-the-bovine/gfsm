@@ -46,7 +46,7 @@ const char *gfsm_version_string = PACKAGE_VERSION;
 int gfsm_version_compare(gfsmVersionInfo v1, gfsmVersionInfo v2)
 {
   int rc;
-  if      ((rc=gfsm_uint_compare((gpointer)v1.major,(gpointer)v2.major))) return rc;
-  else if ((rc=gfsm_uint_compare((gpointer)v1.minor,(gpointer)v2.minor))) return rc;
-  return gfsm_uint_compare((gpointer)v1.micro,(gpointer)v2.micro);
+  if      ((rc=gfsm_uint_compare(GINT_TO_POINTER(v1.major),GINT_TO_POINTER(v2.major)))) return rc;
+  else if ((rc=gfsm_uint_compare(GINT_TO_POINTER(v1.minor),GINT_TO_POINTER(v2.minor)))) return rc;
+  return gfsm_uint_compare(GINT_TO_POINTER(v1.micro),GINT_TO_POINTER(v2.micro));
 }

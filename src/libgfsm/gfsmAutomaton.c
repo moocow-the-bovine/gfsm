@@ -286,10 +286,10 @@ gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm, gfsmLabelSide whic
       gfsmArc *a = gfsm_arciter_arc(&ai);
 
       if (which != gfsmLSUpper)
-	gfsm_alphabet_insert(alph, (gpointer)((gfsmLabelVal)(a->lower)), a->lower);
+	gfsm_alphabet_insert(alph, GUINT_TO_POINTER((gfsmLabelVal)(a->lower)), a->lower);
 
       if (which != gfsmLSLower)
-	gfsm_alphabet_insert(alph, (gpointer)((gfsmLabelVal)(a->upper)), a->upper);
+	gfsm_alphabet_insert(alph, GUINT_TO_POINTER((gfsmLabelVal)(a->upper)), a->upper);
     }
   }
   return alph;
@@ -326,7 +326,7 @@ void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id)
   gfsmState *s = gfsm_automaton_find_state(fsm,id);
   if (!s || !s->is_valid) return;
 
-  if (s->is_final) gfsm_set_remove(fsm->finals,(gpointer)id);
+  if (s->is_final) gfsm_set_remove(fsm->finals,GUINT_TO_POINTER(id));
   if (id == fsm->root_id) fsm->root_id = gfsmNoState;
 
   gfsm_arclist_free(s->arcs);
@@ -343,8 +343,8 @@ void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 					 gfsmWeight     final_weight)
 {
   gfsm_state_set_final(gfsm_automaton_get_state(fsm,id),is_final);
-  if (is_final) gfsm_weightmap_insert(fsm->finals, (gpointer)id, final_weight);
-  else gfsm_weightmap_remove(fsm->finals,id);
+  if (is_final) gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(id), final_weight);
+  else gfsm_weightmap_remove(fsm->finals, GUINT_TO_POINTER(id));
 }
 
 /*--------------------------------------------------------------
@@ -353,7 +353,7 @@ void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id)
 {
   gfsmWeight w;
-  if (gfsm_weightmap_lookup(fsm->finals, (gconstpointer)id, &w)) return w;
+  if (gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(id), &w)) return w;
   return fsm->sr->zero;
 }
 
@@ -362,7 +362,7 @@ gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id)
  */
 gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeight *wp)
 {
-  return gfsm_weightmap_lookup(fsm->finals, (gconstpointer)id, wp);
+  return gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(id), wp);
 }
 
 
@@ -411,8 +411,8 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
     //-- check for final state
     if (s_new->is_final) {
       gfsmWeight fw;
-      gfsm_weightmap_lookup(fsm->finals, (gpointer)oldid, &fw);
-      gfsm_weightmap_insert(new_finals,  (gpointer)newid,  fw);
+      gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
+      gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
     }
 
     //-- renumber targets of outgoing arcs
@@ -487,8 +487,8 @@ void gfsm_automaton_renumber_states_old(gfsmAutomaton *fsm)
       //-- check for final state
       if (s_new->is_final) {
 	gfsmWeight fw;
-	gfsm_weightmap_lookup(fsm->finals, (gpointer)oldid, &fw);
-	gfsm_weightmap_insert(new_finals,  (gpointer)newid,  fw);
+	gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
+	gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
       }
     }
 

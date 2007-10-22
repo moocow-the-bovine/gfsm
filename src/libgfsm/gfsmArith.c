@@ -174,7 +174,7 @@ gboolean _gfsm_automaton_arith_final_foreach_func(gfsmStateId      id,
 {
   gfsmWeight w = gfsm_ptr2weight(pw);
   gfsm_weightmap_insert(params->fsm->finals,
-			(gpointer)id,
+			GUINT_TO_POINTER(id),
 			gfsm_weight_arith(params->fsm->sr,
 					  params->op,
 					  w,
