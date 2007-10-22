@@ -143,7 +143,8 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton *fsm, gfsmAlphabet *alph, g
     al = s->arcs;
     a  = gfsm_arclist_arc(al);
     for (labi=0; labi < alabels->len; ) {
-      gfsmLabelVal lab = (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(alabels,labi));
+      //gfsmLabelVal lab = g_array_index(alabels,gfsmLabelVal,labi);
+      gfsmLabelVal lab = (gfsmLabelVal)g_ptr_array_index(alabels,labi);
 
       if (lab==gfsmEpsilon) {
 	++labi;
@@ -257,25 +258,24 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 }
 
 /*--------------------------------------------------------------
- * compose_prepare_fsm1()
+ * compose_prepare()
  */
-void gfsm_automaton_compose_prepare_fsm1(gfsmAutomaton *fsm1, gfsmAlphabet *abet)
+gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   gfsmStateId    qid;
   gfsmArcIter    ai;
   gfsmArc       *arc;
+  gfsmAlphabet  *abet   = gfsm_identity_alphabet_new();
 
-  //-- prepare fsm1 (and maybe get alphabet)
+  //-- prepare fsm1 and get alphabet
   fsm1->flags.sort_mode = gfsmASMNone;
   for (qid=0; qid < fsm1->states->len; qid++) {
     for (gfsm_arciter_open(&ai,fsm1,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
       {
 	arc = gfsm_arciter_arc(&ai);
 
-	//-- maybe populate alphabet
-	if (abet) {
-	  gfsm_alphabet_insert(abet, GUINT_TO_POINTER((gfsmLabelVal)arc->upper), arc->upper);
-	}
+	//-- fill alphabet
+	gfsm_alphabet_insert(abet, (gpointer)((gfsmLabelVal)arc->upper), arc->upper);
 
 	//-- alter arcs (q --a:eps--> r) to (q --a:eps1--> r)
 	if (arc->upper == gfsmEpsilon) arc->upper = gfsmEpsilon2;
@@ -283,48 +283,22 @@ void gfsm_automaton_compose_prepare_fsm1(gfsmAutomaton *fsm1, gfsmAlphabet *abet
     //-- add new arc (q --eps:eps1--> q)
     gfsm_automaton_add_arc(fsm1, qid,qid, gfsmEpsilon,gfsmEpsilon1, fsm1->sr->one);
   }
-}
-
-/*--------------------------------------------------------------
- * compose_prepare_fsm2()
- */
-void gfsm_automaton_compose_prepare_fsm2(gfsmAutomaton *fsm2, gfsmAlphabet *abet)
-{
-  gfsmStateId    qid;
-  gfsmArcIter    ai;
-  gfsmArc       *arc;
 
   //-- prepare fsm2
   fsm2->flags.sort_mode = gfsmASMNone;
   for (qid=0; qid < fsm2->states->len; qid++) {
-    for (gfsm_arciter_open(&ai,fsm2,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
-      /*(gfsm_arciter_open(&ai,fsm2,qid), gfsm_arciter_seek_lower(&ai,gfsmEpsilon);
-	gfsm_arciter_ok(&ai);
-	gfsm_arciter_seek_lower(&ai,gfsmEpsilon))*/
+    for (gfsm_arciter_open(&ai,fsm2,qid), gfsm_arciter_seek_lower(&ai,gfsmEpsilon);
+	 gfsm_arciter_ok(&ai);
+	 gfsm_arciter_seek_lower(&ai,gfsmEpsilon))
       {
-	arc = gfsm_arciter_arc(&ai);
-	
-	//-- maybe populate alphabet
-	if (abet) {
-	  gfsm_alphabet_insert(abet, GUINT_TO_POINTER((gfsmLabelVal)arc->lower), arc->lower);
-	}
-	
 	//-- alter arcs (q --eps:b--> r) to (q --eps1:b--> r)
-	if (arc->lower == gfsmEpsilon) arc->lower = gfsmEpsilon1;
+	arc        = gfsm_arciter_arc(&ai);
+	arc->lower = gfsmEpsilon1;
       }
     //-- add new arc (q --eps2:eps--> q)
     gfsm_automaton_add_arc(fsm2, qid,qid, gfsmEpsilon2,gfsmEpsilon, fsm2->sr->one);
   }
-}
 
-/*--------------------------------------------------------------
- * compose_prepare()
- */
-gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
-{
-  gfsmAlphabet  *abet = gfsm_identity_alphabet_new();
-  gfsm_automaton_compose_prepare_fsm1(fsm1,abet);
-  gfsm_automaton_compose_prepare_fsm2(fsm2,NULL);
   return abet;
 }
 
@@ -704,12 +678,12 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
       }
 
     //-- check for new final states: get weight & mark state is_final flag
-    if ( (finals2 && gfsm_weightmap_lookup(finals2, GUINT_TO_POINTER(id2), &s2fw))
+    if ( (finals2 && gfsm_weightmap_lookup(finals2, ((gpointer)id2), &s2fw))
 	 ||
-	 (!finals2 && gfsm_weightmap_lookup(fsm2->finals, GUINT_TO_POINTER(id2), &s2fw)) )
+	 (!finals2 && gfsm_weightmap_lookup(fsm2->finals, ((gpointer)id2), &s2fw)) )
       {
 	s1->is_final = TRUE;
-	_gfsm_weightmap_insert(fsm1->finals, GUINT_TO_POINTER(id1), s2fw);
+	_gfsm_weightmap_insert(fsm1->finals, ((gpointer)id1), s2fw);
       }
   }
 
@@ -1018,7 +992,7 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 
 	//-- add equivalence class to local mapping
 	if ( g_tree_lookup_extended(lp2ecw,
-				    GUINT_TO_POINTER(lp),
+				    (gpointer)lp,
 				    (gpointer)(&lp2ec_key),
 				    (gpointer)(&lp2ec_val)) )
 	  {
@@ -1032,7 +1006,7 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 	    lp2ec_val         = g_new(gfsmWeightedStateSet,1);
 	    lp2ec_val->set    = gfsm_stateset_new_singleton(a->target);
 	    lp2ec_val->weight = a->weight;
-	    g_tree_insert(lp2ecw, GUINT_TO_POINTER(lp), lp2ec_val);
+	    g_tree_insert(lp2ecw, (gpointer)lp, lp2ec_val);
 	  }
       }
 
@@ -1471,7 +1445,7 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
       }
 
     //-- check for fsm2-final states: get weight & add arc to our sink state
-    if (gfsm_weightmap_lookup(fsm2->finals, GUINT_TO_POINTER(id2), &s2fw)) {
+    if (gfsm_weightmap_lookup(fsm2->finals, ((gpointer)id2), &s2fw)) {
       s1->is_final = FALSE;
       gfsm_automaton_add_arc(fsm1,id1,q1to,gfsmEpsilon,gfsmEpsilon, s2fw);
     }
@@ -1609,7 +1583,7 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
     //-- check for old final states
     if (gfsm_automaton_lookup_final(fsm,id,&w)) {
       s->is_final = FALSE;
-      gfsm_weightmap_remove(fsm->finals, GUINT_TO_POINTER(id));
+      gfsm_weightmap_remove(fsm->finals,((gpointer)id));
       gfsm_automaton_add_arc(fsm, new_root, id, gfsmEpsilon, gfsmEpsilon, w);
     }
 

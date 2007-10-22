@@ -9,7 +9,6 @@
 *.tab.h
 *.gz
 
-gfsmlabdump
 iotest
 pathtest
 ftest

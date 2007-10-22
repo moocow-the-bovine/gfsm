@@ -77,8 +77,8 @@ void get_my_options(int argc, char **argv)
     if (!outfile) {
       g_printerr("%s: open failed for output file '%s': %s\n",
 		 progname, outfilename, strerror(errno));
-      exit(2);
     }
+    exit(2);
   }
   else {
     outfile = stdout;

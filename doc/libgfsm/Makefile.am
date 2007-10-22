@@ -179,8 +179,6 @@ if HAVE_DOXYGEN
 
 pkgdoclib_DATA +=$(DOXYBASE).tag
 
-$(DOXYBASE).tag: $(STAMPFILE)
-
 install-data-local:
 	if test -n "$(DOXY_INSTALL_SUBDIRS)"; then \
 	  $(MAKE) $(AM_MAKEFLAGS) install-doc-sub ;\
