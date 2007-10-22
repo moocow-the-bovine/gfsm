@@ -10,6 +10,7 @@ int main (void) {
   int i;
   tstruc ts;
 
-  printf("sizeof(int)=%u ; sizeof(tstruc)=%u\n", sizeof(int), sizeof(tstruc));
+  printf("sizeof(int)=%ld ; sizeof(tstruc)=%ld\n", sizeof(int), sizeof(tstruc));
+  printf("sizeof(float)=%ld, sizeof(void*)=%ld\n", sizeof(float), sizeof(void*));
   return 0;
 }
