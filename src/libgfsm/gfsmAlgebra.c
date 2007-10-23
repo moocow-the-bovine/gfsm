@@ -938,14 +938,16 @@ gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
 					      gfsmLp2EcForeachData *data)
 {
   gfsmStateId    ec2id_val;
+  gpointer       ec2id_val_ptr;
   gfsmStateSet  *ec2id_key;
 
   if ( gfsm_enum_lookup_extended(data->ec2id,
 				 wss->set,
-				 (gpointer)(&ec2id_key),
-				 (gpointer)(&ec2id_val)) )
+				 (&ec2id_key),
+				 (&ec2id_val_ptr)) )
     {
       //-- target node-set is already present: just add an arc in @dfa
+      ec2id_val = GPOINTER_TO_UINT(ec2id_val_ptr);
       gfsm_automaton_add_arc(data->dfa,
 			     data->dfa_src_id,
 			     ec2id_val,
@@ -954,7 +956,7 @@ gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
 			     wss->weight);
 
       //-- ... and maybe free the embedded state set
-      if (wss->set != ec2id_key) gfsm_stateset_free(wss->set);
+      if (wss->set != NULL && wss->set != ec2id_key) { gfsm_stateset_free(wss->set); }
       wss->set = NULL;
     }
   else

@@ -49,10 +49,10 @@ typedef gfsmStateId gfsmNodeId;
  *  Implemented as a union for easy pointer<->float conversion.
  *  This will only work if sizeof(gpointer) >= sizeof(gfloat).
  */
-//typedef gfloat gfsmWeight;
+typedef gfloat gfsmWeightVal;
 typedef union {
-  gfloat   f;  ///< the actual data (MUST be first union member!)
-  gpointer p;  ///< for easy pointer-ification
+  gfsmWeightVal f;  ///< the actual data (MUST be first union member!)
+  gpointer      p;  ///< for easy pointer-ification
 } gfsmWeightU;
 
 /** Type alias for arc weights */
