@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004-2006 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * For information on usage and redistribution, and for a DISCLAIMER OF ALL
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.
@@ -71,3 +71,12 @@ gfsmBitVector *gfsm_bitvector_one(gfsmBitVector *bv)
  * Accessors
  */
 
+/*--------------------------------------------------------------
+ * set()
+ */
+void gfsm_bitvector_set(gfsmBitVector *bv, guint i, gboolean v)
+{
+  if (i >= gfsm_bitvector_size(bv)) { gfsm_bitvector_resize(bv,i); }
+  if (v) { g_array_index(bv, guint8, _gfsm_bitvector_bits2bytes(i)) |=  (1<<(i%8)); }
+  else   { g_array_index(bv, guint8, _gfsm_bitvector_bits2bytes(i)) &= ~(1<<(i%8)); }
+}

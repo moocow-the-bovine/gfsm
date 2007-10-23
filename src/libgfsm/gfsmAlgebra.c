@@ -895,7 +895,7 @@ gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
  */
 gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wanted)
 {
-  gfsmStateId id, maxwanted;
+  gfsmStateId id, maxwanted=fsm->states->len-1;
   gfsmArcIter ai;
 
   for (id=0; id < fsm->states->len; id++) {

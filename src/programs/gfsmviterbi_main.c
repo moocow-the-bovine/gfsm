@@ -84,7 +84,7 @@ gfsmAutomaton *viterbi_labels(gfsmAutomaton *fst, int argc, char **argv)
   //-- fill input vector
   for (i=0; i < argc; i++) {
     for (s=argv[i], lab=strtol(s,&tail,0); s != tail; s=tail, lab=strtol(s,&tail,0)) {
-      g_ptr_array_add(vec, (gpointer)lab);
+      g_ptr_array_add(vec, GUINT_TO_POINTER(lab));
     }
   }
 

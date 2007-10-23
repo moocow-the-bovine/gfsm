@@ -217,15 +217,17 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 	  gfsmArc     *arc_fst         = gfsm_arciter_arc(&ai);
 	  gfsmWeightU  w_trellis_nxt;
 	  gpointer     orig_key;
+	  gpointer     ptr_qid_trellis_nxt;
 
 	  //-- found a matching arc: is its target state already marked as a successor?
 	  if (g_tree_lookup_extended(fst2trellis,
 				     GUINT_TO_POINTER(arc_fst->target),
 				     &orig_key,
-				     (gpointer*)(&qid_trellis_nxt)))
+				     &ptr_qid_trellis_nxt))
 	    {
 	      //-- yep: known successor: get old ("*_nxt") & new ("*_nxt_new") weights
 	      gfsmWeightU w_trellis_nxt_new = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
+	      qid_trellis_nxt = GPOINTER_TO_UINT(ptr_qid_trellis_nxt);
 	      q_trellis_nxt = gfsm_automaton_find_state(trellis, qid_trellis_nxt);
 	      w_trellis_nxt = gfsm_viterbi_node_best_weight(q_trellis_nxt);
 
@@ -383,16 +385,17 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 	gfsmStateId  qid_trellis_nxt = gfsmNoState;
 	gfsmState   *q_trellis_nxt;
 	gfsmWeightU  w_trellis_nxt;
-	gpointer     orig_key;
+	gpointer     orig_key, ptr_qid_trellis_nxt;
 
 	//-- found an eps-arc: is its target state already marked as a successor?
 	if (g_tree_lookup_extended(fst2trellis,
 				   GUINT_TO_POINTER(arc_fst->target),
 				   &orig_key,
-				   (gpointer*)(&qid_trellis_nxt)))
+				   &ptr_qid_trellis_nxt))
 	  {
 	    //-- yep: get the old ("*_eps") & new ("*_nxt") weights
 	    gfsmWeightU w_trellis_eps = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
+	    qid_trellis_nxt = GPOINTER_TO_UINT(ptr_qid_trellis_nxt);
 	    q_trellis_nxt = gfsm_automaton_find_state(trellis,qid_trellis_nxt);
 	    w_trellis_nxt = gfsm_viterbi_node_best_weight(q_trellis_nxt);
 

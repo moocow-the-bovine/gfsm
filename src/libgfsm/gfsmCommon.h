@@ -55,7 +55,13 @@ typedef union {
   gpointer p;  ///< for easy pointer-ification
 } gfsmWeightU;
 
+/** Type alias for arc weights */
+typedef gfsmWeightU gfsmWeight;
 
+/** \define GFSM_WEIGHT_IS_UNION
+ *  Preprocessor macro indicating that weights are implemented as unions
+ */
+#define GFSM_WEIGHT_IS_UNION
 
 /*======================================================================
  * Vector types
