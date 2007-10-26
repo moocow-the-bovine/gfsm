@@ -381,7 +381,7 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
   if (fsm->root_id == gfsmNoState) fsm->root_id = gfsm_automaton_add_state(fsm);
 
   //-- get old-to-new id map
-  old2new = g_array_sized_new(FALSE,FALSE,sizeof(gfsmState),fsm->states->len);
+  old2new = g_array_sized_new(FALSE,FALSE,sizeof(gfsmStateId),fsm->states->len);
   g_array_index(old2new,gfsmStateId,fsm->root_id) = 0;
   for (oldid=0, newid=0; oldid < fsm->states->len; oldid++) {
     if (oldid==fsm->root_id) continue;
