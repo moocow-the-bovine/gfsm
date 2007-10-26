@@ -1,8 +1,9 @@
 Change log for gfsm
 
 v0.0.9 Mon, 22 Oct 2007 15:12:20 +0200
-   + changed static int<->pointer casts to GPOINTER_TO_(U)INT, G(U)INT_TO_POINTER
-   + fixed segfaults from gfsm_weightmap bugs on 64-bit linux
+   + (branch) changed static int<->pointer casts to GPOINTER_TO_(U)INT, G(U)INT_TO_POINTER
+   + (branch) fixed segfaults from gfsm_weightmap bugs on 64-bit linux
+   + fixed bug reported by Alexis Nasr in gfsm_pointer_alphabet_new() macro 
    + fixed nasty bug in gfsm_alphabet_load_handle() and gfsmio_getc() causing
      char decimal 255 to return as EOF
    + decomposed compose_prepare() into compose_prepare_fsm1(), compose_prepare_fsm2()
