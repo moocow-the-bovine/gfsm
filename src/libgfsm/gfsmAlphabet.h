@@ -181,9 +181,9 @@ gfsmAlphabet *gfsm_alphabet_new(gfsmAType type);
 
 /** Create and initialize a new pointer alphabet.
  *  You do not need to call an init() function for the returned alphabet. */
-#define gfsm_pointer_alphabet_new(key_dup_f, key_hash_f, key_eq_f, key_free_f, val_free_f) \
+#define gfsm_pointer_alphabet_new(key_dup_f, key_hash_f, key_eq_f, key_free_f) \
   gfsm_pointer_alphabet_init((gfsmPointerAlphabet*)gfsm_alphabet_new(gfsmATPointer),\
-                             key_dup_f, key_hash_f, key_eq_f, key_free_f, val_free_f)
+                             key_dup_f, key_hash_f, key_eq_f, key_free_f)
 
 
 /** Initialize a builtin alphabet (depending on \a a->type)
