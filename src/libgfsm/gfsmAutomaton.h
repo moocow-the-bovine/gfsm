@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: automata
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -278,6 +278,14 @@ gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWei
 
 /** Renumber states of an FSM */
 void gfsm_automaton_renumber_states(gfsmAutomaton *fsm);
+
+/** Renumber states of an FSM using user-specified map.
+ *  Destructively alters \c fsm.
+ *  \param fsm fsm whose states are to be renumbered
+ *  \param old2new GArray of gfsmStateId s.t. \c qid_new=old2new[qid_old], newid may be gfsmNoState to ignore
+ *  \param n_new_states number of new states, or 0 to auto-compute
+ */
+void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states);
 //@}
 
 /*======================================================================

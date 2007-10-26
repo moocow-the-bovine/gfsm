@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: automata
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -371,11 +371,8 @@ gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWei
  */
 void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 {
-  gfsmStateId    oldid, newid, n_states;
-  gfsmState     *s_old, *s_new;
-  gfsmWeightMap *new_finals = gfsm_weightmap_new(gfsm_uint_compare);
-  GArray        *new_states = NULL;
-  GArray        *old2new    = NULL;
+  gfsmStateId    oldid, newid;
+  GArray        *old2new = NULL;
 
   //-- always set root state to zero -- even add one
   if (fsm->root_id == gfsmNoState) fsm->root_id = gfsm_automaton_add_state(fsm);
@@ -391,49 +388,9 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
       g_array_index(old2new,gfsmStateId,oldid) = gfsmNoState;
     }
   }
-  n_states = newid+1;
 
-  //-- allocate new states
-  new_states = g_array_sized_new(FALSE,TRUE,sizeof(gfsmState),n_states);
-
-  //-- renumber states
-  for (oldid=0; oldid < fsm->states->len; oldid++) {
-    gfsmArcIter ai;  
-    newid = g_array_index(old2new,gfsmStateId,oldid);
-
-    if (newid==gfsmNoState) continue; //-- ignore bad states
-
-    //-- copy state data
-    s_old  = gfsm_automaton_find_state(fsm, oldid);
-    s_new  = &(g_array_index(new_states,gfsmState,newid));
-    *s_new = *s_old;
-
-    //-- check for final state
-    if (s_new->is_final) {
-      gfsmWeight fw;
-      gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
-      gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
-    }
-
-    //-- renumber targets of outgoing arcs
-    for (gfsm_arciter_open_ptr(&ai, fsm, s_new); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
-      {
-	gfsmArc *a = gfsm_arciter_arc(&ai);
-	a->target = g_array_index(old2new,gfsmStateId,a->target);
-      }
-  }
-
-  //-- set new root-id
-  fsm->root_id = 0;
-
-  //-- set new final weights
-  gfsm_weightmap_free(fsm->finals);
-  fsm->finals = new_finals;
-
-  //-- set new state vector
-  g_array_free(fsm->states,TRUE);
-  fsm->states = new_states;
-  fsm->states->len = n_states;
+  //-- perform actual renumbering
+  gfsm_automaton_renumber_states_full(fsm, old2new, newid+1);
 
   //-- cleanup
   g_array_free(old2new,TRUE);
@@ -516,6 +473,69 @@ void gfsm_automaton_renumber_states_old(gfsmAutomaton *fsm)
   //-- cleanup
   g_array_free(i2gap,TRUE);
 }
+
+
+/*--------------------------------------------------------------
+ * renumber_states()
+ */
+void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states)
+{
+  gfsmStateId    oldid, newid;
+  gfsmState     *s_old, *s_new;
+  gfsmWeightMap *new_finals = gfsm_weightmap_new(gfsm_uint_compare);
+  GArray        *new_states = NULL;
+
+  //-- get new number of states
+  if (n_new_states==0) {
+    for (oldid=0; oldid < fsm->states->len; oldid++) {
+      newid = g_array_index(old2new,gfsmStateId,oldid);
+      if (newid != gfsmNoState && newid >= n_new_states) { n_new_states=newid+1; }
+    }
+  }
+
+  //-- allocate new state-vector
+  new_states = g_array_sized_new(FALSE,TRUE,sizeof(gfsmState),n_new_states);
+
+  //-- renumber states
+  for (oldid=0; oldid < fsm->states->len; oldid++) {
+    gfsmArcIter ai;  
+    newid = g_array_index(old2new,gfsmStateId,oldid);
+
+    if (newid==gfsmNoState) continue; //-- ignore bad states
+
+    //-- copy state data
+    s_old  = gfsm_automaton_find_state(fsm, oldid);
+    s_new  = &(g_array_index(new_states,gfsmState,newid));
+    *s_new = *s_old;
+
+    //-- check for final state
+    if (s_new->is_final) {
+      gfsmWeight fw;
+      gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
+      gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
+    }
+
+    //-- renumber targets of outgoing arcs
+    for (gfsm_arciter_open_ptr(&ai, fsm, s_new); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
+      {
+	gfsmArc *a = gfsm_arciter_arc(&ai);
+	a->target = g_array_index(old2new,gfsmStateId,a->target);
+      }
+  }
+
+  //-- set new root-id
+  fsm->root_id = g_array_index(old2new,gfsmStateId,fsm->root_id);
+
+  //-- set new final weights
+  gfsm_weightmap_free(fsm->finals);
+  fsm->finals = new_finals;
+
+  //-- set new state vector
+  g_array_free(fsm->states,TRUE);
+  fsm->states = new_states;
+  fsm->states->len = n_new_states;
+}
+
 
 /*======================================================================
  * Methods: Accessors: Automaton Arcs
