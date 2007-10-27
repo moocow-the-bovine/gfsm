@@ -476,7 +476,7 @@ void gfsm_automaton_renumber_states_old(gfsmAutomaton *fsm)
 
 
 /*--------------------------------------------------------------
- * renumber_states()
+ * renumber_states_full()
  */
 void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states)
 {
@@ -488,6 +488,7 @@ void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gf
   //-- get new number of states
   if (n_new_states==0) {
     for (oldid=0; oldid < fsm->states->len; oldid++) {
+      if (!gfsm_automaton_has_state(fsm,oldid)) continue;
       newid = g_array_index(old2new,gfsmStateId,oldid);
       if (newid != gfsmNoState && newid >= n_new_states) { n_new_states=newid+1; }
     }
@@ -498,10 +499,10 @@ void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gf
 
   //-- renumber states
   for (oldid=0; oldid < fsm->states->len; oldid++) {
-    gfsmArcIter ai;  
+    gfsmArcIter ai; 
     newid = g_array_index(old2new,gfsmStateId,oldid);
 
-    if (newid==gfsmNoState) continue; //-- ignore bad states
+    if (newid==gfsmNoState || !gfsm_automaton_has_state(fsm,oldid)) continue; //-- ignore bad states
 
     //-- copy state data
     s_old  = gfsm_automaton_find_state(fsm, oldid);
