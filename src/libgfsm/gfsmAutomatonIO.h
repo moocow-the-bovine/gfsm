@@ -50,7 +50,7 @@ typedef struct {
   gfsmStateId        root_id;      /**< Id of root node */
   gfsmStateId        n_states;     /**< number of stored states */
   gfsmStateId        n_arcs_007;   /**< number of stored arcs (v0.0.2 .. v0.0.7) */
-  gfsmSRType         srtype;       /**< semiring type */
+  guint32            srtype;       /**< semiring type (cast to gfsmSRType) */
   guint32            unused1;      /**< reserved */
   guint32            unused2;      /**< reserved */
   guint32            unused3;      /**< reserved */

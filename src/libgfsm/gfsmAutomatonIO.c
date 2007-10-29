@@ -388,6 +388,9 @@ gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
     return FALSE;
   }
 
+  //-- zero stored state (allow zlib compression to work better for any 'unused' members)
+  memset(&sst, 0, sizeof(gfsmStoredState));
+
   //-- write states
   for (id=0; rc && id < hdr.n_states; id++) {
     //-- store basic state information
@@ -395,7 +398,6 @@ gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
     sst.is_valid = st->is_valid;
     sst.is_final = sst.is_valid ? st->is_final : FALSE;
     sst.n_arcs   = sst.is_valid ? gfsm_state_out_degree(st) : 0;
-    sst.unused   = 0; //-- set unused=0 to allow zlib compression to work better
     if (!gfsmio_write(ioh, &sst, sizeof(sst))) {
       g_set_error(errp, g_quark_from_static_string("gfsm"),                      //-- domain
 			g_quark_from_static_string("automaton_save_bin:state"), //-- code

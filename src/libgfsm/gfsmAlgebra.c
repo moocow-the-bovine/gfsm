@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -940,14 +940,16 @@ gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
 					      gfsmLp2EcForeachData *data)
 {
   gfsmStateId    ec2id_val;
+  gpointer       ec2id_val_as_ptr;
   gfsmStateSet  *ec2id_key;
 
   if ( gfsm_enum_lookup_extended(data->ec2id,
 				 wss->set,
 				 (gpointer)(&ec2id_key),
-				 (gpointer)(&ec2id_val)) )
+				 (gpointer)(&ec2id_val_as_ptr)) )
     {
       //-- target node-set is already present: just add an arc in @dfa
+      ec2id_val = GPOINTER_TO_UINT(ec2id_val_as_ptr);
       gfsm_automaton_add_arc(data->dfa,
 			     data->dfa_src_id,
 			     ec2id_val,

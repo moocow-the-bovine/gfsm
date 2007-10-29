@@ -1,8 +1,11 @@
 Change log for gfsm
 
-v0.0.9 Mon, 22 Oct 2007 15:12:20 +0200
-   + (branch) changed static int<->pointer casts to GPOINTER_TO_(U)INT, G(U)INT_TO_POINTER
-   + (branch) fixed segfaults from gfsm_weightmap bugs on 64-bit linux
+v0.0.9 Mon, 29 Oct 2007 12:54:19 +0100
+   + changed static int<->pointer casts to GPOINTER_TO_(U)INT, G(U)INT_TO_POINTER
+   + fixed gfsmWeight-related segfault bugs on 64-bit linux
+     - gfsm_weight2ptr() and gfsm_ptr2weight() are now implemented as true functions
+       using a "hidden" union type gfsmWeightOrPointer to handle memory stuff
+     - this happily also allows gcc to compile without -fno-strict-aliasing
    + fixed bug reported by Alexis Nasr in gfsm_pointer_alphabet_new() macro 
    + fixed nasty bug in gfsm_alphabet_load_handle() and gfsmio_getc() causing
      char decimal 255 to return as EOF

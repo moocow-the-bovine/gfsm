@@ -168,7 +168,7 @@ using Getopt::Gen version 0.11.
 Translation was initiated
 as:
 
-   /usr/local/bin/optgen.perl -l --nocfile --nohfile --notimestamp -F gfsmintersect gfsmintersect.gog
+   optgen.perl -l --nocfile --nohfile --notimestamp -F gfsmintersect gfsmintersect.gog
 
 =cut
 
