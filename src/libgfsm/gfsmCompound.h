@@ -38,7 +38,7 @@
  * Compound Types
  */
 /// Typedef for (lower,upper) label pairs: really just a wrapper for some bit operations
-typedef guint gfsmLabelPair;
+typedef guint32 gfsmLabelPair;
 
 /// Matched pair of state-ids (used by algebraic operations)
 typedef struct {
@@ -68,7 +68,7 @@ typedef gfsmWeightHash gfsmStatePair2WeightHash;
 ///\name gfsmLabelPair Methods
 //@{
 /** Create a "new" gsfmLabelPair */
-#define gfsm_labelpair_new(lo,hi) ((((guint)(hi))<<16)|((guint)(lo)))
+#define gfsm_labelpair_new(lo,hi) ((((guint32)(hi))<<16)|((guint32)(lo)))
 
 /** Get lower label of of a label-pair */
 #define gfsm_labelpair_lower(lp) ((gfsmLabelId)((lp)&0xffff))

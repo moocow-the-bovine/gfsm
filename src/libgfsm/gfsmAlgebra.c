@@ -893,7 +893,7 @@ gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
  */
 gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wanted)
 {
-  gfsmStateId id, maxwanted;
+  gfsmStateId id, maxwanted=gfsmNoState;
   gfsmArcIter ai;
 
   for (id=0; id < fsm->states->len; id++) {
@@ -916,7 +916,11 @@ gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wa
   }
 
   //-- update number of states
-  g_array_set_size(fsm->states, maxwanted+1);
+  if (maxwanted != gfsmNoState) {
+    g_array_set_size(fsm->states, maxwanted+1);
+  } else {
+    g_array_set_size(fsm->states, 0);
+  }
 
   return fsm;
 }

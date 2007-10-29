@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -50,6 +50,32 @@ typedef struct {
   gfsmDupFunc   key_dup; ///< key copying function
 } gfsmWeightHash;
 
+/** \brief Union type for converting between gfsmWeight and gpointer.
+ *  \detail Requires that sizeof(gpointer)>=sizeof(gfsmWeight) in order to work properly.
+ */
+typedef union {
+  gfsmWeight w; /**< Interpret underlying binary data as a gfsmWeight */
+  gpointer   p; /**< Interpret underlying binary data as a gpointer   */
+} gfsmWeightOrPointer;
+
+
+/*======================================================================
+ * gfsmWeight <-> gpointer conversions
+ */
+
+///\name gfsmWeight <-> gpointer Conversions
+//@{
+
+/** Convert a gpointer to a gfsmWeight */
+gfsmWeight gfsm_ptr2weight(const gpointer p);
+//#define gfsm_ptr2weight(p) (*((gfsmWeight*)(&(p))))
+
+/** Macro to convert gfsmWeight->gpointer */
+gpointer gfsm_weight2ptr(const gfsmWeight w);
+//#define gfsm_weight2ptr(w) ((gpointer)(*((int*)(&(w)))))
+//#define gfsm_weight2ptr(w) GINT_TO_POINTER( *((gint*)(&(w))) )
+
+//@}
 
 /*======================================================================
  * gfsmWeightMap: Constructors etc.
@@ -84,13 +110,6 @@ typedef struct {
  */
 ///\name gfsmWeightmap: Accessors
 //@{
-
-/** Macro to convert gpointer->gfsmWeight */
-#define gfsm_ptr2weight(p) (*((gfsmWeight*)(&(p))))
-
-/** Macro to convert gfsmWeight->gpointer */
-//#define gfsm_weight2ptr(w) ((gpointer)(*((int*)(&(w)))))
-#define gfsm_weight2ptr(w) GINT_TO_POINTER( *((gint*)(&(w))) )
 
 /** lookup: check weightmap membership */
 gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key);

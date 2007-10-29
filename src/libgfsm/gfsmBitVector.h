@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004-2006 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -94,10 +94,12 @@ gfsmBitVector *gfsm_bitvector_one(gfsmBitVector *bv);
     ? ( (g_array_index((bv), guint8, _gfsm_bitvector_bits2bytes(i)) & (1<<((i)%8))) ? 1 : 0 ) \
     : 0 )
 
-/** Set the value (0 or 1) of the bit at index \a i to boolean value \a v in vector \a bv
- *  \note Implemented as a macro which evaluates its arguments multiple times.
+/** Set the value (0 or 1) of the bit at index \a i to boolean value \a v in vector \a bv.
+ *  Formerly implemented as a macro which evaluates its arguments multiple times.
  */
-#define gfsm_bitvector_set(bv,i,v) \
+void gfsm_bitvector_set(gfsmBitVector *bv, guint i, gboolean v);
+
+#define gfsm_bitvector_set_macro(bv,i,v) \
   ( ((i) >= gfsm_bitvector_size(bv) ? gfsm_bitvector_resize((bv),(i)) : 0), \
     ((v) ? ( g_array_index((bv), guint8, _gfsm_bitvector_bits2bytes(i)) |=  (1<<((i)%8)) ) \
          : ( g_array_index((bv), guint8, _gfsm_bitvector_bits2bytes(i)) &= ~(1<<((i)%8)) ) ) )

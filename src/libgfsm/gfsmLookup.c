@@ -33,7 +33,7 @@
 /*======================================================================
  * Constants
  */
-const guint gfsmLookupStateMapGet = 16;
+const gfsmStateId gfsmLookupStateMapGet = 16;
 
 /*======================================================================
  * Methods: lookup
@@ -149,6 +149,7 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
   guint             i;
   gboolean          trellis2fst_is_tmp = FALSE;
   gfsmStateId       qid_trellis, qid_trellis_nxt, qid_fst;
+  gpointer          ptr_qid_trellis_nxt;
   gfsmState        *q_trellis, *q_trellis_nxt, *q_fst;
   gfsmArcIter       ai;
   gfsmWeight        w_trellis;
@@ -222,12 +223,13 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 	  if (g_tree_lookup_extended(fst2trellis,
 				     GUINT_TO_POINTER(arc_fst->target),
 				     &orig_key,
-				     (gpointer*)(&qid_trellis_nxt)))
+				     &ptr_qid_trellis_nxt))
 	    {
 	      //-- yep: known successor: get old ("*_nxt") & new ("*_nxt_new") weights
 	      gfsmWeight w_trellis_nxt_new = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
-	      q_trellis_nxt = gfsm_automaton_find_state(trellis, qid_trellis_nxt);
-	      w_trellis_nxt = gfsm_viterbi_node_best_weight(q_trellis_nxt);
+	      qid_trellis_nxt = GPOINTER_TO_UINT(ptr_qid_trellis_nxt);
+	      q_trellis_nxt   = gfsm_automaton_find_state(trellis, qid_trellis_nxt);
+	      w_trellis_nxt   = gfsm_viterbi_node_best_weight(q_trellis_nxt);
 
 	      //-- is the new path better than the stored path?
 	      if (gfsm_sr_less(fst->sr, w_trellis_nxt_new, w_trellis_nxt)) {
@@ -381,6 +383,7 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
       {
 	gfsmArc     *arc_fst = gfsm_arciter_arc(&ai);
 	gfsmStateId  qid_trellis_nxt = gfsmNoState;
+	gpointer     ptr_qid_trellis_nxt;
 	gfsmState   *q_trellis_nxt;
 	gfsmWeight   w_trellis_nxt;
 	gpointer     orig_key;
@@ -389,12 +392,13 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 	if (g_tree_lookup_extended(fst2trellis,
 				   GUINT_TO_POINTER(arc_fst->target),
 				   &orig_key,
-				   (gpointer*)(&qid_trellis_nxt)))
+				   &ptr_qid_trellis_nxt))
 	  {
 	    //-- yep: get the old ("*_eps") & new ("*_nxt") weights
 	    gfsmWeight w_trellis_eps = gfsm_sr_times(fst->sr, w_trellis, arc_fst->weight);
-	    q_trellis_nxt = gfsm_automaton_find_state(trellis,qid_trellis_nxt);
-	    w_trellis_nxt = gfsm_viterbi_node_best_weight(q_trellis_nxt);
+	    qid_trellis_nxt = GPOINTER_TO_UINT(ptr_qid_trellis_nxt);
+	    q_trellis_nxt   = gfsm_automaton_find_state(trellis,qid_trellis_nxt);
+	    w_trellis_nxt   = gfsm_viterbi_node_best_weight(q_trellis_nxt);
 
 	    //-- is the new eps-path better than the stored path?
 	    if (gfsm_sr_less(fst->sr,w_trellis_eps,w_trellis_nxt)) {

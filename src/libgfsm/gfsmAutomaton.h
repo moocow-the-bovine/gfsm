@@ -68,7 +68,7 @@ typedef struct
  * Constants
  */
 /** Default initial automaton size */
-extern const guint gfsmAutomatonDefaultSize;
+extern const gfsmStateId gfsmAutomatonDefaultSize;
 
 /** Default initial automaton flags */
 extern const gfsmAutomatonFlags gfsmAutomatonDefaultFlags;
@@ -82,7 +82,7 @@ extern const gfsmSRType gfsmAutomatonDefaultSRType;
 /// \name Constructors etc.
 //@{
 /** Create a new gfsmAutomaton, preallocating \a size states */
-gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, guint size);
+gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, gfsmStateId size);
 
 /** Create a new gfsmAutomaton */
 #define gfsm_automaton_new() \

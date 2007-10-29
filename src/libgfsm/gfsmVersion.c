@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ const char *gfsm_version_string = PACKAGE_VERSION;
 int gfsm_version_compare(gfsmVersionInfo v1, gfsmVersionInfo v2)
 {
   int rc;
-  if      ((rc=gfsm_uint_compare(GINT_TO_POINTER(v1.major),GINT_TO_POINTER(v2.major)))) return rc;
-  else if ((rc=gfsm_uint_compare(GINT_TO_POINTER(v1.minor),GINT_TO_POINTER(v2.minor)))) return rc;
-  return gfsm_uint_compare(GINT_TO_POINTER(v1.micro),GINT_TO_POINTER(v2.micro));
+  if      ((rc=gfsm_uint_compare(GUINT_TO_POINTER(v1.major),GUINT_TO_POINTER(v2.major)))) return rc;
+  else if ((rc=gfsm_uint_compare(GUINT_TO_POINTER(v1.minor),GUINT_TO_POINTER(v2.minor)))) return rc;
+  return gfsm_uint_compare(GUINT_TO_POINTER(v1.micro),GUINT_TO_POINTER(v2.micro));
 }

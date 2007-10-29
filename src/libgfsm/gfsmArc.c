@@ -175,17 +175,6 @@ void gfsm_arclist_free(gfsmArcList *al)
 /*======================================================================
  * Methods: Arc Lists: Utilities
  */
-/*--------------------------------------------------------------
- * arclist_length()
- */
-  /*
-guint gfsm_arclist_length(gfsmArcList *al)
-{
-  guint n;
-  for (n=0; al != NULL; al=al->next) ++n;
-  return n;
-}
-*/
 
 /*--------------------------------------------------------------
  * compare()

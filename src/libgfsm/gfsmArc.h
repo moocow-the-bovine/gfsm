@@ -75,7 +75,9 @@ typedef enum {
  */
 /// \name Arcs: Constructors etc.
 //@{
-/** Create a new arc (empty) */
+/** \def gfsm_arc_new()
+ *  Create a new arc (empty)
+ */
 #define gfsm_arc_new() g_new0(gfsmArc,1)
 
 /** Initialize an arc (generic) */
@@ -85,14 +87,17 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 		       gfsmLabelId hi,
 		       gfsmWeight wt);
 
-/** Convenience macro */
+/** \def gfsmArc* gfsm_arc_new_full(gfsmStateId dst, gfsmLabelId lo, gfsmLabelId hi, gfsmWeight w)
+ *  Convenience macro.
+ */
 #define gfsm_arc_new_full(dst,lo,hi,wt) \
   gfsm_arc_init(g_malloc(sizeof(gfsmArc)),(dst),(lo),(hi),(wt))
 
 /** Create a copy of \a arc */
 gfsmArc *gfsm_arc_copy(gfsmArc *src);
 
-/** Destroy an arc */
+/** \def gfsm_arc_free(gfsmArc* a)
+ *  Destroy an arc \c a */
 #define gfsm_arc_free(a) g_free(a)
 //@}
 
@@ -101,12 +106,15 @@ gfsmArc *gfsm_arc_copy(gfsmArc *src);
  */
 /// \name Arc Lists: Constructors etc.
 //@{
-/** Allocate space for a new gfsmArcList node. */
+/** \def gfsmArcList* gfsm_arclist_alloc()
+ *  Allocate space for a new gfsmArcList node.
+ */
 #define gfsm_arclist_alloc() g_slist_alloc()
 
-/** Create a new arc-list node for \a arc, prepending it to \a nxt
- *  \returns a pointer to the new 1st element of the arclist */
-//gfsmArcList *gfsm_arclist_prepend(gfsmArcList *nxt, gfsmArc *arc);
+/** \def gfsmArcList *gfsm_arclist_prepend(gfsmArcList *al, gfsmArc *a)
+ *  Create a new arc-list node for \a arc, prepending it to \a nxt
+ *  \returns a pointer to the new 1st element of the arclist
+ */
 #define gfsm_arclist_prepend(al,arc) g_slist_prepend(al,arc)
 
 /** Insert an arc into a (possibly sorted) arclist.
@@ -171,17 +179,19 @@ void gfsm_arclist_free(gfsmArcList *al);
  */
 ///\name ArcList: Utilities
 //@{
-/** Get length of an arc-list (linear time) */
-//guint gfsm_arclist_length(gfsmArcList *al);
+/** \def gfsm_arclist_length(gfsmArcList *al)
+ *  Get length of an arc-list \c al (linear time)
+ */
 #define gfsm_arclist_length(al) g_slist_length(al)
 
 /** 3-way comparison on arcs */
 gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata);
 
-/** sort an arclist */
+/** \def gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata)
+ *  Sort an arclist \c al with data \c sdata.
+ */
 #define gfsm_arclist_sort(al,sdata) \
   g_slist_sort_with_data(al, (GCompareDataFunc)gfsm_arc_compare, sdata)
-//gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata);
 //@}
 
 

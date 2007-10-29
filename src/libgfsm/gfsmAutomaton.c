@@ -29,7 +29,7 @@
 /*======================================================================
  * Constants
  */
-const guint gfsmAutomatonDefaultSize  = 128;
+const gfsmStateId gfsmAutomatonDefaultSize  = 128;
 
 const gfsmAutomatonFlags gfsmAutomatonDefaultFlags =
   {
@@ -49,7 +49,7 @@ const gfsmSRType gfsmAutomatonDefaultSRType = gfsmSRTTropical;
 /*--------------------------------------------------------------
  * new_full()
  */
-gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, guint size)
+gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, gfsmStateId size)
 {
   gfsmAutomaton *fsm = (gfsmAutomaton*)g_new(gfsmAutomaton,1);
   fsm->flags         = flags;
@@ -118,7 +118,7 @@ void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
  */
 void gfsm_automaton_clear(gfsmAutomaton *fsm)
 {
-  guint i;
+  gfsmStateId i;
   if (!fsm) return;
   for (i=0; fsm->states && i < fsm->states->len; i++) {
     gfsmState *st = gfsm_automaton_find_state(fsm,i);
@@ -286,10 +286,10 @@ gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm, gfsmLabelSide whic
       gfsmArc *a = gfsm_arciter_arc(&ai);
 
       if (which != gfsmLSUpper)
-	gfsm_alphabet_insert(alph, GUINT_TO_POINTER((gfsmLabelVal)(a->lower)), a->lower);
+	gfsm_alphabet_insert(alph, GUINT_TO_POINTER((guint)(a->lower)), a->lower);
 
       if (which != gfsmLSLower)
-	gfsm_alphabet_insert(alph, GUINT_TO_POINTER((gfsmLabelVal)(a->upper)), a->upper);
+	gfsm_alphabet_insert(alph, GUINT_TO_POINTER((guint)(a->upper)), a->upper);
     }
   }
   return alph;

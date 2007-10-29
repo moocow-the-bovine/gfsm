@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,25 @@
 
 #include <gfsmWeightMap.h>
 #include <gfsmUtils.h>
+
+/*======================================================================
+ * gfsmWeight <-> gpointer conversions
+ */
+gfsmWeight gfsm_ptr2weight(const gpointer p)
+{
+  gfsmWeightOrPointer wp;
+  wp.p=p;
+  return wp.w;
+}
+
+gpointer gfsm_weight2ptr(const gfsmWeight w)
+{
+  gfsmWeightOrPointer wp;
+  wp.p=0;
+  wp.w=w;
+  return wp.p;
+}
+
 
 /*======================================================================
  * gfsmWeightMap: Constructors etc.

@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: common definitions
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -79,7 +79,9 @@ extern const gfsmLabelId gfsmNoLabel;
 /** Constant indicating missing state */
 extern const gfsmStateId gfsmNoState;
 
-/** Constant indicating missing weight \todo FIX THIS */
+/** Constant indicating missing weight
+ *  \warning Deprecated: prefer gfsm_sr_one()
+ */
 extern const gfsmWeight gfsmNoWeight;
 
 #endif /* _GFSM_COMMON_H */

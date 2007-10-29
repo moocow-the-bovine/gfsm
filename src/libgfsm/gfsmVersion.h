@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,9 +35,9 @@
  */
 /// Library Version information
 typedef struct {
-  guint major;   /**< major version */
-  guint minor;   /**< minor version */
-  guint micro;   /**< micro version */
+  guint32 major;   /**< major version */
+  guint32 minor;   /**< minor version */
+  guint32 micro;   /**< micro version */
 } gfsmVersionInfo;
 
 /*======================================================================

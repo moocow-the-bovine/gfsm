@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -78,7 +78,7 @@ typedef gfsmState gfsmViterbiNode;
  */
 
 /** Number of states to pre-allocate when extending state-map vector on lookup_full() (>= 1) */
-extern const guint gfsmLookupStateMapGet;
+extern const gfsmStateId gfsmLookupStateMapGet;
 
 
 /*======================================================================

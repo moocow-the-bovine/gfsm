@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: automata: I/O
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * For information on usage and redistribution, and for a DISCLAIMER
  * OF ALL WARRANTIES, see the file "COPYING" in this distribution.
@@ -51,9 +51,9 @@ typedef struct {
   gfsmStateId        n_states;     /**< number of stored states */
   gfsmStateId        n_arcs_007;   /**< number of stored arcs (v0.0.2 .. v0.0.7) */
   gfsmSRType         srtype;       /**< semiring type */
-  guint              unused1;      /**< reserved */
-  guint              unused2;      /**< reserved */
-  guint              unused3;      /**< reserved */
+  guint32            unused1;      /**< reserved */
+  guint32            unused2;      /**< reserved */
+  guint32            unused3;      /**< reserved */
 } gfsmAutomatonHeader;
 
 /// Type for a stored state
@@ -61,7 +61,7 @@ typedef struct {
   guint32  is_valid : 1;  /**< valid flag */
   guint32  is_final : 1;  /**< final flag */
   guint32  unused   : 30; /**< reserved */
-  guint    n_arcs;        /**< number of stored arcs for this state */
+  guint32  n_arcs;        /**< number of stored arcs for this state */
 } gfsmStoredState;
 
 
