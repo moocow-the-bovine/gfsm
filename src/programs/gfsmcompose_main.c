@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2005 by Bryan Jurish <moocow@ling.uni-potsdam.de>
+   Copyright (C) 2005-2007 by Bryan Jurish <moocow@ling.uni-potsdam.de>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public

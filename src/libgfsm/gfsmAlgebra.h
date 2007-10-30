@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -106,6 +106,8 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton    *fsm,
 				       gfsmStateId      *sinkp);
 
 //------------------------------
+// compose (new)
+
 /** Compute the composition of \a fsm1 with \a fsm2
  *  (upper-side of \a fsm1 intersection with lower-side of \a fsm2).
  *
@@ -119,6 +121,7 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton    *fsm,
  */
 gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
+
 /** Compute the composition of two transducers \a fsm1 and \a fsm2 
  *  into the transducer \a composition.
  *
@@ -126,98 +129,26 @@ gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
  *  \param fsm2 Middle-upper transducer
  *  \param composition Lower-upper transducer.  May be passed as NULL to create a new automaton.
  *  \param spenum
- *    Mapping from (\a fsm1,\a fsm2) gfsmStatePairs to \a composition gfsmStateIds,
+ *    Mapping from (\a fsm1,\a fsm2,\a filter) gfsmComposeStates to \a composition gfsmStateIds,
  *    if it is passed as \a NULL, a temporary enum will be created and freed.
- *  \param restore1
- *    Both \fsm1 and \fsm2 are destructively altered in the course of computation.
- *    If \a restorefsm1 is true, the changes made to \a fsm1 will be eliminated
- *    before the call returns.
- *  \param restore2
- *    If true, changes to \a fsm2 will be changed back before the call returns.
  *
- *    \warning the data in \a spenum won't be kosher if \a fsm1 has any output-epsilon arcs --
- *    see [Mohri, Pereira, and Riley (1996) "Weighted Automata in Text and Speech Processing",
- *    ECAI '96, John Wiley & Sons, Ltd.] for details.
+ *  \sa Mohri, Pereira, and Riley (1996) "Weighted Automata in Text and Speech Processing",
+ *      Proc. ECAI '96, John Wiley & Sons, Ltd.
  *
  *  \returns \a composition
  */
 gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 					   gfsmAutomaton *fsm2,
 					   gfsmAutomaton *composition,
-					   gfsmStatePairEnum *spenum,
-					   gboolean restore1,
-					   gboolean restore2);
-
-/** Prepare FST \a fsm1 for composition: inserts and alters
- *  epsilon-arcs, and optionally populates an alphabet.
- *
- *  \param fsm1 FST for composition (lower-middle)
- *  \param abet identity alphabet or NULL, populated with \a fsm1 upper labels if given
- *
- *  - alters arcs   (q --a:eps--> r) to (q --a:eps2--> r)
- *  - adds new arcs (q --eps:eps1--> q)
- *  .
- */
-void gfsm_automaton_compose_prepare_fsm1(gfsmAutomaton *fsm1, gfsmAlphabet *abet);
-
-/** Prepare FST \a fsm2 for composition: inserts and alters
- *  epsilon-arcs, and optionally populates an alphabet.
- *
- *  \param fsm2 FST for composition (middle-upper)
- *  \param abet identity alphabet or NULL, populated with \a fsm2 upper labels if given
- *
- *  - alters arcs   (q --eps:b--> r) to (q --eps1:b--> r)
- *  - adds new arcs (q --eps2:eps--> q)
- *  .
- */
-void gfsm_automaton_compose_prepare_fsm2(gfsmAutomaton *fsm2, gfsmAlphabet *abet);
+					   gfsmComposeStateEnum *spenum);
 
 
-/** Prepare FSTs \a (fsm1,fsm2) for composition.  Really just a wrapper
- *  for gfsm_automaton_compose_prepare_fsm1(), gfsm_automaton_compose_prepare_fsm2()
- *  which creates and populates an identity alphabet from upper labels of \a fsm1.
- *
- *  \param fsm1 first argument of compose()
- *  \param fsm2 second argument of compose()
- *
- *  \returns gfsmIdentityAlphabet* for upper-alphabet of \a fsm1
- */
-gfsmAlphabet *gfsm_automaton_compose_prepare(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
-
-/* Create a composition filter for the intersection alphabet \a abet
- * in the manner described in Mohri, Pereira, and Riley (1996).
- *
- * \param abet   intersection alphabet (only labels are required)
- * \param srtype semiring type of the filter (only zero weights are added)
- */
-gfsmAutomaton *gfsm_automaton_composition_filter(gfsmAlphabet *abet, gfsmSRType srtype);
-
-/** Possibly restore any changes made to \a fsm1 and/or \a fsm2 by
- *  gfsm_automaton_compose_prepare().  Called by gfsm_automaton_compose_full()
- */
-void gfsm_automaton_compose_restore(gfsmAutomaton   *fsm1,
-				    gfsmAutomaton   *fsm2,
-				    gfsmArcSortMode fsm1sm,
-				    gfsmArcSortMode fsm2sm,
-				    gboolean        restore1,
-				    gboolean        restore2);
-
-
-/** Guts for gfsm_automaton_compose() \returns (new) StateId for \a sp. */
-gfsmStateId _gfsm_automaton_compose_visit(gfsmStatePair  sp,
-					  gfsmAutomaton *fsm1,
-					  gfsmAutomaton *fsm2,
-					  gfsmAutomaton *fsm,
-					  gfsmStatePairEnum *spenum);
-
-/** Wrapper guts for compose() and intersect() */
-gfsmAutomaton *_gfsm_automaton_compose_intersect_wrapper(gfsmAutomaton *fsm1,
-							 gfsmAutomaton *fsm2,
-							 gfsmAutomaton *fsmout,
-							 gfsmStatePairEnum *spenum,
-							 gboolean is_composition);
-
-
+/** Guts for gfsm_automaton_compose() \returns (new) StateId for \a sp */
+gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState  sp,
+					  gfsmAutomaton    *fsm1,
+					  gfsmAutomaton    *fsm2,
+					  gfsmAutomaton    *fsm,
+					  gfsmComposeStateEnum *spenum);
 
 //------------------------------
 /** Append \a fsm2 onto the end of \a fsm1 \a n times.
@@ -400,6 +331,14 @@ gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair  sp,
 					    gfsmAutomaton *fsm2,
 					    gfsmAutomaton *fsm,
 					    gfsmStatePairEnum *spenum);
+
+/** Wrapper guts for compose() and intersect() */
+gfsmAutomaton *_gfsm_automaton_compose_intersect_wrapper(gfsmAutomaton *fsm1,
+							 gfsmAutomaton *fsm2,
+							 gfsmAutomaton *fsmout,
+							 gfsmStatePairEnum *spenum,
+							 gboolean is_composition);
+
 
 //------------------------------
 /** Invert upper and lower labels of an automaton.

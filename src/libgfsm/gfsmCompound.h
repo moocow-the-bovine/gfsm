@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: basic compound types
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,11 +40,30 @@
 /// Typedef for (lower,upper) label pairs: really just a wrapper for some bit operations
 typedef guint32 gfsmLabelPair;
 
-/// Matched pair of state-ids (used by algebraic operations)
+/// Matched pair of state-ids (used for automaton intersection)
 typedef struct {
   gfsmStateId  id1;  /**< Id of first component */
   gfsmStateId  id2;  /**< Id of second component */
 } gfsmStatePair;
+
+/// Typedef for composition filter states
+/**
+ * as described in Morhi, Pereira, & Riley (1996) "Weighted Automata in Text and Speech Processing",
+ * Proc. ECAI 96, John Wiley & Sons.
+ */
+typedef guint8 gfsmComposeFilterState;
+
+/// Matched pair of state-ids with an additional filter state (used for transducer composition)
+/**
+ * for details, see
+ * Morhi, Pereira, & Riley (1996) "Weighted Automata in Text and Speech Processing",
+ * Proc. ECAI 96, John Wiley & Sons.
+ */
+typedef struct {
+  gfsmStateId            id1;  /**< Id of first component */
+  gfsmStateId            id2;  /**< Id of second component */
+  gfsmComposeFilterState idf;  /**< Filter state (0|1|2) */
+} gfsmComposeState;
 
 /// Type for a (stateid,weight) pair (used by algebraic operations)
 typedef struct {
@@ -56,6 +75,10 @@ typedef struct {
 /// Typedef for mapping (gfsmStatePair)s to single (gfsmStateId)s,
 /// used by gfsm_automaton_intersection()
 typedef gfsmEnum gfsmStatePairEnum;
+
+/// Typedef for mapping (gfsmComposeState)s to single (gfsmStateId)s,
+/// used by gfsm_automaton_compose()
+typedef gfsmEnum gfsmComposeStateEnum;
 
 /// Typedef for mapping (gfsmStatePair)s to single (gfsmWeight)s,
 /// used by gfsm_automaton_rmepsilon()
@@ -117,6 +140,34 @@ gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2
 //@}
 
 /*======================================================================
+ * Methods: gfsmComposeState
+ */
+///\name gfsmComposeState Methods
+//@{
+
+/** Create a new gfsmComposeState */
+gfsmComposeState *gfsm_compose_state_new(gfsmStateId id1, gfsmStateId id2, gfsmComposeFilterState idf);
+
+/** Clone an existing gfsmComposeState */
+gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp);
+
+/** Free a gfsmComposeState */
+#define gfsm_compose_state_free g_free
+//void gfsm_compose_state_free(gfsmComposeState *sp);
+
+/** Get a more or less sensible hash value from a gfsmComposeState */
+guint gfsm_compose_state_hash(gfsmComposeState *sp);
+
+/** Comparison function for gfsmComposeState */
+gint gfsm_compose_state_compare(const gfsmComposeState *sp1, const gfsmComposeState *sp2);
+
+/** Equality predicate for gfsmComposeState */
+gboolean gfsm_compose_state_equal(const gfsmComposeState *sp1, const gfsmComposeState *sp2);
+
+//@}
+
+
+/*======================================================================
  * Methods: gfsmStateWeightPair
  */
 ///\name gfsmStateWeightPair Methods
@@ -158,6 +209,25 @@ gfsmStatePairEnum *gfsm_statepair_enum_new(void);
 
 /** Alias; \sa gfsm_enum_clear() */
 #define gfsm_statepair_enum_free  gfsm_enum_free
+
+//@}
+
+/*======================================================================
+ * Methods: gfsmComposeStateEnum
+ */
+///\name gfsmComposeStateEnum Methods
+//@{
+
+/** create a new gfsmComposeStateEnum (copies & frees keys)
+ *  \see gfsmEnum
+ */
+gfsmComposeStateEnum *gfsm_compose_state_enum_new(void);
+
+/** Alias; \sa gfsm_enum_clear() */
+#define gfsm_compose_state_enum_clear gfsm_enum_clear
+
+/** Alias; \sa gfsm_enum_clear() */
+#define gfsm_compose_state_enum_free  gfsm_enum_free
 
 //@}
 

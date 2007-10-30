@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: common definitions
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -80,8 +80,7 @@ gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp)
  * statepair_free()
  */
 /*
-gfsmStatePair *gfsm_statepair_free(gfsmStatePair *sp)
-{ g_free(sp); }
+void gfsm_statepair_free(gfsmStatePair *sp) { g_free(sp); }
 */
 
 /*--------------------------------------------------------------
@@ -108,6 +107,66 @@ gint gfsm_statepair_compare(const gfsmStatePair *sp1, const gfsmStatePair *sp2)
  */
 gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2)
 { return sp1->id1==sp2->id1 && sp1->id2==sp2->id2; }
+
+
+
+/*======================================================================
+ * Methods: gfsmComposeState
+ */
+
+/*--------------------------------------------------------------
+ * compose_state_new()
+ */
+gfsmComposeState *gfsm_compose_state_new(gfsmStateId id1, gfsmStateId id2, gfsmComposeFilterState idf)
+{
+  gfsmComposeState *sp = g_new(gfsmComposeState,1);
+  sp->id1 = id1;
+  sp->id2 = id2;
+  sp->idf = idf;
+  return sp;
+}
+
+/*--------------------------------------------------------------
+ * compose_state_clone()
+ */
+gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp)
+{
+  return (gfsmComposeState*)gfsm_mem_dup_n(sp, sizeof(gfsmComposeState));
+}
+
+/*--------------------------------------------------------------
+ * compose_state_free()
+ */
+/*
+void gfsm_compose_state_free(gfsmComposeState *sp) { g_free(sp); }
+*/
+
+/*--------------------------------------------------------------
+ * compose_state_hash()
+ */
+guint gfsm_compose_state_hash(gfsmComposeState *sp)
+{ return 7949*sp->id1 + sp->id2 + 7963*sp->idf; } 
+
+
+/*--------------------------------------------------------------
+ * compose_state_compare()
+ */
+gint gfsm_compose_state_compare(const gfsmComposeState *sp1, const gfsmComposeState *sp2)
+{
+  return (sp1->id1 < sp2->id1 ? -1
+	  : (sp1->id1 > sp2->id1 ? 1
+	     : (sp1->id2 < sp2->id2 ? -1
+		: (sp1->id2 > sp2->id2 ? 1
+		   : (sp1->idf < sp2->idf ? -1
+		      : (sp1->idf > sp2->idf ? 1
+			 : 0))))));
+}
+
+/*--------------------------------------------------------------
+ * compose_state_equal()
+ */
+gboolean gfsm_compose_state_equal(const gfsmComposeState *sp1, const gfsmComposeState *sp2)
+{ return sp1->id1==sp2->id1 && sp1->id2==sp2->id2 && sp1->idf==sp2->idf; }
 
 
 
@@ -163,6 +222,22 @@ gfsmStatePairEnum *gfsm_statepair_enum_new(void)
   return gfsm_enum_new_full((gfsmDupFunc)gfsm_statepair_clone,
 			    (GHashFunc)gfsm_statepair_hash,
 			    (GEqualFunc)gfsm_statepair_equal,
+			    (GDestroyNotify)g_free);
+}
+
+
+/*======================================================================
+ * Methods: gfsmComposeStateEnum
+ */
+
+/*--------------------------------------------------------------
+ * compose_state_enum_new()
+ */
+gfsmComposeStateEnum *gfsm_compose_state_enum_new(void)
+{
+  return gfsm_enum_new_full((gfsmDupFunc)gfsm_compose_state_clone,
+			    (GHashFunc)gfsm_compose_state_hash,
+			    (GEqualFunc)gfsm_compose_state_equal,
 			    (GDestroyNotify)g_free);
 }
 
