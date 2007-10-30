@@ -484,16 +484,17 @@ if test "$gfsm_doc_formats" != "none" ; then
 
   ##-- doxygen: filter: doc/lib*/'doxy-filter.perl'
   ##
-  AC_ARG_VAR(DOXY_FILTER,[doxygen input filter; "no" to disable])
+  AC_ARG_VAR(DOXY_FILTER,[doxygen input filter; "no" to disable (default)])
   AC_MSG_CHECKING([for doxygen input filter])
   if test -z "$DOXY_FILTER"; then
-    DOXY_SRCDIR="`find ${srcdir}/doc/ -name 'lib*' -print | head -n1`"
-    if test -d "$DOXY_SRCDIR" -a -f "$DOXY_SRCDIR/doxy-filter.perl" -a "$PERL" != "no" ; then
-      DOXY_SRCDIR=`cd "$DOXY_SRCDIR"; pwd`
-      DOXY_FILTER="$PERL $DOXY_SRCDIR/doxy-filter.perl"
-    else
-      DOXY_FILTER="no"
-    fi
+    DOXY_FILTER="no"
+    #DOXY_SRCDIR="`find ${srcdir}/doc/ -name 'lib*' -print | head -n1`"
+    #if test -d "$DOXY_SRCDIR" -a -f "$DOXY_SRCDIR/doxy-filter.perl" -a "$PERL" != "no" ; then
+    #  DOXY_SRCDIR=`cd "$DOXY_SRCDIR"; pwd`
+    #  DOXY_FILTER="$PERL $DOXY_SRCDIR/doxy-filter.perl"
+    #else
+    #  DOXY_FILTER="no"
+    #fi
   fi
   AC_MSG_RESULT([$DOXY_FILTER])
   ##

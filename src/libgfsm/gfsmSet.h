@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,9 +28,7 @@
 #ifndef _GFSM_SET_H
 #define _GFSM_SET_H
 
-#include <glib.h>
 #include <gfsmMem.h>
-#include <stdio.h>
 
 /*======================================================================
  * Types
@@ -138,6 +136,9 @@ gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrAr
 /*======================================================================
  * Debugging
  */
+#ifdef GFSM_DEBUG_ENABLED
+#include <stdio.h>
+
 ///\name gfsmSet: debugging
 //@{
 
@@ -145,5 +146,6 @@ gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrAr
 void gfsm_set_print_uint(gfsmSet *set, FILE *f);
 
 //@}
+#endif /* GFSM_DEBUG_ENABLED */
 
 #endif /* _GFSM_SET_H */

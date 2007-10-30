@@ -28,7 +28,6 @@
 #ifndef _GFSM_LOOKUP_H
 #define _GFSM_LOOKUP_H
 
-#include <gfsmAlphabet.h>
 #include <gfsmAutomaton.h>
 #include <gfsmUtils.h>
 

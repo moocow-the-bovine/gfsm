@@ -28,13 +28,8 @@
 #ifndef _GFSM_AUTOMATON_H
 #define _GFSM_AUTOMATON_H
 
-#include <glib.h>
-#include <gfsmCommon.h>
 #include <gfsmAlphabet.h>
-#include <gfsmSemiring.h>
-#include <gfsmArc.h>
 #include <gfsmState.h>
-#include <gfsmSet.h>
 #include <gfsmWeightMap.h>
 #include <gfsmBitVector.h>
 

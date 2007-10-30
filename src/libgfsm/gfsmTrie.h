@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2006 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,6 @@
 #define _GFSM_TRIE_H
 
 #include <gfsmAutomaton.h>
-#include <gfsmAlphabet.h>
 
 /*======================================================================
  * Types: Trie

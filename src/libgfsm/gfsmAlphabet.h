@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: alphabet
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,10 +28,8 @@
 #ifndef _GFSM_ALPHABET_H
 #define _GFSM_ALPHABET_H
 
-#include <stdio.h>
 #include <gfsmCommon.h>
 #include <gfsmSet.h>
-#include <gfsmError.h>
 #include <gfsmIO.h>
 
 /*======================================================================

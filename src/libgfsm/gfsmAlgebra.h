@@ -28,11 +28,7 @@
 #ifndef _GFSM_ALGEBRA_H
 #define _GFSM_ALGEBRA_H
 
-#include <glib.h>
-#include <gfsmAutomaton.h>
-#include <gfsmAlphabet.h>
 #include <gfsmStateSet.h>
-#include <gfsmEnum.h>
 #include <gfsmCompound.h>
 #include <gfsmArcIter.h>
 #include <gfsmArcIndex.h>
@@ -174,10 +170,10 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2);
  *  \note Assumes \a fsm->root_id has been temporarily set to the translated gfsmStateId
  *  of \a fsm2->root_id.
  *
- *  \param pw   final weight encoded as a gpointer
- *  \param data concatenation data
+ *  \param pw  final weight encoded as a gpointer
+ *  \param fsm concatenation first argument / return value
  */
-gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer dummy, gfsmAutomaton *fsm);
+gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
 
 //------------------------------
 /**

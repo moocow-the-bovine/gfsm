@@ -42,7 +42,7 @@ GENERATE_BUGLIST       = YES
 ALIASES                = 
 ENABLED_SECTIONS       = 
 MAX_INITIALIZER_LINES  = 30
-OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_FOR_C  = YES
 OPTIMIZE_OUTPUT_JAVA   = NO
 SHOW_USED_FILES        = YES
 
@@ -165,18 +165,18 @@ GENERATE_AUTOGEN_DEF   = NO
 #---------------------------------------------------------------------------
 # Configuration options related to the preprocessor   
 #---------------------------------------------------------------------------
-#ENABLE_PREPROCESSING   = YES
-#MACRO_EXPANSION        = YES
-ENABLE_PREPROCESSING   = NO
-MACRO_EXPANSION        = NO
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+#ENABLE_PREPROCESSING   = NO
+#MACRO_EXPANSION        = NO
 EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
 #INCLUDE_PATH           = @top_srcdir@/src/libgfsm @top_builddir@src/libgfsm
 INCLUDE_FILE_PATTERNS  = 
 #PREDEFINED             = __cplusplus
 EXPAND_AS_DEFINED      = 
-SKIP_FUNCTION_MACROS   = YES
-#SKIP_FUNCTION_MACROS   = NO
+#SKIP_FUNCTION_MACROS   = YES
+SKIP_FUNCTION_MACROS   = NO
 
 #---------------------------------------------------------------------------
 # Configuration::addtions related to external references   
@@ -200,6 +200,8 @@ TEMPLATE_RELATIONS     = YES
 INCLUDE_GRAPH          = YES
 INCLUDED_BY_GRAPH      = YES
 GRAPHICAL_HIERARCHY    = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
 DOT_IMAGE_FORMAT       = png
 DOT_PATH               = 
 DOTFILE_DIRS           = 
@@ -207,6 +209,7 @@ MAX_DOT_GRAPH_WIDTH    = 1024
 MAX_DOT_GRAPH_HEIGHT   = 1024
 GENERATE_LEGEND        = YES
 DOT_CLEANUP            = YES
+
 #---------------------------------------------------------------------------
 # Configuration::addtions related to the search engine   
 #---------------------------------------------------------------------------

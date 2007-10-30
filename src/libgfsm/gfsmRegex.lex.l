@@ -2,8 +2,8 @@
  * Flex Options
  */
 /*%option outfile="gfsmRegex.lex.c"*/
-%option outfile="lex.yy.c"
 %option header-file="gfsmRegex.lex.h"
+%option outfile="lex.yy.c"
 %option prefix="gfsmRegex_yy"
 %option reentrant
 %option 8bit

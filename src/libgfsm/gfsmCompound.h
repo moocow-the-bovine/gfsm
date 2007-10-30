@@ -28,10 +28,7 @@
 #ifndef _GFSM_COMPOUND_H
 #define _GFSM_COMPOUND_H
 
-#include <glib.h>
-#include <gfsmCommon.h>
 #include <gfsmEnum.h>
-#include <gfsmSemiring.h>
 #include <gfsmWeightMap.h>
 
 /*======================================================================

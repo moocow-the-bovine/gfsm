@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,9 +27,7 @@
 #ifndef _GFSM_SEMIRING_H
 #define _GFSM_SEMIRING_H
 
-#include <glib.h>
 #include <gfsmCommon.h>
-
 #include <float.h>
 
 /*======================================================================

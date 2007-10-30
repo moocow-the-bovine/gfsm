@@ -1,6 +1,6 @@
 
 /*=============================================================================*\
- * File: gfsmAutomatonIO.c
+ * File: gfsmAutomatonIO.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: automata: I/O
  *
@@ -31,12 +31,8 @@
 #ifndef _GFSM_AUTOMATON_IO_H
 #define _GFSM_AUTOMATON_IO_H
 
-#include <gfsmAlphabet.h>
 #include <gfsmAutomaton.h>
 #include <gfsmVersion.h>
-#include <gfsmError.h>
-#include <gfsmIO.h>
-#include <stdio.h>
 
 /*======================================================================
  * Types

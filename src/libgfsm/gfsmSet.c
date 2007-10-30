@@ -177,6 +177,7 @@ gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrAr
 /*======================================================================
  * Debugging
  */
+#ifdef GFSM_DEBUG_ENABLED
 gboolean gfsm_set_print_foreach_func(gpointer key, gpointer data, FILE *f)
 {
   fprintf(f, " %u", GPOINTER_TO_UINT(key));
@@ -188,3 +189,4 @@ void gfsm_set_print_uint(gfsmSet *set, FILE *f)
   g_tree_foreach(set, (GTraverseFunc)gfsm_set_print_foreach_func, f);
   fputs(" }", f);
 }
+#endif /*GFSM_DEBUG_ENABLED*/

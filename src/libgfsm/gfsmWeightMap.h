@@ -28,10 +28,7 @@
 #ifndef _GFSM_WEIGHTMAP_H
 #define _GFSM_WEIGHTMAP_H
 
-#include <glib.h>
-#include <gfsmMem.h>
 #include <gfsmSet.h>
-#include <gfsmCommon.h>
 #include <gfsmSemiring.h>
 
 /*======================================================================

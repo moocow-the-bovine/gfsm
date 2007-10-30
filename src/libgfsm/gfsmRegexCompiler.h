@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,14 +23,18 @@
 
 /** \file gfsmRegexCompiler.h
  *  \brief Regular expression compiler
+ *
+ *  \file gfsmRegex.lex.h
+ *  \brief flex scanner headers for gfsmRegexCompiler
+ *
+ *  \file gfsmRegex.tab.h
+ *  \brief bison parser headers for gfsmRegexCompiler
  */
 
 #ifndef _GFSM_REGEX_COMPILER_H
 #define _GFSM_REGEX_COMPILER_H
 
 #include <gfsmScanner.h>
-#include <gfsmAutomaton.h>
-#include <gfsmAlphabet.h>
 #include <gfsmAlgebra.h>
 
 /*======================================================================

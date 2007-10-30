@@ -28,8 +28,6 @@
 #ifndef _GFSM_ARC_H
 #define _GFSM_ARC_H
 
-#include <glib.h>
-#include <gfsmCommon.h>
 #include <gfsmSemiring.h>
 
 /// "Heavy" arc structure
