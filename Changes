@@ -9,8 +9,10 @@ v0.0.9 Mon, 29 Oct 2007 12:54:19 +0100
    + fixed bug reported by Alexis Nasr in gfsm_pointer_alphabet_new() macro 
    + fixed nasty bug in gfsm_alphabet_load_handle() and gfsmio_getc() causing
      char decimal 255 to return as EOF
-   + decomposed compose_prepare() into compose_prepare_fsm1(), compose_prepare_fsm2()
-     - should make it easier to hack a cascade implementation
+   + re-implemented gfsm_automaton_compose() using implicit Mohri-Pereira-Riley filter
+     - old compose() renamed to gfsm_automaton_compose_old()
+       * compose_prepare() into compose_old_prepare_fsm1(), compose_old_prepare_fsm2()
+       * should make it easier to hack a cascade implementation
    + fixed output-filename parsing bug in gfsmlabels
    + added check for fsm->states->len==0 in is_cyclic(), fixes bug in gfsminfo
      for empty automata created with gfsm_automaton_copy_shallow() (aka 'shadow')
