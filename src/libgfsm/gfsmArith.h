@@ -48,7 +48,7 @@ typedef enum {
   gfsmAOSRTimes   ///< Semiring Multiplication:  \a w=sr_times(w,arg)
 } gfsmArithOp;
 
-/** Type representing all parameters for a generic automaton final-weight arithmetic operation */
+/** \brief Type representing all parameters for a generic automaton arithmetic operation */
 typedef struct {
   gfsmAutomaton    *fsm;            ///< Automaton
   gfsmArithOp       op;             ///< Operation

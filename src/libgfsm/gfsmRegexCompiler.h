@@ -25,10 +25,16 @@
  *  \brief Regular expression compiler
  *
  *  \file gfsmRegex.lex.h
- *  \brief flex scanner headers for gfsmRegexCompiler
+ *  \brief flex-generated lexer headers for gfsmRegexCompiler
  *
  *  \file gfsmRegex.tab.h
- *  \brief bison parser headers for gfsmRegexCompiler
+ *  \brief bison-generated parser headers for gfsmRegexCompiler
+ *
+ *  \union YYSTYPE
+ *  \brief bison-generated parser rule-value union
+ *
+ *  \struct yy_buffer_state
+ *  \brief flex-generated lexer input buffer state struct
  */
 
 #ifndef _GFSM_REGEX_COMPILER_H
@@ -41,7 +47,7 @@
  * Types
  */
 
-/** Type for a regular expression compiler */
+/** \brief Type for a regular expression compiler */
 typedef struct {
   gfsmScanner         scanner; ///< underlying scanner
   gfsmSRType          srtype;  ///< semiring type

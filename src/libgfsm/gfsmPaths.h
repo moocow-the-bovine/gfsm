@@ -149,7 +149,7 @@ GSList *gfsm_paths_to_strings(gfsmSet *paths,
 			      gboolean att_style,
 			      GSList *strings);
 
-/** Utility struct for gfsm_paths_to_strings() */
+/** \brief Utility struct for gfsm_paths_to_strings() */
 struct _gfsm_paths_to_strings_options {
   gfsmAlphabet *abet_lo;  ///< should be a gfsmStringAlphabet*
   gfsmAlphabet *abet_hi;  ///< should be a gfsmStringAlphabet*

@@ -42,6 +42,7 @@
 /*======================================================================
  * I/O: types
  */
+
 /** Builtin I/O types */
 typedef enum {
   gfsmIOTCFile,         ///< I/O on a C FILE*
@@ -83,7 +84,7 @@ typedef int (*gfsmIOVprintfFunc) (void *handle, const char *fmt, va_list *app);
  * I/O: Handles: structs
  */
 
-/** Generic I/O handle struct */
+/** \brief Generic I/O handle struct */
 typedef struct {
   gfsmIOHandleType    iotype;  ///< I/O class of this handle
   void               *handle;  ///< underlying handle data
@@ -100,7 +101,7 @@ typedef struct {
 } gfsmIOHandle;
 
 
-/** GString with an associated index (read head) */
+/** \brief GString with an associated index (read head) */
 typedef struct {
   GString *gs;  ///< associated string
   size_t   pos; ///< (read-)position

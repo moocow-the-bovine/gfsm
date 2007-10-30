@@ -34,7 +34,7 @@
 /*======================================================================
  * Types: lookup
  */
-/** Type for gfsm_automaton_lookup() computation state */
+/** \brief Type for gfsm_automaton_lookup() computation state */
 typedef struct {
   gfsmStateId qt;  /**< current state in transducer */
   gfsmStateId qr;  /**< current state in result acceptor */
