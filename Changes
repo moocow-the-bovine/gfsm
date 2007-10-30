@@ -1,6 +1,6 @@
 Change log for gfsm
 
-v0.0.9 Mon, 29 Oct 2007 12:54:19 +0100
+v0.0.9 Tue, 30 Oct 2007 13:37:47 +0100
    + changed static int<->pointer casts to GPOINTER_TO_(U)INT, G(U)INT_TO_POINTER
    + fixed gfsmWeight-related segfault bugs on 64-bit linux
      - gfsm_weight2ptr() and gfsm_ptr2weight() are now implemented as true functions
@@ -17,7 +17,7 @@ v0.0.9 Mon, 29 Oct 2007 12:54:19 +0100
        though the corresponding state doesn't exist
    + added gfsmArcIter copy() and clone() methods
 
-v0.0.9-pre? Tue, 30 Oct 2007 13:37:01 +0100
+v0.0.9-pre? Mon, 29 Oct 2007 12:54:19 +0100
    + exposed guts of gfsm_automaton_compose()
      - compose_prepare() into compose_old_prepare_fsm1(), compose_old_prepare_fsm2()
      - should make it easier to hack a cascade implementation
