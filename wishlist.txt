@@ -9,6 +9,13 @@
     (2) maintain a "dirty" marker to note when index need update, or
     (3) maintain a "smart list" of changed data and update on demand
 
++ get rid of "GArray fsm->states": it's just wasting space
+  (30 of 64 bits are unused: track these at compile time with -Wpadded)
+  - replace with (gfsmBitVector)s state_is_valid, state_is_final and
+    a dedicated arc-list array (we can still call that "states" for
+    backwards compatibility, esp. the fsm->states->len idiom)
+    * tagh from 148MB to 129MB: -13%
+
 + allow gfsmArcList to be an array
   - better: allow *all* arcs for an automaton to be a single array
 
