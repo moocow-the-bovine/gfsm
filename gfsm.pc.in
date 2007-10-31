@@ -1,9 +1,7 @@
 # -*- Mode: Shell-Script -*-
-
+#
 # File: gfsm.pc
-# Description:
-#   + pkg-config data for moot PoS tagger
-#   + auto-generated from moot.pc.in
+# Description: pkg-config data, auto-generated
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
