@@ -124,23 +124,23 @@ gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr);
 void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype);
 
 /** True iff automaton is a transducer */
-#define gfsm_automaton_is_transducer(fsm) (fsm->flags.is_transducer)
+#define gfsm_automaton_is_transducer(fsm) ((fsm)->flags.is_transducer)
 
 /** True iff automaton is weighted */
-#define gfsm_automaton_is_weighted(fsm) (fsm->flags.is_weighted)
+#define gfsm_automaton_is_weighted(fsm) ((fsm)->flags.is_weighted)
 
 /** Get current automaton arc-sort mode */
-#define gfsm_automaton_sortmode(fsm) ((gfsmArcSortMode)(fsm->flags.sort_mode))
+#define gfsm_automaton_sortmode(fsm) ((gfsmArcSortMode)((fsm)->flags.sort_mode))
 
 /** Get number of states (constant time) */
-#define gfsm_automaton_n_states(fsm) (fsm->states->len)
+#define gfsm_automaton_n_states(fsm) ((fsm)->states->len)
 
 /** Get number of final states (linear time w/ number of final states) */
-#define gfsm_automaton_n_final_states(fsm) (gfsm_weightmap_size(fsm->finals))
+#define gfsm_automaton_n_final_states(fsm) (gfsm_weightmap_size((fsm)->finals))
 
 /** Get total number of arcs (linear time w/ number of arcs) */
 //guint gfsm_automaton_n_arcs(gfsmAutomaton *fsm);
-#define gfsm_automaton_n_arcs(fsm) gfsm_automaton_n_arcs_full(fsm,NULL,NULL,NULL)
+#define gfsm_automaton_n_arcs(fsm) gfsm_automaton_n_arcs_full((fsm),NULL,NULL,NULL)
 
 /** Get verbose summary arc information (linear time w/ number of arcs)
  *  \returns total number of arcs
@@ -155,7 +155,7 @@ guint gfsm_automaton_n_arcs_full(gfsmAutomaton *fsm,
 
 /** Set Id of root node, creating state if necessary */
 #define gfsm_automaton_set_root(fsm,id) \
-   (fsm->root_id = gfsm_automaton_ensure_state(fsm,id))
+   ((fsm)->root_id = gfsm_automaton_ensure_state((fsm),(id)))
 
 /** Reserve space for at least \a n states */
 void gfsm_automaton_reserve(gfsmAutomaton *fsm, gfsmStateId nstates);
@@ -192,7 +192,8 @@ gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm,
  * Methods: Accessors: Automaton: States
  */
 /// \name Accessors: Automaton States
-//@}
+//@{
+
 /** Add a new state, specifying id.  If \a id is gfsmNoState,
  *  first available state id will be selected.
  *  Implicitly sets root_id
