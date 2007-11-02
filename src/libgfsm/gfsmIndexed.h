@@ -57,10 +57,8 @@ typedef struct {
   gfsmStateId         root_id;            /**< id of root state, or gfsmNoState if not defined */
   //
   //-- Basic data
-  gfsmStateId         n_states_alloc;     /**< Number of states allocated */
-  gfsmArcId           n_arcs_alloc;       /**< Number of arcs allocated */
   gfsmWeightArray    *state_final_weight; /**< State final weight, or sr->zero */
-  gfsmArcArray       *arcs                /**< Arc storage (sorted primarily by source state) */
+  gfsmArcArray       *arcs;               /**< Arc storage (sorted primarily by source state) */
   gfsmArcIdArray     *state_first_arc;    /**< ID of first outgoing arc, indexed by state */
   //
   //-- Forward indices
@@ -77,6 +75,12 @@ typedef struct {
   //
   //-- .... more here?
 } gfsmIndexedAutomaton;
+
+/// sort data passed to gfsm_indexed_automaton_build_indices()
+typedef struct {
+  gfsmArc       *arcs; ///< pointer to populate arc array
+  gfsmSemiring  *sr;   ///< pointer to fsm semiring
+} gfsmIndexedAutomatonSortData;
 
 /*======================================================================
  * Constants
@@ -95,8 +99,7 @@ extern const gfsmArcId gfsmNoArc;
 gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
 						      gfsmSRType         srtype,
 						      gfsmStateId        n_states,
-						      gfsmArcId          n_arcs,
-						      gboolean           do_init);
+						      gfsmArcId          n_arcs);
 
 /** Create a new indexed automaton, using some default values */
 #define gfsm_indexed_automaton_new() \
@@ -105,6 +108,9 @@ gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
                                     gfsmAutomatonDefaultSize,\
                                     gfsmAutomatonDefaultSize,\
                                     TRUE);
+
+/** Clear a ::gfsmIndexedAutomaton */
+void gfsm_indexed_automaton_clear(gfsmIndexedAutomaton *xfsm);
 
 /** Free a ::gfsmIndexedAutomaton */
 void gfsm_indexed_automaton_free(gfsmIndexedAutomaton *xfsm);
@@ -126,6 +132,20 @@ void gfsm_indexed_automaton_free(gfsmIndexedAutomaton *xfsm);
  */
 gfsmIndexedAutomaton *gfsm_automaton_to_indexed(gfsmAutomaton *fsm, gfsmIndexedAutomaton *xfsm);
 
+/** (low-level) populate xfsm->arcix_lower and xfsm->arcix_upper  */
+void gfsm_indexed_automaton_build_indices(gfsmIndexedAutomaton *xfsm);
+
+/** Comparison function for gfsm_indexed_automaton_build_indices() */
+gint gfsm_indexed_automaton_build_cmp_lo(const gfsmArcId *aidp1,
+					 const gfsmArcId *aidp2,
+					 gfsmIndexedAutomatonSortData *sdata);
+
+/** Comparison function for gfsm_indexed_automaton_build_indices() */
+gint gfsm_indexed_automaton_build_cmp_hi(const gfsmArcId *aidp1,
+					 const gfsmArcId *aidp2,
+					 gfsmIndexedAutomatonSortData *sdata);
+
+
 /** Export a ::gfsmIndexedAutomaton to a ::gfsmAutomaton
  *  \param xfsm source indexed automaton
  *  \param fsm destination :.gfsmAutomaton
@@ -144,10 +164,10 @@ gfsmAutomaton *gfsm_indexed_to_automaton(gfsmAutomaton *fsm, gfsmIndexedAutomato
 //@{
 
 /** Reserve space for at least \a n_states states */
-void gfsm_indexed_automaton_reserve_states(gfsmIndexedAutomaton *fsm, gfsmStateId n_states);
+gfsmStateId gfsm_indexed_automaton_reserve_states(gfsmIndexedAutomaton *fsm, gfsmStateId n_states);
 
 /** Reserve space for at least \a n_arcs arcs */
-void gfsm_indexed_automaton_reserve_arcs(gfsmIndexedAutomaton *fsm, gfsmArcId n_arcs);
+gfsmArcId gfsm_indexed_automaton_reserve_arcs(gfsmIndexedAutomaton *fsm, gfsmArcId n_arcs);
 
 //@}
 
@@ -196,47 +216,53 @@ void gfsm_indexed_automaton_set_semiring_type(gfsmIndexedAutomaton *fsm, gfsmSRT
 //@{
 
 /** Check whether state might possibly exist in automaton (low-level) */
-#define gfsm_indexed_automaton_check_state(fsm,id) \
-    ((id) < gfsm_indexed_automaton_n_states(fsm))
+#define gfsm_indexed_automaton_check_state(fsm,qid) \
+    ((qid) < gfsm_indexed_automaton_n_states(fsm))
 
-/** Check whether automaton has a state with ID \a id. */
-#define gfsm_indexed_automaton_has_state(fsm,id) \
-    (gfsm_indexed_automaton_check_state((fsm),(id)) \
-     && g_array_index((fsm)->state_first_arc,gfsmArcId,(id)) != gfsmNoArc)
+/** Check whether automaton has a state with ID \a qid. */
+#define gfsm_indexed_automaton_has_state(fsm,qid) \
+    ((qid) < gfsm_indexed_automaton_n_states(fsm))
+//    gfsm_indexed_automaton_check_state((fsm),(id))
+//    && g_array_index((fsm)->state_first_arc,gfsmArcId,(id)) != gfsmNoArc)
 
-/** Remove the state with id \a id, if any.
- *  Note that any incoming arcs for state \a id are NOT removed,
+
+/** Ensures that state \a id exists \returns \a qid */
+gfsmStateId gfsm_indexed_automaton_ensure_state(gfsmIndexedAutomaton *xfsm, gfsmStateId qid);
+
+
+/* Remove the state with id \a qid, if any.
+ *  Note that any incoming arcs for state \a qid are NOT removed,
  *  although any outgoing arcs are removed and freed.
  */
-void gfsm_indexed_automaton_remove_state(gfsmIndexedAutomaton *fsm, gfsmStateId id);
+//void gfsm_indexed_automaton_remove_state(gfsmIndexedAutomaton *fsm, gfsmStateId qid);
 
 
 /** Check whether a state is final.  \returns gboolean */
-#define gfsm_indexed_automaton_is_final_state(fsm,id) \
-  (gfsm_indexed_automaton_has_state((fsm),(id)) \
-   && g_array_index((fsm)->state_final_weight,gfsmWeight,(id)) != (fsm)->sr->zero)
+#define gfsm_indexed_automaton_is_final_state(fsm,qid) \
+  (gfsm_indexed_automaton_has_state((fsm),(qid)) \
+   && g_array_index((fsm)->state_final_weight,gfsmWeight,(qid)) != (fsm)->sr->zero)
 
 /** Set boolean final-state flag. \returns (void) */
-#define gfsm_indexed_automaton_set_final_state(fsm,id,is_final) \
-  gfsm_indexed_automaton_set_final_state_full(fsm,id,is_final,fsm->sr->one)
+#define gfsm_indexed_automaton_set_final_state(fsm,qid,is_final) \
+  gfsm_indexed_automaton_set_final_state_full(fsm,qid,is_final,fsm->sr->one)
 
 /** Set final weight. \returns (void) */
 void gfsm_indexed_automaton_set_final_state_full(gfsmIndexedAutomaton *fsm,
-						 gfsmStateId    id,
+						 gfsmStateId    qid,
 						 gboolean       is_final,
 						 gfsmWeight     final_weight);
 
-/** Get final weight. \returns final weight if state \a id is final, else \a fsm->sr->zero */
-#define gfsm_indexed_automaton_get_final_weight(fsm,id) \
-  (gfsm_indexed_automaton_check_state((fsm),(id)) \
-   ? g_array_index((fsm)->state_final_weight,gfsmWeight,(id)) \
+/** Get final weight. \returns final weight if state \a qid is final, else \a fsm->sr->zero */
+#define gfsm_indexed_automaton_get_final_weight(fsm,qid) \
+  (gfsm_indexed_automaton_check_state((fsm),(qid)) \
+   ? g_array_index((fsm)->state_final_weight,gfsmWeight,(qid)) \
    : (fsm)->sr->zero)
 
 /** Lookup final weight. \returns TRUE iff state \a id is final, and sets \a *wp to its final weight. */
 gboolean gfsm_indexed_automaton_lookup_final(gfsmIndexedAutomaton *fsm, gfsmStateId id, gfsmWeight *wp);
 
 /** Get number of outgoing arcs. \returns guint */
-guint gfsm_indexed_automaton_out_degree(gfsmIndexedAutomaton *fsm, gfsmStateId id);
+guint gfsm_indexed_automaton_out_degree(gfsmIndexedAutomaton *fsm, gfsmStateId qid);
 
 //@}
 
