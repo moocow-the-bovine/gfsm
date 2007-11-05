@@ -189,6 +189,24 @@ AC_CHECK_FUNCS([vfprintf],[],[])
 ## /gnulib: funcs
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+dnl v--- needed if Makefile.am uses _LTLIBRARIES targets
+AC_PROG_LIBTOOL
+
+dnl v--- for static-only libraries (non-libtool)
+dnl AC_PROG_RANLIB
+
+dnl v--- needed if Makefile.am uses lex sources (see above)
+dnl AM_PROG_LEX
+
+
+### --- unmangle user *FLAGS
+if test "$CFLAGS" != "$USER_CFLAGS" ; then
+  # autoconf likes to set this (to '-g -O2')... who knows why...
+  AC_MSG_NOTICE([Restoring user's original CFLAGS value])
+  CFLAGS="$USER_CFLAGS"
+fi
+
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## debug ?
 ##
@@ -236,24 +254,6 @@ AC_SUBST(gfsm_OFLAGS)
 ##
 ## /debug ?
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-dnl v--- needed if Makefile.am uses _LTLIBRARIES targets
-AC_PROG_LIBTOOL
-
-dnl v--- for static-only libraries (non-libtool)
-dnl AC_PROG_RANLIB
-
-dnl v--- needed if Makefile.am uses lex sources (see above)
-dnl AM_PROG_LEX
-
-
-### --- unmangle user *FLAGS
-if test "$CFLAGS" != "$USER_CFLAGS" ; then
-  # autoconf likes to set this (to '-g -O2')... who knows why...
-  AC_MSG_NOTICE([Restoring user's original CFLAGS value])
-  CFLAGS="$USER_CFLAGS"
-fi
 
 #---------------------------------------------------------------
 # short package includes
