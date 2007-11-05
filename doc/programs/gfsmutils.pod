@@ -109,6 +109,13 @@ Show header information from stored gfsm files
 See L<gfsmheader> for details.
 
 
+=head2 gfsmindex
+
+Convert between indexed and un-indexed binary gfsm automata
+
+See L<gfsmindex> for details.
+
+
 =head2 gfsminfo
 
 Show basic information about stored gfsm files
@@ -288,6 +295,7 @@ gfsmdeterminize(1),
 gfsmdifference(1),
 gfsmdraw(1),
 gfsmheader(1),
+gfsmindex(1),
 gfsminfo(1),
 gfsmintersect(1),
 gfsminvert(1),

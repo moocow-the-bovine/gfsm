@@ -1,7 +1,7 @@
 Change log for gfsm
 
 v0.0.9 Mon, 05 Nov 2007 12:00:03 +0100
-   + added shell tool gfsmindex, source files gfsmIndexed.[ch], gfsmIndexIO.[ch]
+   + added shell tool gfsmindex, source files gfsmIndexed.[ch], gfsmIndexedIO.[ch]
      - the "right way" to do this would be to go for a truly abstract automaton API,
        but the price (virtualization, extraneous flag & limit checking, etc.) is daunting
    + changed static int<->pointer casts to GPOINTER_TO_(U)INT, G(U)INT_TO_POINTER
