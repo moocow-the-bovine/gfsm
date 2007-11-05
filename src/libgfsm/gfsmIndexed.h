@@ -57,6 +57,7 @@ typedef struct {
   gfsmStateId         root_id;            /**< id of root state, or gfsmNoState if not defined */
   //
   //-- Basic data
+  gfsmBitVector      *state_is_valid;     /**< per-state validity flags */
   gfsmWeightArray    *state_final_weight; /**< State final weight, or sr->zero */
   gfsmArcArray       *arcs;               /**< Arc storage (sorted primarily by source state) */
   gfsmArcIdArray     *state_first_arc;    /**< ID of first outgoing arc, indexed by state */
@@ -106,8 +107,7 @@ gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
     gfsm_indexed_automaton_new_full(gfsmAutomatonDefaultFlags,\
                                     gfsmAutomatonDefaultSRType,\
                                     gfsmAutomatonDefaultSize,\
-                                    gfsmAutomatonDefaultSize,\
-                                    TRUE);
+                                    gfsmAutomatonDefaultSize)
 
 /** Clear a ::gfsmIndexedAutomaton */
 void gfsm_indexed_automaton_clear(gfsmIndexedAutomaton *xfsm);
@@ -153,7 +153,7 @@ gint gfsm_indexed_automaton_build_cmp_hi(const gfsmArcId *aidp1,
  *  \returns (new) automaton \a fsm
  *  \note implicitly clears \a fsm
  */
-gfsmAutomaton *gfsm_indexed_to_automaton(gfsmAutomaton *fsm, gfsmIndexedAutomaton *xfsm);
+gfsmAutomaton *gfsm_indexed_to_automaton(gfsmIndexedAutomaton *xfsm, gfsmAutomaton *fsm);
 
 //@}
 
@@ -221,7 +221,9 @@ void gfsm_indexed_automaton_set_semiring_type(gfsmIndexedAutomaton *fsm, gfsmSRT
 
 /** Check whether automaton has a state with ID \a qid. */
 #define gfsm_indexed_automaton_has_state(fsm,qid) \
-    ((qid) < gfsm_indexed_automaton_n_states(fsm))
+    ((qid) < gfsm_indexed_automaton_n_states(fsm) \
+     && gfsm_bitvector_get((fsm)->state_is_valid, (qid)))
+
 //    gfsm_indexed_automaton_check_state((fsm),(id))
 //    && g_array_index((fsm)->state_first_arc,gfsmArcId,(id)) != gfsmNoArc)
 
@@ -231,10 +233,9 @@ gfsmStateId gfsm_indexed_automaton_ensure_state(gfsmIndexedAutomaton *xfsm, gfsm
 
 
 /* Remove the state with id \a qid, if any.
- *  Note that any incoming arcs for state \a qid are NOT removed,
- *  although any outgoing arcs are removed and freed.
+ * Currently, this just clears the bit for \a qid in \a fsm->state_is_valid.
  */
-//void gfsm_indexed_automaton_remove_state(gfsmIndexedAutomaton *fsm, gfsmStateId qid);
+void gfsm_indexed_automaton_remove_state(gfsmIndexedAutomaton *fsm, gfsmStateId qid);
 
 
 /** Check whether a state is final.  \returns gboolean */
@@ -254,7 +255,7 @@ void gfsm_indexed_automaton_set_final_state_full(gfsmIndexedAutomaton *fsm,
 
 /** Get final weight. \returns final weight if state \a qid is final, else \a fsm->sr->zero */
 #define gfsm_indexed_automaton_get_final_weight(fsm,qid) \
-  (gfsm_indexed_automaton_check_state((fsm),(qid)) \
+  (gfsm_indexed_automaton_has_state((fsm),(qid)) \
    ? g_array_index((fsm)->state_final_weight,gfsmWeight,(qid)) \
    : (fsm)->sr->zero)
 

@@ -68,6 +68,8 @@ extern "C" {
 #include <gfsmTrie.h>
 #include <gfsmScanner.h>
 #include <gfsmRegexCompiler.h>
+#include <gfsmIndexed.h>
+#include <gfsmIndexedIO.h>
 
 /*
 #ifdef __cplusplus

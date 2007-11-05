@@ -55,6 +55,8 @@ libgfsm_la_SOURCES = \
 	gfsmArc.c \
 	gfsmArcIter.c \
 	gfsmArcIndex.c \
+	gfsmIndexed.c \
+	gfsmIndexedIO.c \
 	gfsmState.c \
 	gfsmStateSet.c \
 	gfsmAutomaton.c \
@@ -69,7 +71,6 @@ libgfsm_la_SOURCES = \
 	gfsmRegex.lex.l \
 	gfsmRegex.tab.y \
 	gfsmRegexCompiler.c
-
 
 #	gfsmHead.c 
 
@@ -104,6 +105,8 @@ pkginclude_HEADERS = \
 	gfsmArc.h \
 	gfsmArcIter.h \
 	gfsmArcIndex.h \
+	gfsmIndexed.h \
+	gfsmIndexedIO.h \
 	gfsmState.h \
 	gfsmStateSet.h \
 	gfsmAutomaton.h \
