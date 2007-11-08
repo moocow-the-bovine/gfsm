@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: top-level
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * For information on usage and redistribution, and for a DISCLAIMER
  * OF ALL WARRANTIES, see the file "COPYING" in this distribution.
@@ -68,8 +68,11 @@ extern "C" {
 #include <gfsmTrie.h>
 #include <gfsmScanner.h>
 #include <gfsmRegexCompiler.h>
+
+/*-- WORK IN PROGRESS --
 #include <gfsmIndexed.h>
 #include <gfsmIndexedIO.h>
+*/
 
 /*
 #ifdef __cplusplus

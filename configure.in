@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.9-pre8])
+define([THE_PACKAGE_VERSION], [0.0.9-pre7])
 define([THE_PACKAGE_MAINTAINER],  [moocow@ling.uni-potsdam.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -564,7 +564,6 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmdifference.gog \
 	gfsmdraw.gog \
 	gfsmheader.gog \
-	gfsmindex.gog \
 	gfsminfo.gog \
 	gfsmintersect.gog \
 	gfsminvert.gog \
@@ -583,6 +582,7 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmunion.gog \
 	gfsmviterbi.gog \
 	"
+#	gfsmindex.gog 
   for g in $DOC_MAN1_GOGS ; do
     AC_CONFIG_LINKS(doc/programs/${g}:src/programs/${g})  
   done
