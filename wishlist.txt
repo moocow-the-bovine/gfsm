@@ -1,3 +1,8 @@
++ move gfsmArcList back to a native type, ditching GSList
+  - sorting, splicing, etc. is then tricky, but maybe we can use
+    temporaries for this 
+  - would save us sizeof(void*) per arc: all the space lost by adding source state!
+
 + (style): clearer API/internals demarcation
 
 + allow (arbitrary?) automaton indices
@@ -19,7 +24,7 @@
 + allow gfsmArcList to be an array
   - better: allow *all* arcs for an automaton to be a single array
 
-+ source state tracking in gfsmArc
++ [DONE] source state tracking in gfsmArc
   - obsoletes gfsmReverseArcIndex
   - adds sizeof(gfsmStateId) bytes per arc (tagh from 148MB to 184MB: +24%)
 
@@ -30,7 +35,6 @@
     * with source tracking   : tagh from 184MB to 220MB: +20%
   - configure option for 64-bit gfsmStateId (also 64-bit gfsmLabelId?)
     * breaks binary compatibility: add header flag?
-
 
 + store alphabet with fsm
   - tricky with user alphabets: loadable modules?

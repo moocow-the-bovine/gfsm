@@ -32,7 +32,6 @@ bin_PROGRAMS = \
 	gfsmdifference \
 	gfsmdraw \
 	gfsmheader \
-	gfsmindex \
 	gfsminfo \
 	gfsmintersect \
 	gfsminvert \
@@ -156,18 +155,6 @@ gfsmprint_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmprint_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmprint.gog
-
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-gfsmindex_SOURCES = \
-	gfsmindex_main.c \
-	gfsmindex_cmdparser.c gfsmindex_cmdparser.h
-
-gfsmindex_main.o: gfsmindex_cmdparser.h
-
-gfsmindex_LDFLAGS = $(LDFLAGS_COMMON)
-gfsmindex_LDADD = $(LDADD_COMMON)
-
-EXTRA_DIST += gfsmindex.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsminfo_SOURCES = \

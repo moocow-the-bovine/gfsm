@@ -131,7 +131,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomatonHeader *hdr, gfsmAuto
 
   //-- set automaton-global properties
   fsm->flags   = hdr->flags;
-  gfsm_automaton_set_semiring_type(fsm, hdr->srtype);
+  gfsm_semiring_init(fsm->sr, hdr->srtype);
   fsm->root_id = hdr->root_id;
 
   //------ load states (one-by-one)

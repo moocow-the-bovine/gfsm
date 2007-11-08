@@ -1,4 +1,4 @@
-TARGETS = seektest
+TARGETS = iotest
 
 KNOWN_TARGETS = \
 	gfsmlabdump \
@@ -15,8 +15,7 @@ KNOWN_TARGETS = \
 	flex3test \
 	compretest \
 	comprelex \
-	compre2test \
-	seektest
+	compre2test
 
 
 CC = gcc
@@ -24,9 +23,8 @@ CC = gcc
 LD = $(CC)
 
 CPPFLAGS = -I. -I.. -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
-CFLAGS   ?= -Wall -g
-#CFLAGS   += -Wall -g
-#CFLAGS    = -Wall -g
+#CFLAGS   ?= -Wall -g
+CFLAGS    += -Wall -g
 
 LDFLAGS  = -L../libgfsm/.libs -L/usr/local/lib -L/usr/lib
 LIBS     =  -lz -lglib-2.0 -lm
@@ -42,9 +40,6 @@ all: $(TARGETS)
 
 ##-- keep intermediate files
 .SECONDARY:
-
-seektest.o: seektest.c labprobs.h
-seektest: seektest.o
 
 ##-- flex
 %.lex.c %.lex.h: %.l
