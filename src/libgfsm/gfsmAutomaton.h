@@ -302,6 +302,8 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
 /** Add an arc given pointers \a sp to the state and \a link to a
  *  single-element arclist to be added.  No states are
  *  implicitly created.
+ *
+ *  \deprecated { prefer gfsm_automaton_add_arc() }
  */
 void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
 				 gfsmState     *sp,

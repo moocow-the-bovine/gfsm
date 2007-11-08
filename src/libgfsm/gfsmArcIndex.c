@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arc indices
  *
- * Copyright (c) 2006 Bryan Jurish.
+ * Copyright (c) 2006-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -45,10 +45,13 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
   for (idfrom=0; idfrom < fsm->states->len; idfrom++) {
     for (gfsm_arciter_open(&ai,fsm,idfrom); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
       arc  = gfsm_arciter_arc(&ai);
-      rarc = gfsm_arc_copy(arc);
-      rarc->target = idfrom;
+      /*rarc = gfsm_arc_copy(arc);
+	rarc->target = idfrom;
       g_ptr_array_index(rarcs,arc->target)
 	= gfsm_arclist_prepend(g_ptr_array_index(rarcs,arc->target), rarc);
+      */
+      g_ptr_array_index(rarcs,arc->target)
+	= gfsm_arclist_prepend(g_ptr_array_index(rarcs,arc->target), arc);
     }
   }
 
@@ -58,30 +61,13 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
 /*--------------------------------------------------------------
  * reverse_arc_index_free()
  */
-void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists, gboolean free_arcs)
+void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists, gboolean ignored)
 {
   guint i;
   if (free_lists) {
-    if (free_arcs) {
-      //-- +free_lists, +free_arcs
-      for (i=0; i < rarcs->len; i++) { gfsm_arclist_free(g_ptr_array_index(rarcs,i)); }
-    }
-    else {
-      //-- +free_lists, -free_arcs
-      for (i=0; i < rarcs->len; i++) { g_slist_free(g_ptr_array_index(rarcs,i)); }
-    }
+    //-- +free_lists, -free_arcs
+    for (i=0; i < rarcs->len; i++) { g_slist_free(g_ptr_array_index(rarcs,i)); }
   }
-  else if (free_arcs) {
-    //-- -free_lists, +free_arcs
-    gfsmArcList *al;
-    for (i=0; i < rarcs->len; i++) {
-      for (al=g_ptr_array_index(rarcs,i); al != NULL; al=al->next) {
-	gfsm_arc_free((gfsmArc*)al->data);
-	al->data = NULL;
-      }
-    }
-  }
-  //-- -free_lists, -free_arcs --> (no action required)
 
   //-- free index array
   g_ptr_array_free(rarcs,TRUE);

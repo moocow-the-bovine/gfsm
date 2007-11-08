@@ -181,7 +181,8 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomatonHeader *hdr, gfsmAuto
       }
       if (!rc) break;
 
-      st->arcs = gfsm_arclist_new_full(s_arc.target,
+      st->arcs = gfsm_arclist_new_full(id,
+				       s_arc.target,
 				       s_arc.lower,
 				       s_arc.upper,
 				       s_arc.weight,
@@ -270,7 +271,8 @@ gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomatonHeader *hdr, gfsmAuto
 	break;
       }
 
-      st->arcs = gfsm_arclist_new_full(s_arc.target,
+      st->arcs = gfsm_arclist_new_full(id,
+				       s_arc.target,
 				       s_arc.lower,
 				       s_arc.upper,
 				       s_arc.weight,

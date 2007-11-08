@@ -557,7 +557,7 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
   q1s = gfsm_automaton_get_state(fsm,q1);
   gfsm_automaton_add_arc_link(fsm,
 			      q1s,
-			      gfsm_arclist_new_full(q2,lo,hi,w,NULL));
+			      gfsm_arclist_new_full(q1,q2,lo,hi,w,NULL));
 }
 
 /*--------------------------------------------------------------

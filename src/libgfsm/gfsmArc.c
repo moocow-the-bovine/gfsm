@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arcs
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,12 +32,14 @@
  * arc_init()
  */
 gfsmArc *gfsm_arc_init(gfsmArc *a,
+		       gfsmStateId src,
 		       gfsmStateId dst,
 		       gfsmLabelId lo,
 		       gfsmLabelId hi,
 		       gfsmWeight wt)
 {
   if (a) {
+    a->source = src;
     a->target = dst;
     a->lower  = lo;
     a->upper  = hi;
@@ -75,13 +77,14 @@ gfsmArc *gfsm_arc_copy(gfsmArc *src)
  * arclist_insert()
  */
 gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
+				 gfsmStateId  src,
 				 gfsmStateId  dst,
 				 gfsmLabelVal lo,
 				 gfsmLabelVal hi,
 				 gfsmWeight   wt,
 				 gfsmArcSortData *sdata)
 {
-  gfsmArc *a = gfsm_arc_new_full(dst,lo,hi,wt);
+  gfsmArc *a = gfsm_arc_new_full(src,dst,lo,hi,wt);
 
   if (!sdata || sdata->mode == gfsmASMNone) return gfsm_arclist_prepend(al,a);
   else {
@@ -121,23 +124,6 @@ gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al,
 }
 
 /*--------------------------------------------------------------
- * arclist_init()
- */
-gfsmArcList *gfsm_arclist_init(gfsmArcList *al,
-			       gfsmStateId dst,
-			       gfsmLabelId lo,
-			       gfsmLabelId hi,
-			       gfsmWeight wt,
-			       gfsmArcList *nxt)
-{
-  if (al) {
-    gfsm_arc_init((gfsmArc*)al, dst,lo,hi,wt);
-    al->next = nxt;
-  }
-  return al;
-}
-
-/*--------------------------------------------------------------
  * arclist_copy()
  */
 gfsmArcList *gfsm_arclist_copy(gfsmArcList *src)
@@ -153,19 +139,8 @@ gfsmArcList *gfsm_arclist_copy(gfsmArcList *src)
 /*--------------------------------------------------------------
  * arclist_free()
  */
-//#include <stdio.h>
 void gfsm_arclist_free(gfsmArcList *al)
 {
-  /*
-  gfsmArcList *next = al;
-  //fprintf(stderr, "<DEBUG>:gfsm_arclist_free() called; al=%p\n", al);
-  for ( ; al != NULL; al = next) {
-    next = g_slist_remove_link(al,al);
-    //fprintf(stderr, "<DEBUG>:gfsm_arclist_free(): iter al=%p ; next=%p\n", al, next);
-    gfsm_arc_free((gfsmArc*)(al->data));
-    g_slist_free_1(al);
-  }
-  */
   while (al != NULL) {
     gfsm_arc_free((gfsmArc*)(al->data));
     al = g_slist_delete_link(al,al);
@@ -179,6 +154,7 @@ void gfsm_arclist_free(gfsmArcList *al)
 /*--------------------------------------------------------------
  * compare()
  */
+#define GFSM_ARC_COMPARE_COMPAT 1
 gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
 {
   if (!a1) {
@@ -193,6 +169,8 @@ gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
     else if (a1->lower > a2->lower)   return  1;
     else if (a1->upper < a2->upper)   return -1;
     else if (a1->upper > a2->upper)   return  1;
+    //else if (a1->source < a2->source) return -1;
+    //else if (a1->source > a2->source) return  1;
     else if (a1->target < a2->target) return -1;
     else if (a1->target > a2->target) return  1;
     return 0;
@@ -202,6 +180,8 @@ gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
     else if (a1->upper > a2->upper)   return  1;
     else if (a1->lower < a2->lower)   return -1;
     else if (a1->lower > a2->lower)   return  1;
+    //else if (a1->source < a2->source) return -1;
+    //else if (a1->source > a2->source) return  1;
     else if (a1->target < a2->target) return -1;
     else if (a1->target > a2->target) return  1;
     return 0;
