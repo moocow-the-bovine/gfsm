@@ -35,8 +35,12 @@
  */
 /// Reverse arc-index type
 /**  \a element at \a qto is a gfsmArcList*
- *    which contains an element \a gfsmArc* \a {lo,hi,qfrom,w}
- *    whenever source \a fsm contains an arc \a {lo,hi,qto,w} from \a qfrom.
+ *    which contains an element \a gfsmArc* \a {qfrom,qto,lo,hi,w}
+ *    whenever source \a fsm contains an arc \a {qfrom,qto,lo,hi,w}
+ *    from \a qfrom.
+ *
+ *  \warning arc data pointed to is shared by source automaton
+ *           and the ::gfsmReverseArcIndex!
  */
 typedef GPtrArray gfsmReverseArcIndex;
 
@@ -68,10 +72,10 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
  *  \param
  *  \param free_lists
  *    If true, associated arc-lists will be freed.
- *  \param free_arcs
- *    If true, arcs in associated arc-lists will be freed.
+ *  \param ignored
+ *    Ignored.  (Formerly if true, arcs in associated arc-lists will be freed)
  */
-void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists, gboolean free_arcs);
+void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists, gboolean ignored);
 
 
 #endif /* _GFSM_ARCINDEX_H */

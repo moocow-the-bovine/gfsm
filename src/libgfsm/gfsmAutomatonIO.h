@@ -61,8 +61,14 @@ typedef struct {
 } gfsmStoredState;
 
 
-/// Type for a stored arc
-typedef gfsmArc gfsmStoredArc;
+/// Type for a stored arc (no 'source' field)
+//typedef gfsmArc gfsmStoredArc;
+typedef struct {
+  gfsmStateId       target;  /**< ID of target node */
+  gfsmLabelId       lower;   /**< Lower label */
+  gfsmLabelId       upper;   /**< Upper label */
+  gfsmWeight        weight;  /**< arc weight */
+} gfsmStoredArc;
 
 /*======================================================================
  * Constants

@@ -32,6 +32,7 @@
 
 /// "Heavy" arc structure
 typedef struct _gfsmArc {
+  gfsmStateId       source;  /**< ID of source node */
   gfsmStateId       target;  /**< ID of target node */
   gfsmLabelId       lower;   /**< Lower label */
   gfsmLabelId       upper;   /**< Upper label */
@@ -80,6 +81,7 @@ typedef enum {
 
 /** Initialize an arc (generic) */
 gfsmArc *gfsm_arc_init(gfsmArc *a,
+		       gfsmStateId src,
 		       gfsmStateId dst,
 		       gfsmLabelId lo,
 		       gfsmLabelId hi,
@@ -88,8 +90,8 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 /** \def gfsmArc* gfsm_arc_new_full(gfsmStateId dst, gfsmLabelId lo, gfsmLabelId hi, gfsmWeight w)
  *  Convenience macro.
  */
-#define gfsm_arc_new_full(dst,lo,hi,wt) \
-  gfsm_arc_init(g_malloc(sizeof(gfsmArc)),(dst),(lo),(hi),(wt))
+#define gfsm_arc_new_full(src,dst,lo,hi,wt) \
+  gfsm_arc_init(g_malloc(sizeof(gfsmArc)),(src),(dst),(lo),(hi),(wt))
 
 /** Create a copy of \a arc */
 gfsmArc *gfsm_arc_copy(gfsmArc *src);
@@ -118,6 +120,7 @@ gfsmArc *gfsm_arc_copy(gfsmArc *src);
 /** Insert an arc into a (possibly sorted) arclist.
  *  \returns a pointer to the (possibly new) 1st element of the arclist */
 gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
+				 gfsmStateId  src,
 				 gfsmStateId  dst,
 				 gfsmLabelVal lo,
 				 gfsmLabelVal hi,
@@ -131,8 +134,8 @@ gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al,
 				      gfsmArcSortData *sdata);
 
 /** Create a new arc-list node (full) */
-#define gfsm_arclist_new_full(dst,lo,hi,wt,nxt) \
-   (gfsm_arclist_prepend(nxt,gfsm_arc_new_full(dst,lo,hi,wt)))
+#define gfsm_arclist_new_full(src,dst,lo,hi,wt,nxt) \
+   (gfsm_arclist_prepend(nxt,gfsm_arc_new_full(src,dst,lo,hi,wt)))
 
 /** Create and return a (deep) copy of an existing arc-list */
 gfsmArcList *gfsm_arclist_copy(gfsmArcList *src);
@@ -154,6 +157,9 @@ void gfsm_arclist_free(gfsmArcList *al);
 #define gfsm_arclist_arc(al) \
   ((al) ? ((gfsmArc*)((al)->data)) : NULL)
 
+/** Get source node of an arc -- may be gfsmNoState */
+#define gfsm_arc_source(arcptr) ((arcptr)->source)
+
 /** Get target node of an arc -- may be gfsmNoState */
 #define gfsm_arc_target(arcptr) ((arcptr)->target)
 
@@ -166,8 +172,8 @@ void gfsm_arclist_free(gfsmArcList *al);
 /** Get weight of an arc -- may be gfsmNoWeight */
 #define gfsm_arc_weight(arcptr) ((arcptr)->weight)
 
-/** Get pointer to next arc -- may be NULL */
-#define gfsm_arc_next(arcptr) ((arcptr)->next)
+/* Get pointer to next arc -- may be NULL */
+//#define gfsm_arc_next(arcptr) ((arcptr)->next)
 
 //@}
 
