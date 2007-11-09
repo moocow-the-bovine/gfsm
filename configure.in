@@ -582,9 +582,7 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmunion.gog \
 	gfsmviterbi.gog \
 	"
-  DOC_MAN1_GOGS="$DOC_MAN1_GOGS \
-	gfsmindex \
-	"
+ DOC_MAN1_GOGS="$DOC_MAN1_GOGS gfsmindex"
   for g in $DOC_MAN1_GOGS ; do
     AC_CONFIG_LINKS(doc/programs/${g}:src/programs/${g})  
   done
