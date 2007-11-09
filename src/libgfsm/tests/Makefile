@@ -24,7 +24,8 @@ CC = gcc
 LD = $(CC)
 
 CPPFLAGS = -I. -I.. -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
-CFLAGS   ?= -Wall -g
+CFLAGS    ?= -O2 -pipe
+#CFLAGS   ?= -Wall -g
 #CFLAGS   += -Wall -g
 #CFLAGS    = -Wall -g
 

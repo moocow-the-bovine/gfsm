@@ -71,7 +71,10 @@ libgfsm_la_SOURCES = \
 	gfsmRegexCompiler.c
 
 
-#libgfsm_la_SOURCES += gfsmIndexed.c gfsmIndexedIO.c
+libgfsm_la_SOURCES += \
+	gfsmIndexed.c \
+	gfsmIndexed2.c \
+	gfsmIndexedIO.c
 
 #	gfsmHead.c 
 
@@ -119,6 +122,11 @@ pkginclude_HEADERS = \
 	gfsmScanner.h \
 	gfsmRegexCompiler.h \
 	gfsm.h
+
+pkginclude_HEADERS += \
+	gfsmIndexed.h \
+	gfsmIndexed2.h \
+	gfsmIndexedIO.h
 
 #	gfsmHead.h 
 
