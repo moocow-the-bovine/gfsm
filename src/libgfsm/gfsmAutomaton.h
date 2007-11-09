@@ -39,11 +39,13 @@
 
 /// Automaton status flags
 typedef struct _gfsmAutomatonFlags {
-  guint32 is_transducer    : 1;       /**< whether this automaton is a transducer */
-  guint32 is_weighted      : 1;       /**< whether this automaton is weighted */
-  guint32 sort_mode        : 4;       /**< sort-mode (cast to gfsmArcSortMode) */
-  guint32 is_deterministic : 1;       /**< whether fsm is known to be deterministic */
-  guint32 unused           : 25;      /**< reserved */
+  guint32 is_transducer     : 1;       /**< whether this automaton is a transducer */
+  guint32 is_weighted       : 1;       /**< whether this automaton is weighted */
+  guint32 sort_mode         : 4;       /**< sort-mode (cast to gfsmArcSortMode) */
+  guint32 is_deterministic  : 1;       /**< whether fsm is known to be deterministic */
+  guint32 arcs_dirty        : 1;       /**< whether arcs have been changedsnce  */
+  guint32 final_dirty       : 1;       /**< whether final-index (if any) needs an update */
+  guint32 unused            : 23;      /**< reserved */
 } gfsmAutomatonFlags;
 
 /** \brief "Heavy" automaton type
@@ -52,11 +54,21 @@ typedef struct _gfsmAutomatonFlags {
  */
 typedef struct
 {
+  //
+  //-- basic data
   gfsmAutomatonFlags  flags;     /**< automaton flags */
   gfsmSemiring       *sr;        /**< semiring used for arc weight computations */
   GArray             *states;    /**< vector of automaton states */
   gfsmWeightMap      *finals;    /**< map from final state-Ids to final weights */
   gfsmStateId         root_id;   /**< ID of root node, or gfsmNoState if not defined */
+  //
+  //-- indices
+  gfsmArcLabelIndex     *ix_lower;  /**< lower-label arc index, NULL for none */
+  gfsmArcLabelIndex     *ix_upper;  /**< upper-label arc index, NULL for none */
+  gfsmFinalWeightIndex  *ix_final;  /**< final weight index, NULL for none */
+  //
+  //-- user data
+  gpointer           *data;      /**< user data */
 } gfsmAutomaton;
 
 /*======================================================================
@@ -268,9 +280,8 @@ gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id);
 /** Lookup final weight. \returns TRUE iff state \a id is final, and sets \a *wp to its final weight. */
 gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeight *wp);
 
-/** Get number of outgoing arcs. \returns guint */
-#define gfsm_automaton_out_degree(fsm,id) \
-  ((id) < (fsm)->states->len ? gfsm_state_out_degree(gfsm_automaton_get_state((fsm),(id))) : 0)
+/** Get number of outgoing arcs. */
+guint gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Renumber states of an FSM */
 void gfsm_automaton_renumber_states(gfsmAutomaton *fsm);
@@ -309,6 +320,16 @@ void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
 
 /** Sort all arcs in the automaton */
 gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode);
+
+//@}
+
+/*======================================================================
+ * Methods: Indexing
+ */
+/// \name Indexing
+//@{
+
+
 
 //@}
 

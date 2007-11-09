@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arc indices
  *
- * Copyright (c) 2006 Bryan Jurish.
+ * Copyright (c) 2006-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -85,4 +85,96 @@ void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists
 
   //-- free index array
   g_ptr_array_free(rarcs,TRUE);
+}
+
+/*======================================================================
+ * Methods: gfsmFinalWeightIndex
+ */
+
+/*--------------------------------------------------------------
+ * automaton_final_weight_index()
+ */
+gfsmFinalWeightIndex *gfsm_automaton_final_weight_index(gfsmAutomaton *fsm, gfsmFinalWeightIndex *ix)
+{
+  gfsmStateId qid;
+  gfsmWeight  fw, srzero = fsm->sr->zero;
+
+  if (ix==NULL) {
+    ix = gfsm_final_weight_index_sized_new(gfsm_automaton_n_states(fsm));
+  } else {
+    g_array_set_size(ix,gfsm_automaton_n_states(fsm));
+    ix->len = 0;
+  }
+
+  for (qid=0; qid < gfsm_automaton_n_states(fsm); qid++) {
+    if (gfsm_automaton_lookup_final(fsm,qid,&fw)) {
+      g_array_index(ix,gfsmWeight,qid) = fw;
+    } else {
+      g_array_index(ix,gfsmWeight,qid) = srzero;
+    }
+  }
+
+  return ix;
+}
+
+/*======================================================================
+ * Methods: gfsmArcLabelIndex
+ */
+
+/*--------------------------------------------------------------
+ * new()
+ */
+gfsmArcLabelIndex *gfsm_arc_label_index_new(void) {
+  gfsmArcLabelIndex *ix = g_new(gfsmArcLabelIndex,1);
+  ix->arcs  = g_ptr_array_new();
+  ix->first = g_ptr_array_new();
+  return ix;
+}
+
+/*--------------------------------------------------------------
+ * new_full()
+ */
+gfsmArcLabelIndex *gfsm_arc_label_index_new_full(gfsmStateId n_states, guint n_arcs) {
+  gfsmArcLabelIndex *ix = g_new(gfsmArcLabelIndex,1);
+  ix->arcs  = g_ptr_array_sized_new(n_arcs);
+  ix->first = g_ptr_array_new(n_states);
+  return ix;
+}
+
+/*--------------------------------------------------------------
+ * automaton_lower_label_index()
+ */
+gfsmArcLabelIndex *gfsm_automaton_lower_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix)
+{
+  gfsmStateId qid;
+  gfsmArcIter *ai;
+
+  //-- maybe allocate
+  if (ix==NULL) {
+    ix = gfsm_arc_label_index_new_full(gfsm_automaton_n_states(fsm), gfsm_automaton_n_arcs(fsm));
+  } else {
+    g_ptr_array_set_size(ix->arcs,  gfsm_automaton_n_arcs(fsm));
+    g_ptr_array_set_size(ix->first, gfsm_automaton_n_states(fsm));
+  }
+
+  //-- populate arcs
+  for (qid=0; qid < gfsm_automaton_n_states(fsm); qid++) {
+    for (gfsm_arciter_open(&ai,fsm,qid); 
+  }
+}
+
+/*--------------------------------------------------------------
+ * automaton_upper_label_index()
+ */
+gfsmArcLabelIndex *gfsm_automaton_upper_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix)
+{
+  gfsmStateId qid;
+
+  //-- maybe allocate
+  if (ix==NULL) {
+    ix = gfsm_arc_label_index_new_full(gfsm_automaton_n_states(fsm), gfsm_automaton_n_arcs(fsm));
+  } else {
+    g_ptr_array_set_size(ix->arcs,  gfsm_automaton_n_arcs(fsm));
+    g_ptr_array_set_size(ix->first, gfsm_automaton_n_states(fsm));
+  }
 }

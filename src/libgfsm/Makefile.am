@@ -56,6 +56,7 @@ libgfsm_la_SOURCES = \
 	gfsmArcIter.c \
 	gfsmArcIndex.c \
 	gfsmIndexed.c \
+	gfsmIndexed2.c \
 	gfsmIndexedIO.c \
 	gfsmState.c \
 	gfsmStateSet.c \
@@ -106,6 +107,7 @@ pkginclude_HEADERS = \
 	gfsmArcIter.h \
 	gfsmArcIndex.h \
 	gfsmIndexed.h \
+	gfsmIndexed2.h \
 	gfsmIndexedIO.h \
 	gfsmState.h \
 	gfsmStateSet.h \

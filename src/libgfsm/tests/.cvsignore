@@ -9,6 +9,11 @@
 *.tab.h
 *.gz
 
+tagh*
+*.dat
+negra*
+
+seektest
 gfsmlabdump
 iotest
 pathtest
