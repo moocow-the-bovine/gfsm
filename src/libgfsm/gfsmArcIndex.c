@@ -35,7 +35,7 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
 {
   gfsmStateId idfrom;
   gfsmArcIter ai;
-  gfsmArc *arc, *rarc;
+  gfsmArc *arc;
 
   if (!rarcs) {
     rarcs = gfsm_reverse_arc_index_sized_new(fsm->states->len);
@@ -61,7 +61,7 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
 /*--------------------------------------------------------------
  * reverse_arc_index_free()
  */
-void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists, gboolean ignored)
+void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists)
 {
   guint i;
   if (free_lists) {
@@ -123,7 +123,7 @@ gfsmArcLabelIndex *gfsm_arc_label_index_new(void) {
 gfsmArcLabelIndex *gfsm_arc_label_index_new_full(gfsmStateId n_states, guint n_arcs) {
   gfsmArcLabelIndex *ix = g_new(gfsmArcLabelIndex,1);
   ix->arcs  = g_ptr_array_sized_new(n_arcs);
-  ix->first = g_ptr_array_new(n_states);
+  ix->first = g_ptr_array_sized_new(n_states);
   return ix;
 }
 
@@ -133,7 +133,7 @@ gfsmArcLabelIndex *gfsm_arc_label_index_new_full(gfsmStateId n_states, guint n_a
 gfsmArcLabelIndex *gfsm_automaton_lower_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix)
 {
   gfsmStateId qid;
-  gfsmArcIter *ai;
+  gfsmArcIter ai;
 
   //-- maybe allocate
   if (ix==NULL) {

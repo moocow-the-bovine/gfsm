@@ -68,15 +68,11 @@ libgfsm_la_SOURCES = \
 	gfsmScanner.c \
 	gfsmRegex.lex.l \
 	gfsmRegex.tab.y \
-	gfsmRegexCompiler.c
-
-
-libgfsm_la_SOURCES += \
+	gfsmRegexCompiler.c \
+	\
 	gfsmIndexed.c \
 	gfsmIndexed2.c \
 	gfsmIndexedIO.c
-
-#	gfsmHead.c 
 
 ## --- Extra (possible) sources
 #EXTRA_${prog_i}_SOURCES = 
@@ -121,16 +117,11 @@ pkginclude_HEADERS = \
 	gfsmTrie.h \
 	gfsmScanner.h \
 	gfsmRegexCompiler.h \
-	gfsm.h
-
-pkginclude_HEADERS += \
+	gfsm.h \
+	\
 	gfsmIndexed.h \
 	gfsmIndexed2.h \
 	gfsmIndexedIO.h
-
-#	gfsmHead.h 
-
-#pkginclude_HEADERS += gfsmIndexed.h gfsmIndexedIO.h
 
 ## --- no-install headers
 #noinst_HEADERS = nopackage.h

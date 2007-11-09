@@ -61,6 +61,7 @@ typedef struct
   GArray             *states;    /**< vector of automaton states */
   gfsmWeightMap      *finals;    /**< map from final state-Ids to final weights */
   gfsmStateId         root_id;   /**< ID of root node, or gfsmNoState if not defined */
+#if 0
   //
   //-- indices
   gfsmArcLabelIndex     *ix_lower;  /**< lower-label arc index, NULL for none */
@@ -69,6 +70,7 @@ typedef struct
   //
   //-- user data
   gpointer           *data;      /**< user data */
+#endif
 } gfsmAutomaton;
 
 /*======================================================================
@@ -331,7 +333,7 @@ gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode);
 /// \name Indexing
 //@{
 
-
+/*-- nothing here yet --*/
 
 //@}
 
