@@ -35,7 +35,7 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
 {
   gfsmStateId idfrom;
   gfsmArcIter ai;
-  gfsmArc *arc, *rarc;
+  gfsmArc *arc;
 
   if (!rarcs) {
     rarcs = gfsm_reverse_arc_index_sized_new(fsm->states->len);

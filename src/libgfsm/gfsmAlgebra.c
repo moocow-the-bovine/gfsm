@@ -655,7 +655,7 @@ gboolean gfsm_connect_bw_visit_state(gfsmStateId id,
   //-- visit sources of incoming arcs
   for (al=g_ptr_array_index(data->rarcs,id); al != NULL; al=al->next) {
     gfsmArc *arc = (gfsmArc*)al->data;
-    gfsm_connect_bw_visit_state(arc->target,pw,data);
+    gfsm_connect_bw_visit_state(arc->source,pw,data);
   }
 
   return FALSE; //-- continue traversal
