@@ -694,7 +694,7 @@ gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
 
   //-- cleanup
   if (finalizable_is_temp) gfsm_bitvector_free(finalizable);
-  if (rarcs_is_temp) gfsm_reverse_arc_index_free(rarcs,TRUE,TRUE);
+  if (rarcs_is_temp) gfsm_reverse_arc_index_free(rarcs,TRUE);
 
   return fsm;
 }
