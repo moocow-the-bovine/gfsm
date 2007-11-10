@@ -37,10 +37,15 @@
 typedef guint16 gfsmLabelId;
 
 /** Type for extended arc-labels (parameters and return values) */
-typedef guint32 gfsmLabelVal;
+typedef guint gfsmLabelVal;
 
 /** Type for elementary state identifiers */
 typedef guint32 gfsmStateId;
+
+/** Type for extended state-identifiers (parameters and return values)
+ *  \todo ensure that we can safely fit a pointer in ::gfsmStateIdVal , ::gfsmLabelIdVal , etc.
+ */
+typedef guint gfsmStateIdVal;
 
 /** Alias for state identifiers */
 typedef gfsmStateId gfsmNodeId;

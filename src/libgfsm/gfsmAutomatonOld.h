@@ -2,7 +2,7 @@
 /*=============================================================================*\
  * File: gfsmAutomaton.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library: generic automata
+ * Description: finite state machine library: automata
  *
  * Copyright (c) 2004-2007 Bryan Jurish.
  *
@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-/** \file gfsmAutomatonAPI.h
- *  \brief Generic automaton API
+/** \file gfsmAutomaton.h
+ *  \brief Automaton definitions and low-level access
  */
 
 #ifndef _GFSM_AUTOMATON_H
