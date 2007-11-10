@@ -109,13 +109,6 @@ Show header information from stored gfsm files
 See L<gfsmheader> for details.
 
 
-=head2 gfsmindex
-
-Convert between indexed and un-indexed binary gfsm automata
-
-See L<gfsmindex> for details.
-
-
 =head2 gfsminfo
 
 Show basic information about stored gfsm files
@@ -281,39 +274,21 @@ as:
 
 =head1 SEE ALSO
 
-gfsmarcsort(1),
-gfsmarith(1),
-gfsmclosure(1),
-gfsmcompile(1),
-gfsmcomplement(1),
-gfsmcompose(1),
-gfsmcompre(1),
-gfsmconcat(1),
-gfsmconnect(1),
-gfsmconvert(1),
-gfsmdeterminize(1),
-gfsmdifference(1),
-gfsmdraw(1),
-gfsmheader(1),
-gfsmindex(1),
-gfsminfo(1),
-gfsmintersect(1),
-gfsminvert(1),
-gfsmlabels(1),
-gfsmlookup(1),
-gfsmoptional(1),
-gfsmprint(1),
-gfsmproduct(1),
-gfsmproject(1),
-gfsmrenumber(1),
-gfsmreplace(1),
-gfsmreverse(1),
-gfsmrmepsilon(1),
-gfsmsigma(1),
-gfsmstrings(1),
-gfsmunion(1),
-gfsmviterbi(1),
+=over 4
+
+=item gfsm Project Page:
+
+L<http://www.ling.uni-potsdam.de/~moocow/projects/gfsm>
+
+=item gfsm Utility Manuals:
+
+gfsmarcsort(1), gfsmarith(1), gfsmclosure(1), gfsmcompile(1), gfsmcomplement(1), gfsmcompose(1), gfsmcompre(1), gfsmconcat(1), gfsmconnect(1), gfsmconvert(1), gfsmdeterminize(1), gfsmdifference(1), gfsmdraw(1), gfsmheader(1), gfsminfo(1), gfsmintersect(1), gfsminvert(1), gfsmlabels(1), gfsmlookup(1), gfsmoptional(1), gfsmprint(1), gfsmproduct(1), gfsmproject(1), gfsmrenumber(1), gfsmreplace(1), gfsmreverse(1), gfsmrmepsilon(1), gfsmsigma(1), gfsmstrings(1), gfsmunion(1), gfsmviterbi(1)
+
+=item Other
+
 fsm(1), fsm(5)
+
+=back
 
 =head1 AUTHOR
 
