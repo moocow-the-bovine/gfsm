@@ -69,7 +69,8 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
 
 //------------------------------
 /** Free a reverse arc index.
- *  \param
+ *  \param rarcs
+ *    Reverse arc index to be freed.
  *  \param free_lists
  *    If true, associated arc-lists will be freed.
  */
