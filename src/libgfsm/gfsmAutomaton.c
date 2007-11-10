@@ -497,7 +497,8 @@ void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gf
     for (gfsm_arciter_open_ptr(&ai, fsm, s_new); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
       {
 	gfsmArc *a = gfsm_arciter_arc(&ai);
-	a->target = g_array_index(old2new,gfsmStateId,a->target);
+	a->source  = newid;
+	a->target  = g_array_index(old2new,gfsmStateId,a->target);
       }
   }
 
