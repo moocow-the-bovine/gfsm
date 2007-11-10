@@ -655,7 +655,7 @@ gboolean gfsm_connect_bw_visit_state(gfsmStateId id,
   //-- visit sources of incoming arcs
   for (al=g_ptr_array_index(data->rarcs,id); al != NULL; al=al->next) {
     gfsmArc *arc = (gfsmArc*)al->data;
-    gfsm_connect_bw_visit_state(arc->target,pw,data);
+    gfsm_connect_bw_visit_state(arc->source,pw,data);
   }
 
   return FALSE; //-- continue traversal
@@ -694,7 +694,7 @@ gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
 
   //-- cleanup
   if (finalizable_is_temp) gfsm_bitvector_free(finalizable);
-  if (rarcs_is_temp) gfsm_reverse_arc_index_free(rarcs,TRUE,TRUE);
+  if (rarcs_is_temp) gfsm_reverse_arc_index_free(rarcs,TRUE);
 
   return fsm;
 }
