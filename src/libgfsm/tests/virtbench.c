@@ -30,18 +30,37 @@ VTestT vt = {42,test1};
 /*======================================================================
  * Globals
  */
-const char *prog = "seektest";
+const char *prog = "virtbench";
 
 gulong count_test = 
 //1024
 //1048576  //==2**20
 //4194304  //==2**22
 //16777216 //==2**24
-67108864   //==2**26
+//67108864LU   //==2**26
+268435456LU  //==2**28
+//2147483647U   //==2**31
 ;
 
 
 
+/*======================================================================
+ * Tests: literal
+ */
+double bench_literal(void) {
+  double elapsed;
+  GTimer *timer  = g_timer_new();
+  gulong i;
+
+  g_timer_start(timer);
+  for (i=0; i < count_test; i++) {
+    test1(t.val);
+  }
+  elapsed = g_timer_elapsed(timer,NULL);
+
+  g_timer_destroy(timer);
+  return elapsed;
+}
 
 
 /*======================================================================
@@ -150,17 +169,39 @@ int main(void)
   double elapsed;
   double count_dbl = count_test;
 
+  printf("count_test=%ld\n", count_test);
+
+  elapsed = bench_literal();
+  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "literal", elapsed, count_dbl/elapsed/1e6);
+
   elapsed = bench_switch_code();
-  fprintf(stderr, "switch_code: %.2f sec: %.2g iter/sec\n", elapsed, count_dbl/elapsed);
+  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "switch_code", elapsed, count_dbl/elapsed/1e6);
 
   elapsed = bench_switch_func();
-  fprintf(stderr, "switch_func: %.2f sec: %.2g iter/sec\n", elapsed, count_dbl/elapsed);
+  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "switch_func", elapsed, count_dbl/elapsed/1e6);
 
   elapsed = bench_vtable_global();
-  fprintf(stderr, "vtable_global: %.2f sec: %.2g iter/sec\n", elapsed, count_dbl/elapsed);
+  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "vtable_global", elapsed, count_dbl/elapsed/1e6);
 
   elapsed = bench_vtable_local();
-  fprintf(stderr, "vtable_local: %.2f sec: %.2g iter/sec\n", elapsed, count_dbl/elapsed);
+  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "vtable_local", elapsed, count_dbl/elapsed/1e6);
+
+  /* carrot, -g
+count_test=268435456
+         literal: 1.65 sec: 163.03 M iter/sec : 100.00%
+     switch_code: 2.32 sec: 115.47 M iter/sec :  70.83%
+    vtable_local: 3.15 sec:  85.28 M iter/sec :  52.31%
+   vtable_global: 3.50 sec:  76.78 M iter/sec :  47.10%
+     switch_func: 4.69 sec:  57.25 M iter/sec :  35.11%
+
+     carrot, -O2:
+count_test=268435456
+         literal: 0.00 sec: 134217728.00 M iter/sec
+     switch_code: 0.00 sec: 268435456.00 M iter/sec
+     switch_func: 0.00 sec: 134217728.00 M iter/sec
+   vtable_global: 2.60 sec: 103.38 M iter/sec
+    vtable_local: 1.51 sec: 177.88 M iter/sec
+  */
 
   return 0;
 }
