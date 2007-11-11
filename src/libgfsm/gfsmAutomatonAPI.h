@@ -28,14 +28,33 @@
 #ifndef _GFSM_AUTOMATON_API_H
 #define _GFSM_AUTOMATON_API_H
 
-#include <gfsmAlphabet.h>
 #include <gfsmState.h>
-#include <gfsmWeightMap.h>
-#include <gfsmBitVector.h>
+#include <gfsmAlphabet.h>
 
 /*======================================================================
  * Types
  */
+
+/// Known automaton implementation classes
+/** Used to resolve \a impl.data for a ::gfsmAutomatonImpl \a impl */
+typedef enum {
+  gfsmACUnknown,            /**< unknown class; should never happen in practice */
+  gfsmACOldBasic,           /**< backwards-compatible implementation, see ::gfsmOldBasicImpl */
+  gfsmACBasic,              /**< basic implementation; see ::gfsmBasicImpl */
+  gfsmACArcTable,           /**< (read-only) arc table implementation; see ::gfsmArcTableImpl */
+  gfsmACFullTable,          /**< (read-only) full table implementation; see ::gfsmFullTableImpl */
+  gfsmACVirtual             /**< user-defined full-virtual implementation; see ::gfsmVirtualImpl */
+} gfsmAutomatonClass;
+
+/// Automaton implementation data union type, for comfortable typecasting
+typedef union {
+  gpointer                    gp;   /**< Generic (void*) */
+  struct gfsmOldBasicImpl_  *obi;   /**< backwards-compatible implementation, see ::gfsmOldBasicImpl */
+  struct gfsmBasicImpl_      *bi;   /**< basic implementation; see ::gfsmBasicImpl */
+  struct gfsmArcTableImpl_  *ati;   /**< (read-only) arc table implementation; see ::gfsmArcTableImpl */
+  struct gfsmFullTableImpl_ *fti;   /**< (read-only) full table implementation; see ::gfsmFullTableImpl */
+  struct gfsmVirtualImpl_    *vi;   /**< user-defined full-virtual implementation; see ::gfsmVirtualImpl */
+} gfsmAutomatonImpl;
 
 /// Automaton status flags
 /** \todo multiply binary property flags out: add 'xKnown' flag for each property 'x' */
@@ -44,7 +63,7 @@ typedef struct {
   guint32 is_weighted       : 1;       /**< whether this automaton is weighted */
   guint32 sort_mode         : 4;       /**< sort-mode (cast to gfsmArcSortMode) */
   guint32 is_deterministic  : 1;       /**< whether fsm is known to be deterministic */
-  guint32 unused            : 23;      /**< reserved */
+  guint32 unused            : 25;      /**< reserved */
 } gfsmAutomatonFlags;
 
 
@@ -52,7 +71,8 @@ typedef struct {
 typedef struct
 {
   gfsmAutomatonFlags   flags;    /**< automaton flags */
-  gfsmAutomatonImpl    impl;     /**< underlying implementation, cast by switch{} over \a itype  */
+  gfsmAutomatonClass   itype;    /**< implementation class */
+  gfsmAutomatonImpl    impl;     /**< underlying implementation, cast by \c switch{} over \c itype  */
 } gfsmAutomaton;
 
 
@@ -120,8 +140,8 @@ gfsmAutomaton *gfsm_automaton_classed_new_full(gfsmAutomatonClass itype,
 /** Create a new gfsmAutomaton by cloning an existing one */
 gfsmAutomaton *gfsm_automaton_clone(gfsmAutomaton *fsm);
 
-/** Assign non-structural contents (flags, semiring) of \a src to \a dst,
- *  without altering \a dst's implementation class.
+/** Assign non-structural contents (flags, semiring, root) of \a src to \a dst,
+ *  without altering \a dst's implementation class or structure.
  *  \param dst target automaton
  *  \param src source automaton
  *  \returns modified \a dst
@@ -157,7 +177,7 @@ void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 /** Clear a ::gfsmAutomaton */
 void gfsm_automaton_clear(gfsmAutomaton *fsm);
 
-/** Destroy a ::gfsmAutomaton. */
+/** Destroy a ::gfsmAutomaton and its implementation */
 #define gfsm_automaton_free(fsm) \
    gfsm_automaton_free_full((fsm),TRUE)
 
@@ -167,7 +187,7 @@ void gfsm_automaton_clear(gfsmAutomaton *fsm);
  *  \returns
  *    fsm->impl if \a free_impl is FALSE, otherwise NULL.
  */
-gfsmAutomatonImpl *gfsm_automaton_free_full(gfsmAutomaton *fsm, bool free_impl)
+gfsmAutomatonImpl *gfsm_automaton_free_full(gfsmAutomaton *fsm, gboolean free_impl)
 
 //@}
 
@@ -179,11 +199,11 @@ gfsmAutomatonImpl *gfsm_automaton_free_full(gfsmAutomaton *fsm, bool free_impl)
 //@{
 
 /** Get pointer to the semiring associated with this automaton */
-#define gfsm_automaton_get_semiring(fsm) ((fsm)->impl->sr)
+#define gfsm_automaton_get_semiring(fsm) ((fsm)->sr)
 
 /** Set the semiring associated with this automaton
  *  \param fsm automaton to modify
- *  \param sr  semiring to be copied into fsm->impl->sr
+ *  \param sr  semiring to be copied into fsm->sr
  *  \returns new semiring for fsm
  *  \warning older versions of this method returned \a sr itself!
  */
@@ -204,13 +224,13 @@ void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype);
  */
 //@{
 
-/** True iff automaton is a transducer /
+/** True iff automaton is a transducer */
 #define gfsm_automaton_is_transducer(fsm) ((fsm)->flags.is_transducer)
 
-/** True iff automaton is weighted /
+/** True iff automaton is weighted */
 #define gfsm_automaton_is_weighted(fsm) ((fsm)->flags.is_weighted)
 
-/** Get current automaton arc-sort mode /
+/** Get current automaton arc-sort mode */
 #define gfsm_automaton_sortmode(fsm) ((gfsmArcSortMode)((fsm)->flags.sort_mode))
 
 //@}
@@ -397,7 +417,7 @@ gboolean gfsm_automaton_is_final_state(gfsmAutomaton *fsm, gfsmStateIdVal qid);
  * \param is_final whether state should be considered final
  * \param final_weight
  *    If \a is_final is true, final weight for state.  Otherwise
- *    final weight should implicitly be set to \a (fsm)->impl->sr->zero
+ *    final weight should implicitly be set to \a (fsm)->sr->zero
  */
 void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 					 gfsmStateIdVal qid,
@@ -408,7 +428,7 @@ void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
  *  Really just a wrapper for gfsm_automaton_lookup_final().
  *  \param fsm automaton to examine
  *  \param qid ID of state to examine
- *  \returns final weight if \a qid is final, otherwise \a fsm->impl->sr->zero.
+ *  \returns final weight if \a qid is final, otherwise \a fsm->sr->zero.
  */
 gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateIdVal id);
 
@@ -493,16 +513,28 @@ gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode);
  */
 gfsmAutomaton *gfsm_automaton_arcsort_user(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
 
-/*-- todo: list-wise arc methods:
+/*-- todo:
+
++ list-wise arc methods:
   open_arcs_list(fsm,qid)
   set_arcs_list(fsm,qid,arcs_l)
   close_arcs_list(fsm,arcs_l)
-  (?) sort_arcs_list_user(arcs_l, cmpfunc, data)
+  (?) sort_arcs_list_full(arcs_l, cmpfunc, data)
 
++ array-wise arc methods:
   open_arcs_array(fsm,qid)
   set_arcs_array(fsm,qid,arcs_a)
   close_arcs_array(fsm,arcs_a)
-  (?) sort_arcs_array_user(arcs_a, cmpfunc, data)
+  (?) sort_arcs_array_full(arcs_a, cmpfunc, data)
+
++ arc-iterator methods:
+  arciter_open(fsm,qid)
+  arciter_open_ptr(fsm,qp)
+  (?) arciter_seek_lower(aip,lab)
+  (?) arciter_seek_upper(aip,lab)
+  (?) arciter_seek_both(aip,lo,hi)
+  (??) arciter_open_lower(fsm,qid,lab)
+  (??) arciter_open_upper(fsm,qid,lab)
 */
 
 //@}
