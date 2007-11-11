@@ -1,6 +1,7 @@
 TARGETS = seektest
 
 KNOWN_TARGETS = \
+	virtbench \
 	gfsmlabdump \
 	iotest \
 	structtest \
@@ -89,6 +90,9 @@ comprelex: comprelex.lex.o $(GFSMLIBS)
 compre2test: compre2test.o $(GFSMLIBS)
 	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
 
+virtbench: virtbench.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
 ##-- io
 iotest: iotest.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
@@ -103,6 +107,9 @@ clean:
 
 
 ##-- executables
+%bench: %bench.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
+
 %test: %test.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
 
