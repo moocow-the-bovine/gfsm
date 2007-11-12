@@ -41,14 +41,8 @@ typedef struct _gfsmArc {
 
 /// "Heavy" arc-list structure, data is a (gfsmArc*)
 typedef GSList gfsmArcList;
-/*
-typedef struct _gfsmArcList {
-gfsmArc               arc;     ///< current arc 
-struct _gfsmArcList  *next;    ///< pointer to next arc 
-} gfsmArcList;
-*/
 
-/// enum type for arc sorting
+/// Enum type for arc sorting
 typedef enum {
   gfsmASMNone,  ///< unsorted
   gfsmASMLower, ///< sort by (lower,upper,target)
@@ -56,13 +50,14 @@ typedef enum {
   gfsmASMWeight ///< sort by weight (refers to semiring)
 } gfsmArcSortMode;
 
-/// typedef for arc-sorting parameters
+/// Typedef for mode-dependent arc-sorting parameters
+/** \see gfsm_arc_compare(), gfsm_arclist_sort(), gfsm_automaton_arcsort() */
 typedef struct {
   gfsmArcSortMode  mode; /**< sorting mode */
   gfsmSemiring    *sr;   /**< semiring for weight-mode, otherwise ignored */
 } gfsmArcSortData;
 
-/// Type for identifying transducer "sides" (lower vs. upper)
+/// Type for identifying arc-label "sides" in a transducer (lower vs. upper)
 typedef enum {
   gfsmLSBoth  = 0, ///< Both sides (lower and upper)
   gfsmLSLower = 1, ///< Lower side only
@@ -72,14 +67,21 @@ typedef enum {
 /*======================================================================
  * Methods: Arcs: Constructors etc.
  */
+
 /// \name Arcs: Constructors etc.
 //@{
-/** \def gfsm_arc_new()
- *  Create a new arc (empty)
- */
+/** Create and return a new (empty) ::gfsmArc */
 #define gfsm_arc_new() g_new0(gfsmArc,1)
 
-/** Initialize an arc (generic) */
+/** Initialize a ::gfsmArc
+ * \param a arc to initialize
+ * \param src ID of source state
+ * \param dst ID of target state
+ * \param lo  ID of lower label
+ * \param hi  ID of upper label
+ * \param w   arc weight
+ * \returns initialized arc \a a
+ */
 gfsmArc *gfsm_arc_init(gfsmArc *a,
 		       gfsmStateId src,
 		       gfsmStateId dst,
@@ -87,17 +89,21 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 		       gfsmLabelId hi,
 		       gfsmWeight wt);
 
-/** \def gfsmArc* gfsm_arc_new_full(gfsmStateId dst, gfsmLabelId lo, gfsmLabelId hi, gfsmWeight w)
- *  Convenience macro.
+/** Convenience macro to simultaneously create and initialize a ::gfsmArc
+ * \param src ID of source state
+ * \param dst ID of target state
+ * \param lo  ID of lower label
+ * \param hi  ID of upper label
+ * \param w   arc weight
+ * \returns newly allocated and initalized ::gfsmArc
  */
 #define gfsm_arc_new_full(src,dst,lo,hi,wt) \
   gfsm_arc_init(g_malloc(sizeof(gfsmArc)),(src),(dst),(lo),(hi),(wt))
 
-/** Create a copy of \a arc */
+/** Create an exact copy of the ::gfsmArc \a src */
 gfsmArc *gfsm_arc_copy(gfsmArc *src);
 
-/** \def gfsm_arc_free(gfsmArc* a)
- *  Destroy an arc \c a */
+/** Destroy a ::gfsmArc \a a */
 #define gfsm_arc_free(a) g_free(a)
 //@}
 
@@ -106,13 +112,10 @@ gfsmArc *gfsm_arc_copy(gfsmArc *src);
  */
 /// \name Arc Lists: Constructors etc.
 //@{
-/** \def gfsmArcList* gfsm_arclist_alloc()
- *  Allocate space for a new gfsmArcList node.
- */
+/** Allocate space for a new gfsmArcList node. */
 #define gfsm_arclist_alloc() g_slist_alloc()
 
-/** \def gfsmArcList *gfsm_arclist_prepend(gfsmArcList *al, gfsmArc *a)
- *  Create a new arc-list node for \a arc, prepending it to \a nxt
+/** Create a new arc-list node for \a arc, prepending it to \a nxt
  *  \returns a pointer to the new 1st element of the arclist
  */
 #define gfsm_arclist_prepend(al,arc) g_slist_prepend(al,arc)
@@ -172,9 +175,6 @@ void gfsm_arclist_free(gfsmArcList *al);
 /** Get weight of an arc -- may be gfsmNoWeight */
 #define gfsm_arc_weight(arcptr) ((arcptr)->weight)
 
-/* Get pointer to next arc -- may be NULL */
-//#define gfsm_arc_next(arcptr) ((arcptr)->next)
-
 //@}
 
 
@@ -183,16 +183,14 @@ void gfsm_arclist_free(gfsmArcList *al);
  */
 ///\name ArcList: Utilities
 //@{
-/** \def gfsm_arclist_length(gfsmArcList *al)
- *  Get length of an arc-list \c al (linear time)
- */
+/** Get length of an arc-list \a al (linear time) */
 #define gfsm_arclist_length(al) g_slist_length(al)
 
-/** 3-way comparison on arcs */
+/** Default 3-way comparison on arcs */
 gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata);
 
 /** \def gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata)
- *  Sort an arclist \c al with data \c sdata.
+ *  Sort an arclist \a al with data \a sdata.
  */
 #define gfsm_arclist_sort(al,sdata) \
   g_slist_sort_with_data(al, (GCompareDataFunc)gfsm_arc_compare, sdata)
