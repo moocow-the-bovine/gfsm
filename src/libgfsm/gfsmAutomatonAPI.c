@@ -21,6 +21,7 @@
  *=============================================================================*/
 
 #include <gfsmAutomatonAPI.h>
+#include <gfsmOldBasicImpl.h>
 
 /*======================================================================
  * Constants
@@ -46,17 +47,32 @@ const guint gfsmAutomatonDefaultNArcs = 128;
 /*======================================================================
  * Methods: Constructors etc.
  */
+
 /*--------------------------------------------------------------
  * new_full()
  */
-gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, gfsmStateId size)
+gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonClass itype,
+				       gfsmAutomatonFlags flags,
+				       gfsmSRType         srtype,
+				       guint              n_states,
+				       guint              n_arcs)
 {
   gfsmAutomaton *fsm = (gfsmAutomaton*)g_new0(gfsmAutomaton,1);
   fsm->flags         = flags;
   fsm->sr            = gfsm_semiring_new(srtype);
-  fsm->states        = g_array_sized_new(FALSE, TRUE, sizeof(gfsmState), size);
-  fsm->finals        = gfsm_set_new(gfsm_uint_compare);
-  fsm->root_id       = gfsmNoState;
+  fsm->itype         = itype;
+
+  switch (itype) {
+  case gfsmACOldBasic:
+    fsm->impl.obi          = (gfsmOldBasicImpl*)g_new0(gfsmOldBasicImpl,1);
+    fsm->impl.obi->states  = g_array_sized_new(FALSE, TRUE, sizeof(gfsmState), n_states);
+    fsm->impl.obi->finals  = gfsm_set_new(gfsm_uint_compare);
+    fsm->impl.obi->root_id = gfsmNoState;
+    break;
+  default:
+    g_error("gfsm_automaton_new_full(): can't handle implementation type '%d'\n", itype);
+  }
+
   return fsm;
 }
 
@@ -66,7 +82,7 @@ gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srty
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src)
 {
   dst->flags   = src->flags;
-  dst->root_id = src->root_id; //-- DANGEROUS!
+  gfsm_automaton_set_root(dst,gfsm_automaton_get_root(src)); //-- DANGEROUS!
 
   //-- copy semiring
   if (dst->sr && dst->sr->type != src->sr->type) {
@@ -74,41 +90,64 @@ gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *sr
     dst->sr = gfsm_semiring_copy(src->sr);
   }
 
-  dst->flags.arcs_dirty = 1; //-- index maintainence
-
   return dst;
 }
 
+
+/*--------------------------------------------------------------
+ * clone()
+ */
+gfsmAutomaton *gfsm_automaton_clone(gfsmAutomaton *fsm)
+{
+  return
+    gfsm_automaton_copy(gfsm_automaton_classed_new_full(fsm->itype,
+							gfsmAutomatonDefaultFlags,
+							fsm->sr->type,
+							0,
+							0),
+			fsm);
+}
 
 /*--------------------------------------------------------------
  * copy()
  */
 gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src)
 {
-  gfsmStateId id;
+  gfsmStateId qid;
+  gfsmArcIter ai;
 
   gfsm_automaton_clear(dst);
   gfsm_automaton_copy_shallow(dst,src);
-  gfsm_automaton_reserve(dst,src->states->len);
-  gfsm_weightmap_copy(dst->finals, src->finals);
 
-  for (id = 0; id < src->states->len; id++) {
-    const gfsmState *src_s = gfsm_automaton_find_state_const(src,id);
-          gfsmState *dst_s = gfsm_automaton_find_state(dst,id);
-    gfsm_state_copy(dst_s, src_s);
+  switch (dst->itype) {
+  case gfsmACOldBasic:
+  default:
+    //g_error("gfsm_automaton_copy(): can't handle destination implementation type '%d'\n", dst->itype);
+    break; //-- use default
   }
 
-  //-- copy indices?
-  if (!src->flags.arcs_dirty) {
-    if (src->ix_lower) dst->ix_lower = gfsm_label_index_copy(NULL,src->ix_lower);
-    if (src->ix_upper) dst->ix_upper = gfsm_label_index_copy(NULL,src->ix_upper);
-  }
-  if (!src->flags.final_dirty) {
-    if (src->ix_final) dst->ix_final = gfsm_final_index_copy(NULL,src->ix_final);
+  //-- copy: default
+  gfsm_automaton_reserve_states(dst, gfsm_automaton_n_states(src));
+  //gfsm_automaton_reserve_arcs(dst, gfsm_automaton_n_arcs(src));
+
+  for (qid=0; qid < gfsm_automaton_n_states(src); qid++) {
+    if (!gfsm_automaton_has_state(src,qid)) continue;
+
+    gfsm_automaton_add_state_full(dst,qid);
+    if (gfsm_automaton_is_final_state(src,qid)) {
+      gfsm_automaton_set_final_state_full(dst,qid,TRUE,gfsm_automaton_get_final_weight(src,qid));
+    }
+
+    for (gfsm_arciter_open(&ai,src,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      gfsmArc *a = gfsm_arciter_arc(&ai);
+      gfsm_automaton_add_arc(dst,qid,a->target,a->lower,a->upper,a->weight);
+    }
+    gfsm_arciter_close(&ai);
   }
 
   return dst;
 }
+
 
 /*--------------------------------------------------------------
  * swap()
@@ -116,11 +155,10 @@ gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src)
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   if (fsm1 != fsm2) {
-    gfsmAutomaton *tmp = g_new0(gfsmAutomaton,1);
-    *tmp = *fsm2;
+    gfsmAutomaton tmp;
+    tmp   = *fsm2;
     *fsm2 = *fsm1;
-    *fsm1 = *tmp;
-    g_free(tmp);
+    *fsm1 =  tmp;
   }
 }
 
@@ -129,38 +167,31 @@ void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
  */
 void gfsm_automaton_clear(gfsmAutomaton *fsm)
 {
-  gfsmStateId i;
-  if (!fsm) return;
-  for (i=0; fsm->states && i < fsm->states->len; i++) {
-    gfsmState *st = gfsm_automaton_find_state(fsm,i);
-    if (!st || !st->is_valid) continue;
-    gfsm_state_clear(st);
+  switch (fsm->itype) {
+  case gfsmACOldBasic: return gfsm_old_basic_impl_clear(fsm);
+  default:
+    g_error("gfsm_automaton_clear(): can't handle implementation type '%d'\n", fsm->itype);
   }
-  if (fsm->states) g_array_set_size(fsm->states,0);
-  if (fsm->finals) gfsm_set_clear(fsm->finals);
-  fsm->root_id = gfsmNoState;
-
-  //-- clear indices?
-  if (fsm->ix_lower) gfsm_lower_index_free(fsm->ix_lower);
-  if (fsm->ix_upper) gfsm_lower_index_free(fsm->ix_upper);
-  if (fsm->ix_final) gfsm_final_index_free(fsm->ix_final);
-  fsm->ix_lower=NULL;
-  fsm->ix_upper=NULL;
-  fsm->ix_final=NULL;
-
-  return;
 }
 
 /*--------------------------------------------------------------
  * free()
  */
-void gfsm_automaton_free(gfsmAutomaton *fsm)
+void gfsm_automaton_free_full(gfsmAutomaton *fsm, gboolean free_impl)
 {
   if (!fsm) return;
-  gfsm_automaton_clear(fsm); //-- implicitly frees indices
   if (fsm->sr)     gfsm_semiring_free(fsm->sr);
-  if (fsm->states) g_array_free(fsm->states,TRUE);
-  if (fsm->finals) gfsm_set_free(fsm->finals);
+  if (free_impl && fsm->impl) {
+    switch (fsm->itype) {
+    case gfsmACOldBasic:
+      gfsm_automaton_clear(fsm);
+      if (fsm->impl.obi->states) g_array_free(fsm->impl.obi->states,TRUE);
+      if (fsm->impl.obi->finals) gfsm_set_free(fsm->impl.obi->finals);
+      break;
+    default:
+      g_error("gfsm_automaton_free_full(): can't handle implementation type '%d'\n", fsm->itype);
+    }
+  }
   g_free(fsm);
 }
 
@@ -204,7 +235,7 @@ guint gfsm_automaton_n_arcs_full(gfsmAutomaton *fsm,
   if (n_hi_epsilon) *n_hi_epsilon = 0;
   if (n_both_epsilon) *n_both_epsilon = 0;
 
-  for (i=0; i < fsm->states->len; i++) {
+  for (i=0; i < gfsm_automaton_n_states(fsm); i++) {
     gfsmArcIter ai;
     for (gfsm_arciter_open(&ai, fsm, i); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
       gfsmArc *a = gfsm_arciter_arc(&ai);
@@ -220,19 +251,22 @@ guint gfsm_automaton_n_arcs_full(gfsmAutomaton *fsm,
 	++(*n_hi_epsilon);
       }
     }
+    gfsm_arciter_close(&ai);
   }
   return total;
 }
 
 /*--------------------------------------------------------------
- * reserve()
+ * reserve_states()
  */
-void gfsm_automaton_reserve(gfsmAutomaton *fsm, gfsmStateId nstates)
+void gfsm_automaton_reserve_states(gfsmAutomaton *fsm, gfsmStateIdVal n_states)
 {
-  if (nstates != gfsmNoState && nstates >= fsm->states->len) {
-    g_array_set_size(fsm->states,nstates);
-    fsm->flags.arcs_dirty=1;
-    fsm->flags.final_dirty=1;
+  switch (fsm->itype) {
+  case gfsmACOldBasic:
+    if (n_states != gfsmNoState && n_states >= fsm->impl.obi->states->len)
+      g_array_set_size(fsm->impl.obi->states, n_states);
+   default:
+    g_error("gfsm_automaton_reserve_states(): can't handle implementation type '%d'\n", fsm->itype);
   }
 }
 
@@ -240,33 +274,34 @@ void gfsm_automaton_reserve(gfsmAutomaton *fsm, gfsmStateId nstates)
  * is_cyclic_state()
  */
 gboolean gfsm_automaton_is_cyclic_state(gfsmAutomaton *fsm,
-					gfsmStateId id,
+					gfsmStateIdVal qid,
 					gfsmBitVector *visited,
 					gfsmBitVector *completed)
 {
-  gfsmState   *s;
   gfsmArcIter  ai;
 
-  if (gfsm_bitvector_get(visited,id)) {
-    if (gfsm_bitvector_get(completed,id)) return FALSE;
+  if (gfsm_bitvector_get(visited,qid)) {
+    if (gfsm_bitvector_get(completed,qid)) return FALSE;
     return TRUE;
   }
 
-  s = gfsm_automaton_find_state(fsm,id);
-  if (!s || !s->is_valid) return FALSE;  //-- invalid states don't count as cyclic
+  if (!gfsm_automaton_has_state(fsm,qid)) return FALSE; //-- invalid states don't count as cyclic
 
-  //-- mark node as visited (& not completed)
-  gfsm_bitvector_set(visited,id,1);
-  gfsm_bitvector_set(completed,id,0);
+  //-- mark this state as visited (& not yet completed)
+  gfsm_bitvector_set(visited,   qid, 1);
+  gfsm_bitvector_set(completed, qid, 0);
 
   //-- visit outgoing arcs
-  for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-    if (gfsm_automaton_is_cyclic_state(fsm, gfsm_arciter_arc(&ai)->target, visited, completed))
+  for (gfsm_arciter_open(&ai,fsm,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    if (gfsm_automaton_is_cyclic_state(fsm, gfsm_arciter_arc(&ai)->target, visited, completed)) {
+      gfsm_arciter_close(&ai);
       return TRUE;
+    }
   }
+  gfsm_arciter_close(&ai);
 
-  //-- mark node as completed
-  gfsm_bitvector_set(completed,id,1);
+  //-- mark this state as completed
+  gfsm_bitvector_set(completed,qid,1);
 
   return FALSE;
 }
@@ -280,12 +315,12 @@ gboolean gfsm_automaton_is_cyclic(gfsmAutomaton *fsm)
   gfsmBitVector *completed;  //-- records which states we've completed
   gboolean       rc;         //-- return value
 
-  if (!fsm || fsm->root_id == gfsmNoState || fsm->states->len <= 0) return FALSE;
+  if (!fsm || gfsm_automaton_get_root(fsm)==gfsmNoState || gfsm_automaton_n_states(fsm)==0) return FALSE;
 
-  visited   = gfsm_bitvector_sized_new(fsm->states->len);
-  completed = gfsm_bitvector_sized_new(fsm->states->len);
+  visited   = gfsm_bitvector_sized_new(gfsm_automaton_n_states(fsm));
+  completed = gfsm_bitvector_sized_new(gfsm_automaton_n_states(fsm));
 
-  rc = gfsm_automaton_is_cyclic_state(fsm, fsm->root_id, visited, completed);
+  rc = gfsm_automaton_is_cyclic_state(fsm, gfsm_automaton_get_root(fsm), visited, completed);
 
   //-- cleanup
   gfsm_bitvector_free(visited);
@@ -299,13 +334,14 @@ gboolean gfsm_automaton_is_cyclic(gfsmAutomaton *fsm)
  */
 gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm, gfsmLabelSide which, gfsmAlphabet *alph)
 {
-  gfsmStateId id;
-  //-- ensure alphabet
+  gfsmStateId qid;
+
+  //-- ensure alphabet exists
   if (!alph) alph = gfsm_range_alphabet_new();
 
-  for (id=0; id < fsm->states->len; id++) {
+  for (qid=0; qid < fsm->states->len; qid++) {
     gfsmArcIter ai;
-    for (gfsm_arciter_open(&ai,fsm,id); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    for (gfsm_arciter_open(&ai,fsm,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
       gfsmArc *a = gfsm_arciter_arc(&ai);
 
       if (which != gfsmLSUpper)
@@ -314,6 +350,7 @@ gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm, gfsmLabelSide whic
       if (which != gfsmLSLower)
 	gfsm_alphabet_insert(alph, GUINT_TO_POINTER((guint)(a->upper)), a->upper);
     }
+    gfsm_arciter_close(&ai);
   }
   return alph;
 }
@@ -325,22 +362,13 @@ gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm, gfsmLabelSide whic
 /*--------------------------------------------------------------
  * add_state_full()
  */
-gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id)
+gfsmStateIdVal gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateIdVal qid)
 {
-  gfsmState *st;
-
-  if (id == gfsmNoState)
-    id = fsm->states->len;
-
-  if (id >= fsm->states->len)
-    gfsm_automaton_reserve(fsm,id+1);
-  
-  st           = gfsm_automaton_find_state(fsm,id);
-  st->is_valid = TRUE;
-
-  fsm->flags.arcs_dirty=1; //-- index tracking
-
-  return id;
+  switch (fsm->itype) {
+  case gfsmACOldBasic: return gfsm_old_basic_impl_add_state(fsm,qid);
+  default:
+    g_error("gfsm_automaton_add_state_full(): can't handle implementation type '%d'\n", fsm->itype);
+  }
 }
 
 /*--------------------------------------------------------------
@@ -348,45 +376,47 @@ gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id)
  */
 void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id)
 {
-  gfsmState *s = gfsm_automaton_find_state(fsm,id);
-  if (!s || !s->is_valid) return;
+  switch (fsm->itype) {
+  case gfsmACOldBasic: return gfsm_old_basic_impl_remove_state(fsm,qid);
+  default:
+    g_error("gfsm_automaton_remove_state(): can't handle implementation type '%d'\n", fsm->itype);
+  }
+}
 
-  if (s->is_final) gfsm_set_remove(fsm->finals,GUINT_TO_POINTER(id));
-  if (id == fsm->root_id) fsm->root_id = gfsmNoState;
-
-  gfsm_arclist_free(s->arcs);
-  s->arcs = NULL;
-  s->is_valid = FALSE;
-
-  fsm->flags.final_dirty = 1; //-- index tracking
-  fsm->flags.arcs_dirty  = 1; //-- index tracking
+/*--------------------------------------------------------------
+ * is_final_state
+ */
+gboolean gfsm_automaton_is_final_state(gfsmAutomaton *fsm, gfsmStateIdVal qid)
+{
+  switch (fsm->itype) {
+  case gfsmACOldBasic: return gfsm_old_basic_impl_is_final_state(fsm,qid);
+  default:
+    g_error("gfsm_automaton_remove_state(): can't handle implementation type '%d'\n", fsm->itype);
+  }
 }
 
 /*--------------------------------------------------------------
  * set_final_state_full
  */
 void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
-					 gfsmStateId    id,
+					 gfsmStateIdVal qid,
 					 gboolean       is_final,
 					 gfsmWeight     final_weight)
 {
-  gfsm_state_set_final(gfsm_automaton_get_state(fsm,id),is_final);
-  if (is_final) {
-    gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(id), final_weight);
+  switch (fsm->itype) {
+  case gfsmACOldBasic: return gfsm_old_basic_impl_set_final_state(fsm,qid,is_final,final_weight);
+  default:
+    g_error("gfsm_automaton_set_final_state_full(): can't handle implementation type '%d'\n", fsm->itype);
   }
-  else {
-    gfsm_weightmap_remove(fsm->finals, GUINT_TO_POINTER(id));
-  }
-  fsm->flags.final_dirty=1;
 }
 
 /*--------------------------------------------------------------
  * get_final_weight
  */
-gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id)
+gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateIdVal qid)
 {
   gfsmWeight w;
-  if (gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(id), &w)) return w;
+  if (gfsm_automaton_lookup_final(fsm,qid,&w)) return w;
   return fsm->sr->zero;
 }
 
