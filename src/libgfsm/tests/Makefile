@@ -25,10 +25,9 @@ CC = gcc
 LD = $(CC)
 
 CPPFLAGS = -I. -I.. -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
-CFLAGS    ?= -O2 -pipe
-#CFLAGS   ?= -Wall -g
-#CFLAGS   += -Wall -g
-#CFLAGS    = -Wall -g
+#CFLAGS   = -O2 -pipe
+CFLAGS    = -g
+CFLAGS   += -Wall
 
 LDFLAGS  = -L../libgfsm/.libs -L/usr/local/lib -L/usr/lib
 LIBS     =  -lz -lglib-2.0 -lm
@@ -90,7 +89,14 @@ comprelex: comprelex.lex.o $(GFSMLIBS)
 compre2test: compre2test.o $(GFSMLIBS)
 	$(LD) $(LDFLAGS) -o $@ $^ $(GFSMLIBS) $(LIBS)
 
+##-- virtbench
 virtbench: virtbench.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+virtbench-split: virtbench-split.o virtbench-split-funcs.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+virtbench-unsplit: virtbench-unsplit.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 ##-- io

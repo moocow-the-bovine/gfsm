@@ -13,6 +13,9 @@ tagh*
 *.dat
 negra*
 
+virtbench
+virtbench-split
+virtbench-unsplit
 seektest
 gfsmlabdump
 iotest
