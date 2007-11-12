@@ -2,6 +2,8 @@ TARGETS = seektest
 
 KNOWN_TARGETS = \
 	virtbench \
+	virtbench-split \
+	virtbench-unsplit \
 	gfsmlabdump \
 	iotest \
 	structtest \

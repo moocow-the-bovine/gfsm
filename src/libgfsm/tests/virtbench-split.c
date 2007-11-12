@@ -48,6 +48,24 @@ double bench_literal_code(void) {
 }
 
 /*======================================================================
+ * Tests: literal inline
+ */
+double bench_literal_inline(void) {
+  double elapsed;
+  GTimer *timer  = g_timer_new();
+  gulong i;
+
+  g_timer_start(timer);
+  for (i=0; i < count_test; i++) {
+    test1_literal_inline(&t.val);
+  }
+  elapsed = g_timer_elapsed(timer,NULL);
+
+  g_timer_destroy(timer);
+  return elapsed;
+}
+
+/*======================================================================
  * Tests: literal func
  */
 double bench_literal_func(void) {
@@ -85,6 +103,32 @@ double bench_switch_code(void) {
   g_timer_start(timer);
   for (i=0; i < count_test; i++) {
     test_switch_code(&t);
+  }
+  elapsed = g_timer_elapsed(timer,NULL);
+
+  g_timer_destroy(timer);
+  return elapsed;
+}
+
+/*======================================================================
+ * Tests: switch + func (inline)
+ */
+int test_switch_inline(TestT *t) {
+  switch (t->typ) {
+  case 1: return test1_switch_inline(&(t->val));
+  case 2: return test2_switch_inline(&(t->val));
+  }
+  return t->val;
+}
+
+double bench_switch_inline(void) {
+  double elapsed;
+  GTimer *timer  = g_timer_new();
+  gulong i;
+
+  g_timer_start(timer);
+  for (i=0; i < count_test; i++) {
+    test_switch_inline(&t);
   }
   elapsed = g_timer_elapsed(timer,NULL);
 
@@ -180,8 +224,10 @@ int main(int argc, char **argv)
   elapsed0 = bench_literal_code();
   dobench(literal_code);
 
+  dobench(literal_inline);
   dobench(literal_func);
   dobench(switch_code);
+  dobench(switch_inline);
   dobench(switch_func);
   dobench(vtable_global);
   dobench(vtable_local);

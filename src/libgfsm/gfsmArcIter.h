@@ -106,18 +106,16 @@ void gfsm_arciter_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi);
 /// Typedef for user-seek functions
 typedef gboolean (*gfsmArcIterSeekFunc) (gfsmArcIter *aip, gpointer data);
 
-/** Position an arc-iterator to the next arc for
- *  which (*seekfunc)(arciter,data)
- *  returns TRUE.
+/** Position an arc-iterator to the next arc for which
+ *  <tt>(*seekfunc)(aip,data)</tt>
+ *  returns a true value.
  */
 void gfsm_arciter_seek_user(gfsmArcIter *aip,
 			    gfsmArcIterSeekFunc seekfunc,
 			    gpointer data);
 
 
-/** Remove the arc referred to by a gfsmArcIter, and positions the iterator to the
- *  next arc, if any.
- */
+/** Remove the arc referred to by a gfsmArcIter, and positions the iterator to the next arc, if any. */
 void gfsm_arciter_remove(gfsmArcIter *aip);
 
 //@}
