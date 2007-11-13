@@ -1,0 +1,64 @@
+gfsmArcList* uses:
+  + gfsmAlgebra.c
+    - complete()
+      * uses literal GSList fields to add (missing) arcs while iterating
+        - can maybe use arciter if we ensure a mutable automaton...
+    - compose_visit(), intersect_visit()
+      * literal arclists al1,al2,ai1,ai2,ai1_noneps,ai2_noneps,ai2_continue
+      * construction of & iteration over temporary sorted arc-lists:
+        ~ arclist_sort(g_slist_copy(q1->arcs), &sortdata)
+      * arc-iteration & range-saving via GSList fields
+    - connect_bw_visit_state()
+      * use of gfsmReverseArcIndex structure: gfsmArc *arc = ((gfsmArc*)g_ptr_array_index(rarcs, ...))->data;
+    - reverse()
+      * arc stealing during reversal, uses ArcList & assumes GSList
+    - union()
+      * sort arcs for added states: s1->arcs = gfsm_arclist_sort(s1->arcs, &sortdata)
+        ~ maintain sort mode: we can detect this with a check-and-bash strategy: get rid of it!
+    - 
+      
+  + gfsmArc.[ch] : definitions
+    - prepend
+    - insert, insert_link
+    - copy
+    - free
+    - free1
+    - length
+    - sort
+  + gfsmArcIndex.[ch]:
+    - gfsmReverseArcIndex target data type
+      * arclist_prepend() in automaton_reverse_arc_index() --> generic add()!
+  + gfsmAutomaton.[ch] (old basic impl)
+    - automaton_remove_state(): arclist_free(s->arcs) --> impl
+    - add_arc(): arclist_new_full() --> impl
+    - automaton_add_arc_link() [.h]: --> impl
+    - automaton_add_arc_link() [.c]: arclist_insert_link() --> impl
+    - automaton_arcsort(): arclist_sort() --> impl? or keep arclist_sort()?  or both?
+  + gfsmAutomatonIO.c:
+    - load_bin_handle_0_0_8()
+      * st->arcs = gfsm_arclist_new_full(...); --> impl
+      * st->arcs = g_slist_reverse(st->arcs);  --> impl
+    - load_bin_handle_0_0_7()
+      * st->arcs = (gfsmArcList*) GUINT_TO_POINTER(s_state.n_arcs); --> impl
+      * st->arcs = gfsm_arclist_new_full(...) --> impl
+      * st->arcs = g_slist_reverse(st->arcs)  --> impl
+  + gfsmState.[ch]:
+    - .h: gfsmState.arcs : struct field --> impl
+    - state_new_full(): param 'arcs' --> impl
+    - state_copy(): g_slist_concat(arclist_copy(src->arcs), dst->arcs) --> impl
+    - state_clear:  arclist_free(s->arcs) --> impl
+    - state_free:   arclist_free(s->arcs) --> impl
+     
+literal GSList* uses:
+  + (ok) gfsmLookup.[ch]: lookup stack, viterbi trellis
+  + (ok) gfsmMem.h: allocator decl
+  + (ok) gfsmPaths.[ch] : string-list
+  + (ok) gfsmSet.[ch] : set_to_slist()
+  + gfsmAlgebra.c
+    - compose_visit(), intersect_visit():
+      ~ gfsm_arclist_sort(g_slist_copy(),...) ... g_slist_free()
+      ~ --> sorted_copy()? sort(shallow_copy()) ? 
+  + gfsmArc.[ch]     : definitions & basic implementation --> impl
+  + gfsmArcIter.[ch] : definitions & basic implementation --> impl
+  + gfsmAutomatonIO.c : g_slist_reverse() for sorted automaton --> impl
+  + gfsmState.[ch] : state_copy(): g_slist_concat(...) --> impl or chuck

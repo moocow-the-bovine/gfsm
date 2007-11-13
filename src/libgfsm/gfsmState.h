@@ -79,7 +79,6 @@ void gfsm_state_free(gfsmState *s, gboolean free_arcs);
 #define gfsm_state_set_final(s,b) (s->is_final = b)
 
 /** Get number of outgoing arcs */
-//#define gfsm_state_out_degree(s) g_slist_length(s->arcs)
 #define gfsm_state_out_degree(s) gfsm_arclist_length(s->arcs)
 
 //@}
