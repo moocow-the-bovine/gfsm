@@ -3,21 +3,37 @@ gfsmArcList* uses:
     - complete()
       * uses literal GSList fields to add (missing) arcs while iterating
         - can maybe use arciter if we ensure a mutable automaton...
+	- --> arciter_insert(aip,q1,q2,lo,hi,w) : splice arc {q1,q2,lo,hi,w} in at aip's current position
     - compose_visit(), intersect_visit()
       * literal arclists al1,al2,ai1,ai2,ai1_noneps,ai2_noneps,ai2_continue
+        --> arciter over temporary lists: arciter_open_list()...arciter_close()
+	--> arciter state-saving: arciter_copy(dst,src), [vs. arciter_copy_deep(dst,src)?]
+	    ~ should work out to (*dst)=(*src), but don't believe that will always be the case...
       * construction of & iteration over temporary sorted arc-lists:
         ~ arclist_sort(g_slist_copy(q1->arcs), &sortdata)
+        ~ --> sorted_arclist(fsm,qid)? sort(shallow_clone(arcs(fsm,qid))) ? 
       * arc-iteration & range-saving via GSList fields
+        ~ --> arciter_copy(dst, src, do_copy_list, do_copy_cur)?
     - connect_bw_visit_state()
       * use of gfsmReverseArcIndex structure: gfsmArc *arc = ((gfsmArc*)g_ptr_array_index(rarcs, ...))->data;
+        ~ --> either revise gfsmReverseArcIndex to use generic gfsmArcList, or use GSList literally
     - reverse()
-      * arc stealing during reversal, uses ArcList & assumes GSList
+      * arc stealing during reversal; uses ArcList & assumes GSList
+        ~ --> very tricky: maybe an implementation-dependent 'move_arc(arc)' method?
+	      + could assume {source,target} have been modified & move it
+	      + hard to implement for singly-linked lists without maintaining a 'prev' pointer
+	  --> alt: load up a ReverseArcIndex with full arc copies, flip 'em around & feed 'em back in
+	      with gfsm_automaton_add_arc()
+	  --> alt: arciter_steal_arc() + automaton_add_arc()
+	  --> alt: arciter_remove() + automaton_add_arc()
     - union()
       * sort arcs for added states: s1->arcs = gfsm_arclist_sort(s1->arcs, &sortdata)
-        ~ maintain sort mode: we can detect this with a check-and-bash strategy: get rid of it!
-    - 
+        ~ purpose: maintain sort-mode:
+	~ --> we can detect sort-mode mismatches easily, on mismatch, bash output mode to gfsmASMNone!
+	~ --> get rid of too-smart-for-its-own-good sorting in union()
       
   + gfsmArc.[ch] : definitions
+    - arc
     - prepend
     - insert, insert_link
     - copy
@@ -25,16 +41,19 @@ gfsmArcList* uses:
     - free1
     - length
     - sort
+
   + gfsmArcIndex.[ch]:
     - gfsmReverseArcIndex target data type
       * arclist_prepend() in automaton_reverse_arc_index() --> generic add()!
-  + gfsmAutomaton.[ch] (old basic impl)
+
+  + [easy] gfsmAutomaton.[ch] (old basic impl)
     - automaton_remove_state(): arclist_free(s->arcs) --> impl
     - add_arc(): arclist_new_full() --> impl
     - automaton_add_arc_link() [.h]: --> impl
     - automaton_add_arc_link() [.c]: arclist_insert_link() --> impl
     - automaton_arcsort(): arclist_sort() --> impl? or keep arclist_sort()?  or both?
-  + gfsmAutomatonIO.c:
+
+  + [easy] gfsmAutomatonIO.c:
     - load_bin_handle_0_0_8()
       * st->arcs = gfsm_arclist_new_full(...); --> impl
       * st->arcs = g_slist_reverse(st->arcs);  --> impl
@@ -42,7 +61,8 @@ gfsmArcList* uses:
       * st->arcs = (gfsmArcList*) GUINT_TO_POINTER(s_state.n_arcs); --> impl
       * st->arcs = gfsm_arclist_new_full(...) --> impl
       * st->arcs = g_slist_reverse(st->arcs)  --> impl
-  + gfsmState.[ch]:
+
+  + [easy] gfsmState.[ch]:
     - .h: gfsmState.arcs : struct field --> impl
     - state_new_full(): param 'arcs' --> impl
     - state_copy(): g_slist_concat(arclist_copy(src->arcs), dst->arcs) --> impl
@@ -55,9 +75,7 @@ literal GSList* uses:
   + (ok) gfsmPaths.[ch] : string-list
   + (ok) gfsmSet.[ch] : set_to_slist()
   + gfsmAlgebra.c
-    - compose_visit(), intersect_visit():
-      ~ gfsm_arclist_sort(g_slist_copy(),...) ... g_slist_free()
-      ~ --> sorted_copy()? sort(shallow_copy()) ? 
+    - compose_visit(), intersect_visit(): gfsm_arclist_sort(g_slist_copy(),...) ... g_slist_free()
   + gfsmArc.[ch]     : definitions & basic implementation --> impl
   + gfsmArcIter.[ch] : definitions & basic implementation --> impl
   + gfsmAutomatonIO.c : g_slist_reverse() for sorted automaton --> impl
