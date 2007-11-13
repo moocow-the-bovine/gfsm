@@ -1,6 +1,8 @@
 TARGETS = seektest
 
 KNOWN_TARGETS = \
+	eswitchtest \
+	switchtest \
 	virtbench \
 	virtbench-split \
 	virtbench-unsplit \
@@ -27,9 +29,9 @@ CC = gcc
 LD = $(CC)
 
 CPPFLAGS = -I. -I.. -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
-#CFLAGS   = -O2 -pipe
-CFLAGS    = -g
-CFLAGS   += -Wall
+CFLAGS   = -O3 -pipe
+#CFLAGS    = -g
+CFLAGS   += -Wall -Winline
 
 LDFLAGS  = -L../libgfsm/.libs -L/usr/local/lib -L/usr/lib
 LIBS     =  -lz -lglib-2.0 -lm
@@ -99,6 +101,13 @@ virtbench-split: virtbench-split.o virtbench-split-funcs.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 virtbench-unsplit: virtbench-unsplit.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+##-- switchtest
+switchtest: switchtest.o
+	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+eswitchtest: eswitchtest.o
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 ##-- io
