@@ -31,46 +31,43 @@
 
 #include <gfsmArc.h>
 
-/// List of arcs as a GSList whose \a data field is a ::gfsmArc*.
-typedef GSList gfsmArcListGSList;
+/*======================================================================
+ * Types: Lists
+ */
+///\name ArcList variants
+//@{
 
-/// Typecast-safe "hard-linked" list of ::gfsmArc
+
+/// Typecast-safe 'hard-linked' list of ::gfsmArc
 typedef struct gfsmArcListLinked_ {
-  gfsmArc                     arc;     /**< first (current) arc */
+  gfsmArc                      arc;    /**< first (current) arc */
   struct gfsmArcListLinked_  *next;    /**< pointer to next arc */
 } gfsmArcListLinked;
 
-/// Array of ::gfsmArc as a GArray
-typedef GArray gfsmArcListGArray;
-
 /// Array of ::gfsmArc as a pair of pointer bounds into a ::gfsmArc array.
 typedef struct {
-  gfsmArc *begin;  /**< first (current) arc */
-  gfsmArc *end;    /**< last arc + 1 */
-} gfsmArcListPtrs;
+  gfsmArc  *beg;   /**< pointer to first arc in this list */
+  gfsmArc  *end;   /**< pointer to the first address \b not containing an arc in this list (last+1) */
+} gfsmArcListArray;
 
 /// Enum of arc-list types
 typedef enum {
-  gfsmALTGSList,
-  gfsmALTLinked,
-  gfsmALTGArray,
-  gfsmALTPtrs
+  gfsmALTLinked, /**< data.l is ::gfsmArcListLinked* */
+  gfsmALTArray   /**< data.a is ::gfsmArcListArray   */
 } gfsmArcListType;
 
 /// Generic arc-list data type
 typedef union {
-  gfsmArcListGSList *gslist;
-  gfsmArcListLinked *linked;
-  gfsmArcListGArray *garray;
-  gfsmArcListPtrs    ptrs;
+  gfsmArcListLinked *l;
+  gfsmArcListArray   a;
 } gfsmArcListData;
 
 /// Generic arc-list flags
 typedef struct {
   guint32 altype      :  4;   /**< type of this arc-list, cast to ::gfsmArcListType */
   guint32 sort_mode   :  4;   /**< sort mode of this arc-list, cast to ::gfsmArcSortMode */
-  guint32 is_tmp      :  1;   /**< whether the data in this arc-list is a temporary */
-  guint32 unused      : 23;   /**< reserved */
+  guint32 local_arcs  :  1;   /**< whether this arc-list owns its own arc data */
+  guint32 unused      : 22;   /**< reserved */
 } gfsmArcListFlags;
 
 /// Generic arc-list type
@@ -79,21 +76,109 @@ typedef struct {
   gfsmArcListData   data; /**< list data */
 } gfsmArcList;
 
+//@}
+
+/*======================================================================
+ * Types: ArcList (alt)
+ */
+
+/// Enum of arc-list types
+typedef enum {
+  gfsmALTLinked, /**< data.l is ::gfsmArcListLinked* */
+  gfsmALTArray   /**< data.a is ::gfsmArcListArray   */
+} gfsmArcListType;
+
+/// base type
+typedef struct {
+  guint32 type        :  4;   /**< type of this arc-list, cast to ::gfsmArcListType */
+  guint32 sort_mode   :  4;   /**< sort mode of this arc-list, cast to ::gfsmArcSortMode */
+  guint32 local_arcs  :  1;   /**< whether this arc-list owns its own arc data */
+  guint32 unused      : 23;   /**< reserved */
+} gfsmArcListBase;
+
+/// arc linked list: node
+typedef struct gfsmArcNode_ {
+  gfsmArc                 a;
+  struct gfsmArcNode_ *next;
+} gfsmArcNode;
+
+/// arc array: struct
+typedef struct {
+  gfsmArc *begin;
+  gfsmArc *end;
+} gfsmArcArray;
+
+
+/// arc list: generic
+typedef struct {
+  gfsmArcListBase base;
+  union {
+    gfsmArcListNode *l;
+    gfsmArcArray     a;
+  } arcs;
+  union {
+    gfsmArcListNode *l;
+    gfsmArc         *a;
+  } cur;
+  struct gfsmAutomaton_ *fsm;
+  gfsmStateId            qid;
+}
+
+/*======================================================================
+ * Types: ArcIter
+ */
+///\name ArcIter variants
+//@{
+
+/// Type for generic arc iteration data
+typedef union {
+  gfsmArcListLinked *l;  /**< for ::gfsmArcListLinked */
+  gfsmArc           *a;  /**< for ::gfsmArcListArray  */
+} gfsmArcIterData;
+
+/// Type for generic arc iterators
+typedef struct {
+  gfsmArcList           arcs;  /**< underlying arc-list */
+  gfsmArcIterData        cur;  /**< current position in the arc-list */
+  struct gfsmAutomaton_ *fsm;  /**< automaton from which this ArcIter was drawn, or NULL */
+  gfsmStateId            qid;  /**< ID of the state from which these arcs were drawn, or ::gfsmNoState */
+} gfsmArcIter;
+
+//@}
+
 /*======================================================================
  * Methods: Arc Lists: Constructors etc.
  */
 /// \name Arc Lists: Constructors etc.
 //@{
 /** Create and return a new empty ::gfsmArcList */
-static inline gfsm_arclist_new(void) { return g_new0(gfsmArcList,1); }
+static inline
+gfsmArcList *gfsm_arclist_new(void);
 
-/** Create and return a new ::gfsmArcList */
-static inline gfsmArcList *gfsm_arclist_new_full(gfsmArcListFlags flags, gfsmArcListData data) {
-  gfsmArcList *al = g_new0(gfsmArcList,1);
-  al->flags = flags;
-  al->data  = data;
-  return al;
-}
+/** Create and return a new ::gfsmArcList, specifying initial flags */
+static inline
+gfsmArcList *gfsm_arclist_new_with_flags(gfsmArcListFlags flags);
+
+/** Create and return a new ::gfsmArcList, specifying initial flags and data */
+static inline
+gfsmArcList *gfsm_arclist_new_with_data(gfsmArcListFlags flags, gfsmArcListData data);
+
+/** Copy all arcs in \a src to \a dst, without changing type of \a dst.
+ *  May set \a dst.flags.is_tmp to \c TRUE if copying was required.
+ *  \param src source arc list
+ *  \param dst destination arc list
+ *  \returns modified \a dst
+ */
+static inline
+gfsmArcList *gfsm_arclist_copy(gfsmArcList *dst, gfsmArcList *src);
+
+/** Create and return a (deep) copy of an existing arc-list */
+static inline
+gfsmArcList *gfsm_arclist_clone(gfsmArcList *src);
+
+/** Destroy an arc-list node and all subsequent nodes */
+void gfsm_arclist_free(gfsmArcList *al);
+
 
 /** Insert a new arc into a (possibly sorted) arclist. */
 void gfsm_arclist_insert(gfsmArcList *al,
@@ -104,11 +189,6 @@ void gfsm_arclist_insert(gfsmArcList *al,
 			 gfsmWeight   wt,
 			 gfsmArcSortData *sdata);
 
-/** Create and return a (deep) copy of an existing arc-list */
-gfsmArcList *gfsm_arclist_clone(gfsmArcList *src);
-
-/** Destroy an arc-list node and all subsequent nodes */
-void gfsm_arclist_free(gfsmArcList *al);
 //@}
 
 
@@ -118,7 +198,7 @@ void gfsm_arclist_free(gfsmArcList *al);
 ///\name ArcList: Utilities
 //@{
 
-/** Get the "current" arc pointer for an arclist -- may be NULL */
+/** Get the 'current' arc pointer for an arclist -- may be NULL */
 gfsmArc *gfsm_arclist_arc(gfsmArcList *al);
 
 /** Get length of a ::gfsmArcList \a al */

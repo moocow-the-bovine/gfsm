@@ -101,7 +101,7 @@ pkginclude_HEADERS = \
 	gfsmWeightMap.h \
 	gfsmBitVector.h \
 	gfsmAlphabet.h \
-	gfsmSemiring.h \
+	gfsmSemiring.h gfsmSemiring.def \
 	gfsmArc.h \
 	gfsmArcIter.h \
 	gfsmArcIndex.h \

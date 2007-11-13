@@ -1,0 +1,300 @@
+
+/*=============================================================================*\
+ * File: gfsmArcList.def
+ * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Description: finite state machine library: arc lists: inline definitions
+ *  + formerly defined in gfsmArc.h
+ *
+ * Copyright (c) 2007 Bryan Jurish
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *=============================================================================*/
+
+/*======================================================================
+ * DEFINES
+ */
+#define gfsm_die_no_impl(fnc,altype) \
+  g_error("libgfsm ERROR: API function `gfsm_" # fnc "()' is not implemented for gfsmArcList type `%s'\n", \
+          gfsm_arclist_type_name(altype))
+
+
+/*======================================================================
+ * Methods: Arc Lists: Constructors etc.
+ */
+
+//--------------------------------------------------------------
+static inline
+gfsmArcList *gfsm_arclist_new(void) { return g_new0(gfsmArcList,1); }
+
+//--------------------------------------------------------------
+static inline
+gfsmArcList *gfsm_arclist_new_with_flags(gfsmArcListFlags flags) 
+{
+  gfsmArcList *al = g_new0(gfsmArcList,1);
+  al->flags = flags;
+  return al;
+}
+
+//--------------------------------------------------------------
+static inline
+gfsmArcList *gfsm_arclist_new_with_data(gfsmArcListFlags flags, gfsmArcListData data) 
+{
+  gfsmArcList *al = g_new(gfsmArcList,1);
+  al->flags = flags;
+  al->data  = data;
+  return al;
+}
+
+//--------------------------------------------------------------
+// clear()
+
+//----------------------------------------------
+// clear(): linked
+static inline
+void gfsm_arclist_clear_linked(gfsmArcList *al)
+{
+  if (al->flags.local_arcs) {
+    gfsmArcListLinked *nod, *nxt;
+    for (nod=al->data.l; nod!=NULL; nod=nxt) {
+      nxt = nod->next;
+      g_free(nod);
+    }
+  }
+  al->data.l = NULL;
+}
+
+//----------------------------------------------
+// clear(): array
+static inline
+void gfsm_arclist_clear_array(gfsmArcList *al)
+{
+  if (al->flags.local_arcs) g_free(al->data.beg);
+  al->data.beg=NULL;
+  al->data.end=NULL;
+}
+
+//----------------------------------------------
+// clear(): dispatch
+static inline
+void gfsm_arclist_clear(gfsmArcList *al) 
+{
+  switch (al->altype) {
+  case gfsmALTLinked: gfsm_arclist_clear_linked(al);
+  case gfsmALTArray:  gfsm_arclist_clear_array(al);
+  default: break;
+  }
+  gfsm_die_no_impl(arclist_clear,al->altype);
+}
+
+
+/*======================================================================
+ * Methods: gfsmArcIter
+ */
+
+//----------------------------------------------
+// arciter_reset(): dispatch
+static inline
+void gfsm_arciter_reset(gfsmArcIter *ai)
+{
+  switch (ai->arcs.flags.altype) {
+  case gfsmALTLinked:
+    ai->cur.l = ai->arcs.data.l;
+    break;
+  case gfsmALTArray:
+    ai->cur.a = ai->arcs.data.a.beg;
+    break;
+  }
+}
+
+//----------------------------------------------
+// arciter_ok()
+static inline
+gboolean gfsm_arciter_ok(gfsmArcIter *ai)
+{
+  if (!ai) return FALSE;
+  switch (ai->arcs.flags.altype) {
+  case gfsmALTLinked:
+    return (ai->cur.l != NULL);
+  case gfsmALTArray:
+    return (ai->cur.a < ai->arcs.data.a.end);
+  default: break;
+  }
+  gfsm_die_no_impl(arciter_ok,dst->altype);  
+}
+
+//----------------------------------------------
+// arciter_next()
+static inline
+void gfsm_arciter_next(gfsmArcIter *ai)
+{
+  if (!ai) return FALSE;
+  switch (ai->arcs.flags.altype) {
+  case gfsmALTLinked:
+    if (ai->cur.l) { ai->cur.l = ai->cur.l->next; }
+    return;
+  case gfsmALTArray:
+    ++ai->cur.a;
+    return;
+  }
+  gfsm_die_no_impl(arciter_next,dst->altype);  
+}
+
+
+//----------------------------------------------
+// arciter_close()
+static inline
+void gfsm_arciter_close(gfsmArcIter *ai)
+{
+  gfsm_arclist_clear(ai->arcs);
+  memset(ai,0,sizeof(gfsmArcIter));
+}
+
+//----------------------------------------------
+// arciter_open()
+static inline
+void gfsm_arciter_open_list(gfsmArcIter *ai, gfsmArcList *al)
+{
+  gfsm_arciter_close(ai);
+  ai->arcs = *al;
+  gfsm_arciter_reset(ai);
+}
+
+//--------------------------------------------------------------
+// TODO: arciter_ok(), arciter_next(), arciter_close(), arciter_seek(), ...
+
+
+//--------------------------------------------------------------
+// TODO: length()
+//----------------------------------------------
+
+//--------------------------------------------------------------
+// TODO: clear()
+//----------------------------------------------
+
+
+//--------------------------------------------------------------
+// reverse_linked()
+static inline
+void gfsm_arclist_reverse_linked(gfsmArcList *al)
+{
+  gfsmArcListLinked *prev=NULL, *cur=al->data.l;
+  while (cur) {
+    gfsmArcListLinked *next = cur->next;
+    cur->next  = prev;
+    prev       = cur;
+    cur        = next;
+  }
+  al->data.l = prev;
+}
+
+
+//--------------------------------------------------------------
+// copy()
+
+//----------------------------------------------
+// copy() -> linked
+static inline
+gfsmArcList *gfsm_arclist_copy_to_linked(gfsmArcList *dst, gfsmArcList *src)
+{
+  gfsmArcIter ai;
+  gfsm_arclist_clear_linked(dst);
+  dst->flags            = src->flags;
+  dst->flags.local_arcs = TRUE;
+  for (gfsm_arciter_open_list(&ai,src); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    gfsmArc *a = gfsm_arciter_arc(&ai);
+    dst->data.linked = gfsm_arclist_linked_new_node(a,dst->data.l);
+  }
+  gfsm_arciter_close(&ai);
+  if (dst->flags.sort_mode != gfsmASMNone) {
+    dst->data.l = gfsm_arclist_reverse_linked(dst->data.l);
+  }
+  return dst;
+}
+
+//----------------------------------------------
+// copy() -> ptrs
+static inline
+gfsmArcList *gfsm_arclist_copy_to_array(gfsmArcList *dst, gfsmArcList *src)
+{
+  gfsm_arclist_clear_array(dst);
+  dst->flags            = src->flags;
+  dst->flags.local_arcs = TRUE;
+  if (src->flags.altype==gfsmALTArray) {
+    dst->data.a.arcs = gfsm_mem_dup_n(src->data.a.arcs, src->data.a.len*sizeof(gfsmArc));
+    dst->data.a.len  = src->data.a.len;
+  } else {
+    guint i;
+    dst->data.a.len  = gfsm_arclist_length(src);
+    dst->data.a.arcs = g_new(gfsmArc,dst->data.a.len);
+    for (i=0,gfsm_arciter_open_list(&ai,src); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      gfsmArc *a = gfsm_arciter_arc(&ai);
+      dst->data.a.arcs[i] = *a;
+    }
+  }
+  return dst;
+}
+
+//----------------------------------------------
+// copy(): dispatch
+static inline
+gfsmArcList *gfsm_arclist_copy(gfsmArcList *dst, gfsmArcList *src)
+{
+  switch (dst->altype) {
+  case gfsmALTLinked: return gfsm_arclist_copy_to_linked(dst,src);
+  case gfsmALTArray:  return gfsm_arclist_copy_to_array(dst,src);
+  default: break;
+  }
+  gfsm_die_no_impl(arclist_copy, dst->altype);
+}
+
+
+//--------------------------------------------------------------
+static inline
+gfsmArcList *gfsm_arclist_clone(gfsmArcList *src)
+{
+  return gfsm_arclist_copy(gfsm_arclist_new_with_flags(src->flags),src);
+}
+
+//-- CONTINUE HERE
+
+/** Destroy a ::gfsmArcList */
+static inline
+void gfsm_arclist_free(gfsmArcList *al);
+//@}
+
+
+/*======================================================================
+ * Methods: Arc Lists: Utilities
+ */
+///\name ArcList: Utilities
+//@{
+
+/** Get the "current" arc pointer for an arclist -- may be NULL */
+gfsmArc *gfsm_arclist_arc(gfsmArcList *al);
+
+/** Get length of a ::gfsmArcList \a al */
+guint gfsm_arclist_length(gfsmArcList *al);
+
+/** Sort a ::gfsmArcList \a al with ::gfsmArcSortData \a sdata */
+void gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata);
+
+/** Sort a ::gfsmArcList \a al with user-defined comparison and data */
+void gfsm_arclist_sort_full(gfsmArcList *al, GCompareDataFunc cmpfunc, gpointer data);
+
+//@}
+
+
+#undef gfsm_die_no_impl
+

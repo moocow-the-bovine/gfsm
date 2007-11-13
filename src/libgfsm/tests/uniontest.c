@@ -63,7 +63,7 @@ typedef struct {
       int *end;
       int *cur;
     } a;
-  } data;
+  } u;
 } BarT;
 
 
@@ -117,7 +117,8 @@ int main(void) {
     BarT bar;
     memset(&bar,0,sizeof(bar));
 
-    printf("typ=%d, l={%p,%p}
+    printf("typ=%d, l={first=%p,cur=%p}, a={beg=%p,end=%p,cur=%p}\n",
+           bar.type, bar.u.l.first, bar.u.l.cur, bar.u.a.begin, bar.u.a.end, bar.u.a.cur);
   }
 
   return 0;
