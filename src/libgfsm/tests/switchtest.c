@@ -150,7 +150,7 @@ double bench_switch_embedded(void) {
   t.val   = i0; \
   elapsed = bench_ ## fnc (); \
   elapsed = bench_ ## fnc (); \
-  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec: %6.2f %%\n", \
+  fprintf(stderr, "  %-16s: %4.2f sec: %6.2f M iter/sec: %6.2f %%\n", \
 	  # fnc, elapsed, (count_dbl/elapsed/1e6), (100.0*elapsed0/elapsed));
 
 /*======================================================================
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
   if (argc > 1) i0 = strtol(argv[1],NULL,0);
   t.val =i0;
   
-  printf("count_test=%ld; i0=%d\n", count_test, i0);
+  printf("%s: count_test=%ld; i0=%d\n", *argv, count_test, i0);
 
   elapsed0 = bench_literal_code();
   dobench(literal_code);

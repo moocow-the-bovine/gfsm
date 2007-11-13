@@ -172,19 +172,19 @@ int main(void)
   printf("count_test=%ld\n", count_test);
 
   elapsed = bench_literal();
-  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "literal", elapsed, count_dbl/elapsed/1e6);
+  fprintf(stderr, "  %-16s: %4.2f sec: %6.2f M iter/sec\n", "literal", elapsed, count_dbl/elapsed/1e6);
 
   elapsed = bench_switch_code();
-  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "switch_code", elapsed, count_dbl/elapsed/1e6);
+  fprintf(stderr, "  %-16s: %4.2f sec: %6.2f M iter/sec\n", "switch_code", elapsed, count_dbl/elapsed/1e6);
 
   elapsed = bench_switch_func();
-  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "switch_func", elapsed, count_dbl/elapsed/1e6);
+  fprintf(stderr, "  %-16s: %4.2f sec: %6.2f M iter/sec\n", "switch_func", elapsed, count_dbl/elapsed/1e6);
 
   elapsed = bench_vtable_global();
-  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "vtable_global", elapsed, count_dbl/elapsed/1e6);
+  fprintf(stderr, "  %-16s: %4.2f sec: %6.2f M iter/sec\n", "vtable_global", elapsed, count_dbl/elapsed/1e6);
 
   elapsed = bench_vtable_local();
-  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec\n", "vtable_local", elapsed, count_dbl/elapsed/1e6);
+  fprintf(stderr, "  %-16s: %4.2f sec: %6.2f M iter/sec\n", "vtable_local", elapsed, count_dbl/elapsed/1e6);
 
   /* carrot, -g
 count_test=268435456

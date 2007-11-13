@@ -26,7 +26,7 @@ VTestT vt = {42,test1_vtable_local_func};
 #define dobench(fnc) \
   elapsed = bench_ ## fnc (); \
   elapsed = bench_ ## fnc (); \
-  fprintf(stderr, "%16s: %4.2f sec: %6.2f M iter/sec: %6.2f %%\n", \
+  fprintf(stderr, "  %-16s: %4.2f sec: %6.2f M iter/sec: %6.2f %%\n", \
 	  # fnc, elapsed, (count_dbl/elapsed/1e6), (100.0*elapsed0/elapsed));
 
 /*======================================================================
