@@ -28,7 +28,7 @@
 #ifndef _GFSM_DEFAULT_IMPL_H
 #define _GFSM_DEFAULT_IMPL_H
 
-#include <gfsmAutomatonAPI.h>
+#include <gfsmAutomatonTypes.h>
 
 /*======================================================================
  * API: constructors, etc.
@@ -311,31 +311,146 @@ void gfsm_automaton_add_arc_default(gfsmAutomaton *fsm,
  */
 void gfsm_automaton_arcsort_full_default(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
 
+//@}
 
-/*-- todo:
+/*======================================================================
+ * API: Arc Iterators
+ */
+///\name API: Arc Iterators
+//@{
 
-+ list-wise arc methods:
-  open_arcs_list(fsm,qid)
-  set_arcs_list(fsm,qid,arcs_l)
-  close_arcs_list(fsm,arcs_l)
-  (?) sort_arcs_list_full(arcs_l, cmpfunc, data)
+/** Initialize a ::gfsmArcIter \a aip.
+ *  \param aip the ::gfsmArcIter to initialize
+ *    \li \a aip is assumed to be already allocated
+ *    \li The \a fsm and \a qid fields of \a aip are assumed to be already populated
+ *
+ *  \warning Default implementation aborts with an error message.
+ */
+static inline
+void gfsm_arciter_init_default(gfsmArcIter *aip);
 
-+ array-wise arc methods:
-  open_arcs_array(fsm,qid)
-  set_arcs_array(fsm,qid,arcs_a)
-  close_arcs_array(fsm,arcs_a)
-  (?) sort_arcs_array_full(arcs_a, cmpfunc, data)
+/** Close a ::gfsmArcIter \a aip
+ *  \param aip the ::gfsmArcIter to be closed
+ *
+ *  Default implementation does nothing.
+ */
+static inline
+void gfsm_arciter_close_default(gfsmArcIter *aip);
 
-+ arc-iterator methods:
-  arciter_open(fsm,qid)
-  arciter_open_ptr(fsm,qp)
-  (?) arciter_seek_lower(aip,lab)
-  (?) arciter_seek_upper(aip,lab)
-  (?) arciter_seek_both(aip,lo,hi)
-  (??) arciter_open_lower(fsm,qid,lab)
-  (??) arciter_open_upper(fsm,qid,lab)
-*/
+/** Check validity of a ::gfsmArcIteraor \a aip
+ *  \param aip the ::gfsmArcIter to check
+ *  \returns a true value iff \a aip points to a valid arc
+ *
+ *  \warning default implementation always returns FALSE
+ */
+static inline
+gboolean gfsm_arciter_ok_default(gfsmArcIter *aip);
+
+/** Increment a ::gfsmArcIter \a aip to the next available outgoing arc, if possible.
+ *  \param aip the ::gfsmArcIter to increment
+ *
+ *  \warning default implementation does nothing
+ */
+static inline
+void gfsm_arciter_next(gfsmArcIter *aip);
+
+/** Reset a ::gfsmArcIter \a aip to the first available outgoing arc.
+ *  \param aip the ::gfsmArcIter to reset.
+ *
+ *  \note default implementation juse calls gfsm_arciter_open()
+ */
+static inline
+void gfsm_arciter_reset_default(gfsmArcIter *aip);
+
+/** Copy contents of a ::gfsmArcIteraor \a src to \a dst
+ *  Does \b not copy arc data! 
+ *  \param src the ::gfsmArcIter to copy from
+ *  \param dst the ::gfsmArcIter to copy to
+ *
+ *  \note default implementation is just:
+ *  \code (*dst)=(*src) \endcode
+ */
+static inline
+void gfsm_arciter_copy_default(gfsmArcIter *dst, gfsmArcIter *src);
+
+
+/** Create and return a new exact copy of a ::gfsmArcIter.
+ *  Does \b not copy arc data!
+ *  \param src the ::gfsmArcIter to be duplicated
+ *
+ *  \note default implementation just calls:
+ *  \code gfsm_arciter_copy_default((dst=g_new0(gfsmArcIter,1)),src) \endcode
+ */
+static inline
+gfsmArcIter *gfsm_arciter_clone_default(const gfsmArcIter *src);
+
+
+/** Get current arc associated with a :gfsmArcIter, or NULL if none is available.
+ *  \param aip the ::gfsmArcIter to be 'dereferenced'.
+ *
+ *  \warning default implementation always returns NULL.
+ */
+static inline
+gfsmArc *gfsm_arciter_arc_default(gfsmArcIter *aip);
+
+/** Remove the arc referred to by a ::gfsmArcIter \a aip from its automaton,
+ *  and position \aip to the next arc, if any.
+ *
+ *  \param aip the ::gfsmArcIter whose 'current' arc is to be removed
+ *
+ *  \warning default implementation dies with an error message.
+ */
+static inline
+void gfsm_arciter_remove_default(gfsmArcIter *aip);
+
+/** Position an arc-iterator to the next arc
+ *  with lower label \a lo and upper label \a hi.
+ *  If either \a lo or \a hi is gfsmNoLabel, the corresponding label(s)
+ *  will be ignored.
+ *
+ *  \note default implementation just wraps
+ *        gfsm_arciter_ok(), gfsm_arciter_next(), and gfsm_arciter_arc().
+ */
+static inline
+void gfsm_arciter_seek_both_default(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi);
+
+/** Position a :.gfsmArcIter \a aip to the next arc with lower label \a lo
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param lo  the lower label sought
+ *
+ *  \note default implementation just wraps gfsm_arciter_seek_both()
+ */
+static inline
+void gfsm_arciter_seek_lower_default(gfsmArcIter *aip, gfsmLabelVal lo);
+
+/** Position a :.gfsmArcIter \a aip to the next arc with upper label \a hi
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param lo  the upper label sought
+ *
+ *  \note default implementation just wraps gfsm_arciter_seek_both()
+ */
+static inline
+void gfsm_arciter_seek_upper_default(gfsmArcIter *aip, gfsmLabelVal hi);
+
+/** Position the ::gfsmArcIter \a aip to the next arc for which
+ *  <tt>(*seekfunc)(aip,data)</tt>
+ *  returns a true value.
+ *
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param seekfunc user-defined seek function
+ *  \param data user data passed to \a seekfunc
+ *
+ *  \note default implementation just wraps
+ *        gfsm_arciter_ok(), gfsm_arciter_next(), and gfsm_arciter_arc().
+ */
+static inline
+void gfsm_arciter_seek_user_default(gfsmArcIter *aip,
+				    gfsmArcIterSeekFunc seekfunc,
+				    gpointer data);
+
 
 //@}
+
+#include <gfsmDefaultImpl.def>
 
 #endif /* _GFSM_DEFAULT_IMPL_H */

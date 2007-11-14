@@ -70,16 +70,16 @@ void gfsm_state_free(gfsmState *s, gboolean free_arcs);
 ///\name gfsmState: Accessors
 //@{
 /** Check if state is valid */
-#define gfsm_state_is_ok(s) (s && s->is_valid)
+#define gfsm_state_is_ok(s) ((s) && (s)->is_valid)
 
 /** Check for final state */
-#define gfsm_state_is_final(s) (s && s->is_final)
+#define gfsm_state_is_final(s) ((s) && (s)->is_final)
 
 /** Set final state flag */
-#define gfsm_state_set_final(s,b) (s->is_final = b)
+#define gfsm_state_set_final(s,b) ((s)->is_final = b)
 
 /** Get number of outgoing arcs */
-#define gfsm_state_out_degree(s) gfsm_arclist_length(s->arcs)
+#define gfsm_state_out_degree(s) gfsm_arclist_length((s)->arcs)
 
 //@}
 

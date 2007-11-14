@@ -66,6 +66,7 @@ typedef union {
 
 //@}
 
+
 /*======================================================================
  * Generic Automata
  */
@@ -89,6 +90,39 @@ typedef struct
   gfsmAutomatonClass   itype;    /**< implementation class */
   gfsmAutomatonImpl    impl;     /**< underlying implementation, cast by \a switch{} over \a itype  */
 } gfsmAutomaton;
+
+//@}
+
+/*======================================================================
+ * Generic Arc Iterators
+ */
+///\name Generic Arc Iterators
+//@{
+
+/// Arc-iterator implementation data union type, for comfortable typecasting
+/** Use the ::gfsmAutomaton.itype field to determine which of these union fields is the 'right' one */
+typedef union {
+  struct {
+    gpointer p1;                /**< some data */
+    gpointer p2;                /**< some more data */
+  }                       pp;   /**< for user-defined iterator types? */
+  gfsmArcIterDataOld     old;   /**< for ::gfsmImplOld */
+  gfsmArcIterDataBasic     b;   /**< for ::gfsmImplBasic */
+#if 0
+  gfsmArcIterDataTable    at;   /**< for ::gfsmImplTable (TODO) */
+  gfsmArcIterDataVirtual   v;   /**< for ::gfsmImplVirtual (TODO) */
+#endif
+} gfsmArcIterData;
+
+/// Generic arc iterator type
+struct {
+  gfsmAutomaton   *fsm;           /**< automaton which 'owns' these arcs */
+  gfsmStateId      qid;           /**< state in \a fsm which 'owns' these arcs */
+  gfsmArcIterData data;           /**< implementation-dependent data */
+} gfsmArcIter;
+
+/// Typedef for user-defined seek functions for ::gfsmArcIter
+typedef gboolean (*gfsmArcIterSeekFunc) (gfsmArcIter *aip, gpointer data);
 
 //@}
 

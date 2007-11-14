@@ -41,4 +41,11 @@ typedef struct {
   gfsmStateId         root_id;     /**< ID of root node, or gfsmNoState if not defined */
 } gfsmImplOld;
 
+/// Arc iterator data for ::gfsmImplOld automaton implementations
+//typedef gfsmArcListOld* gfsmArcIterDataOld;
+typedef struct {
+  gfsmState          *state;       /**< pointer to state holding these arcs */
+  gfsmArcListOld     *arcs;        /**< current node of this iterator */
+} gfsmArcIterDataOld;
+
 #endif /* _GFSM_IMPL_OLD_TYPES_H */

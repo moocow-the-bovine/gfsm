@@ -99,7 +99,8 @@ void gfsm_automaton_free_old(gfsmAutomaton *fsm);
  *  \param n_states number of states to reserve, if supported by implementation.
  *
  * This implementation stores states in a GArray, so calling this function frequently
- * will gobble up lots of runtime.
+ * will gobble up lots of runtime:
+ * \n\b O(n_states)
  */
 static inline
 void gfsm_automaton_reserve_states_old(gfsmAutomaton *fsm, gfsmStateId n_states);
@@ -108,7 +109,8 @@ void gfsm_automaton_reserve_states_old(gfsmAutomaton *fsm, gfsmStateId n_states)
  *  \param fsm automaton to modify
  *  \param n_states number of arcs to reserve, if supported by implementation
  *
- *  Does nothing in this implementation.
+ *  Does nothing in this implementation
+ *  \n\b O(1)
  */
 static inline
 void gfsm_automaton_reserve_arcs_old(gfsmAutomaton *fsm, gfsmArcId n_arcs);
@@ -129,13 +131,14 @@ guint gfsm_automaton_n_states_old(gfsmAutomaton *fsm);
 
 /** Get number of final states.
  *
- *  O(g_tree_nnodes(fsm->impl.old->finals))
- *  Probably constant time; consult GLib docs & sources to be certain!
+ *  \b O(g_tree_nnodes(fsm->impl.old->finals)) ?= \b O(1)
+ *  \nConsult GLib docs & sources to be certain!
  */
+static inline
 guint gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm);
 
 /** Get ID of root node, or ::gfsmNoState if undefined.
- *  Constant time.
+ *  \n\b O(1)
  */
 static inline
 gfsmStateId gfsm_automaton_get_root_old(gfsmAutomaton *fsm);
@@ -157,7 +160,8 @@ void gfsm_automaton_set_root_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \note
  *    Should be guaranteed \b not to increase either the number of states nor the number of arcs in \a fsm.
  */
-void gfsm_automaton_renumber_states_full_old(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states); //-- TODO
+void gfsm_automaton_renumber_states_full_old(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states);
+//-- PURE FUNCTION?!
 
 //@}
 
@@ -175,7 +179,7 @@ void gfsm_automaton_renumber_states_full_old(gfsmAutomaton *fsm, GArray *old2new
  *  \param qid ID of state to examine
  *  \returns TRUE if \a fsm has a state with ID \a id, FALSE otherwise.
  *
- *  Constant time.
+ *  \b O(1)
  */
 static inline
 gboolean gfsm_automaton_has_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
@@ -187,7 +191,7 @@ gboolean gfsm_automaton_has_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param qid  identifier of the new state, or gfsmNoState
  *  \returns ID of the new state, or gfsmNoState on failure
  *
- *  Constant time if enough states are already reserved.
+ *  \b O(1) if enough states are already reserved, otherwise \b O(n_states)
  */
 static inline
 gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qid);
@@ -199,7 +203,7 @@ gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qi
  *  \param fsm automaton from which to remove a state
  *  \param qid ID of the state to be removed
  *
- *  O(out_degree(qid)) time.
+ *  \n\b O(out_degree(qid))
  */
 static inline
 void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
@@ -215,7 +219,7 @@ void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param qid ID of the state to extract
  *  \returns a ::gfsmState* for \a qid, or NULL if \a qid not a state of \a fsm
  *
- *  Constant time.
+ *  \b O(1)
  */
 gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
@@ -225,7 +229,7 @@ gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param fsm fsm for which the state was opened
  *  \param sp  state pointer returned by gfsm_automaton_open_state()
  *
- *  Does nothing.
+ *  Does nothing:  \b O(1)
  */
 void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *sp);
 #endif
@@ -240,7 +244,7 @@ void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *sp);
  *  \returns
  *     TRUE if state \a id is final, FALSE otherwise,
  *
- *  O(1) if qid is not final, O(log(n_finals)) otherwise.
+ *  \b O(1) if qid is not final, \b O(log(n_finals)) otherwise.
  */
 static inline
 gboolean gfsm_automaton_lookup_final_old(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp);
@@ -253,7 +257,7 @@ gboolean gfsm_automaton_lookup_final_old(gfsmAutomaton *fsm, gfsmStateId qid, gf
  *    If \a is_final is true, final weight for state.  Otherwise
  *    final weight should implicitly be set to \a (fsm)->sr->zero
  *
- *  Usually O(log(n_finals)); may trigger an implicit state-array reallocation.
+ *  Usually \b O(log(n_finals)); may trigger an implicit state-array reallocation.
  */
 static inline
 void gfsm_automaton_set_final_state_full_old(gfsmAutomaton *fsm,
@@ -269,7 +273,7 @@ void gfsm_automaton_set_final_state_full_old(gfsmAutomaton *fsm,
  *  \param qid ID of state to examine
  *  \returns output degree of \c qid in \c fsm
  *
- *  O(out_degree(qid))
+ *  \b O(out_degree(qid))
  */
 static inline
 guint gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid);
@@ -294,7 +298,7 @@ guint gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param hi   Upper label
  *  \param w    Arc weight
  *
- *  O(1) if states already exist; may trigger implicit state-array reallocation.
+ *  \b O(1) if states already exist; may trigger implicit state-array reallocation.
  */
 static inline
 void gfsm_automaton_add_arc_old(gfsmAutomaton *fsm,
@@ -313,35 +317,140 @@ void gfsm_automaton_add_arc_old(gfsmAutomaton *fsm,
  *  \param data
  *    User data for \a cmpfunc
  *
- *  O(n_states * O(g_slist_sort(avg_out_degree(fsm))))
+ *  <b>O(n_states * O(g_slist_sort(avg_out_degree(fsm))))</b>
  */
 static inline
 void gfsm_automaton_arcsort_full_old(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
 
+//@}
 
-/*-- todo:
+/*======================================================================
+ * API: Arc Iterators
+ */
+///\name API: Arc Iterators
+//@{
 
-+ list-wise arc methods:
-  open_arcs_list(fsm,qid)
-  set_arcs_list(fsm,qid,arcs_l)
-  close_arcs_list(fsm,arcs_l)
-  (?) sort_arcs_list_full(arcs_l, cmpfunc, data)
+/** Initialize a ::gfsmArcIter \a aip.
+ *  \param aip the ::gfsmArcIter to initialize
+ *    \li \a aip is assumed to be already allocated
+ *    \li The \a fsm and \a qid fields of \a aip are assumed to be already populated
+ *
+ *  \warning Default implementation aborts with an error message.
+ */
+static inline
+void gfsm_arciter_init_old(gfsmArcIter *aip);
 
-+ array-wise arc methods:
-  open_arcs_array(fsm,qid)
-  set_arcs_array(fsm,qid,arcs_a)
-  close_arcs_array(fsm,arcs_a)
-  (?) sort_arcs_array_full(arcs_a, cmpfunc, data)
+/** Close a ::gfsmArcIter \a aip
+ *  \param aip the ::gfsmArcIter to be closed
+ *
+ *  Does nothing.
+ */
+static inline
+void gfsm_arciter_close_old(gfsmArcIter *aip);
 
-+ arc-iterator methods:
-  arciter_open(fsm,qid)
-  arciter_open_ptr(fsm,qp)
-  (?) arciter_seek_lower(aip,lab)
-  (?) arciter_seek_upper(aip,lab)
-  (?) arciter_seek_both(aip,lo,hi)
-  (??) arciter_open_lower(fsm,qid,lab)
-  (??) arciter_open_upper(fsm,qid,lab)
+/** Check validity of a ::gfsmArcIteraor \a aip
+ *  \param aip the ::gfsmArcIter to check
+ *  \returns a true value iff \a aip points to a valid arc
+ */
+static inline
+gboolean gfsm_arciter_ok_old(gfsmArcIter *aip);
+
+/** Increment a ::gfsmArcIter \a aip to the next available outgoing arc, if possible.
+ *  \param aip the ::gfsmArcIter to increment
+ */
+static inline
+void gfsm_arciter_next(gfsmArcIter *aip);
+
+/** Reset a ::gfsmArcIteraor \a aip to the first available outgoing arc
+ *  \param aip the ::gfsmArcIter to reset.
+ */
+static inline
+void gfsm_arciter_reset_old(gfsmArcIter *aip);
+
+/** Copy contents of a ::gfsmArcIteraor \a src to \a dst
+ *  Does \b not copy arc data! 
+ *  \param src the ::gfsmArcIter to copy from
+ *  \param dst the ::gfsmArcIter to copy to
+ *
+ *  \note default implementation is just:
+ *  \code (*dst)=(*src) \endcode
+ */
+/*static inline
+  void gfsm_arciter_copy_old(gfsmArcIter *dst, gfsmArcIter *src);
 */
+//-- DEFAULT
+
+
+/** Create and return a new exact copy of a ::gfsmArcIter.
+ *  Does \b not copy arc data!
+ *  \param src the ::gfsmArcIter to be duplicated
+ *
+ *  \note default implementation just calls:
+ *  \code gfsm_arciter_copy_default((dst=g_new0(gfsmArcIter,1)),src) \endcode
+ */
+/*static inline
+  gfsmArcIter *gfsm_arciter_clone_old(const gfsmArcIter *src);
+*/
+//-- DEFAULT
+
+/** Get current arc associated with a :gfsmArcIter, or NULL if none is available.
+ *  \param aip the ::gfsmArcIter to be 'dereferenced'.
+ */
+static inline
+gfsmArc *gfsm_arciter_arc_old(gfsmArcIter *aip);
+
+/** Remove the arc referred to by a ::gfsmArcIter \a aip,
+ *  and positions \aip to the next arc, if any.
+ *  \param aip the ::gfsmArcIter whose 'current' arc is to be removed
+ */
+static inline
+void gfsm_arciter_remove_old(gfsmArcIter *aip);
+
+
+/** Position an arc-iterator to the next arc
+ *  with lower label \a lo and upper label \a hi.
+ *  If either \a lo or \a hi is gfsmNoLabel, the corresponding label(s)
+ *  will be ignored.
+ *
+ *  \note default implementation just wraps
+ *        gfsm_arciter_ok(), gfsm_arciter_next(), and gfsm_arciter_arc().
+ */
+//void gfsm_arciter_seek_both_default(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi);
+//--DEFAULT
+
+/** Position a :.gfsmArcIter \a aip to the next arc with lower label \a lo
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param lo  the lower label sought
+ *
+ *  \note default implementation just wraps gfsm_arciter_seek_both()
+ */
+//void gfsm_arciter_seek_lower_default(gfsmArcIter *aip, gfsmLabelVal lo);
+//--DEFAULT
+
+/** Position a :.gfsmArcIter \a aip to the next arc with upper label \a hi
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param lo  the upper label sought
+ *
+ *  \note default implementation just wraps gfsm_arciter_seek_both()
+ */
+//void gfsm_arciter_seek_upper_default(gfsmArcIter *aip, gfsmLabelVal hi);
+//--DEFAULT
+
+/** Position the ::gfsmArcIter \a aip to the next arc for which
+ *  <tt>(*seekfunc)(aip,data)</tt>
+ *  returns a true value.
+ *
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param seekfunc user-defined seek function
+ *  \param data user data passed to \a seekfunc
+ *
+ *  \note default implementation just wraps
+ *        gfsm_arciter_ok(), gfsm_arciter_next(), and gfsm_arciter_arc().
+ */
+/*void gfsm_arciter_seek_user_default(gfsmArcIter *aip,
+				    gfsmArcIterSeekFunc seekfunc,
+				    gpointer data);
+*/ //--DEFAULT
 
 //@}
 

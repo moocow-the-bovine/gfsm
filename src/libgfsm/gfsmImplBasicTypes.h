@@ -44,5 +44,7 @@ typedef struct {
   gfsmStateId     root_id;         /**< ::gfsmStateId of root state, or ::gfsmNoState if no root is defined */
 } gfsmImplBasic;
 
+/// Arc iterator data for ::gfsmImplBasic automaton implementations
+typedef gfsmArcListNode* gfsmArcIterDataBasic;
 
 #endif /* _GFSM_IMPL_BASIC_TYPES_H */

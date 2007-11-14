@@ -19,7 +19,8 @@ digraph api_deps {
   Imp0_def [shape="diamond",style="filled",fillcolor="yellow"];
   //Imp0_h -> FsmTypes_h [style="dotted"];
   Imp0_h -> Imp0_def;
-  Imp0_def -> FsmTypes_h;
+  //Imp0_def -> FsmTypes_h;
+  Imp0_def -> ImpDefault_h;
 
   //Fsm_h   -> Imp0_h [style="dotted"];
   Fsm_def -> Imp0_h;
@@ -36,11 +37,21 @@ digraph api_deps {
   Imp1_def [shape="diamond",style="filled",fillcolor="yellow"];
   //Imp1_h -> FsmTypes_h [style="dotted"];
   Imp1_h   -> Imp1_def;
-  Imp1_def -> FsmTypes_h;
+  //Imp1_def -> FsmTypes_h;
+  Imp1_def -> ImpDefault_h;
 
   //Fsm_h   -> Imp1_h [style="dotted"];
   Fsm_def -> Imp1_h;
 
   Imp1_c [style="filled",fillcolor="yellow"];
   Imp1_c -> Fsm_h;
+
+  //--------------------------------------------
+  ImpDefault_h   [style="solid"];
+  ImpDefault_def [shape="diamond",style="filled",fillcolor="yellow"];
+  ImpDefault_c   [style="filled",fillcolor="yellow"];
+
+  ImpDefault_h   -> ImpDefault_def;
+  ImpDefault_def -> FsmTypes_h;
+  ImpDefault_c   -> Fsm_h;
 };
