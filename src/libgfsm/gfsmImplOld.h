@@ -74,7 +74,7 @@ void gfsm_automaton_clone_impl_old(gfsmAutomaton *dst, gfsmAutomaton *src);
  *  \li gfsm_arciter_open() & friends
  *
  */
-gfsmAutomaton *gfsm_automaton_copy_old(gfsmAutomaton *dst, gfsmAutomaton *src);
+//gfsmAutomaton *gfsm_automaton_copy_old(gfsmAutomaton *dst, gfsmAutomaton *src); //-- USE DEFAULT
 
 /** Clear a ::gfsmImplOld automaton implementation */
 static inline
@@ -94,20 +94,21 @@ void gfsm_automaton_free_old(gfsmAutomaton *fsm);
 /// \name API: Automaton Structure
 //@{
 
-/** Reserve space for at least \a n_states states (may do nothing)
+/** Reserve space for at least \a n_states states
  *  \param fsm automaton to modify
- *  \param n_states number of states to reserve, if supported by implementation
+ *  \param n_states number of states to reserve, if supported by implementation.
  *
- *  \warning Default implementation aborts with an error.
+ * This implementation stores states in a GArray, so calling this function frequently
+ * will gobble up lots of runtime.
  */
 static inline
 void gfsm_automaton_reserve_states_old(gfsmAutomaton *fsm, gfsmStateId n_states);
 
-/** Reserve space for at least \a n_arcs arcs (may do nothing)
+/** Reserve space for at least \a n_arcs arcs.
  *  \param fsm automaton to modify
  *  \param n_states number of arcs to reserve, if supported by implementation
  *
- *  \warning Default implementation aborts with an error.
+ *  Does nothing in this implementation.
  */
 static inline
 void gfsm_automaton_reserve_arcs_old(gfsmAutomaton *fsm, gfsmArcId n_arcs);
@@ -127,7 +128,9 @@ guint gfsm_automaton_n_states_old(gfsmAutomaton *fsm);
 //-- DEFAULT
 
 /** Get number of final states.
+ *
  *  O(g_tree_nnodes(fsm->impl.old->finals))
+ *  Probably constant time; consult GLib docs & sources to be certain!
  */
 guint gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm);
 
@@ -171,6 +174,8 @@ void gfsm_automaton_renumber_states_full_old(gfsmAutomaton *fsm, GArray *old2new
  *  \param fsm automaton to examine
  *  \param qid ID of state to examine
  *  \returns TRUE if \a fsm has a state with ID \a id, FALSE otherwise.
+ *
+ *  Constant time.
  */
 static inline
 gboolean gfsm_automaton_has_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
@@ -181,6 +186,8 @@ gboolean gfsm_automaton_has_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param fsm fsm to modify
  *  \param qid  identifier of the new state, or gfsmNoState
  *  \returns ID of the new state, or gfsmNoState on failure
+ *
+ *  Constant time if enough states are already reserved.
  */
 static inline
 gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qid);
@@ -191,6 +198,8 @@ gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qi
  *
  *  \param fsm automaton from which to remove a state
  *  \param qid ID of the state to be removed
+ *
+ *  O(out_degree(qid)) time.
  */
 static inline
 void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
@@ -205,6 +214,8 @@ void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param fsm fsm from which to extract a state
  *  \param qid ID of the state to extract
  *  \returns a ::gfsmState* for \a qid, or NULL if \a qid not a state of \a fsm
+ *
+ *  Constant time.
  */
 gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
@@ -214,9 +225,7 @@ gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param fsm fsm for which the state was opened
  *  \param sp  state pointer returned by gfsm_automaton_open_state()
  *
- *  \warning
- *     Bad things may happen if you change the implementation class of \a fsm
- *     while you have open state pointers for it hanging around.
+ *  Does nothing.
  */
 void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *sp);
 #endif
@@ -230,6 +239,8 @@ void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *sp);
  *  \param  wp output parameter for final weight
  *  \returns
  *     TRUE if state \a id is final, FALSE otherwise,
+ *
+ *  O(1) if qid is not final, O(log(n_finals)) otherwise.
  */
 static inline
 gboolean gfsm_automaton_lookup_final_old(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp);
@@ -241,6 +252,8 @@ gboolean gfsm_automaton_lookup_final_old(gfsmAutomaton *fsm, gfsmStateId qid, gf
  * \param final_weight
  *    If \a is_final is true, final weight for state.  Otherwise
  *    final weight should implicitly be set to \a (fsm)->sr->zero
+ *
+ *  Usually O(log(n_finals)); may trigger an implicit state-array reallocation.
  */
 static inline
 void gfsm_automaton_set_final_state_full_old(gfsmAutomaton *fsm,
@@ -256,7 +269,7 @@ void gfsm_automaton_set_final_state_full_old(gfsmAutomaton *fsm,
  *  \param qid ID of state to examine
  *  \returns output degree of \c qid in \c fsm
  *
- *  \note Default implementation uses ::gfsmArcIter interface, and is O(out_degree(qid)) time.
+ *  O(out_degree(qid))
  */
 static inline
 guint gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid);
@@ -281,7 +294,7 @@ guint gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param hi   Upper label
  *  \param w    Arc weight
  *
- *  \warning Default implementation aborts with an error message.
+ *  O(1) if states already exist; may trigger implicit state-array reallocation.
  */
 static inline
 void gfsm_automaton_add_arc_old(gfsmAutomaton *fsm,
@@ -300,7 +313,7 @@ void gfsm_automaton_add_arc_old(gfsmAutomaton *fsm,
  *  \param data
  *    User data for \a cmpfunc
  *
- *  \warning default implementation aborts with an error message.
+ *  O(n_states * O(g_slist_sort(avg_out_degree(fsm))))
  */
 static inline
 void gfsm_automaton_arcsort_full_old(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
