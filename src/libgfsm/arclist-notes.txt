@@ -1,3 +1,57 @@
+------------------------------------------------------------------------
+AT&T fsm API:
+ + struct FSMArcsClass: next,close,reset,seekpos,seekeps,seeknoneps,seeklabel
+ + struct FSMARcsIter : { FSMArc* arcsmin, *arcs, *arcsmax; void *data; FSMArcsClass *clas; }
+ + struct FSMClass    : arcsopen,setarcs,addarcs,arcs(fsm,qid,FSMArc **arcs)
+
+------------------------------------------------------------------------
+gfsmArcList desiderata
+ + arclist_add(al,ARCSPEC)   : generic arc-addition
+ + arclist_sort(al,cmp,data) : sorting
+ + for arciter interface:
+   - arciter_open()        --> arciter_open_list(&ai,al)
+   - arciter_insert()      --> arclist_splice(al,aipos,ARCSPEC)
+   - arciter_copy()        --> arclist_copy_shallow(dst,src)
+   - arciter_open_sorted() --> arclist_clone(), arclist_sort()
+   - arciter_remove()      --> arclist_remove(al,aipos)
+ + for automaton arciter interface(?)
+   - (?) automaton_open_arcs (fsm,qid,&al)
+   - (?) automaton_set_arcs  (fsm,qid,&al)
+   - (?) automaton_close_arcs(fsm,qid,&al)
+   --> THEN:
+     * arciter_open(&ai,fsm,qid) { ai->owner={fsm,qid}; automaton_open_arcs(fsm,qid,&(ai->l)); }
+     * arciter_open_sorted(...)  {
+         if (fsm->sortmode==SORTMODE) { return arciter_open(&ai,fsm,qid); }
+	 ArcList al0;
+	 automaton_open_arcs(fsm,qid,&al0);
+	 arclist_copy_deep(&(ai->l), &al0);
+	 arclist_sort(&(ai->l));
+	 return ai;
+       }
+     * arciter_close(&ai)            { automaton_close_arcs(ai->owner.fsm, ai->owner.qid, &(ai->l)); }
+     * arciter_copy_shallow(dst,src) { (*dst)=(*src); }
+     * arciter_copy_deep(dst,src)    { arclist_copy_deep(&(dst->l),&(src->l)); }
+     * arciter_remove(&ai)           { ai->l = arclist_remove(&(ai->l), ai->pos); } ?!?!?!
+
+gfsmArcIter desiderata
+ + arciter_close(&ai)        : not yet, must be added!
+ + arciter_open(&ai,fsm,qid) : many uses
+ + arciter_ok(&ai)           : many uses
+ + arciter_next(&ai)         : many uses
+ + arciter_seek_X(&ai,LABS)  : optional, recommended
+ + arciter_insert(&ai,ARCSPEC)
+   - splice arc {q1,q2,lo,hi,w} in at ai's current position
+   - e.g. automaton_complete()
+ + arciter_copy_shallow(&ai_dst,&ai_src)
+   - save current arc-iterator position without duplicating list
+   - e.g. compose_visit_state(), intersect_visit_state()
+ + arciter_open_sorted(&ai,fsm,qid,sort_mode)
+   - open (possibly temporary) arciter on fully sorted arc-list
+   - e.g. compose_visit_state(), intersect_visit_state()
+ + arciter_remove() : remove current arc
+
+
+------------------------------------------------------------------------
 gfsmArcList* uses:
   + gfsmAlgebra.c
     - complete()

@@ -65,6 +65,23 @@ static INLINE_DEFN void test_switch_embedded2(TestT *tp) {
   }
 }
 
+void test_switch_compile(TestT *tp) {
+  switch (tp->typ) {
+  case 1: {
+    int i;
+    for (i=0; i < tp->val; i++) { tp->val += i; }
+    break;
+  }
+  case 2: {
+    int i;
+    for (i=1; i < tp->val; i++) { tp->val *= i; }
+    break;
+  }
+  default:
+    break;
+  }
+}
+
 TestT t = {1,42};
 
 /*======================================================================

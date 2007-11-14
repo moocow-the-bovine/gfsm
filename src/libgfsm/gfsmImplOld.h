@@ -1,10 +1,10 @@
 
 /*=============================================================================*\
- * File: gfsmDefaultImpl.h
+ * File: gfsmImplOld.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library: implementation: default wrappers
+ * Description: finite state machine library: automaton implementation: old: declarations
  *
- * Copyright (c) 2007 Bryan Jurish.
+ * Copyright (c) 2004-2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,35 +21,36 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-/** \file gfsmDefaultImpl.h
- *  \brief Default methods for ::gfsmAutomaton API
+/** \file gfsmImplOldTypes.h
+ *  \brief Declarations for backwards-compatible automaton implementation
  */
 
-#ifndef _GFSM_DEFAULT_IMPL_H
-#define _GFSM_DEFAULT_IMPL_H
+#ifndef _GFSM_AUTOMATON_H
+#define _GFSM_AUTOMATON_H
 
-#include <gfsmAutomatonAPI.h>
+#include <gfsmAutomatonTypes.h>
+#include <gfsmAlphabet.h>
+#include <gfsmState.h>
 
 /*======================================================================
- * API: constructors, etc.
+ * Methods: constructors, etc.
  */
-///\name API: Constructors, etc.
+/// \name Constructors etc.
+
 //@{
 
-/** Create and initialize a new implementation of \c fsm->itype in \c fsm->impl.
+/** Create and initialize a new implementation of \c fsm->itype==::gfsmACOld in \c fsm->impl.
  *  Flags and semiring (type) should already have been intialized when this function is called.
- *  \warning Default implementation aborts with an error.
  */
-void gfsm_automaton_init_default(gfsmAutomaton *fsm, guint n_states, guint n_arcs);
+static inline
+void gfsm_automaton_init_old(gfsmAutomaton *fsm, guint n_states, guint n_arcs);
 
 /** Create a new gfsmAutomaton by cloning an existing one.
- *
- *  \b Requirements on \c src:
- *  \li gfsm_automtaton_copy()
- *  \li gfsm_automaton_classed_new_full()
- *
+ *  \param dst new automaton being constructed; its impl may be assumed to be empty.
+ *  \param src automaton to be cloned
  */
-gfsmAutomaton *gfsm_automaton_clone_default(gfsmAutomaton *src);
+static inline
+void gfsm_automaton_clone_impl_old(gfsmAutomaton *dst, gfsmAutomaton *src);
 
 /** Assign the contents of \a src to \a dst, without altering \a dst's implementation class.
  *
@@ -73,18 +74,17 @@ gfsmAutomaton *gfsm_automaton_clone_default(gfsmAutomaton *src);
  *  \li gfsm_arciter_open() & friends
  *
  */
-gfsmAutomaton *gfsm_automaton_copy_default(gfsmAutomaton *dst, gfsmAutomaton *src);
+gfsmAutomaton *gfsm_automaton_copy_old(gfsmAutomaton *dst, gfsmAutomaton *src);
 
-/** Clear a ::gfsmAutomaton
- *  \warning Default implementation aborts with an error message.
- */
-void gfsm_automaton_clear_default(gfsmAutomaton *fsm);
+/** Clear a ::gfsmImplOld automaton implementation */
+static inline
+void gfsm_automaton_clear_old(gfsmAutomaton *fsm);
 
-/** Destroy an automaton implementation
+/** Destroy a ::gfsmImplOld automaton implementation
  *  \param fsm automaton whose implementation is to be destroyed
- *  \warning Default implementation aborts with an error.
  */
-void gfsm_automaton_free_default(gfsmAutomaton *fsm);
+static inline
+void gfsm_automaton_free_old(gfsmAutomaton *fsm);
 
 //@}
 
@@ -100,7 +100,8 @@ void gfsm_automaton_free_default(gfsmAutomaton *fsm);
  *
  *  \warning Default implementation aborts with an error.
  */
-void gfsm_automaton_reserve_states_default(gfsmAutomaton *fsm, gfsmStateId n_states);
+static inline
+void gfsm_automaton_reserve_states_old(gfsmAutomaton *fsm, gfsmStateId n_states);
 
 /** Reserve space for at least \a n_arcs arcs (may do nothing)
  *  \param fsm automaton to modify
@@ -108,14 +109,12 @@ void gfsm_automaton_reserve_states_default(gfsmAutomaton *fsm, gfsmStateId n_sta
  *
  *  \warning Default implementation aborts with an error.
  */
-void gfsm_automaton_reserve_arcs_default(gfsmAutomaton *fsm, gfsmArcId n_arcs);
+static inline
+void gfsm_automaton_reserve_arcs_old(gfsmAutomaton *fsm, gfsmArcId n_arcs);
 
-/** Get number of states.
- *  Default implementation just returns the minimum ::gfsmStateId \c qid for which
- *  gfsm_automaton_has_state(fsm,qid) returns FALSE: O(n_states) time.
- *
- */
-guint gfsm_automaton_n_states_default(gfsmAutomaton *fsm);
+/** Get number of states. Constant time. */
+static inline
+guint gfsm_automaton_n_states_old(gfsmAutomaton *fsm);
 
 /** Get number of arcs n \c fsm.
  *
@@ -123,24 +122,26 @@ guint gfsm_automaton_n_states_default(gfsmAutomaton *fsm);
  *  \li gfsm_automaton_n_states()
  *  \li gfsm_arciter_open() and friends
  *
- *  \note Default implementation calls gfsm_automaton_n_arcs_full(): O(n_arcs) time.
  */
-guint gfsm_automaton_n_arcs_default(gfsmAutomaton *fsm);
+//static inline guint gfsm_automaton_n_arcs_old(gfsmAutomaton *fsm);
+//-- DEFAULT
 
-/** Get number of final states
- *  \note Default implementaion calls gfsm_automaton_state_is_final() on all states; O(n_states) time.
+/** Get number of final states.
+ *  O(g_tree_nnodes(fsm->impl.old->finals))
  */
-guint gfsm_automaton_n_final_states_default(gfsmAutomaton *fsm);
+guint gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm);
 
-/** Get ID of root node, or gfsmNoState if undefined
- *  \note Default implementation just returns 0 (zero).
+/** Get ID of root node, or ::gfsmNoState if undefined.
+ *  Constant time.
  */
-gfsmStateId gfsm_automaton_get_root_default(gfsmAutomaton *fsm);
+static inline
+gfsmStateId gfsm_automaton_get_root_old(gfsmAutomaton *fsm);
 
 /** Set ID of root node, creating state if necessary
- *  \warning Default implementation aborts with an error.
+ *  Constant time.
  */
-void gfsm_automaton_set_root_default(gfsmAutomaton *fsm, gfsmStateId qid);
+static inline
+void gfsm_automaton_set_root_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Renumber states of an automaton using a user-specified renumbering scheme.
  *  Destructively alters \a fsm.
@@ -152,9 +153,8 @@ void gfsm_automaton_set_root_default(gfsmAutomaton *fsm, gfsmStateId qid);
  *     number of new states, or 0 (zero) to auto-compute
  *  \note
  *    Should be guaranteed \b not to increase either the number of states nor the number of arcs in \a fsm.
- *  \warning Default implementation aborts with an error.
  */
-void gfsm_automaton_renumber_states_full_default(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states);
+void gfsm_automaton_renumber_states_full_old(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states); //-- TODO
 
 //@}
 
@@ -171,10 +171,9 @@ void gfsm_automaton_renumber_states_full_default(gfsmAutomaton *fsm, GArray *old
  *  \param fsm automaton to examine
  *  \param qid ID of state to examine
  *  \returns TRUE if \a fsm has a state with ID \a id, FALSE otherwise.
- *
- *  \note Default implementation always returns FALSE.
  */
-gboolean gfsm_automaton_has_state_default(gfsmAutomaton *fsm, gfsmStateId qid);
+static inline
+gboolean gfsm_automaton_has_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Add a new state, specifying qid.  If \a qid is gfsmNoState,
  *  first available state qid will be selected.
@@ -182,10 +181,9 @@ gboolean gfsm_automaton_has_state_default(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param fsm fsm to modify
  *  \param qid  identifier of the new state, or gfsmNoState
  *  \returns ID of the new state, or gfsmNoState on failure
- *
- *  \warning Default implementation aborts with an error message.
  */
-gfsmStateId gfsm_automaton_add_state_full_default(gfsmAutomaton *fsm, gfsmStateId qid);
+static inline
+gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Remove the state with ID \a qid, if any.
  *  May have no effect on incoming arcs for state \a qid,
@@ -193,14 +191,13 @@ gfsmStateId gfsm_automaton_add_state_full_default(gfsmAutomaton *fsm, gfsmStateI
  *
  *  \param fsm automaton from which to remove a state
  *  \param qid ID of the state to be removed
- *
- *  \warning Default implementation aborts with an error message.
  */
-void gfsm_automaton_remove_state_default(gfsmAutomaton *fsm, gfsmStateId qid);
+static inline
+void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 //----------------------------------------------
-// States: open/close
-
+// States: open/close [IGNORE!]
+#if 0
 /** Get a pointer to the ::gfsmState object with the ID \a qid in \a fsm, if any.
  *  When you are done with the returned pointer, you must release it
  *  with gfsm_automaton_state_close().
@@ -208,10 +205,8 @@ void gfsm_automaton_remove_state_default(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param fsm fsm from which to extract a state
  *  \param qid ID of the state to extract
  *  \returns a ::gfsmState* for \a qid, or NULL if \a qid not a state of \a fsm
- *
- *  \warning Default implementation aborts with an error message.
  */
-gfsmState *gfsm_automaton_open_state_default(gfsmAutomaton *fsm, gfsmStateId qid);
+gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Close a pointer to a ::gfsmState object which was previously opened by
  *  gfsm_automaton_open_state().
@@ -222,10 +217,9 @@ gfsmState *gfsm_automaton_open_state_default(gfsmAutomaton *fsm, gfsmStateId qid
  *  \warning
  *     Bad things may happen if you change the implementation class of \a fsm
  *     while you have open state pointers for it hanging around.
- *
- *  \warning Default implementation aborts with an error message.
  */
-void gfsm_automaton_close_state_default(gfsmAutomaton *fsm, gfsmState *sp);
+void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *sp);
+#endif
 
 //----------------------------------------------
 // States: finality
@@ -236,10 +230,9 @@ void gfsm_automaton_close_state_default(gfsmAutomaton *fsm, gfsmState *sp);
  *  \param  wp output parameter for final weight
  *  \returns
  *     TRUE if state \a id is final, FALSE otherwise,
- *
- *  \note Default implementation just sets \c *wp=fsm->sr->zero and returns FALSE.
  */
-gboolean gfsm_automaton_lookup_final_default(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp);
+static inline
+gboolean gfsm_automaton_lookup_final_old(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp);
 
 /** Set final-weight and/or final-states membership flag for state with ID \a qid in \a fsm.
  * \param fsm automaton to modify
@@ -248,14 +241,12 @@ gboolean gfsm_automaton_lookup_final_default(gfsmAutomaton *fsm, gfsmStateId qid
  * \param final_weight
  *    If \a is_final is true, final weight for state.  Otherwise
  *    final weight should implicitly be set to \a (fsm)->sr->zero
- *
- * \warning Default implementation aborts with an error.
  */
-void gfsm_automaton_set_final_state_full_default(gfsmAutomaton *fsm,
-						 gfsmStateId qid,
-						 gboolean       is_final,
-						 gfsmWeight     final_weight);
-
+static inline
+void gfsm_automaton_set_final_state_full_old(gfsmAutomaton *fsm,
+					     gfsmStateId    qid,
+					     gboolean       is_final,
+					     gfsmWeight     final_weight);
 
 //----------------------------------------------
 // States: properties
@@ -267,7 +258,8 @@ void gfsm_automaton_set_final_state_full_default(gfsmAutomaton *fsm,
  *
  *  \note Default implementation uses ::gfsmArcIter interface, and is O(out_degree(qid)) time.
  */
-guint gfsm_automaton_out_degree_default(gfsmAutomaton *fsm, gfsmStateId qid);
+static inline
+guint gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 //@}
 
@@ -291,7 +283,8 @@ guint gfsm_automaton_out_degree_default(gfsmAutomaton *fsm, gfsmStateId qid);
  *
  *  \warning Default implementation aborts with an error message.
  */
-void gfsm_automaton_add_arc_default(gfsmAutomaton *fsm,
+static inline
+void gfsm_automaton_add_arc_old(gfsmAutomaton *fsm,
 				    gfsmStateId    qid1,
 				    gfsmStateId    qid2,
 				    gfsmLabelVal   lo,
@@ -309,7 +302,8 @@ void gfsm_automaton_add_arc_default(gfsmAutomaton *fsm,
  *
  *  \warning default implementation aborts with an error message.
  */
-void gfsm_automaton_arcsort_full_default(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
+static inline
+void gfsm_automaton_arcsort_full_old(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
 
 
 /*-- todo:
@@ -338,4 +332,5 @@ void gfsm_automaton_arcsort_full_default(gfsmAutomaton *fsm, GCompareDataFunc cm
 
 //@}
 
-#endif /* _GFSM_DEFAULT_IMPL_H */
+
+#endif /* _GFSM_IMPL_OLD_H */

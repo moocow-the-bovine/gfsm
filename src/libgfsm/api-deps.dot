@@ -1,0 +1,31 @@
+/*-*- Mode: C -*-*/
+digraph api_deps {
+  rotate  = "90'";
+  rankdir = "BT";
+  node [shape="box",style="filled",fillcolor="red"];
+
+  FsmTypes  [style="dashed"];
+  FsmDecls  [style="solid"];
+  FsmDefs   [style="filled",fillcolor="yellow"];
+  Fsm_c     [style="filled",fillcolor="green"];
+
+  FsmImplTypes [style="dashed"];
+  FsmImplDecls [style="solid"];
+  FsmImplDefs  [style="filled",fillcolor="yellow"];
+  FsmImpl_c    [style="filled",fillcolor="green"];
+
+  /*
+  ArcIterTypes [style="dashed"];
+  ArcIterDecls [style="solid"];
+  ArcIterDefs  [style="filled",fillcolor="yellow"];
+  ArcIter_c    [style="filled",fillcolor="green"];
+  */
+
+  FsmDecls -> FsmImplDecls [label="1"];
+  FsmDecls -> FsmDefs [label="2"];
+  Fsm_c    -> FsmDecls;
+  FsmTypes     -> FsmImplTypes;
+  FsmImplDecls -> FsmTypes    [label="1"];
+  FsmImplDecls -> FsmImplDefs [label="2"];
+  FsmImpl_c    -> FsmImplDecls;
+};

@@ -37,6 +37,11 @@
 ///\name ArcList variants
 //@{
 
+/// Array of ::gfsmArc as a pair of pointer bounds into a ::gfsmArc array.
+typedef struct {
+  gfsmArc  *min;   /**< pointer to first arc in this list */
+  gfsmArc  *max;   /**< pointer to the first address \b not containing an arc in this list (last+1) */
+} gfsmArcListArray;
 
 /// Typecast-safe 'hard-linked' list of ::gfsmArc
 typedef struct gfsmArcListLinked_ {
@@ -44,22 +49,17 @@ typedef struct gfsmArcListLinked_ {
   struct gfsmArcListLinked_  *next;    /**< pointer to next arc */
 } gfsmArcListLinked;
 
-/// Array of ::gfsmArc as a pair of pointer bounds into a ::gfsmArc array.
-typedef struct {
-  gfsmArc  *beg;   /**< pointer to first arc in this list */
-  gfsmArc  *end;   /**< pointer to the first address \b not containing an arc in this list (last+1) */
-} gfsmArcListArray;
-
 /// Enum of arc-list types
 typedef enum {
-  gfsmALTLinked, /**< data.l is ::gfsmArcListLinked* */
-  gfsmALTArray   /**< data.a is ::gfsmArcListArray   */
+  gfsmALTNone,    /**< invalid arc-list type */
+  gfsmALTArray,   /**< list.a is ::gfsmArcListArray   */
+  gfsmALTLinked   /**< list.l is ::gfsmArcListLinked* */
 } gfsmArcListType;
 
 /// Generic arc-list data type
 typedef union {
-  gfsmArcListLinked *l;
   gfsmArcListArray   a;
+  gfsmArcListLinked *l;
 } gfsmArcListData;
 
 /// Generic arc-list flags
@@ -67,62 +67,17 @@ typedef struct {
   guint32 altype      :  4;   /**< type of this arc-list, cast to ::gfsmArcListType */
   guint32 sort_mode   :  4;   /**< sort mode of this arc-list, cast to ::gfsmArcSortMode */
   guint32 local_arcs  :  1;   /**< whether this arc-list owns its own arc data */
+  guint32 local_list  :  1;   /**< whether this arc-list owns its own arc-node data (if distinct from arc data) */
   guint32 unused      : 22;   /**< reserved */
 } gfsmArcListFlags;
 
 /// Generic arc-list type
 typedef struct {
   gfsmArcListFlags flags; /**< list-local flags */
-  gfsmArcListData   data; /**< list data */
+  gfsmArcListData   list; /**< list data */
 } gfsmArcList;
 
 //@}
-
-/*======================================================================
- * Types: ArcList (alt)
- */
-
-/// Enum of arc-list types
-typedef enum {
-  gfsmALTLinked, /**< data.l is ::gfsmArcListLinked* */
-  gfsmALTArray   /**< data.a is ::gfsmArcListArray   */
-} gfsmArcListType;
-
-/// base type
-typedef struct {
-  guint32 type        :  4;   /**< type of this arc-list, cast to ::gfsmArcListType */
-  guint32 sort_mode   :  4;   /**< sort mode of this arc-list, cast to ::gfsmArcSortMode */
-  guint32 local_arcs  :  1;   /**< whether this arc-list owns its own arc data */
-  guint32 unused      : 23;   /**< reserved */
-} gfsmArcListBase;
-
-/// arc linked list: node
-typedef struct gfsmArcNode_ {
-  gfsmArc                 a;
-  struct gfsmArcNode_ *next;
-} gfsmArcNode;
-
-/// arc array: struct
-typedef struct {
-  gfsmArc *begin;
-  gfsmArc *end;
-} gfsmArcArray;
-
-
-/// arc list: generic
-typedef struct {
-  gfsmArcListBase base;
-  union {
-    gfsmArcListNode *l;
-    gfsmArcArray     a;
-  } arcs;
-  union {
-    gfsmArcListNode *l;
-    gfsmArc         *a;
-  } cur;
-  struct gfsmAutomaton_ *fsm;
-  gfsmStateId            qid;
-}
 
 /*======================================================================
  * Types: ArcIter
@@ -176,18 +131,18 @@ gfsmArcList *gfsm_arclist_copy(gfsmArcList *dst, gfsmArcList *src);
 static inline
 gfsmArcList *gfsm_arclist_clone(gfsmArcList *src);
 
-/** Destroy an arc-list node and all subsequent nodes */
+/** Destroy an arc node and any temporary data it may have associated with it  */
+static inline
 void gfsm_arclist_free(gfsmArcList *al);
 
-
 /** Insert a new arc into a (possibly sorted) arclist. */
-void gfsm_arclist_insert(gfsmArcList *al,
-			 gfsmStateId  src,
-			 gfsmStateId  dst,
-			 gfsmLabelVal lo,
-			 gfsmLabelVal hi,
-			 gfsmWeight   wt,
-			 gfsmArcSortData *sdata);
+void gfsm_arclist_add(gfsmArcList *al,
+		      gfsmStateId  src,
+		      gfsmStateId  dst,
+		      gfsmLabelVal lo,
+		      gfsmLabelVal hi,
+		      gfsmWeight   wt,
+		      gfsmArcSortData *sdata);
 
 //@}
 
@@ -198,10 +153,8 @@ void gfsm_arclist_insert(gfsmArcList *al,
 ///\name ArcList: Utilities
 //@{
 
-/** Get the 'current' arc pointer for an arclist -- may be NULL */
-gfsmArc *gfsm_arclist_arc(gfsmArcList *al);
-
 /** Get length of a ::gfsmArcList \a al */
+static inline
 guint gfsm_arclist_length(gfsmArcList *al);
 
 /** Sort a ::gfsmArcList \a al with ::gfsmArcSortData \a sdata */

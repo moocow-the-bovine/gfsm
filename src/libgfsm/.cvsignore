@@ -31,7 +31,7 @@ graveyard
 *.lab
 *.scl
 *.sym
-*.dot
+#*.dot
 *.vcg
 *.ps
 *.tfst

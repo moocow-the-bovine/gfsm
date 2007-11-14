@@ -1,0 +1,379 @@
+/*=============================================================================*\
+ * File: gfsmImplOld.def
+ * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Description: finite state machine library: automaton implementation: old: inline definitions
+ *
+ * Copyright (c) 2004-2007 Bryan Jurish.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *=============================================================================*/
+
+#include <gfsmAutomatonTypes.h>
+#include <gfsmUtils.h>
+#include <stdlib.h>
+
+/*======================================================================
+ * Methods: promoted
+ */
+
+/*--------------------------------------------------------------
+ * find_state()
+ */
+static inline
+gfsmState *gfsm_impl_old_find_state(gfsmImplOld *fsmi, gfsmStateId qid)
+{
+  return (qid < fsmi->states->len ? (((gfsmState*)fsmi->states->data)+id) : NULL);
+}
+
+/*--------------------------------------------------------------
+ * find_state_const()
+ */
+static inline
+const gfsmState *gfsm_impl_old_find_state_const(gfsmImplOld *fsmi, gfsmStateId qid)
+{
+  return (qid < fsmi->states->len ? (((const gfsmState*)fsmi->states->data)+id) : NULL);
+}
+
+
+/*======================================================================
+ * Methods: Constructors etc.
+ */
+
+/*--------------------------------------------------------------
+ * init()
+ */
+static inline
+void gfsm_automaton_init_old(gfsmAutomaton *fsm, guint n_states, guint n_arcs)
+{
+  fsm->impl.old          = (gfsmImplOld*)g_new0(gfsmImplOld,1);
+  fsm->impl.old->states  = g_array_sized_new(FALSE, TRUE, sizeof(gfsmState), size);
+  fsm->impl.old->finals  = gfsm_weightmap_new(gfsm_uint_compare);
+  fsm->impl.old->root_id = gfsmNoState;
+  return fsm;
+}
+
+/*--------------------------------------------------------------
+ * copy()
+ */
+//-- true function
+
+/*--------------------------------------------------------------
+ * clone()
+ */
+static inline
+void gfsm_automaton_clone_impl_old(gfsmAutomaton *dst, gfsmAutomaton *src)
+{
+  gfsmImplOld *srci = src->impl.old;
+  gfsmImplOld *dsti = (gfsmImplOld*)g_new0(gfsmImplOld,1);
+  gfsmStateId  qid;
+
+  dsti->states  = g_array_sized_new(FALSE, TRUE, sizeof(gfsmState), srci->states->len);
+  dsti->finals  = gfsm_weightmap_new(gfsm_uint_compare);
+  dsti->root_id = srci->root_id;
+
+  gfsm_weightmap_copy(dsti->finals, srci->finals);
+
+  for (qid=0; qid < src->impl.old->states->len; qid++) {
+    const gfsmState *src_s = gfsm_impl_old_find_state_const(srci, qid);
+    gfsmState *dst_s       = gfsm_impl_old_find_state(dsti, qid);
+    gfsm_state_copy(dst_s, src_s);
+  }
+
+  dst->impl.old = dsti;
+}
+
+/*--------------------------------------------------------------
+ * clear()
+ */
+static inline
+void gfsm_automaton_clear_old(gfsmAutomaton *fsm)
+{
+  gfsmStateId qid;
+  gfsmImplOld *fsmi = fsm->impl.old;
+  if (!fsm) return;
+  for (qid=0; fsmi->states && qid < fsmi->states->len; i++) {
+    gfsmState *st = gfsm_impl_old_find_state(fsmi,i);
+    if (!st || !st->is_valid) continue;
+    gfsm_state_clear(st);
+  }
+  if (fsmi->states) g_array_set_size(fsmi->states,0);
+  if (fsmi->finals) gfsm_weightmap_clear(fsmi->finals);
+  fsmi->root_id = gfsmNoState;
+}
+
+/*--------------------------------------------------------------
+ * free()
+ */
+static inline
+void gfsm_automaton_free_old(gfsmAutomaton *fsm)
+{
+  if (!fsm) return;
+  gfsm_automaton_clear_old(fsm);
+  if (fsm->impl.old->states) g_array_free(fsm->impl.old->states, TRUE);
+  if (fsm->impl.old->finals) gfsm_weightmap_free(fsm->impl.old->finals);
+  g_free(fsm->impl.old);
+}
+
+
+/*======================================================================
+ * API: Automaton Structure
+ */
+
+/*--------------------------------------------------------------
+ * reserve_states()
+ */
+static inline
+void gfsm_automaton_reserve_states_old(gfsmAutomaton *fsm, gfsmStateId n_states)
+{
+  if (n_states != gfsmNoState && n_states > fsm->impl.old->states->len)
+    g_array_set_size(fsm->impl.old->states, n_states);
+}
+
+/*--------------------------------------------------------------
+ * reserve_arcs()
+ */
+//-- does nothing
+static inline
+void gfsm_automaton_reserve_arcs_old(gfsmAutomaton *fsm, guint n_arcs)
+{ return; }
+
+/*--------------------------------------------------------------
+ * n_states()
+ */
+static inline
+guint gfsm_automaton_n_states_old(gfsmAutomaton *fsm)
+{
+  return fsm->impl.old->states->len;
+} 
+
+/*--------------------------------------------------------------
+ * n_arcs()
+ */
+//--DEFAULT
+
+/*--------------------------------------------------------------
+ * n_final_states()
+ */
+static inline
+guint gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm)
+{
+  return gfsm_weightmap_size(fsm->impl.old->finals);
+}
+
+
+/*--------------------------------------------------------------
+ * renumber_states_full()
+ */
+//--TRUE FUNCTION
+
+/*======================================================================
+ * API: Automaton States
+ */
+
+/*--------------------------------------------------------------
+ * has_state()
+ */
+static inline
+gboolean gfsm_automaton_has_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  return qid < fsm->impl.old->states->len && (((gfsmState*)fsm->impl.old->states->data)+qid)->is_valid;
+}
+
+/*--------------------------------------------------------------
+ * add_state_full()
+ */
+static inline
+gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  gfsmState *st;
+
+  if (id==gfsmNoState)
+    qid=fsm->impl.old->states->len;
+
+  if (id >= fsm->impl.old->states->len)
+    gfsm_automaton_reserve_states_old(fsm,qid+1);
+  
+  st           = gfsm_impl_old_find_state(fsm->impl.old, qid);
+  st->is_valid = TRUE;
+
+  return qid;
+}
+
+/*--------------------------------------------------------------
+ * ensure_state()
+ */
+static inline
+gfsmStateId gfsm_automaton_ensure_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  if (gfsm_automaton_has_state_old(fsm,qid)) return qid;
+  return gfsm_automaton_add_state_full_old(fsm,qid);
+}
+
+/*--------------------------------------------------------------
+ * get_state()
+ */
+static inline
+gfsmState *gfsm_automaton_get_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  return gfsm_impl_old_find_state(fsm->impl.old, gfsm_automaton_ensure_state_old(fsm,qid));
+}
+
+/*--------------------------------------------------------------
+ * get_root()
+ */
+static inline
+guint gfsm_automaton_get_root_old(gfsmAutomaton *fsm)
+{
+  return fsm->impl.old->root_id;
+}
+
+/*--------------------------------------------------------------
+ * set_root() [DEMOTED b/c calls add_state_full()]
+ */
+static inline
+void gfsm_automaton_set_root_old(gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  fsm->impl.old->root_id = gfsm_automaton_add_state_full_old(fsm,qid);
+}
+
+/*--------------------------------------------------------------
+ * remove_state()
+ */
+static inline
+void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  gfsmState *s = gfsm_impl_old_find_state(fsm->impl.old, qid);
+  if (!s || !s->is_valid) return;
+
+  if (s->is_final) gfsm_weightmap_remove(fsm->impl.old->finals,GUINT_TO_POINTER(id));
+  if (id==fsm->impl.old->root_id) fsm->impl.old->root_id = gfsmNoState;
+
+  gfsm_oldarclist_old_free(s->arcs);
+  s->arcs = NULL;
+  s->is_valid = FALSE;
+}
+
+
+#if 0
+/*--------------------------------------------------------------
+ * open_state_old()
+ */
+static inline
+gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
+{ return gfsm_impl_old_find_state(fsm->impl.old, qid); }
+
+/*--------------------------------------------------------------
+ * close_state_old()
+ */
+static inline
+void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *qp)
+{ return; }
+#endif /* 0: open/close state */
+
+/*--------------------------------------------------------------
+ * lookup_final()
+ */
+static inline
+gboolean gfsm_automaton_lookup_final_old(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp)
+{
+  gfsmState *qp = gfsm_impl_old_find_state(fsm->impl.old, qid);
+  if (!qp || !qp->is_valid || !qp->is_final) {
+    *wp = fsm->sr->zero;
+    return FALSE;
+  }
+  return gfsm_weightmap_lookup(fsm->impl.old->finals, GUINT_TO_POINTER(id), wp);
+}
+
+/*--------------------------------------------------------------
+ * set_final_state_full()
+ */
+static inline
+void gfsm_automaton_set_final_state_full_old(gfsmAutomaton *fsm,
+					     gfsmStateId    qid,
+					     gboolean       is_final,
+					     gfsmWeight     final_weight)
+{
+  gfsm_state_set_final(gfsm_automaton_get_state_old(fsm,qid), is_final);
+  if (is_final) {
+    gfsm_weightmap_insert(fsm->impl.old->finals, GUINT_TO_POINTER(qid), final_weight);
+  } else { 
+    gfsm_weightmap_remove(fsm->impl.old->finals, GUINT_TO_POINTER(qid));
+  }
+}
+
+/*--------------------------------------------------------------
+ * out_degree()
+ */
+static inline
+guint gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  gfsmState *qp = gfsm_impl_old_find_state(fsm->impl.old, qid);
+  return qp ? g_slist_length(qp->arcs) : 0;
+}
+
+/*======================================================================
+ * API: Automaton Arcs
+ */
+
+/*--------------------------------------------------------------
+ * add_arc_link()
+ */
+static inline
+void gfsm_automaton_add_arc_link_old(gfsmAutomaton  *fsm,
+				     gfsmState      *qp,
+				     gfsmOldArcList *link)
+{
+  //-- possibly sorted
+  gfsmArcSortData sdata = { fsm->flags.sort_mode, fsm->sr };
+  sp->arcs = gfsm_oldarclist_insert_link(sp->arcs, link, &sdata);
+
+  //-- always unmark 'deterministic' flag -- better: check
+  fsm->flags.is_deterministic = FALSE;
+}
+
+/*--------------------------------------------------------------
+ * add_arc()
+ */
+static inline
+void gfsm_automaton_add_arc_old(gfsmAutomaton *fsm,
+				gfsmStateId    qid1,
+				gfsmStateId    qid2,
+				gfsmLabelVal   lo,
+				gfsmLabelVal   hi,
+				gfsmWeight     w)
+{
+  gfsmState *qp1;
+  gfsm_automaton_ensure_state(fsm,q2);
+  qp1 = gfsm_automaton_get_state(fsm,q1);
+  gfsm_automaton_add_arc_link_old(fsm,
+				  qp1,
+				  gfsm_oldarclist_new_full(qid1,qid2,lo,hi,w,NULL));
+}
+
+/*--------------------------------------------------------------
+ * arcsort_full()
+ */
+static inline
+void gfsm_automaton_arcsort_full_old(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data)
+{
+  gfsmStateId qid;
+  gfsmImplOld *fsmi = fsm->impl.old;
+
+  for (qid=0; qid < fsmi->states->len; qid++) {
+    gfsmState *qp = gfsm_impl_old_find_state(fsmi,qid);
+    if (!qp || !qp->is_valid) continue;
+    qp->arcs = g_slist_sort_with_data(qp->arcs, cmpfunc, data);
+  }
+}

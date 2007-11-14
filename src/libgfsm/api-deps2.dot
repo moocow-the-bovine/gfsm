@@ -1,0 +1,53 @@
+/*-*- Mode: C -*-*/
+digraph api_deps {
+  rotate  = "90'";
+  rankdir = "BT";
+  node [shape="box",style="filled",fillcolor="red"];
+
+  FsmTypes_h   [style="dashed"];
+  FsmUnary_h   [style="solid"];
+  FsmUnary_def [style="filled",fillcolor="green"];
+
+  //FsmUnary_h   -> FsmTypes_h  [style="dotted"];
+  FsmUnary_h   -> FsmUnary_def;
+
+  //--------------------------------------------
+  Imp0Types_h  [style="dashed"];
+  FsmTypes_h -> Imp0Types_h;
+
+  Imp0Unary_h   [style="solid"];
+  Imp0Unary_def [style="filled",fillcolor="yellow"];
+  //Imp0Unary_h -> FsmTypes_h [style="dotted"];
+  Imp0Unary_h -> Imp0Unary_def;
+  Imp0Unary_def -> FsmTypes_h  [style="bold"];
+
+  //FsmUnary_h   -> Imp0Unary_h [style="dotted"];
+  FsmUnary_def -> Imp0Unary_h;
+
+  Imp0Binary_h   [style="solid"];
+  Imp0Binary_def [style="filled",fillcolor="yellow"];
+  //Imp0Binary_h -> FsmTypes_h [style="dotted"];
+  //Imp0Binary_h -> FsmUnary_h [style="dotted"];
+  Imp0Binary_h -> Imp0Binary_def;
+  Imp0Binary_def -> FsmUnary_h;
+
+  //--------------------------------------------
+  Imp1Types_h  [style="dashed"];
+  FsmTypes_h -> Imp1Types_h;
+
+  Imp1Unary_h   [style="solid"];
+  Imp1Unary_def [style="filled",fillcolor="yellow"];
+  //Imp1Unary_h -> FsmTypes_h [style="dotted"];
+  Imp1Unary_h -> Imp1Unary_def;
+  Imp1Unary_def -> FsmTypes_h  [style="bold"];
+
+  //FsmUnary_h   -> Imp1Unary_h [style="dotted"];
+  FsmUnary_def -> Imp1Unary_h;
+
+  Imp1Binary_h   [style="solid"];
+  Imp1Binary_def [style="filled",fillcolor="yellow"];
+  //Imp1Binary_h -> FsmTypes_h [style="dotted"];
+  //Imp1Binary_h -> FsmUnary_h [style="dotted"];
+  Imp1Binary_h -> Imp1Binary_def;
+  Imp1Binary_def -> FsmUnary_h;
+};

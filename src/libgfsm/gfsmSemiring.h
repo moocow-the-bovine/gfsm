@@ -36,7 +36,7 @@
 /** Builtin semiring types
  *  \see fsmcost(3)
  */
-typedef enum _gfsmSRType {
+typedef enum {
   gfsmSRTUnknown  = 0,  ///< unknown semiring (should never happen)
   gfsmSRTBoolean  = 1,  ///< boolean semiring <set:{0,1}, plus:||, times:&&, less:>, zero:0, one:1>
   gfsmSRTLog      = 2,  ///< negative log semiring <set:[-inf,inf], plus:-log(e^-x+e^-y), times:+, less:<, zero:inf, one:0>
@@ -51,7 +51,7 @@ typedef enum _gfsmSRType {
  * Semiring: types: structs
  */
 /// struct to represent a builtin semi-ring for gfsm arc weights
-typedef struct _gfsmSemiring {
+typedef struct {
   gfsmSRType type;    /**< type of this semiring */
   gfsmWeight zero;    /**< nil element of this semiring (identity for '+') */
   gfsmWeight one;     /**< unity element of this semiring (idendity for '*') */
@@ -77,7 +77,7 @@ typedef gfsmWeight (*gfsmSRBinaryOp) (gfsmSemiring *sr, gfsmWeight x, gfsmWeight
  * Semiring: types: user structs
  */
 /// User-defined semirings for gfsm operations
-typedef struct _gfsmSemiringUser {
+typedef struct {
   gfsmSemiring sr;                  /**< inheritance magic */
 
   //-- user-defined semirings *must* set these functions
