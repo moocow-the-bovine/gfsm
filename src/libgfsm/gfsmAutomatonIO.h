@@ -35,42 +35,6 @@
 #include <gfsmVersion.h>
 
 /*======================================================================
- * Types
- */
-/// Header info for binary files
-typedef struct {
-  gchar              magic[16];    /**< magic header string "gfsm_automaton" */
-  gfsmVersionInfo    version;      /**< gfsm version which created the stored file */
-  gfsmVersionInfo    version_min;  /**< minimum gfsm version required to load the file */
-  gfsmAutomatonFlags flags;        /**< automaton flags */
-  gfsmStateId        root_id;      /**< Id of root node */
-  gfsmStateId        n_states;     /**< number of stored states */
-  gfsmStateId        n_arcs_007;   /**< number of stored arcs (v0.0.2 .. v0.0.7) */
-  guint32            srtype;       /**< semiring type (cast to gfsmSRType) */
-  guint32            unused1;      /**< reserved */
-  guint32            unused2;      /**< reserved */
-  guint32            unused3;      /**< reserved */
-} gfsmAutomatonHeader;
-
-/// Type for a stored state
-typedef struct {
-  guint32  is_valid : 1;  /**< valid flag */
-  guint32  is_final : 1;  /**< final flag */
-  guint32  unused   : 30; /**< reserved */
-  guint32  n_arcs;        /**< number of stored arcs for this state */
-} gfsmStoredState;
-
-
-/// Type for a stored arc (no 'source' field)
-//typedef gfsmArc gfsmStoredArc;
-typedef struct {
-  gfsmStateId       target;  /**< ID of target node */
-  gfsmLabelId       lower;   /**< Lower label */
-  gfsmLabelId       upper;   /**< Upper label */
-  gfsmWeight        weight;  /**< arc weight */
-} gfsmStoredArc;
-
-/*======================================================================
  * Constants
  */
 /* Scanner config for gfsm_automaton_compile() */
@@ -78,12 +42,6 @@ typedef struct {
 
 /** Magic header string for stored gfsm files */
 extern const gchar gfsm_header_magic[16];
-
-/** Minimum libgfsm version required for loading files stored by this version of libgfsm */
-extern const gfsmVersionInfo gfsm_version_bincompat_min_store;
-
-/** Minimum libgfsm version whose binary files this version of libgfsm can read */
-extern const gfsmVersionInfo gfsm_version_bincompat_min_check;
 
 /*======================================================================
  * Methods: Binary I/O
@@ -95,7 +53,7 @@ extern const gfsmVersionInfo gfsm_version_bincompat_min_check;
 gboolean gfsm_automaton_load_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *ioh, gfsmError **errp);
 
 /** Load an automaton from a named binary file (implicitly clear()s \a fsm) */
-gboolean gfsm_automaton_load_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
+//gboolean gfsm_automaton_load_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
 
 /** Load an automaton from a stored binary file (implicitly clear()s \a fsm) */
 gboolean gfsm_automaton_load_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp);
@@ -108,7 +66,7 @@ gboolean gfsm_automaton_load_bin_gstring(gfsmAutomaton *fsm, GString *gs, gfsmEr
 
 
 /** Store an automaton in binary form to a gfsmIOHandle* */
-gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
+//gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
 
 /** Store an automaton in binary form to a file */
 gboolean gfsm_automaton_save_bin_file(gfsmAutomaton *fsm, FILE *f, gfsmError **errp);

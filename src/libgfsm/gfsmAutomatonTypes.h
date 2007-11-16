@@ -88,6 +88,7 @@ typedef struct
 {
   gfsmAutomatonFlags   flags;    /**< automaton flags */
   gfsmAutomatonClass   itype;    /**< implementation class */
+  gfsmSemiring        *sr;       /**< underlying semiring */
   gfsmAutomatonImpl    impl;     /**< underlying implementation, cast by \a switch{} over \a itype  */
 } gfsmAutomaton;
 
@@ -125,6 +126,27 @@ struct {
 typedef gboolean (*gfsmArcIterSeekFunc) (gfsmArcIter *aip, gpointer data);
 
 //@}
+
+/*======================================================================
+ * Binary Automaton I/O
+ */
+//\name Binary Automaton I/O
+
+/// Header info for binary files
+typedef struct {
+  gchar              magic[16];      /**< magic header string "gfsm_automaton" */
+  gfsmVersionInfo    version;        /**< gfsm version which created the stored file */
+  gfsmVersionInfo    version_min;    /**< minimum libgfsm version required to load the file */
+  gfsmAutomatonFlags flags;          /**< automaton flags */
+  gfsmStateId        root_id;        /**< Id of root node */
+  gfsmStateId        n_states;       /**< number of stored states */
+  gfsmStateId        n_arcs;         /**< number of stored arcs (v0.0.2 .. v0.0.7), or implementation-dependent */
+  guint32            srtype;         /**< semiring type (cast to ::gfsmSRType) */
+  guint32            itype     :  8; /**< automaton implementation class (cast to ::gfsmAutomatonClass) */
+  guint32            reserved1 : 24; /**< reserved */
+  guint32            reserved2;      /**< reserved */
+  guint32            reserved3;      /**< reserved */
+} gfsmAutomatonHeader;
 
 
 #endif /* _GFSM_AUTOMATON_TYPES_H */

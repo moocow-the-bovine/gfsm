@@ -27,6 +27,20 @@
 #ifndef _GFSM_COMPAT_H
 #define _GFSM_COMPAT_H
 
+/** Type for extended state-identifiers (parameters and return values)
+ *  \todo ensure that we can safely fit a pointer in ::gfsmStateIdVal , ::gfsmLabelIdVal , etc.
+ */
+typedef guint gfsmStateIdVal;
+
+/** Alias for state identifiers */
+typedef gfsmStateId gfsmNodeId;
+
+/** Constant indicating missing weight
+ *  \warning Deprecated: prefer gfsm_sr_one()
+ */
+extern const gfsmWeight gfsmNoWeight;
+
+
 /// Automaton status flags (gfsm <= v0.1.0)
 typedef struct {
   guint32 is_transducer     : 1;       /**< whether this automaton is a transducer */

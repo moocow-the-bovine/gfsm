@@ -56,7 +56,7 @@ const gfsmState *gfsm_impl_old_find_state_const(gfsmImplOld *fsmi, gfsmStateId q
  * init()
  */
 static inline
-void gfsm_automaton_init_old(gfsmAutomaton *fsm, guint n_states, guint n_arcs)
+void gfsm_automaton_init_old(gfsmAutomaton *fsm, gfsmStateId n_states, gfsmArcId n_arcs)
 {
   fsm->impl.old          = (gfsmImplOld*)g_new0(gfsmImplOld,1);
   fsm->impl.old->states  = g_array_sized_new(FALSE, TRUE, sizeof(gfsmState), size);
@@ -147,14 +147,14 @@ void gfsm_automaton_reserve_states_old(gfsmAutomaton *fsm, gfsmStateId n_states)
  */
 //-- does nothing
 static inline
-void gfsm_automaton_reserve_arcs_old(gfsmAutomaton *fsm, guint n_arcs)
+void gfsm_automaton_reserve_arcs_old(gfsmAutomaton *fsm, gfsmArcId n_arcs)
 { return; }
 
 /*--------------------------------------------------------------
  * n_states()
  */
 static inline
-guint gfsm_automaton_n_states_old(gfsmAutomaton *fsm)
+gfsmStateId gfsm_automaton_n_states_old(gfsmAutomaton *fsm)
 {
   return fsm->impl.old->states->len;
 } 
@@ -168,7 +168,7 @@ guint gfsm_automaton_n_states_old(gfsmAutomaton *fsm)
  * n_final_states()
  */
 static inline
-guint gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm)
+gfsmStateId gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm)
 {
   return gfsm_weightmap_size(fsm->impl.old->finals);
 }
@@ -235,7 +235,7 @@ gfsmState *gfsm_automaton_get_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
  * get_root()
  */
 static inline
-guint gfsm_automaton_get_root_old(gfsmAutomaton *fsm)
+gfsmStateId gfsm_automaton_get_root_old(gfsmAutomaton *fsm)
 {
   return fsm->impl.old->root_id;
 }
@@ -318,7 +318,7 @@ void gfsm_automaton_set_final_state_full_old(gfsmAutomaton *fsm,
  * out_degree()
  */
 static inline
-guint gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid)
+gfsmArcId gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   gfsmState *qp = gfsm_impl_old_find_state(fsm->impl.old, qid);
   return qp ? g_slist_length(qp->arcs) : 0;

@@ -42,13 +42,8 @@ typedef guint gfsmLabelVal;
 /** Type for elementary state identifiers */
 typedef guint32 gfsmStateId;
 
-/** Type for extended state-identifiers (parameters and return values)
- *  \todo ensure that we can safely fit a pointer in ::gfsmStateIdVal , ::gfsmLabelIdVal , etc.
- */
-typedef guint gfsmStateIdVal;
-
-/** Alias for state identifiers */
-typedef gfsmStateId gfsmNodeId;
+/** Type for elementary arc identifiers */
+typedef guint gfsmArcId;
 
 /** Type for arc weights */
 typedef gfloat gfsmWeight;
@@ -83,10 +78,5 @@ extern const gfsmLabelId gfsmNoLabel;
 
 /** Constant indicating missing state */
 extern const gfsmStateId gfsmNoState;
-
-/** Constant indicating missing weight
- *  \warning Deprecated: prefer gfsm_sr_one()
- */
-extern const gfsmWeight gfsmNoWeight;
 
 #endif /* _GFSM_COMMON_H */

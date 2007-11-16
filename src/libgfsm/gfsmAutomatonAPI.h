@@ -699,10 +699,10 @@ gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
  *   No default implementation (always returns FALSE)
  */
 static inline
-gboolean gfsm_automaton_load_bin_handle_old(gfsmAutomaton       *fsm,
-					    gfsmAutomatonHeader *hdr,
-					    gfsmIOHandle        *ioh,
-					    gfsmError          **errp);
+gboolean gfsm_automaton_load_bin_handle(gfsmAutomaton       *fsm,
+					gfsmAutomatonHeader *hdr,
+					gfsmIOHandle        *ioh,
+					gfsmError          **errp);
 //@}
 
 #endif /* _GFSM_AUTOMATON_API_H */

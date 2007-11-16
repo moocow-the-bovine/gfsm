@@ -48,4 +48,21 @@ typedef struct {
   gfsmArcListOld     *arcs;        /**< current node of this iterator */
 } gfsmArcIterDataOld;
 
+
+/// Type for a stored state
+typedef struct {
+  guint32  is_valid : 1;  /**< valid flag */
+  guint32  is_final : 1;  /**< final flag */
+  guint32  reserved : 30; /**< reserved */
+  guint32  n_arcs;        /**< number of stored arcs for this state */
+} gfsmStoredStateOld;
+
+/// Type for a stored arc (no 'source' field)
+typedef struct {
+  gfsmStateId       target;  /**< ID of target node */
+  gfsmLabelId       lower;   /**< Lower label */
+  gfsmLabelId       upper;   /**< Upper label */
+  gfsmWeight        weight;  /**< arc weight */
+} gfsmStoredArcOld;
+
 #endif /* _GFSM_IMPL_OLD_TYPES_H */

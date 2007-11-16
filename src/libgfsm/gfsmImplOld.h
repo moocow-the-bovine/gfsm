@@ -31,6 +31,7 @@
 #include <gfsmAutomatonTypes.h>
 #include <gfsmAlphabet.h>
 #include <gfsmState.h>
+#include <gfsmIO.h>
 
 /*======================================================================
  * Methods: constructors, etc.
@@ -44,7 +45,7 @@
  *   <b>O(g_array_sized_new(n_states))</b>
  */
 static inline
-void gfsm_automaton_init_old(gfsmAutomaton *fsm, guint n_states, guint n_arcs);
+void gfsm_automaton_init_old(gfsmAutomaton *fsm, gfsmStateId n_states, gfsmArcId n_arcs);
 
 /** Implements gfsm_automaton_clone()
  *  \par Time: <b>O(n_states_src+n_arcs_src)</b>
@@ -69,6 +70,7 @@ static inline
 void gfsm_automaton_free_old(gfsmAutomaton *fsm);
 
 //@}
+
 
 /*======================================================================
  * API: Automaton Structure
@@ -98,10 +100,10 @@ void gfsm_automaton_reserve_arcs_old(gfsmAutomaton *fsm, gfsmArcId n_arcs);
  *  \par Time: O(1)
  */
 static inline
-guint gfsm_automaton_n_states_old(gfsmAutomaton *fsm);
+gfsmStateId gfsm_automaton_n_states_old(gfsmAutomaton *fsm);
 
 /** Implements gfsm_automaton_n_arcs() */
-//static inline guint gfsm_automaton_n_arcs_old(gfsmAutomaton *fsm);
+//static inline gfsmArcId gfsm_automaton_n_arcs_old(gfsmAutomaton *fsm);
 //-- DEFAULT
 
 /** Implements gfsm_automaton_n_final_states()
@@ -110,7 +112,7 @@ guint gfsm_automaton_n_states_old(gfsmAutomaton *fsm);
  *    consult GLib docs & sources to be certain!
  */
 static inline
-guint gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm);
+gfsmStateId gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm);
 
 /** Implements gfsm_automaton_get_root()
  *  \par Time: O(1)
@@ -151,7 +153,7 @@ gboolean gfsm_automaton_has_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  * \par Time: O(1)
  */
 static inline
-gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qid);
+gfsmStateId gfsm_automaton_add_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Implements gfsm_automaton_remove_state()
  * \par Time: O(out_degree(qid))
@@ -160,8 +162,7 @@ static inline
 void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 //----------------------------------------------
-// States: open/close [IGNORE!]
-#if 0
+// States: open/close
 /** Implements *gfsm_automaton_open_state()
  * \par Time: O(1)
  */
@@ -171,7 +172,6 @@ gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  * \par Time: O(1)
  */
 void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *sp);
-#endif
 
 //----------------------------------------------
 // States: finality
@@ -200,7 +200,7 @@ void gfsm_automaton_set_final_state_full_old(gfsmAutomaton *fsm,
  * \par Time: O(out_degree(qid))
  */
 static inline
-guint gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid);
+gfsmArcId gfsm_automaton_out_degree_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 //@}
 
@@ -237,19 +237,19 @@ void gfsm_automaton_arcsort_full_old(gfsmAutomaton *fsm, GCompareDataFunc cmpfun
 ///\name API: Arc Iterators
 //@{
 
-/** Implements gfsm_arciter_init_old()
+/** Implements gfsm_arciter_open()
  *  \par Time: O(1)
  */
 static inline
 void gfsm_arciter_init_old(gfsmArcIter *aip);
 
-/** Implements gfsm_arciter_close_old()
- *  \par Time: O(1)
+/* Implements gfsm_arciter_close() 
+ * \par Time: O(1)
  */
 static inline
 void gfsm_arciter_close_old(gfsmArcIter *aip);
 
-/** Implements gfsm_arciter_ok_old()
+/** Implements gfsm_arciter_ok()
  *  \par Time: O(1)
  */
 static inline
@@ -261,28 +261,28 @@ gboolean gfsm_arciter_ok_old(gfsmArcIter *aip);
 static inline
 void gfsm_arciter_next(gfsmArcIter *aip);
 
-/** Implements gfsm_arciter_reset_old()
+/** Implements gfsm_arciter_reset()
  *  \par Time: O(1)
  */
 static inline
 void gfsm_arciter_reset_old(gfsmArcIter *aip);
 
-/* Implements gfsm_arciter_copy_old() */
+/* Implements gfsm_arciter_copy() */
 //void gfsm_arciter_copy_old(gfsmArcIter *dst, gfsmArcIter *src);
 //-- DEFAULT
 
 
-/* Implements gfsm_arciter_clone_old() */
+/* Implements gfsm_arciter_clone() */
 //gfsmArcIter *gfsm_arciter_clone_old(const gfsmArcIter *src);
 //-- DEFAULT
 
-/** Implements gfsm_arciter_arc_old()
+/** Implements gfsm_arciter_arc()
  *  \par Time: O(1)
  */
 static inline
 gfsmArc *gfsm_arciter_arc_old(gfsmArcIter *aip);
 
-/** Implements gfsm_arciter_remove_old()
+/** Implements gfsm_arciter_remove()
  *  \par Time: O(1)
  */
 static inline
@@ -300,11 +300,32 @@ void gfsm_arciter_remove_old(gfsmArcIter *aip);
 //void gfsm_arciter_seek_upper_default(gfsmArcIter *aip, gfsmLabelVal hi);
 //--DEFAULT
 
-/* Implements gfsm_arciter_seek_user() */
-//void gfsm_arciter_seek_user_default(gfsmArcIter *aip,gfsmArcIterSeekFunc seekfunc,gpointer data);
-//--DEFAULT
-
 //@}
 
+/*======================================================================
+ * API: Automaton I/O
+ */
+///\name API: Automaton I/O
+//@{
+
+/** Minimum libgfsm version required for loading files stored by this version of libgfsm */
+extern const gfsmVersionInfo gfsm_version_bincompat_min_store_old;
+
+/** Minimum libgfsm version whose binary files this version of libgfsm can read */
+extern const gfsmVersionInfo gfsm_version_bincompat_min_check_old;
+
+/** Implements gfsm_automaton_get_bin_header() */
+void gfsm_automaton_get_bin_header_old(gfsmAutomaton *fsm, gfsmAutomatonHeader *hdr);
+
+/** Implements gfsm_automaton_save_bin_handle() */
+gboolean gfsm_automaton_save_bin_handle_old(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
+
+/** Implementa gfsm_automaton_load_bin_handle() */
+gboolean gfsm_automaton_load_bin_handle_old(gfsmAutomaton        *fsm,
+					    gfsmAutomatonHeader  *hdr,
+					    gfsmIOHandle         *ioh,
+					    gfsmError           **errp);
+
+//@}
 
 #endif /* _GFSM_IMPL_OLD_H */
