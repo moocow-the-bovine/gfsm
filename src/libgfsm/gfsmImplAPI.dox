@@ -1,0 +1,453 @@
+/*-*- Mode: C -*-
+/*=============================================================================*\
+ * File: gfsmImplAPI.dox
+ * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Description: finite state machine library: implementation: doxygen dummy
+ *
+ * Copyright (c) 2007 Bryan Jurish.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *=============================================================================*/
+
+/** \file gfsmImplAPI.dox
+ *  \brief ::gfsmAutomaton implementation API specification
+ *  \detail
+ *   \li The \c impl_ infix is used throughout this file to indicate
+ *    some implementation-dependent identifier.
+ *   \li Except where otherwise
+ *     specified, the first parameter of type ::gfsmAutomaton* to any function
+ *     described here may be assumed for purposes of an implementation to
+ *     have the proper implementation type when the function is called.
+ *   \li The implementation API functions documented here are optional
+ *     except where otherwise noted.
+ */
+#include <gfsmAutomatonTypes.h>
+
+/*======================================================================
+ * API: constructors, etc.
+ */
+///\name API: Constructors, etc.
+//@{
+
+/** Create and initialize a new implementation of \c fsm->itype in \c fsm->impl.
+ *  Flags and semiring (type) should already have been intialized when this function is called.
+ *  \param fsm ::gfsmAutomaton to be initialized.
+ *  \par Implements:
+ *   gfsm_automaton_new(), gfsm_automaton_new_full()
+ */
+//--REQUIRED
+void gfsm_automaton_impl_init(gfsmAutomaton *fsm, guint n_states, guint n_arcs);
+
+/** Create a new gfsmAutomaton by cloning an existing one.
+ *  \param src source automaton to clone
+ *  \returns new deep copy of \a src
+ *  \par Implements:
+ *   gfsm_automaton_clone()
+ */
+//--REQUIRED
+gfsmAutomaton *gfsm_automaton_impl_clone(gfsmAutomaton *src);
+
+/** Assign the contents of \a src to \a dst, without altering \a dst's implementation class.
+ * \param dst target automaton
+ * \param src source automaton
+ * \returns modified \a dst
+ * \par Implements:
+ *   gfsm_automaton_copy()
+ */
+//--OPTIONAL
+gfsmAutomaton *gfsm_automaton_impl_copy(gfsmAutomaton *dst, gfsmAutomaton *src);
+
+/** Clear an automaton implementation.
+ * \par Implements:
+ *   gfsm_automaton_clear()
+ */
+//--REQUIRED
+void gfsm_automaton_impl_clear(gfsmAutomaton *fsm);
+
+/** Destroy an automaton implementation.
+ * \param fsm automaton whose implementation is to be destroyed
+ * \par Implements:
+ *   gfsm_automaton_free()
+ */
+//--REQUIRED
+void gfsm_automaton_impl_free(gfsmAutomaton *fsm);
+
+//@}
+
+/*======================================================================
+ * API: Automaton Structure
+ */
+/// \name API: Automaton Structure
+//@{
+
+/** Reserve space for at least \a n_states states (may do nothing)
+ * \param fsm automaton to modify
+ * \param n_states number of states to reserve, if supported by implementation
+ * \par Implements:
+ *   gfsm_automaton_reserve_states()
+ */
+//--OPTIONAL
+void gfsm_automaton_impl_reserve_states(gfsmAutomaton *fsm, gfsmStateId n_states);
+
+/** Reserve space for at least \a n_arcs arcs
+ *  \param fsm automaton to modify
+ *  \param n_states number of arcs to reserve, if supported by implementation
+ *  \par Implements:
+ *   gfsm_automaton_reserve_arcs()
+ */
+//--OPTIONAL
+void gfsm_automaton_impl_reserve_arcs(gfsmAutomaton *fsm, gfsmArcId n_arcs);
+
+/** Get the least ::gfsmStateId \a n_states for which no greater or equal ::gfsmStateId
+ *  identifies a state in \a fsm.
+ *  \param fsm automaton to examine
+ *  \returns \a n_states
+ * \par Implements:
+ *    gfsm_automaton_n_states()
+ */
+//--RECOMMENDED
+guint gfsm_automaton_impl_n_states(gfsmAutomaton *fsm);
+
+/** Get number of arcs in \a fsm.
+ *  \param fsm automaton to examine
+ *  \returns total number of arcs leaving any valid state in \a fsm
+ * \par Implements:
+ *    gfsm_automaton_n_arcs()
+ */
+//--OPTIONAL
+guint gfsm_automaton_impl_n_arcs(gfsmAutomaton *fsm);
+
+/** Get number of final states in \a fsm.
+ * \par Implements:
+ *    gfsm_automaton_n_final_states()
+ */
+//--RECOMMENDED
+guint gfsm_automaton_impl_n_final_states(gfsmAutomaton *fsm);
+
+/** Get ID of root state.
+ *  \param fsm automaton to examine
+ *  \returns ::gfsmStateId of root state, or ::gfsmNoState if none is defined.
+ * \par Implements:
+ *    gfsm_automaton_get_root()
+ */
+//--RECOMMENDED
+gfsmStateId gfsm_automaton_impl_get_root(gfsmAutomaton *fsm);
+
+/** Set ID of root state, creating state if necessary
+ *  \param fsm automaton to examine
+ *  \param qid ID of (possibly new) root state
+ * \par Implements:
+ *    gfsm_automaton_set_root()
+ */
+//--REQUIRED
+void gfsm_automaton_impl_set_root(gfsmAutomaton *fsm, gfsmStateId qid);
+
+/** Renumber states of an automaton using a user-specified renumbering scheme.
+ *  Destructively alters \a fsm.
+ *  \param fsm
+ *    automaton whose states are to be renumbered
+ *  \param old2new
+ *    ::GArray of ::gfsmStateId s.t. \a qid_new=old2new[qid_old], where \a newid may be ::gfsmNoState to ignore
+ *  \param n_new_states
+ *     number of new states, or 0 (zero) to auto-compute
+ *
+ *  \note
+ *    Should be guaranteed \b not to increase either the number of states nor the number of arcs in \a fsm.
+ *
+ * \par Implements:
+ *    gfsm_automaton_renumber_states_full()
+ */
+//--REQUIRED if implementation is mutable
+void gfsm_automaton_impl_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states);
+
+//@}
+
+/*======================================================================
+ * API: Automaton States
+ */
+/// \name API: Automaton States
+//@{
+
+//----------------------------------------------
+// States: ok/add/remove
+
+/** Check whether automaton \a fsm has a valid state with ID \a qid.
+ *  \param fsm automaton to examine
+ *  \param qid ID of state to examine
+ *  \returns TRUE if \a fsm has a state with ID \a id, FALSE otherwise.
+ *
+ * \par Implements:
+ *    gfsm_automaton_has_state()
+ */
+//--REQUIRED
+gboolean gfsm_automaton_impl_has_state(gfsmAutomaton *fsm, gfsmStateId qid);
+
+/** Add a new state, specifying qid.  If \a qid is gfsmNoState,
+ *  first available state qid will be selected.
+ *
+ *  \param fsm fsm to modify
+ *  \param qid  identifier of the new state, or gfsmNoState
+ *  \returns ID of the new state, or gfsmNoState on failure
+ *
+ * \par Implements:
+ *    gfsm_automaton_add_state_full()
+ */
+//--REQUIRED if implementation is mutable
+gfsmStateId gfsm_automaton_impl_add_state_full(gfsmAutomaton *fsm, gfsmStateId qid);
+
+/** Remove the state with ID \a qid, if any.
+ *  May have no effect on incoming arcs for state \a qid,
+ *  although any outgoing arcs should be removed and freed.
+ *
+ *  \param fsm automaton from which to remove a state
+ *  \param qid ID of the state to be removed
+ *
+ * \par Implements:
+ *    gfsm_automaton_remove_state()
+ */
+//--REQUIRED if implementation is mutable
+void gfsm_automaton_impl_remove_state(gfsmAutomaton *fsm, gfsmStateId qid);
+
+//----------------------------------------------
+// States: finality
+
+/** Lookup final weight for state with ID \a qid in automaton \a fsm.
+ *  \param fsm automaton to examine
+ *  \param qid ID of state to examine
+ *  \param  wp output parameter for final weight
+ *  \returns
+ *     TRUE if state \a id is final, FALSE otherwise,
+ *
+ * \par Implements:
+ *    gfsm_automaton_lookup_final()
+ */
+//--REQUIRED
+gboolean gfsm_automaton_impl_lookup_final(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp);
+
+/** Set final-weight and/or final-states membership flag for state with ID \a qid in \a fsm.
+ * \param fsm automaton to modify
+ * \param qid ID of state to modified
+ * \param is_final whether state should be considered final
+ * \param final_weight
+ *    If \a is_final is true, final weight for state.  Otherwise
+ *    final weight should implicitly be set to \a (fsm)->sr->zero
+ *
+ * \par Implements:
+ *    gfsm_automaton_set_final_state_full()
+ */
+//--REQUIRED if implementation is mutable
+void gfsm_automaton_impl_set_final_state_full(gfsmAutomaton *fsm,
+						 gfsmStateId qid,
+						 gboolean       is_final,
+						 gfsmWeight     final_weight);
+
+
+//----------------------------------------------
+// States: properties
+
+/** Get number of outgoing arcs for state with ID \a qid in \a fsm
+ *  \param fsm automaton to examine
+ *  \param qid ID of state to examine
+ *  \returns output degree of \c qid in \c fsm
+ *
+ * \par Implements:
+ *    gfsm_automaton_out_degree()
+ */
+//--OPTIONAL
+guint gfsm_automaton_impl_out_degree(gfsmAutomaton *fsm, gfsmStateId qid);
+
+//@}
+
+
+/*======================================================================
+ * API: Automaton Arcs
+ */
+/// \name API: Automaton Arcs
+//@{
+
+/** Add an arc from state with ID \c qid1 to state with ID \c qid2
+ *  on labels (\c lo,\c hi) with weight \c w.
+ *  Missing states should be implicitly created.
+ *
+ *  \param fsm Automaton to modify
+ *  \param qid1 ID of source state
+ *  \param qid2 ID of target state
+ *  \param lo   Lower label
+ *  \param hi   Upper label
+ *  \param w    Arc weight
+ *
+ * \par Implements:
+ *    gfsm_automaton_add_arc()
+ */
+//--REQUIRED if implementation is mutable
+void gfsm_automaton_impl_add_arc(gfsmAutomaton *fsm,
+				    gfsmStateId    qid1,
+				    gfsmStateId    qid2,
+				    gfsmLabelVal   lo,
+				    gfsmLabelVal   hi,
+				    gfsmWeight     w);
+
+/** Sort all arcs in the automaton by a user-specified comparison function.
+ *  \param fsm
+ *    Automaton to modify
+ *  \param cmpfunc
+ *    3-way comparison function, called as \a (*cmpfunc)(gfsmArc *a1p, gfsmArc *a2p, gpointer data)
+ *    to compare arcs a1p and a2p.
+ *  \param data
+ *    User data for \a cmpfunc
+ *
+ * \par Implements:
+ *    gfsm_automaton_arcsort_full()
+ */
+//--REQUIRED if implementation is mutable
+void gfsm_automaton_impl_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
+
+//@}
+
+/*======================================================================
+ * API: Arc Iterators
+ */
+///\name API: Arc Iterators
+//@{
+
+/** Initialize a ::gfsmArcIter \a aip.
+ *  \param aip the ::gfsmArcIter to initialize
+ *    \li \a aip is assumed to be already allocated
+ *    \li The \a fsm and \a qid fields of \a aip are assumed to be already populated
+ * \par Implements:
+ *   gfsm_arciter_open()
+ */
+//--REQUIRED
+void gfsm_arciter_impl_init(gfsmArcIter *aip);
+
+/** Close a ::gfsmArcIter \a aip
+ *  \param aip the ::gfsmArcIter to be closed
+ * \par Implements:
+ *   gfsm_arciter_close()
+ */
+//--OPTIONAL
+void gfsm_arciter_impl_close(gfsmArcIter *aip);
+
+/** Check validity of a ::gfsmArcIteraor \a aip
+ *  \param aip the ::gfsmArcIter to check
+ *  \returns a true value iff \a aip points to a valid arc
+ * \par Implements:
+ *   gfsm_arciter_ok()
+ */
+//--REQUIRED
+gboolean gfsm_arciter_impl_ok(gfsmArcIter *aip);
+
+/** Increment a ::gfsmArcIter \a aip to the next available outgoing arc, if possible.
+ *  \param aip the ::gfsmArcIter to increment
+ * \par Implements:
+ *   gfsm_arciter_next()
+ */
+//--REQUIRED
+void gfsm_arciter_impl_next(gfsmArcIter *aip);
+
+/** Reset a ::gfsmArcIter \a aip to the first available outgoing arc.
+ *  \param aip the ::gfsmArcIter to reset.
+ * \par Implements:
+ *   gfsm_arciter_reset()
+ */
+//--OPTIONAL
+void gfsm_arciter_impl_reset(gfsmArcIter *aip);
+
+/** Copy contents of a ::gfsmArcIteraor \a src to \a dst
+ *  Does \b not copy arc data! 
+ *  \param src the ::gfsmArcIter to copy from
+ *  \param dst the ::gfsmArcIter to copy to
+ * \par Implements:
+ *   gfsm_arciter_copy()
+ */
+//--OPTIONAL
+void gfsm_arciter_impl_copy(gfsmArcIter *dst, gfsmArcIter *src);
+
+
+/** Create and return a new exact copy of a ::gfsmArcIter.
+ *  Does \b not copy arc data!
+ *  \param src the ::gfsmArcIter to be duplicated
+ * \par Implements:
+ *   gfsm_arciter_clone()
+ */
+//--OPTIONAL
+gfsmArcIter *gfsm_arciter_impl_clone(const gfsmArcIter *src);
+
+
+/** Get current arc associated with a :gfsmArcIter, or NULL if none is available.
+ *  \param aip the ::gfsmArcIter to be 'dereferenced'.
+ * \par Implements:
+ *   *gfsm_arciter_arc()
+ */
+//--REQUIRED
+gfsmArc *gfsm_arciter_impl_arc(gfsmArcIter *aip);
+
+/** Remove the arc referred to by a ::gfsmArcIter \a aip from its automaton,
+ *  and position \aip to the next arc, if any.
+ *  \param aip the ::gfsmArcIter whose 'current' arc is to be removed
+ *
+ * \par Implements:
+ *   gfsm_arciter_remove()
+ */
+//--REQUIRED if automaton is mutable
+void gfsm_arciter_impl_remove(gfsmArcIter *aip);
+
+/** Position an arc-iterator to the next arc
+ *  with lower label \a lo and upper label \a hi.
+ *  If either \a lo or \a hi is gfsmNoLabel, the corresponding label(s)
+ *  will be ignored.
+ * \par Implements:
+ *    gfsm_arciter_seek_both()
+ */
+//--OPTIONAL
+void gfsm_arciter_impl_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi);
+
+/** Position a :.gfsmArcIter \a aip to the next arc with lower label \a lo
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param lo  the lower label sought
+ * \par Implements:
+ *    gfsm_arciter_seek_lower()
+ */
+//--OPTIONAL
+void gfsm_arciter_impl_seek_lower(gfsmArcIter *aip, gfsmLabelVal lo);
+
+/** Position a :.gfsmArcIter \a aip to the next arc with upper label \a hi
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param lo  the upper label sought
+ * \par Implements:
+ *    gfsm_arciter_seek_upper()
+ */
+//--OPTIONAL
+void gfsm_arciter_impl_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi);
+
+/** Position the ::gfsmArcIter \a aip to the next arc for which
+ *  <tt>(*seekfunc)(aip,data)</tt>
+ *  returns a true value.
+ *  \param aip the ::gfsmArcIter to reposition
+ *  \param seekfunc user-defined seek function
+ *  \param data user data passed to \a seekfunc
+ *
+ * \par Implements:
+ *    gfsm_arciter_seek_user()
+ */
+//--OPTIONAL
+void gfsm_arciter_impl_seek_user(gfsmArcIter *aip,
+				 gfsmArcIterSeekFunc seekfunc,
+				 gpointer data);
+
+
+//@}
+
+#endif
