@@ -41,9 +41,9 @@ const gfsmAutomatonFlags gfsmAutomatonDefaultFlags =
 
 const gfsmSRType gfsmAutomatonDefaultSRType = gfsmSRTTropical;
 
-const guint gfsmAutomatonDefaultNStates  = 128;
+const gfsmStateId gfsmAutomatonDefaultNStates  = 128;
 
-const guint gfsmAutomatonDefaultNArcs = 128;
+const gfsmArcId gfsmAutomatonDefaultNArcs = 128;
 
 const char *gfsmAutomatonClassNames[gfsmACNClasses] =
   {
