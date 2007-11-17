@@ -407,23 +407,38 @@ gfsmArcId gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Renumber states of an automaton \a fsm.
  *  Removes "gaps" in state IDs and sets root ID to 0 (zero).
- *  \warning may not be supported by all implementation classes.
- *  \param fsm fsm to be modified.
+ *  \param fsm fsm to be (pseudo-destructively) modified.
  */
 void gfsm_automaton_renumber_states(gfsmAutomaton *fsm);
 
 /** Renumber states of an automaton using a user-specified renumbering scheme.
- *  Destructively alters \a fsm.
- *  \warning may not be supported by all implementation classes.
- *  \param fsm
+ *  Pseudo-destructive on \a fsm.
+ *  \param src
  *    automaton whose states are to be renumbered
  *  \param old2new
  *    ::GArray of ::gfsmStateId s.t. \a qid_new=old2new[qid_old], newid may be ::gfsmNoState to ignore
  *  \param n_new_states
  *     number of new states, or 0 (zero) to auto-compute
+ *  \note
+ *   Really just a wrapper for gfsm_automaton_map_states()
  */
 static inline
-void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states);
+void gfsm_automaton_renumber_states_full(gfsmAutomaton *src, GArray *old2new, gfsmStateId n_new_states);
+
+/** Map state ids of an automaton \a fsm using a user-specified renumbering scheme
+ *  to a mutable automaton \a dst.
+ *  \param src source automaton
+ *  \param old2new
+ *    ::GArray of ::gfsmStateId s.t. \a qid_new=old2new[qid_old], newid may be ::gfsmNoState to ignore
+ *  \param n_new_states
+ *     number of new states, or 0 (zero) to auto-compute
+ *  \param dst destination automaton, may be NULL to allocate a new automaton of the default class.
+ *  \returns dst, or a newly allocated automaton.
+ */
+gfsmAutomaton *gfsm_automaton_map_states(gfsmAutomaton *src,
+					 GArray        *old2new,
+					 gfsmStateId    n_new_states,
+					 gfsmAutomaton *dst);
 
 /** Open and return a pointer to a ::gfsmState struct for ::gfsmStateId \a qid in \a fsm.
  *  \warning
@@ -684,7 +699,7 @@ void gfsm_automaton_get_bin_header(gfsmAutomaton *fsm, gfsmAutomatonHeader *hdr)
  *  \param errp[out] if an error occurs, \a *errp will hold a diagnostic message.
  *  \returns a true value iff save was successful.
  *  \note
- *    No default implementation (always returns FALSE)
+ *    No default implementation (?)
  */
 static inline
 gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
@@ -696,7 +711,7 @@ gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, g
  *  \param errp[out] if an error occurs, \a *errp will hold a diagnostic message.
  *  \returns a true value iff load was successful.
  *  \note
- *   No default implementation (always returns FALSE)
+ *   No default implementation (?)
  */
 static inline
 gboolean gfsm_automaton_load_bin_handle(gfsmAutomaton       *fsm,

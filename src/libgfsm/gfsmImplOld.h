@@ -166,11 +166,13 @@ void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 /** Implements *gfsm_automaton_open_state()
  * \par Time: O(1)
  */
+static inline
 gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Implements gfsm_automaton_close_state().
  * \par Time: O(1)
  */
+static inline
 void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *sp);
 
 //----------------------------------------------
@@ -307,12 +309,6 @@ void gfsm_arciter_remove_old(gfsmArcIter *aip);
  */
 ///\name API: Automaton I/O
 //@{
-
-/** Minimum libgfsm version required for loading files stored by this version of libgfsm */
-extern const gfsmVersionInfo gfsm_version_bincompat_min_store_old;
-
-/** Minimum libgfsm version whose binary files this version of libgfsm can read */
-extern const gfsmVersionInfo gfsm_version_bincompat_min_check_old;
 
 /** Implements gfsm_automaton_get_bin_header() */
 void gfsm_automaton_get_bin_header_old(gfsmAutomaton *fsm, gfsmAutomatonHeader *hdr);

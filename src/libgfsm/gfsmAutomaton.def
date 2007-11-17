@@ -354,7 +354,7 @@ gfsmArcId gfsm_automaton_n_arcs(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * n_arcs_full()
  */
-//--PURE FUNCTION
+//--PURE FUNCTION (ok)
 
 
 /*--------------------------------------------------------------
@@ -391,7 +391,7 @@ gfsmStateId gfsm_automaton_set_root(gfsmAutomaton *fsm, gfsmStateId new_root_id)
 /*======================================================================
  * API: Automaton Properties
  */
-//--PURE FUNCTIONS
+//--PURE FUNCTIONS (ok)
 
 
 /*======================================================================
@@ -518,27 +518,25 @@ gfsmArcId gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * renumber_states()
  */
-//-- PURE FUNCTION
+//-- PURE FUNCTION (ok)
 
 /*--------------------------------------------------------------
  * renumber_states_full()
  */
-void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states)
+static inline
+void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm,
+					 GArray        *old2new,
+					 gfsmStateId    n_new_states)
 {
-  switch (fsm->itype) {
-  case gfsmACOld:
-    gfsm_automaton_renumber_states_full_old(fsm,old2new,n_new_states);
-    break;
-  default:
-    break;
-  }
-  return gfsm_automaton_renumber_states_full_default(fsm,old2new,n_new_states);
+  gfsmAutomaton *dst = gfsm_automaton_map_states(fsm, old2new, n_new_states, NULL);
+  gfsm_automaton_swap(dst,src);
+  gfsm_automaton_free(src);
 }
 
 /*--------------------------------------------------------------
- * renumber_states_full_default()
+ * map_states()
  */
-//--PURE FUNCTION
+//--PURE FUNCTION (ok)
 
 /*--------------------------------------------------------------
  * open_state()
@@ -552,7 +550,7 @@ gfsmState *gfsm_automaton_open_state(gfsmAutomaton *fsm, gfsmStateId qid)
   default:
     break;
   }
-  return gfsm_automaton_open_state_default(fsm,qid); //--PURE FUNCTION
+  return gfsm_automaton_open_state_default(fsm,qid); //--DEFAULT: PURE FUNCTION
 }
 
 /*--------------------------------------------------------------
@@ -567,7 +565,7 @@ void gfsm_automaton_close_state(gfsmAutomaton *fsm, gfsmState *qp)
   default:
     break;
   }
-  return gfsm_automaton_close_state_default(fsm,qp); //--PURE FUNCTION
+  return gfsm_automaton_close_state_default(fsm,qp); //--DEFAULT: PURE FUNCTION
 }
 
 
@@ -853,7 +851,7 @@ void gfsm_automaton_get_bin_header(gfsmAutomaton *fsm, gfsmAutomatonHeader *hdr)
 }
 
 /*--------------------------------------------------------------
- * get_bin_header()
+ * save_bin_handle()
  */
 static inline
 gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp)

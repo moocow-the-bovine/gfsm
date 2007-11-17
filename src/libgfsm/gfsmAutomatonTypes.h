@@ -43,11 +43,9 @@ typedef enum {
   gfsmACUnknown,            /**< unknown class; should never happen in practice */
   gfsmACOld,                /**< backwards-compatible implementation, see ::gfsmImplOld \b TODO */
   gfsmACBasic,              /**< basic implementation; see ::gfsmBasicImpl \b TODO */
-#if 0
   gfsmACArcTable,           /**< (read-only) arc table implementation; see ::gfsmImplArcTable \b TODO */
   gfsmACFullTable,          /**< (read-only) full table implementation; see ::gfsmImplFullTable \b TODO */
   gfsmACVirtual,            /**< user-defined full-virtual implementation; see ::gfsmImplVirtual \b TODO */
-#endif
   gfsmACNClasses            /**< not really an implementation class at all */
 } gfsmAutomatonClass;
 
@@ -57,11 +55,9 @@ typedef union {
   gpointer             p;   /**< Generic (void*) */
   gfsmImplOld       *old;   /**< backwards-compatible implementation */
   gfsmImplBasic       *b;   /**< basic implementation */
-#if 0
-  gfsmImplArcTable   *at;   /**< (read-only) arc table implementation */
-  gfsmImplFulTable   *ft;   /**< (read-only) full table implementation */
-  gfsmImplVirtual     *v;   /**< user-defined full-virtual implementation */
-#endif
+  struct gfsmImplArcTable_   *at;   /**< (read-only) arc table implementation */
+  struct gfsmImplFulTable_   *ft;   /**< (read-only) full table implementation */
+  struct gfsmImplVirtual_     *v;   /**< user-defined full-virtual implementation */
 } gfsmAutomatonImpl;
 
 //@}
@@ -132,7 +128,7 @@ typedef gboolean (*gfsmArcIterSeekFunc) (gfsmArcIter *aip, gpointer data);
  */
 //\name Binary Automaton I/O
 
-/// Header info for binary files
+/// Common header info struct for binary files
 typedef struct {
   gchar              magic[16];      /**< magic header string "gfsm_automaton" */
   gfsmVersionInfo    version;        /**< gfsm version which created the stored file */
