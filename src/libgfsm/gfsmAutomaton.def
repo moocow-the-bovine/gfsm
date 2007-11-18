@@ -827,30 +827,6 @@ void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi)
  */
 
 /*--------------------------------------------------------------
- * get_bin_header()
- */
-static inline
-void gfsm_automaton_get_bin_header(gfsmAutomaton *fsm, gfsmAutomatonHeader *hdr)
-{
-  switch (fsm->itype) {
-  case gfsmACOld:
-    gfsm_automaton_get_bin_header_old(fsm,hdr);
-    return;
-  default:
-    break;
-  }
-  //-- default
-  hdr->version    = gfsm_version;
-  //hdr.version_min = gfsm_version_bincompat_min_store;
-  hdr->flags      = fsm->flags;
-  hdr->root_id    = gfsm_automaton_get_root(fsm);
-  hdr->n_states   = gfsm_automaton_n_states(fsm);
-  hdr->n_arcs     = gfsm_automaton_n_arcs(fsm);
-  hdr->srtype     = fsm->sr->type;
-  hdr->itype      = fsm->itype;
-}
-
-/*--------------------------------------------------------------
  * save_bin_handle()
  */
 static inline

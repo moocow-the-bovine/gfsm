@@ -316,4 +316,18 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
 /*======================================================================
  * API: Automaton I/O
  */
-//-- TODO
+
+/*--------------------------------------------------------------
+ * save_header()
+ */
+gboolean gfsm_automaton_save_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *ioh, gfsmError **errp)
+{
+  //-- write header
+  if (!gfsmio_write(ioh, &hdr, sizeof(gfsmAutomatonHeader))) {
+    g_set_error(errp, g_quark_from_static_string("gfsm"),                  //-- domain
+		      g_quark_from_static_string("automaton_save_header"), //-- code
+		      "could not store automaton header");
+    return FALSE;
+  }
+  return TRUE;
+}

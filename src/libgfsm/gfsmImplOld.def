@@ -266,8 +266,6 @@ void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
   s->is_valid = FALSE;
 }
 
-
-#if 0
 /*--------------------------------------------------------------
  * open_state_old()
  */
@@ -281,7 +279,7 @@ gfsmState *gfsm_automaton_open_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
 static inline
 void gfsm_automaton_close_state_old(gfsmAutomaton *fsm, gfsmState *qp)
 { return; }
-#endif /* 0: open/close state */
+
 
 /*--------------------------------------------------------------
  * lookup_final()
@@ -486,3 +484,9 @@ void gfsm_arciter_remove_old(gfsmArcIter *aip)
  * seek_X()
  */
 //-- DEFAULT: seek_lower, seek_upper, seek_both, seek_user
+
+
+/*======================================================================
+ * API: Automaton I/O
+ */
+//-- PURE FUNCTIONS

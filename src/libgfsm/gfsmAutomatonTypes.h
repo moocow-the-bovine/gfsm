@@ -126,9 +126,10 @@ typedef gboolean (*gfsmArcIterSeekFunc) (gfsmArcIter *aip, gpointer data);
 /*======================================================================
  * Binary Automaton I/O
  */
-//\name Binary Automaton I/O
+///\name Binary Automaton I/O
+//@{
 
-/// Common header info struct for binary files
+/// Common header info struct for binary automaton I/O
 typedef struct {
   gchar              magic[16];      /**< magic header string "gfsm_automaton" */
   gfsmVersionInfo    version;        /**< gfsm version which created the stored file */
@@ -144,5 +145,6 @@ typedef struct {
   guint32            reserved3;      /**< reserved */
 } gfsmAutomatonHeader;
 
+//@}
 
 #endif /* _GFSM_AUTOMATON_TYPES_H */

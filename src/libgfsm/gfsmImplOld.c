@@ -26,340 +26,310 @@
 /*======================================================================
  * API: Constructors etc.
  */
+//-- inlined or generic
 
 /*======================================================================
  * API: Semiring
  */
+//-- inlined or generic
 
 /*======================================================================
  * API: Automaton Structure
  */
-
-/*--------------------------------------------------------------
- * renumber_states_full()
- */
-void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states)
-{
-  gfsmStateId    oldid, newid;
-  gfsmState     *s_old, *s_new;
-  gfsmWeightMap *new_finals = gfsm_weightmap_new(gfsm_uint_compare);
-  GArray        *new_states = NULL;
-
-  //-- get new number of states
-  if (n_new_states==0) {
-    for (oldid=0; oldid < fsm->states->len; oldid++) {
-      if (!gfsm_automaton_has_state(fsm,oldid)) continue;
-      newid = g_array_index(old2new,gfsmStateId,oldid);
-      if (newid != gfsmNoState && newid >= n_new_states) { n_new_states=newid+1; }
-    }
-  }
-
-  //-- allocate new state-vector
-  new_states = g_array_sized_new(FALSE,TRUE,sizeof(gfsmState),n_new_states);
-
-  //-- renumber states
-  for (oldid=0; oldid < fsm->states->len; oldid++) {
-    gfsmArcIter ai; 
-    newid = g_array_index(old2new,gfsmStateId,oldid);
-
-    if (newid==gfsmNoState || !gfsm_automaton_has_state(fsm,oldid)) continue; //-- ignore bad states
-
-    //-- copy state data
-    s_old  = gfsm_automaton_find_state(fsm, oldid);
-    s_new  = &(g_array_index(new_states,gfsmState,newid));
-    *s_new = *s_old;
-
-    //-- check for final state
-    if (s_new->is_final) {
-      gfsmWeight fw;
-      gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
-      gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
-    }
-
-    //-- renumber targets of outgoing arcs
-    for (gfsm_arciter_open_ptr(&ai, fsm, s_new); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
-      {
-	gfsmArc *a = gfsm_arciter_arc(&ai);
-	a->target = g_array_index(old2new,gfsmStateId,a->target);
-      }
-  }
-
-  //-- set new root-id
-  fsm->root_id = g_array_index(old2new,gfsmStateId,fsm->root_id);
-
-  //-- set new final weights
-  gfsm_weightmap_free(fsm->finals);
-  fsm->finals = new_finals;
-
-  //-- set new state vector
-  g_array_free(fsm->states,TRUE);
-  fsm->states = new_states;
-  fsm->states->len = n_new_states;
-}
-
+//-- inlined or generic
 
 /*======================================================================
  * API: Automaton Properties
  */
-
-/*--------------------------------------------------------------
- * add_state_full()
- */
-gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id)
-{
-  gfsmState *st;
-
-  if (id == gfsmNoState)
-    id = fsm->states->len;
-
-  if (id >= fsm->states->len)
-    gfsm_automaton_reserve(fsm,id+1);
-  
-  st           = gfsm_automaton_find_state(fsm,id);
-  st->is_valid = TRUE;
-
-  fsm->flags.arcs_dirty=1; //-- index tracking
-
-  return id;
-}
-
-/*--------------------------------------------------------------
- * remove_state()
- */
-void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id)
-{
-  gfsmState *s = gfsm_automaton_find_state(fsm,id);
-  if (!s || !s->is_valid) return;
-
-  if (s->is_final) gfsm_set_remove(fsm->finals,GUINT_TO_POINTER(id));
-  if (id == fsm->root_id) fsm->root_id = gfsmNoState;
-
-  gfsm_arclist_free(s->arcs);
-  s->arcs = NULL;
-  s->is_valid = FALSE;
-
-  fsm->flags.final_dirty = 1; //-- index tracking
-  fsm->flags.arcs_dirty  = 1; //-- index tracking
-}
-
-/*--------------------------------------------------------------
- * set_final_state_full
- */
-void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
-					 gfsmStateId    id,
-					 gboolean       is_final,
-					 gfsmWeight     final_weight)
-{
-  gfsm_state_set_final(gfsm_automaton_get_state(fsm,id),is_final);
-  if (is_final) {
-    gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(id), final_weight);
-  }
-  else {
-    gfsm_weightmap_remove(fsm->finals, GUINT_TO_POINTER(id));
-  }
-  fsm->flags.final_dirty=1;
-}
-
-/*--------------------------------------------------------------
- * get_final_weight
- */
-gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id)
-{
-  gfsmWeight w;
-  if (gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(id), &w)) return w;
-  return fsm->sr->zero;
-}
-
-/*--------------------------------------------------------------
- * lookup_final
- */
-gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeight *wp)
-{
-  if (!gfsm_automaton_is_final_state(fsm,id)) {
-    *wp = fsm->sr->zero;
-    return FALSE;
-  }
-  else if (fsm->ix_final && !fsm->flags.final_dirty) {
-    *wp = g_array_index(fsm->ix_final, gfsmWeight, id);
-    return TRUE;
-  }
-  return gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(id), wp);
-}
-
-/*--------------------------------------------------------------
- * out_degree()
- */
-guint gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid)
-{
-  if (qid >= fsm->states->len) return 0;
-  if (!fsm->arcs_dirty) {
-    if (fsm->arcix_lower) return gfsm_label_index_out_degree(fsm->arcix_lower,qid);
-    if (fsm->arcix_upper) return gfsm_label_index_out_degree(fsm->arcix_upper,qid);
-  }
-  return gfsm_state_out_degree(gfsm_automaton_get_state(fsm,id));
-}
-
-
-/*--------------------------------------------------------------
- * renumber_states()
- */
-void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
-{
-  gfsmStateId    oldid, newid;
-  GArray        *old2new = NULL;
-
-  //-- always set root state to zero -- even add one
-  if (fsm->root_id == gfsmNoState) fsm->root_id = gfsm_automaton_add_state(fsm);
-
-  //-- get old-to-new id map
-  old2new = g_array_sized_new(FALSE,FALSE,sizeof(gfsmStateId),fsm->states->len);
-  g_array_index(old2new,gfsmStateId,fsm->root_id) = 0;
-  for (oldid=0, newid=0; oldid < fsm->states->len; oldid++) {
-    if (oldid==fsm->root_id) continue;
-    if (gfsm_automaton_has_state(fsm,oldid)) {
-      g_array_index(old2new,gfsmStateId,oldid) = ++newid;
-    } else {
-      g_array_index(old2new,gfsmStateId,oldid) = gfsmNoState;
-    }
-  }
-
-  //-- perform actual renumbering
-  gfsm_automaton_renumber_states_full(fsm, old2new, newid+1);
-
-  //-- cleanup
-  g_array_free(old2new,TRUE);
-}
-
-/*--------------------------------------------------------------
- * renumber_states_full()
- */
-void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states)
-{
-  gfsmStateId    oldid, newid;
-  gfsmState     *s_old, *s_new;
-  gfsmWeightMap *new_finals = gfsm_weightmap_new(gfsm_uint_compare);
-  GArray        *new_states = NULL;
-
-  //-- get new number of states
-  if (n_new_states==0) {
-    for (oldid=0; oldid < fsm->states->len; oldid++) {
-      if (!gfsm_automaton_has_state(fsm,oldid)) continue;
-      newid = g_array_index(old2new,gfsmStateId,oldid);
-      if (newid != gfsmNoState && newid >= n_new_states) { n_new_states=newid+1; }
-    }
-  }
-
-  //-- allocate new state-vector
-  new_states = g_array_sized_new(FALSE,TRUE,sizeof(gfsmState),n_new_states);
-
-  //-- renumber states
-  for (oldid=0; oldid < fsm->states->len; oldid++) {
-    gfsmArcIter ai; 
-    newid = g_array_index(old2new,gfsmStateId,oldid);
-
-    if (newid==gfsmNoState || !gfsm_automaton_has_state(fsm,oldid)) continue; //-- ignore bad states
-
-    //-- copy state data
-    s_old  = gfsm_automaton_find_state(fsm, oldid);
-    s_new  = &(g_array_index(new_states,gfsmState,newid));
-    *s_new = *s_old;
-
-    //-- check for final state
-    if (s_new->is_final) {
-      gfsmWeight fw;
-      gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
-      gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
-    }
-
-    //-- renumber targets of outgoing arcs
-    for (gfsm_arciter_open_ptr(&ai, fsm, s_new); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
-      {
-	gfsmArc *a = gfsm_arciter_arc(&ai);
-	a->target = g_array_index(old2new,gfsmStateId,a->target);
-      }
-  }
-
-  //-- set new root-id
-  fsm->root_id = g_array_index(old2new,gfsmStateId,fsm->root_id);
-
-  //-- set new final weights
-  gfsm_weightmap_free(fsm->finals);
-  fsm->finals = new_finals;
-
-  //-- set new state vector
-  g_array_free(fsm->states,TRUE);
-  fsm->states = new_states;
-  fsm->states->len = n_new_states;
-
-  //-- mark dirty
-  fsm->flags.arcs_dirty=1;
-  fsm->flags.final_dirty=1;
-}
-
+//-- inlined or generic
 
 /*======================================================================
- * Methods: Accessors: Automaton Arcs
+ * API: Automaton Arcs
  */
+//-- inlined or generic
+
+/*======================================================================
+ * API: Arc Iterators
+ */
+//-- inlined or generic
+
+/*======================================================================
+ * API: Automaton I/O
+ */
+
+const gfsmVersion gfsm_version_bincompat_min_store_old = {0,0,8};
+const gfsmVersion gfsm_version_bincompat_min_check_old = {0,0,2};
 
 /*--------------------------------------------------------------
- * add_arc()
+ * save_bin_handle()
  */
-void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
-			    gfsmStateId q1,
-			    gfsmStateId q2,
-			    gfsmLabelId lo,
-			    gfsmLabelId hi,
-			    gfsmWeight  w)
+gboolean gfsm_automaton_save_bin_handle_old(gfsmAutomaton        *fsm,
+					    gfsmAutomatonHeader  *hdr,
+					    gfsmIOHandle         *ioh,
+					    gfsmError           **errp)
 {
-  gfsmState *q1s;
-  gfsm_automaton_ensure_state(fsm,q2);
-  q1s = gfsm_automaton_get_state(fsm,q1);
-  gfsm_automaton_add_arc_link(fsm,
-			      q1s,
-			      gfsm_arclist_new_full(q1,q2,lo,hi,w,NULL));
-}
+  gfsmStateId         id;
+  gfsmState           *st;
+  gfsmStoredState     sst;
+  gfsmStoredArc       sa;
+  gfsmWeight           w;
+  gfsmArcIter         ai;
+  gboolean            rc = TRUE;
 
-/*--------------------------------------------------------------
- * add_arc_ptr()
- */
-void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
-				 gfsmState      *sp,
-				 gfsmArcList    *link)
-{
-  //-- possibly sorted
-  gfsmArcSortData sdata = { fsm->flags.sort_mode, fsm->sr };
-  sp->arcs = gfsm_arclist_insert_link(sp->arcs, link, &sdata);
+  //-- create & write header
+  hdr->version    = gfsm_version;
+  hdr.version_min = gfsm_version_bincompat_min_store_old;
+  hdr->flags      = fsm->flags;
+  hdr->root_id    = gfsm_automaton_get_root(fsm);
+  hdr->n_states   = gfsm_automaton_n_states(fsm);
+  hdr->n_arcs     = 0;
+  hdr->srtype     = fsm->sr->type;
+  hdr->itype      = fsm->itype;
+  if (!gfsm_automaton_save_header(&hdr,ioh,errp)) return FALSE; //-- errp shoud already be set
 
-  //-- always unmark 'deterministic' flag -- better: check
-  fsm->flags.is_deterministic = FALSE;
+  //-- zero stored state (allow zlib compression to work better for any 'unused' members)
+  memset(&sst, 0, sizeof(gfsmStoredState));
 
-  //-- always mark arcs "dirty"
-  fsm->flags.arcs_dirty=1;
+  //-- write states
+  for (id=0; rc && id < hdr->n_states; id++) {
+    //-- store basic state information
+    st           = gfsm_automaton_find_state_old(fsm,id);
+    sst.is_valid = st ? st->is_valid : FALSE;
+    sst.is_final = sst.is_valid ? st->is_final : FALSE;
+    sst.n_arcs   = sst.is_valid ? gfsm_state_out_degree(st) : 0;
+    if (!gfsmio_write(ioh, &sst, sizeof(sst))) {
+      g_set_error(errp, g_quark_from_static_string("gfsm"),                         //-- domain
+			g_quark_from_static_string("automaton_save_bin_old:state"), //-- code
+			"could not store state %d", id);
+      rc = FALSE;
+    }
 
-  /*-- unsorted
-  alp->next = sp->arcs;
-  sp->arcs = alp;
-  fsm->flags.sort_mode = gfsmASMNone;
-  */
-}
+    //-- store final weight (maybe)
+    if (rc && sst.is_final) {
+      w = gfsm_automaton_get_final_weight(fsm,id);
+      if (!gfsmio_write(ioh, &w, sizeof(gfsmWeight))) {
+	g_set_error(errp, g_quark_from_static_string("gfsm"),                                //-- domain
+		    g_quark_from_static_string("automaton_save_bin_old:state:final_weight"), //-- code
+		    "could not store final weight for state %d", id);
+	rc = FALSE;
+      }
+    }
 
-
-/*--------------------------------------------------------------
- * arcsort()
- */
-gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode)
-{
-  gfsmStateId id;
-  gfsmArcSortData sdata = { mode, fsm->sr };
-
-  if (mode != fsm->flags.sort_mode && mode != gfsmASMNone) {
-    for (id = 0; id < fsm->states->len; id++) {
-      gfsmState *s = gfsm_automaton_find_state(fsm,id);
-      if (!s || !s->is_valid) continue;
-      s->arcs = gfsm_arclist_sort(s->arcs, &sdata);
+    //-- store arcs
+    if (sst.is_valid) {
+      for (gfsm_arciter_open_ptr(&ai,fsm,st); rc && gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+	gfsmArc *a = gfsm_arciter_arc(&ai);
+	sa.target = a->target;
+	sa.lower  = a->lower;
+	sa.upper  = a->upper;
+	sa.weight = a->weight;
+	if (!gfsmio_write(ioh, &sa, sizeof(sa))) {
+	  g_set_error(errp, g_quark_from_static_string("gfsm"),                       //-- domain
+		      g_quark_from_static_string("automaton_save_bin_old:state:arc"), //-- code
+		      "could not store arcs for state %d", id);
+	  rc = FALSE;
+	} 
+      }
+      gfsm_arciter_close(&ai);
     }
   }
 
-  fsm->flags.sort_mode = mode;
-  return fsm;
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * load_bin_handle(): v0.0.2 .. v0.0.7
+ */
+/// Type for a stored state (v0.0.2 .. v0.0.7)
+typedef struct {
+  gboolean is_valid : 1; /**< valid flag */
+  gboolean is_final : 1; /**< final flag */
+  guint    n_arcs;       /**< number of stored arcs */
+  guint    min_arc;      /**< index of stored minimum arc (not really necessary) */
+} gfsmStoredState_007;
+
+gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomaton *fsm,
+					      gfsmAutomatonHeader *hdr,
+					      gfsmIOHandle *ioh,
+					      gfsmError **errp)
+{
+  gfsmImplOld    *fsmi = fsm->impl.old;
+  gfsmStateId     id;
+  guint           arci, n_arcs;
+  gfsmStoredArc   s_arc;
+  gfsmStoredState_007 s_state;
+  gfsmState       *st;
+  gboolean         rc = TRUE;
+
+  //-- allocate states
+  gfsm_automaton_reserve_states(fsm, hdr->n_states);
+
+  //-- set automaton-global properties
+  fsm->flags   = hdr->flags;
+  gfsm_semiring_init(fsm->sr, hdr->srtype);
+  fsmi->root_id = hdr->root_id;
+
+  //------ load states (one-by-one)
+  for (id=0; rc && id < hdr->n_states; id++) {
+    if (!gfsmio_read(ioh, &s_state, sizeof(gfsmStoredState_007))) {
+      g_set_error(errp,
+		  g_quark_from_static_string("gfsm"),                         //-- domain
+		  g_quark_from_static_string("automaton_load_bin_old:state"), //-- code
+		  "could not read stored state %d", id);
+      rc = FALSE;
+      break;
+    }
+
+    if (!s_state.is_valid) continue;
+
+    st           = gfsm_automaton_get_state_old(fsm,id);
+    st->is_valid = TRUE;
+
+    if (s_state.is_final) {
+      st->is_final = TRUE;
+      gfsm_weightmap_insert(fsmi->finals, GUINT_TO_POINTER(id), fsm->sr->one);
+    } else {
+      st->is_final = FALSE;
+    }
+
+    //-- HACK: remember number of arcs!
+    st->arcs = (gfsmArcList*) GUINT_TO_POINTER(s_state.n_arcs);
+  }
+
+  //------ load arcs (state-by-state)
+  for (id=0; rc && id < hdr->n_states; id++) {
+    //-- get state
+    st = gfsm_automaton_find_state(fsm,id);
+    if (!st || !st->is_valid) continue;
+
+    //-- read in arcs (one-by-one)
+    n_arcs   = GPOINTER_TO_UINT(st->arcs);
+    st->arcs = NULL;
+    for (arci=0; arci < n_arcs; arci++) {
+      if (!gfsmio_read(ioh, &s_arc, sizeof(gfsmStoredArc))) {
+	g_set_error(errp, g_quark_from_static_string("gfsm"),                 //-- domain
+		    g_quark_from_static_string("automaton_load_bin_old:arc"), //-- code
+		    "could not read stored arcs for state %d", id);
+	rc=FALSE;
+	break;
+      }
+
+      st->arcs = g_slist_prepend(st->arcs, gfsm_arc_new_full(id,
+							     s_arc.target,
+							     s_arc.lower,
+							     s_arc.upper,
+							     s_arc.weight));
+    }
+
+    //-- reverse arc-list for sorted automata
+    if (fsm->flags.sort_mode != gfsmASMNone) st->arcs = g_slist_reverse(st->arcs);
+  }
+
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * load_bin_handle(): v0.0.8 .. CURRENT
+ */
+
+gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomaton *fsm,
+					      gfsmAutomatonHeader *hdr,
+					      gfsmIOHandle *ioh,
+					      gfsmError **errp)
+{
+  gfsmImplOld    *fsmi = fsm->impl.old;
+  gfsmStateId     id;
+  guint           arci;
+  gfsmStoredArc   s_arc;
+  gfsmStoredState s_state;
+  gfsmState       *st;
+  gboolean         rc = TRUE;
+  gfsmWeight       w;
+
+  //-- allocate states
+  gfsm_automaton_reserve_states(fsm, hdr->n_states);
+
+  //-- set automaton-global properties
+  fsm->flags   = hdr->flags;
+  gfsm_automaton_set_semiring_type(fsm, hdr->srtype);
+  fsmi->root_id = hdr->root_id;
+
+  //------ load states (one-by-one)
+  for (id=0; rc && id < hdr->n_states; id++) {
+    if (!gfsmio_read(ioh, &s_state, sizeof(gfsmStoredState))) {
+      g_set_error(errp,
+		  g_quark_from_static_string("gfsm"),                         //-- domain
+		  g_quark_from_static_string("automaton_load_bin_old:state"), //-- code
+		  "could not read stored state %d", id);
+      rc = FALSE;
+      break;
+    }
+
+    if (!s_state.is_valid) continue;
+
+    st           = gfsm_impl_old_find_state(fsm,id);
+    st->is_valid = TRUE;
+
+    if (s_state.is_final) {
+      //-- read final weight
+      if (!gfsmio_read(ioh, &w, sizeof(gfsmWeight))) {
+	g_set_error(errp,
+		    g_quark_from_static_string("gfsm"),                                      //-- domain
+		    g_quark_from_static_string("automaton_load_bin_old:state:final_weight"), //-- code
+		    "could not read final weight for stored state %d", id);
+	rc = FALSE;
+	break;
+      }
+
+      //-- set final weight
+      st->is_final = TRUE;
+      gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(id), w);
+    } else {
+      st->is_final = FALSE;
+    }
+
+    //-- read arcs (one-by-one)
+    st->arcs = NULL;
+    for (arci=0; arci < s_state.n_arcs; arci++) {
+      if (!gfsmio_read(ioh, &s_arc, sizeof(gfsmStoredArc))) {
+	g_set_error(errp, g_quark_from_static_string("gfsm"),                       //-- domain
+		    g_quark_from_static_string("automaton_load_bin_old:state:arc"), //-- code
+		    "could not read stored arcs for state %d", id);
+	rc=FALSE;
+	break;
+      }
+      if (!rc) break;
+
+      st->arcs = g_slist_prepend(st->arcs,
+				 gfsm_arc_new_full(id,
+						   s_arc.target,
+						   s_arc.lower,
+						   s_arc.upper,
+						   s_arc.weight,
+						   st->arcs));
+    }
+
+    //-- reverse arc-list for sorted automata
+    if (fsm->flags.sort_mode != gfsmASMNone) st->arcs = g_slist_reverse(st->arcs);
+  }
+
+  return rc;
+}
+
+/*--------------------------------------------------------------
+ * load_bin_handle(): version dispatch
+ */
+gboolean gfsm_automaton_load_bin_handle_old(gfsmAutomaton        *fsm,
+					    gfsmAutomatonHeader  *hdr,
+					    gfsmIOHandle         *ioh,
+					    gfsmError           **errp);
+{
+  if (gfsm_version_ge(hdr->version,((gfsmVersionInfo){0,0,8}))) {
+    //-- v0.0.8 .. CURRENT
+    return gfsm_automaton_load_bin_handle_old_0_0_8(fsm,hdr,ioh,errp);
+  }
+  else {
+    //-- v0.0.2 .. v0.0.7
+    return gfsm_automaton_load_bin_handle_old_0_0_7(fsm,hdr,ioh,errp);
+  }
 }

@@ -682,19 +682,19 @@ void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi);
 ///\name API: Automaton I/O
 //@{
 
-/** Populate header information struct for binary automaton storage.
- *  \param fsm[in]     Automaton to be stored
- *  \param hdr[in,out] Pointer to a ::gfsmAutomatonHeader struct to be populated
- *   \li Only version and automaton structural information
- *       needs to be set in hdr; is taken care of elsewhere.
- *  \note
- *    Default implementation should be more or less sensible.
+/** Write a binary ::gfsmAutomatonHeader to a ::gfsmIOHandle*
+ *  \param hdr  ::gfsmAutomatonHeader to write
+ *  \param ioh  ::gfsmIOHandle to which data is to be written
+ *  \param errp[out] if an error occurs, \a *errp will hold a diagnostic message.
+ *  \returns a true value iff write succeeded.
  */
-static inline
-void gfsm_automaton_get_bin_header(gfsmAutomaton *fsm, gfsmAutomatonHeader *hdr);
+gboolean gfsm_automaton_save_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *ioh, gfsmError **errp);
 
 /** Store a ::gfsmAutomaton \a fsm in binary form to a ::gfsmIOHandle* \a ioh.
  *  \param fsm  Automaton to store.
+ *  \param hdr  ::gfsmAutomatonHeader for this storage operation.
+ *              Implementations may alter header fields but \em must write
+ *              \a hdr to \a ioh before writing any other data!
  *  \param ioh  ::gfsmIOHandle to which binary automaton data should be written.
  *  \param errp[out] if an error occurs, \a *errp will hold a diagnostic message.
  *  \returns a true value iff save was successful.
@@ -702,7 +702,10 @@ void gfsm_automaton_get_bin_header(gfsmAutomaton *fsm, gfsmAutomatonHeader *hdr)
  *    No default implementation (?)
  */
 static inline
-gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
+gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton        *fsm,
+					gfsmAutomatonHeader  *hdr,
+					gfsmIOHandle         *ioh,
+					gfsmError           **errp)
 
 /** Load an automaton from a named binary file (implicitly clear()s \a fsm)
  *  \param fsm  Automaton to load, should already be instantiated.

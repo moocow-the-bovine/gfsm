@@ -310,11 +310,11 @@ void gfsm_arciter_remove_old(gfsmArcIter *aip);
 ///\name API: Automaton I/O
 //@{
 
-/** Implements gfsm_automaton_get_bin_header() */
-void gfsm_automaton_get_bin_header_old(gfsmAutomaton *fsm, gfsmAutomatonHeader *hdr);
-
 /** Implements gfsm_automaton_save_bin_handle() */
-gboolean gfsm_automaton_save_bin_handle_old(gfsmAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);
+gboolean gfsm_automaton_save_bin_handle_old(gfsmAutomaton        *fsm, 
+					    gfsmAutomatonHeader  *hdr,
+					    gfsmIOHandle         *ioh,
+					    gfsmError           **errp);
 
 /** Implementa gfsm_automaton_load_bin_handle() */
 gboolean gfsm_automaton_load_bin_handle_old(gfsmAutomaton        *fsm,
