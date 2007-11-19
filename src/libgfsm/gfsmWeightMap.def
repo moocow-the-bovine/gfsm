@@ -1,7 +1,7 @@
 /*=============================================================================*\
- * File: gfsmWeightmap.c
+ * File: gfsmWeightmap.def
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library
+ * Description: finite state machine library: weight maps: inlined definitions
  *
  * Copyright (c) 2004-2007 Bryan Jurish.
  *
@@ -20,12 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-#include <gfsmWeightMap.h>
 #include <gfsmUtils.h>
 
 /*======================================================================
  * gfsmWeight <-> gpointer conversions
  */
+static inline
 gfsmWeight gfsm_ptr2weight(const gpointer p)
 {
   gfsmWeightOrPointer wp;
@@ -33,6 +33,7 @@ gfsmWeight gfsm_ptr2weight(const gpointer p)
   return wp.w;
 }
 
+static inline
 gpointer gfsm_weight2ptr(const gfsmWeight w)
 {
   gfsmWeightOrPointer wp;
@@ -46,17 +47,48 @@ gpointer gfsm_weight2ptr(const gfsmWeight w)
  * gfsmWeightMap: Constructors etc.
  */
 
+//--------------------------------------------------------------
+static inline
+gfsmWeightMap *gfsm_weightmap_new_full(GCompareDataFunc key_cmp_func,
+				       gpointer         key_cmp_data,
+				       GDestroyNotify   key_free_func)
+{
+  return g_tree_new_full(key_cmp_func,key_cmp_data,key_free_func,NULL);
+}
+
+//--------------------------------------------------------------
+static inline
+gfsmWeightMap *gfsm_weightmap_new(GCompareFunc key_cmp_func)
+{
+  return g_tree_new(key_cmp_func);
+}
+
+//--------------------------------------------------------------
+static inline
+gfsmWeightMap *gfsm_weightmap_copy(gfsmWeightMap *dst, gfsmWeightMap *src)
+{
+  return gfsm_set_copy(dst,src);
+}
+
+//--------------------------------------------------------------
+static inline
+void gfsm_weightmap_clear(gfsmWeightMap *wm)
+{ gfsm_set_clear(wm); }
+
+//--------------------------------------------------------------
+static inline
+void gfsm_weightmap_free(gfsmWeightMap *wm)
+{
+  gfsm_set_free(wm);
+}
+
 /*======================================================================
  * gfsmWeightMap: Accessors
  */
 
-//--------------------------------------------------------------
-void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w)
-{
-   g_tree_insert(weightmap, (gpointer)key, gfsm_weight2ptr(w));
-}
 
 //--------------------------------------------------------------
+static inline
 gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key)
 {
   gfsmWeight w;
@@ -64,6 +96,7 @@ gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key)
 }
 
 //--------------------------------------------------------------
+static inline
 gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight *wp)
 {
   gpointer orig_key, orig_value;
@@ -74,12 +107,20 @@ gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsm
   return FALSE;
 }
 
+//--------------------------------------------------------------
+static inline
+void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w)
+{
+   g_tree_insert(weightmap, (gpointer)key, gfsm_weight2ptr(w));
+}
+
 
 
 /*======================================================================
  * gfsmWeighHash: Constructors etc.
  */
 //--------------------------------------------------------------
+static inline
 gfsmWeightHash *gfsm_weighthash_new_full(gfsmDupFunc key_dup_func,
 					 GHashFunc   key_hash_func,
 					 GEqualFunc  key_equal_func,
@@ -93,12 +134,14 @@ gfsmWeightHash *gfsm_weighthash_new_full(gfsmDupFunc key_dup_func,
 
 
 //--------------------------------------------------------------
+static inline
 void gfsm_weighthash_clear(gfsmWeightHash *wh)
 {
   g_hash_table_foreach_remove(wh->table, gfsm_hash_clear_func,NULL);
 }
 
 //--------------------------------------------------------------
+static inline
 void gfsm_weighthash_free(gfsmWeightHash *wh)
 {
   g_hash_table_destroy(wh->table);
@@ -111,6 +154,7 @@ void gfsm_weighthash_free(gfsmWeightHash *wh)
  */
 
 //--------------------------------------------------------------
+static inline
 gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeight *wp)
 {
   gpointer s_key;
@@ -118,10 +162,10 @@ gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeigh
 }
 
 //--------------------------------------------------------------
+static inline
 void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w)
 {
-  gpointer s_key;
-  gpointer s_val;
+  gpointer s_key, s_val;
   if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
     //-- already present: steal & replace
     g_hash_table_steal(wh->table, s_key);
@@ -136,10 +180,10 @@ void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w)
 }
 
 //--------------------------------------------------------------
+static inline
 gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr)
 {
-  gpointer s_key;
-  gpointer s_val;
+  gpointer s_key, s_val;
   if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
     //-- already present 
     gfsmWeight s_w = gfsm_ptr2weight(s_val);
@@ -160,10 +204,10 @@ gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, g
 }
 
 //--------------------------------------------------------------
+static inline
 gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr)
 {
-  gpointer s_key;
-  gpointer s_val;
+  gpointer s_key, s_val;
   if (wh->key_dup && g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
     //-- already present
     gfsmWeight s_w = gfsm_ptr2weight(s_val);

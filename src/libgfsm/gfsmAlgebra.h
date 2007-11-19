@@ -30,7 +30,6 @@
 
 #include <gfsmStateSet.h>
 #include <gfsmCompound.h>
-#include <gfsmArcIter.h>
 #include <gfsmArcIndex.h>
 
 /*======================================================================
@@ -53,7 +52,7 @@
 gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus);
 
 /** Final-state pre-traversal utility for \c closure(fsm). */
-gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
+gboolean gfsm_automaton_closure_final_func_(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
 
 /** Compute \a n-ary closure of \a fsm.
  *  \note Destructively alters \a fsm.
@@ -142,8 +141,8 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 					   gfsmComposeStateEnum *spenum);
 
 
-/** Guts for gfsm_automaton_compose() \returns (new) StateId for \a sp */
-gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState  sp,
+/** Low-level guts for gfsm_automaton_compose() \returns (new) StateId for \a sp */
+gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState  sp,
 					  gfsmAutomaton    *fsm1,
 					  gfsmAutomaton    *fsm2,
 					  gfsmAutomaton    *fsm,
@@ -163,24 +162,21 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState  sp,
 gfsmAutomaton *gfsm_automaton_n_concat(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, guint n);
 
 /** Append \a _fsm2 onto the end of \a fsm1.
- *  \note Destructively alters \a fsm1.
- *
+ * \note Pseudo-destructive on \a fsm1.
  * \param fsm1 Automaton
  * \param fsm2 Automaton
  * \returns \a fsm1
  */
 gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2);
 
-/** Final-state pre-traversal utility for \a concat(fsm,fsm2).
- *
- *  \note Assumes \a fsm->root_id has been temporarily set to the translated gfsmStateId
- *        of \a fsm2->root_id.
- *
- *  \param pw  final ::gfsmWeight encoded as a gpointer (e.g. with gfsm_weight2ptr())
- *  \param fsm concatenation first argument / return value
- *  \returns FALSE
+/** Append \a fsm2 onto the end of \a fsm1, writing output to \a concat.
+ * \note Pseudo-destructive on \a fsm1.
+ * \param fsm1 Automaton
+ * \param fsm2 Automaton
+ * \param concat Destination, may be NULL to create a new automaton
+ * \returns \a concat, or newly allocated concatenation automaton.
  */
-gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
+gfsmAutomaton *gfsm_automaton_concat_full(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAutomaton *concat);
 
 //@}
 
@@ -252,8 +248,8 @@ gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wa
 ///\name Determinization
 //@{
 
-/** Utility for \a gfsm_automaton_determinize(). */
-void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
+/** Low-level utility for \a gfsm_automaton_determinize(). */
+void gfsm_determinize_visit_state_(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 				   gfsmStateSet  *nfa_ec, gfsmStateId    dfa_id,
 				   gfsmEnum      *ec2id);
 
@@ -422,7 +418,7 @@ gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
  *  \param fsm2 Acceptor (upper)
  *  \returns \a fsm1 
  */
-gfsmAutomaton *_gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+gfsmAutomaton *gfsm_automaton_product_(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
 //@}
 
@@ -463,12 +459,18 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
 ///\name Reversal
 //@{
 /** Reverse an automaton \a fsm.
- *  \note Destructively alters \a fsm.
- *
+ *  \note Pseudo-destructive on \a fsm.
  *  \param fsm Automaton
- *  \returns \a fsm
+ *  \returns modified \a fsm
  */
 gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm);
+
+/** Reverse an automaton \a fsm to \a reversed.
+ *  \param fsm Source automaton
+ *  \param[out] reversed Destination automaton (must be mutable or NULL)
+ *  \returns \a reversed, or a newly allocated ::gfsmAutomaton
+ */
+gfsmAutomaton *gfsm_automaton_reverse_full(gfsmAutomaton *fsm, gfsmAutomaton *reversed);
 
 //@}
 
@@ -488,19 +490,19 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm);
  */
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm);
 
-/** Pass-1 guts for gfsm_automaton_rmepsilon(): populates the mapping \a sp2wh
+/** (low-level) Pass-1 guts for gfsm_automaton_rmepsilon(): populates the mapping \a sp2wh
  *  with state-pairs (qid_noeps,qid_eps)=>weight for all
  *  \a qid_eps epsilon-reachable from \a qid_noeps in \a fsm
  */
-void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
+void gfsm_automaton_rmeps_visit_state_(gfsmAutomaton *fsm,
 				       gfsmStateId qid_noeps,
 				       gfsmStateId qid_eps,
 				       gfsmWeight weight_eps,
 				       gfsmStatePair2WeightHash *sp2wh
 				       );
 
-/** Pass-2 for gfsm_automaton_rmepsilon(): arc-adoption iterator */
-void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm);
+/** (low-level) Pass-2 for gfsm_automaton_rmepsilon(): arc-adoption iterator */
+void gfsm_automaton_rmeps_pass2_foreach_func_(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm);
 //@}
 
 //------------------------------
@@ -520,7 +522,7 @@ gfsmAutomaton *gfsm_automaton_sigma(gfsmAutomaton *fsm, gfsmAlphabet *abet);
 ///\name Union
 //@{
 /** Add the language or relation of \a fsm2 to \a fsm1.
- *  \note Destructively alters \a fsm1
+ *  \note Destructively alters \a fsm1, which must be mutable
  *
  *  \param fsm1 Automaton
  *  \param fsm2 Automaton
@@ -530,12 +532,10 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 //@}
 
 /** \file gfsmAlgebra.h
- *  \todo sigma()
  *  \todo bestpath()
  *  \todo encode() ?
  *  \todo equiv() ?
  *  \todo minimize() ?
- *  \todo Regex compiler
  *  \todo deterministic union, tries
  */
 

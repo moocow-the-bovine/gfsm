@@ -193,6 +193,22 @@ void gfsm_automaton_set_class(gfsmAutomaton *fsm, gfsmAutomatonClass itype)
 }
 
 /*--------------------------------------------------------------
+ * ensure_mutable()
+ */
+static inline
+void gfsm_automaton_ensure_mutable(gfsmAutomaton *fsm)
+{
+  switch (fsm->itype) {
+  case gfsmACOld:
+  case gfsmACBasic:
+    return;
+  default:
+    gfsm_automaton_set_class(fsm,gfsmAutomatonDefaultClass);
+  }
+}
+
+
+/*--------------------------------------------------------------
  * swap()
  */
 static inline
@@ -336,6 +352,20 @@ guint gfsm_automaton_n_states(gfsmAutomaton *fsm)
 }
 
 /*--------------------------------------------------------------
+ * foreach_final()
+ */
+static inline
+void gfsm_automaton_foreach_final(gfsmAutomaton *fsm, GTraverseFunc func, gpointer data)
+{
+  switch (fsm->itype) {
+  case gfsmACOld:
+    return gfsm_automaton_foreach_finals_old(fsm,func,data);
+  default:
+    break;
+  }
+}
+
+/*--------------------------------------------------------------
  * n_final_states()
  */
 static inline
@@ -349,6 +379,7 @@ gfsmStateId gfsm_automaton_n_final_states(gfsmAutomaton *fsm)
   }
   return 0;
 }
+
 
 /*--------------------------------------------------------------
  * n_arcs()
@@ -583,62 +614,6 @@ void gfsm_automaton_close_state(gfsmAutomaton *fsm, gfsmState *qp)
 
 
 
-/*======================================================================
- * API: Automaton Arcs
- */
-
-/*--------------------------------------------------------------
- * add_arc()
- */
-static inline
-void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
-			    gfsmStateId    qid1,
-			    gfsmStateId    qid2,
-			    gfsmLabelVal   lo,
-			    gfsmLabelVal   hi,
-			    gfsmWeight     w)
-{
-  switch (fsm->itype) {
-  case gfsmACOld:
-    gfsm_automaton_add_arc_old(fsm,qid1,qid2,lo,hi,w);
-    return;
-  default:
-    break;
-  }
-  gfsm_die_no_impl(automaton_add_arc,fsm->itype);
-}
-
-
-/*--------------------------------------------------------------
- * arcsort_full()
- */
-static inline
-void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data)
-{
-  switch (fsm->itype) {
-  case gfsmACOld:
-    gfsm_automaton_arcsort_full_old(fsm,cmpfunc,data);
-    return;
-  default:
-    break;
-  }
-  gfsm_automaton_arcsort_full_default(fsm,cmpfunc,data);
-}
-
-/*--------------------------------------------------------------
- * arcsort()
- */
-static inline
-gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode)
-{
-  if (mode != fsm->flags.sort_mode && mode != gfsmASMNone) {
-    gfsmArcSortData sdata = { mode, fsm->sr };
-    gfsm_automaton_arcsort_full(fsm, (GCompareDataFunc)gfsm_arc_compare, &sdata);
-  }
-  fsm->flags.sort_mode = mode;
-  return fsm;
-}
-
 
 /*======================================================================
  * API: Arc Iterators
@@ -731,6 +706,23 @@ void gfsm_arciter_reset(gfsmArcIter *aip)
     break;
   }
   gfsm_arciter_open(aip, aip->fsm, aip->qid);
+}
+
+/*--------------------------------------------------------------
+ * arciter_reset()
+ */
+static inline
+void gfsm_arciter_sort(gfsmArcIter *aip, GCompareDataFunc cmpfunc, gpointer data)
+{
+  if (!aip->fsm) return;
+  switch (aip->fsm->itype) {
+  case gfsmACOld:
+    gfsm_arciter_sort_old(aip,cmpfunc,data);
+    return;
+  default:
+    break;
+  }
+  gfsm_die_no_impl(arciter_sort,aip->fsm->itype);
 }
 
 /*--------------------------------------------------------------
@@ -834,6 +826,62 @@ void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi)
     }
   }
 }
+
+/*======================================================================
+ * API: Automaton Arcs
+ */
+
+/*--------------------------------------------------------------
+ * add_arc()
+ */
+static inline
+void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
+			    gfsmStateId    qid1,
+			    gfsmStateId    qid2,
+			    gfsmLabelVal   lo,
+			    gfsmLabelVal   hi,
+			    gfsmWeight     w)
+{
+  switch (fsm->itype) {
+  case gfsmACOld:
+    gfsm_automaton_add_arc_old(fsm,qid1,qid2,lo,hi,w);
+    return;
+  default:
+    break;
+  }
+  gfsm_die_no_impl(automaton_add_arc,fsm->itype);
+}
+
+
+/*--------------------------------------------------------------
+ * arcsort_full()
+ */
+static inline
+void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data)
+{
+  gfsmStateId qid, n_states;
+  gfsmArcIter ai;
+  for (qid=0,n_states=gfsm_automaton_n_states(fsm); qid < n_states; qid++) {
+    gfsm_arciter_open(&ai,fsm,qid);
+    gfsm_arciter_sort(&ai,cmpfunc,data);
+    gfsm_arciter_close(&ai);
+  }
+}
+
+/*--------------------------------------------------------------
+ * arcsort()
+ */
+static inline
+gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode)
+{
+  if (mode != fsm->flags.sort_mode && mode != gfsmASMNone) {
+    gfsmArcSortData sdata = { mode, fsm->sr };
+    gfsm_automaton_arcsort_full(fsm, (GCompareDataFunc)gfsm_arc_compare, &sdata);
+  }
+  fsm->flags.sort_mode = mode;
+  return fsm;
+}
+
 
 /*======================================================================
  * API: Automaton I/O

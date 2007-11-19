@@ -85,6 +85,24 @@ void gfsm_state_free(gfsmState *s, gboolean free_arcs)
   g_free(s);
 }
 
+/*--------------------------------------------------------------
+ * close()
+ */
+static inline
+void gfsm_state_close(gfsmState *s)
+{
+  if (s->arc_data_temp) {
+    //-- data=temp, list=temp
+    s->arcs = gfsm_arclist_free_old(s->arcs);
+  }
+  else if (s->arc_list_temp) {
+    //-- data=shared, list=temp
+    g_slist_free(s->arcs);
+    s->arcs = NULL;
+  }
+  if (s->is_temp) { g_free(s); }
+}
+
 /*======================================================================
  * Methods: Accessors
  */

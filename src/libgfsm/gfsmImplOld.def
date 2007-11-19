@@ -234,6 +234,15 @@ gfsmState *gfsm_automaton_get_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
  * get_root()
  */
 static inline
+void gfsm_automaton_foreach_final_old(gfsmAutomaton *fsm, GTraverseFunc func, gpointer data)
+{
+  g_tree_foreach(fsm->impl.old->finals, func, data);
+}
+
+/*--------------------------------------------------------------
+ * get_root()
+ */
+static inline
 gfsmStateId gfsm_automaton_get_root_old(gfsmAutomaton *fsm)
 {
   return fsm->impl.old->root_id;
@@ -245,7 +254,8 @@ gfsmStateId gfsm_automaton_get_root_old(gfsmAutomaton *fsm)
 static inline
 void gfsm_automaton_set_root_old(gfsmAutomaton *fsm, gfsmStateId qid)
 {
-  fsm->impl.old->root_id = gfsm_automaton_add_state_full_old(fsm,qid);
+  if (qid!=gfsmNoState) qid = gfsm_automaton_add_state_full_old(fsm,qid);
+  fsm->impl.old->root_id = qid;
 }
 
 /*--------------------------------------------------------------
@@ -436,6 +446,16 @@ void gfsm_arciter_reset_old(gfsmArcIter *aip)
 }
 
 /*--------------------------------------------------------------
+ * sort()
+ */
+static inline
+void gfsm_arciter_sort_old(gfsmArcIter *aip, GCompareDataFunc cmpfunc, gpointer data)
+{
+  if (!aip->data.old.state) return;
+  aip->data.old.state->arcs = gfsm_arclist_sort_full_old(aip->data.old.state->arcs, cmpfunc, data);
+}
+
+/*--------------------------------------------------------------
  * copy()
  */
 /*static inline
@@ -462,6 +482,23 @@ gfsmArc *gfsm_arciter_arc_old(gfsmArcIter *aip)
 {
   return aip->data.old.arcs ? ((gfsmArc*)aip->data.old.arcs->data) : NULL;
 }
+
+/*--------------------------------------------------------------
+ * insert()
+ */
+/*
+static inline
+void gfsm_arciter_insert_old(gfsmArcIter *aip,
+			     gfsmStateId  qid1,
+			     gfsmStateId  qid2,
+			     gfsmLabelVal lo,
+			     gfsmLabelVal hi,
+			     gfsmWeight   wt)
+{
+  if (!aip->data.old.fsm) return;
+  gfsm_automaton_add_arc_old(aip->data.old.fsm,qid1,qid2,lo,hi,wt);
+}
+*/
 
 /*--------------------------------------------------------------
  * remove()

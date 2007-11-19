@@ -114,6 +114,13 @@ gfsmStateId gfsm_automaton_n_states_old(gfsmAutomaton *fsm);
 static inline
 gfsmStateId gfsm_automaton_n_final_states_old(gfsmAutomaton *fsm);
 
+/** Implements gfsm_automaton_foreach_final()
+ *  \par Time: O(n_final_states)
+ */
+static inline
+void gfsm_automaton_foreach_final_old(gfsmAutomaton *fsm, GTraverseFunc func, gpointer data);
+
+
 /** Implements gfsm_automaton_get_root()
  *  \par Time: O(1)
  */
@@ -268,6 +275,15 @@ void gfsm_arciter_next_old(gfsmArcIter *aip);
  */
 static inline
 void gfsm_arciter_reset_old(gfsmArcIter *aip);
+
+/** Implements gfsm_arciter_sort()
+ *  \par Time:
+ *    O(g_slist_sort()) [quicksort]:
+ *    \li average: O(out_degree(aip->qid) * log(out_degree(aip->qid)))
+ *    \li worst case: O(out_degree(aip->qid)^2)
+ */
+static inline
+void gfsm_arciter_sort_old(gfsmArcIter *aip, GCompareDataFunc cmpfunc, gpointer data);
 
 /* Implements gfsm_arciter_copy() */
 //void gfsm_arciter_copy_old(gfsmArcIter *dst, gfsmArcIter *src);

@@ -36,11 +36,13 @@
 
 /// Automaton state structure
 typedef struct {
-  guint32       is_valid : 1;  /**< whether this is a valid state */
-  guint32       is_final : 1;  /**< whether this is a final state */
-  guint32       is_temp  : 1;  /**< whether this state should be freed on gfsm_automaton_close_state() */
-  guint32       unused   : 29; /**< reserved */
-  gfsmArcListOld *arcs;          /**< list of outgoing arcs */
+  guint32       is_valid      : 1;  /**< whether this is a valid state */
+  guint32       is_final      : 1;  /**< whether this is a final state */
+  guint32       is_temp       : 1;  /**< whether this state should be freed on gfsm_state_close() */
+  guint32       arc_list_temp : 1;  /**< whether this state's arc-list should be freed on gfsm_state_close() */
+  guint32       arc_data_temp : 1;  /**< whether this state's arc data should be freed on gfsm_state_close(): implies arc_list_temp */
+  guint32       unused        : 27; /**< reserved */
+  gfsmArcListOld *arcs;             /**< list of outgoing arcs */
 } gfsmState;
 
 
@@ -68,6 +70,11 @@ void gfsm_state_clear(gfsmState *s);
 /** Destroy a state */
 static inline
 void gfsm_state_free(gfsmState *s, gboolean free_arcs);
+
+/** Close a state (generic) */
+static inline
+void gfsm_state_close(gfsmState *s);
+
 //@}
 
 /*======================================================================

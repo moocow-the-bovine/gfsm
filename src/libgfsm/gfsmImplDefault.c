@@ -333,6 +333,14 @@ void gfsm_arciter_reset_default(gfsmArcIter *aip)
 }
 
 /*--------------------------------------------------------------
+ * arciter_sort()
+ */
+void gfsm_arciter_sort_default(gfsmArcIter *aip, GCompareDataFunc cmpfunc, gpointer data)
+{
+  gfsm_die_no_impl(arciter_sort, (aip->fsm ? aip->fsm->itype : gfsmACUnknown));
+}
+
+/*--------------------------------------------------------------
  * arciter_copy()
  */
 void gfsm_arciter_copy_default(gfsmArcIter *dst, gfsmArcIter *src)

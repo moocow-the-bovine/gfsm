@@ -151,6 +151,12 @@ gfsmAutomaton *gfsm_automaton_shadow_classed(gfsmAutomaton *fsm, gfsmAutomatonCl
 static inline
 void gfsm_automaton_set_class(gfsmAutomaton *fsm, gfsmAutomatonClass itype);
 
+/** Ensure that automaton \a fsm is "mutable"
+ *  \todo define "mutable", supported operations, etc etc.
+ */
+static inline
+void gfsm_automaton_ensure_mutable(gfsmAutomaton *fsm);
+
 /** Swap the contents of ::gfsmAutomaton objects \a fsm1 and \a fsm2, including implementations. */
 static inline
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
@@ -225,6 +231,18 @@ gfsmStateId gfsm_automaton_n_states(gfsmAutomaton *fsm);
 /** Get number of final states */
 static inline
 gfsmStateId gfsm_automaton_n_final_states(gfsmAutomaton *fsm);
+
+/** Call a user-defined function \a func for each final state of \a fsm.
+ *  \param fsm  automaton whose final states are to be traversed
+ *  \param func \c GTraverseFunc for final states, as for \c g_tree_foreach()
+ *  \param data user data for \a func
+ *  \note
+ *    \a func will be called as <tt>(*func)(gpointer final_stateid, gpointer final_weight, gpointer data)</tt>;
+ *    that is, both the ::gfsmStateId \a final_stateid and the final weight \a final_weight will be encoded
+ *    as (gpointers).  They can be decoded with GPOINTER_TO_UINT() and gfsm_ptr2weight(), respectively.
+ */
+static inline
+void gfsm_automaton_foreach_final(gfsmAutomaton *fsm, GTraverseFunc func, gpointer data);
 
 /** Get total number of arcs, may call gfsm_automaton_n_arcs_full() */
 static inline
@@ -399,7 +417,7 @@ gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id);
  */
 static inline
 void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
-					 gfsmStateId qid,
+					 gfsmStateId    qid,
 					 gboolean       is_final,
 					 gfsmWeight     final_weight);
 
@@ -467,63 +485,10 @@ gfsmState *gfsm_automaton_open_state(gfsmAutomaton *fsm, gfsmStateId qid);
 static inline
 void gfsm_automaton_close_state(gfsmAutomaton *fsm, gfsmState *qp);
 
-//@}
-
-
-
-/*======================================================================
- * API: Automaton Arcs
- */
-/// \name API: Automaton Arcs
-//@{
-
-/** Add an arc from state with ID \a qid1 to state with ID \a qid2
- *  on labels (\a lo,\a hi) with weight \a w.
- *  Missing states should be implicitly created.
- *  \warning may not be supported by all implementation classes
- *  \param fsm Automaton to modify
- *  \param qid1 ID of source state
- *  \param qid2 ID of target state
- *  \param lo   Lower label
- *  \param hi   Upper label
- *  \param w    Arc weight
- */
-static inline
-void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
-			    gfsmStateId    qid1,
-			    gfsmStateId    qid2,
-			    gfsmLabelVal   lo,
-			    gfsmLabelVal   hi,
-			    gfsmWeight     w);
-
-/** Sort all arcs in the automaton by one of the built-in comparison functions
- *  \param fsm  Automaton to modify
- *  \param mode Specifies built-in arc comparison function
- *  \returns modified \a fsm
- */
-static inline
-gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode);
-
-/** Sort all arcs in the automaton by a user-specified comparison function.
- *  \param fsm
- *    Automaton to modify
- *  \param cmpfunc
- *    3-way comparison function, called as \a (*cmpfunc)(gfsmArc *a1p, gfsmArc *a2p, gpointer data)
- *    to compare arcs a1p and a2p.
- *  \param data
- *    User data for \a cmpfunc
- *  \returns
- *    modified \a fsm
- *  \todo
- *    implement gfsm_automaton_arcsort_full() in terms of (extended) ::gfsmArcIter API
- */
-static inline
-void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
-
-/** Alias for gfsm_automaton_arcsort_full() */
-//#define gfsm_automaton_arcsort_with_data(fsm,cmpfunc,data) gfsm_automaton_arcsort_full((fsm),(cmpfunc),(data))
 
 //@}
+
+
 
 /*======================================================================
  * API: Arc Iterators
@@ -590,6 +555,17 @@ void gfsm_arciter_next(gfsmArcIter *aip);
  */
 static inline
 void gfsm_arciter_reset(gfsmArcIter *aip);
+
+/** Sort the arc-list pointed to by a ::gfsmArcIter.
+ *  \param aip     the ::gfsmArcIter whose arcs are to be sorted.
+ *  \param cmpfunc 3-way comparison function on ::gfsmArc*
+ *  \param data    user data for \a cmpfunc
+ *  \warning
+ *   This function should sort the entire arc-list onto which \a aip is opened,
+ *   and thus may throw any iterators opened onto the same arc list out of whack.
+ */
+static inline
+void gfsm_arciter_sort(gfsmArcIter *aip, GCompareDataFunc cmpfunc, gpointer data);
 
 /** Copy positional data from \a src to \a dst.
  * \param src The ::gfsmArcIter from which to copy positional data
@@ -679,6 +655,59 @@ void gfsm_arciter_seek_lower(gfsmArcIter *aip, gfsmLabelVal lo);
  */
 static inline
 void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi);
+
+//@}
+
+
+/*======================================================================
+ * API: Automaton Arcs
+ */
+/// \name API: Automaton Arcs
+//@{
+
+/** Add an arc from state with ID \a qid1 to state with ID \a qid2
+ *  on labels (\a lo,\a hi) with weight \a w.
+ *  Missing states should be implicitly created.
+ *  \warning may not be supported by all implementation classes
+ *  \param fsm Automaton to modify
+ *  \param qid1 ID of source state
+ *  \param qid2 ID of target state
+ *  \param lo   Lower label
+ *  \param hi   Upper label
+ *  \param w    Arc weight
+ */
+static inline
+void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
+			    gfsmStateId    qid1,
+			    gfsmStateId    qid2,
+			    gfsmLabelVal   lo,
+			    gfsmLabelVal   hi,
+			    gfsmWeight     w);
+
+/** Sort all arcs in the automaton by one of the built-in comparison functions
+ *  \param fsm  Automaton to modify
+ *  \param mode Specifies built-in arc comparison function
+ *  \returns modified \a fsm
+ */
+static inline
+gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode);
+
+/** Sort all arcs in the automaton by a user-specified comparison function.
+ *  \param fsm
+ *    Automaton to modify
+ *  \param cmpfunc
+ *    3-way comparison function, called as \a (*cmpfunc)(gfsmArc *a1p, gfsmArc *a2p, gpointer data)
+ *    to compare arcs a1p and a2p.
+ *  \param data
+ *    User data for \a cmpfunc
+ *  \returns
+ *    modified \a fsm
+ */
+static inline
+void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
+
+/** Alias for gfsm_automaton_arcsort_full() */
+//#define gfsm_automaton_arcsort_with_data(fsm,cmpfunc,data) gfsm_automaton_arcsort_full((fsm),(cmpfunc),(data))
 
 //@}
 

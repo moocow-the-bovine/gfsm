@@ -250,47 +250,6 @@ guint gfsm_automaton_out_degree_default(gfsmAutomaton *fsm, gfsmStateId qid);
 
 
 /*======================================================================
- * API: Automaton Arcs
- */
-/// \name API: Automaton Arcs
-//@{
-
-/** Add an arc from state with ID \c qid1 to state with ID \c qid2
- *  on labels (\c lo,\c hi) with weight \c w.
- *  Missing states should be implicitly created.
- *  \warning may not be supported by all implementation classes
- *  \param fsm Automaton to modify
- *  \param qid1 ID of source state
- *  \param qid2 ID of target state
- *  \param lo   Lower label
- *  \param hi   Upper label
- *  \param w    Arc weight
- *
- *  \warning Default implementation aborts with an error message.
- */
-void gfsm_automaton_add_arc_default(gfsmAutomaton *fsm,
-				    gfsmStateId    qid1,
-				    gfsmStateId    qid2,
-				    gfsmLabelVal   lo,
-				    gfsmLabelVal   hi,
-				    gfsmWeight     w);
-
-/** Sort all arcs in the automaton by a user-specified comparison function.
- *  \param fsm
- *    Automaton to modify
- *  \param cmpfunc
- *    3-way comparison function, called as \a (*cmpfunc)(gfsmArc *a1p, gfsmArc *a2p, gpointer data)
- *    to compare arcs a1p and a2p.
- *  \param data
- *    User data for \a cmpfunc
- *
- *  \warning default implementation aborts with an error message.
- */
-void gfsm_automaton_arcsort_full_default(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
-
-//@}
-
-/*======================================================================
  * API: Arc Iterators
  */
 ///\name API: Arc Iterators
@@ -333,6 +292,18 @@ void gfsm_arciter_next(gfsmArcIter *aip);
  *  \note default implementation juse calls gfsm_arciter_open()
  */
 void gfsm_arciter_reset_default(gfsmArcIter *aip);
+
+/** Sort the arc-list pointed to by a ::gfsmArcIter.
+ *  \param aip     the ::gfsmArcIter whose arcs are to be sorted.
+ *  \param cmpfunc 3-way comparison function on ::gfsmArc*
+ *  \param data    user data for \a cmpfunc
+ *  \warning
+ *   This function should sort the entire arc-list onto which \a aip is opened,
+ *   and thus may throw any iterators opened onto the same arc list out of whack.
+ *
+ *  \warning No default implementation (aborts with error)
+ */
+void gfsm_arciter_sort_default(gfsmArcIter *aip, GCompareDataFunc cmpfunc, gpointer data);
 
 /** Copy contents of a ::gfsmArcIteraor \a src to \a dst
  *  Does \b not copy arc data! 
@@ -396,6 +367,34 @@ void gfsm_arciter_seek_lower_default(gfsmArcIter *aip, gfsmLabelVal lo);
  *  \note default implementation just wraps gfsm_arciter_seek_both()
  */
 void gfsm_arciter_seek_upper_default(gfsmArcIter *aip, gfsmLabelVal hi);
+
+//@}
+
+/*======================================================================
+ * API: Automaton Arcs
+ */
+/// \name API: Automaton Arcs
+//@{
+
+/** Add an arc from state with ID \c qid1 to state with ID \c qid2
+ *  on labels (\c lo,\c hi) with weight \c w.
+ *  Missing states should be implicitly created.
+ *  \warning may not be supported by all implementation classes
+ *  \param fsm Automaton to modify
+ *  \param qid1 ID of source state
+ *  \param qid2 ID of target state
+ *  \param lo   Lower label
+ *  \param hi   Upper label
+ *  \param w    Arc weight
+ *
+ *  \warning Default implementation aborts with an error message.
+ */
+void gfsm_automaton_add_arc_default(gfsmAutomaton *fsm,
+				    gfsmStateId    qid1,
+				    gfsmStateId    qid2,
+				    gfsmLabelVal   lo,
+				    gfsmLabelVal   hi,
+				    gfsmWeight     w);
 
 //@}
 

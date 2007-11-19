@@ -306,6 +306,7 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
  * API: Automaton Arcs
  */
 
+
 /*======================================================================
  * API: Arc Iterators
  */
