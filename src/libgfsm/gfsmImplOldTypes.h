@@ -27,7 +27,6 @@
 #ifndef _GFSM_IMPL_OLD_TYPES_H
 #define _GFSM_IMPL_OLD_TYPES_H
 
-#include <gfsmArc.h>
 #include <gfsmWeightMap.h>
 
 /*======================================================================

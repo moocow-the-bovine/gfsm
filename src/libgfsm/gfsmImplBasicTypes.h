@@ -45,6 +45,7 @@ typedef struct {
 } gfsmImplBasic;
 
 /// Arc iterator data for ::gfsmImplBasic automaton implementations
-typedef gfsmArcListNode* gfsmArcIterDataBasic;
+//typedef gfsmArcListNode* gfsmArcIterDataBasic;
+typedef void* gfsmArcIterDataBasic;
 
 #endif /* _GFSM_IMPL_BASIC_TYPES_H */

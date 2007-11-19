@@ -153,7 +153,7 @@ gboolean gfsm_automaton_has_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
  * \par Time: O(1)
  */
 static inline
-gfsmStateId gfsm_automaton_add_state_old(gfsmAutomaton *fsm, gfsmStateId qid);
+gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Implements gfsm_automaton_remove_state()
  * \par Time: O(out_degree(qid))
@@ -261,7 +261,7 @@ gboolean gfsm_arciter_ok_old(gfsmArcIter *aip);
  *  \par Time: O(1)
  */
 static inline
-void gfsm_arciter_next(gfsmArcIter *aip);
+void gfsm_arciter_next_old(gfsmArcIter *aip);
 
 /** Implements gfsm_arciter_reset()
  *  \par Time: O(1)
@@ -323,5 +323,7 @@ gboolean gfsm_automaton_load_bin_handle_old(gfsmAutomaton        *fsm,
 					    gfsmError           **errp);
 
 //@}
+
+#include <gfsmImplOld.def>
 
 #endif /* _GFSM_IMPL_OLD_H */

@@ -28,6 +28,8 @@
 #ifndef _GFSM_AUTOMATON_TYPES_H
 #define _GFSM_AUTOMATON_TYPES_H
 
+#include <gfsmVersion.h>
+#include <gfsmState.h>
 #include <gfsmImplOldTypes.h>
 #include <gfsmImplBasicTypes.h>
 
@@ -112,7 +114,7 @@ typedef union {
 } gfsmArcIterData;
 
 /// Generic arc iterator type
-struct {
+typedef struct {
   gfsmAutomaton   *fsm;           /**< automaton which 'owns' these arcs */
   gfsmStateId      qid;           /**< state in \a fsm which 'owns' these arcs */
   gfsmArcIterData data;           /**< implementation-dependent data */
@@ -133,17 +135,33 @@ typedef gboolean (*gfsmArcIterSeekFunc) (gfsmArcIter *aip, gpointer data);
 typedef struct {
   gchar              magic[16];      /**< magic header string "gfsm_automaton" */
   gfsmVersionInfo    version;        /**< gfsm version which created the stored file */
-  gfsmVersionInfo    version_min;    /**< minimum libgfsm version required to load the file */
-  gfsmAutomatonFlags flags;          /**< automaton flags */
-  gfsmStateId        root_id;        /**< Id of root node */
-  gfsmStateId        n_states;       /**< number of stored states */
-  gfsmStateId        n_arcs;         /**< number of stored arcs (v0.0.2 .. v0.0.7), or implementation-dependent */
-  guint32            srtype;         /**< semiring type (cast to ::gfsmSRType) */
-  guint32            itype     :  8; /**< automaton implementation class (cast to ::gfsmAutomatonClass) */
+  gfsmVersionInfo    version_min;    /**< minimum libgfsm version required to load the file (optional) */
+  gfsmAutomatonFlags flags;          /**< automaton flags (optional) */
+  gfsmStateId        root_id;        /**< Id of root node (optional) */
+  gfsmStateId        n_states;       /**< number of stored states (optional) */
+  gfsmStateId        n_arcs;         /**< number of stored arcs (v0.0.2 .. v0.0.7) (optional) */
+  guint32            srtype;         /**< semiring type (cast to ::gfsmSRType, recommended) */
+  guint32            itype     :  8; /**< automaton implementation class (cast to ::gfsmAutomatonClass, required) */
   guint32            reserved1 : 24; /**< reserved */
   guint32            reserved2;      /**< reserved */
   guint32            reserved3;      /**< reserved */
 } gfsmAutomatonHeader;
+
+/// Default type for a stored state
+typedef struct {
+  guint32  is_valid : 1;  /**< valid flag */
+  guint32  is_final : 1;  /**< final flag */
+  guint32  unused   : 30; /**< reserved */
+  guint32  n_arcs;        /**< number of stored arcs for this state */
+} gfsmStoredState;
+
+/// Default type for a stored arc (no 'source' field)
+typedef struct {
+  gfsmStateId       target;  /**< ID of target node */
+  gfsmLabelId       lower;   /**< Lower label */
+  gfsmLabelId       upper;   /**< Upper label */
+  gfsmWeight        weight;  /**< arc weight */
+} gfsmStoredArc;
 
 //@}
 

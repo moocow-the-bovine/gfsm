@@ -119,6 +119,7 @@ gboolean gfsm_automaton_draw_vcg_file_full (gfsmAutomaton *fsm,
       if (fsm->flags.is_weighted) fprintf(f, "/%g", a->weight);
       fprintf(f, "\"}\n");
     }
+    gfsm_arciter_close(&ai);
   }
   fputs("}\n", f);
 
@@ -252,6 +253,7 @@ gboolean gfsm_automaton_draw_dot_file_full (gfsmAutomaton *fsm,
       if (fontname && *fontname) fprintf(f, ", fontname=\"%s\"", fontname);
       fprintf(f, "];\n");
     }
+    gfsm_arciter_close(&ai);
   }
   fputs("}\n", f);
 

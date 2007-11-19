@@ -37,132 +37,80 @@
 ///\name ArcList variants
 //@{
 
-/// Array of ::gfsmArc as a pair of pointer bounds into a ::gfsmArc array.
-typedef struct {
-  gfsmArc  *min;   /**< pointer to first arc in this list */
-  gfsmArc  *max;   /**< pointer to the first address \b not containing an arc in this list (last+1) */
-} gfsmArcListArray;
+/// GSLis* of ::gfsmArc
+typedef GSList gfsmArcListOld;
 
 /// Typecast-safe 'hard-linked' list of ::gfsmArc
+/** \todo implement ::gfsmArcListLinked_ methods in gfsmArcList.h */
 typedef struct gfsmArcListLinked_ {
   gfsmArc                      arc;    /**< first (current) arc */
   struct gfsmArcListLinked_  *next;    /**< pointer to next arc */
 } gfsmArcListLinked;
 
-/// Enum of arc-list types
-typedef enum {
-  gfsmALTNone,    /**< invalid arc-list type */
-  gfsmALTArray,   /**< list.a is ::gfsmArcListArray   */
-  gfsmALTLinked   /**< list.l is ::gfsmArcListLinked* */
-} gfsmArcListType;
-
-/// Generic arc-list data type
-typedef union {
-  gfsmArcListArray   a;
-  gfsmArcListLinked *l;
-} gfsmArcListData;
-
-/// Generic arc-list flags
-typedef struct {
-  guint32 altype      :  4;   /**< type of this arc-list, cast to ::gfsmArcListType */
-  guint32 sort_mode   :  4;   /**< sort mode of this arc-list, cast to ::gfsmArcSortMode */
-  guint32 local_arcs  :  1;   /**< whether this arc-list owns its own arc data */
-  guint32 local_list  :  1;   /**< whether this arc-list owns its own arc-node data (if distinct from arc data) */
-  guint32 unused      : 22;   /**< reserved */
-} gfsmArcListFlags;
-
-/// Generic arc-list type
-typedef struct {
-  gfsmArcListFlags flags; /**< list-local flags */
-  gfsmArcListData   list; /**< list data */
-} gfsmArcList;
-
 //@}
 
 /*======================================================================
- * Types: ArcIter
+ * Methods: gfsmArcListOld
  */
-///\name ArcIter variants
+/// \name gfsmArcListOld: Constructors etc.
 //@{
 
-/// Type for generic arc iteration data
-typedef union {
-  gfsmArcListLinked *l;  /**< for ::gfsmArcListLinked */
-  gfsmArc           *a;  /**< for ::gfsmArcListArray  */
-} gfsmArcIterData;
-
-/// Type for generic arc iterators
-typedef struct {
-  gfsmArcList           arcs;  /**< underlying arc-list */
-  gfsmArcIterData        cur;  /**< current position in the arc-list */
-  struct gfsmAutomaton_ *fsm;  /**< automaton from which this ArcIter was drawn, or NULL */
-  gfsmStateId            qid;  /**< ID of the state from which these arcs were drawn, or ::gfsmNoState */
-} gfsmArcIter;
-
-//@}
-
-/*======================================================================
- * Methods: Arc Lists: Constructors etc.
- */
-/// \name Arc Lists: Constructors etc.
-//@{
-/** Create and return a new empty ::gfsmArcList */
-static inline
-gfsmArcList *gfsm_arclist_new(void);
-
-/** Create and return a new ::gfsmArcList, specifying initial flags */
-static inline
-gfsmArcList *gfsm_arclist_new_with_flags(gfsmArcListFlags flags);
-
-/** Create and return a new ::gfsmArcList, specifying initial flags and data */
-static inline
-gfsmArcList *gfsm_arclist_new_with_data(gfsmArcListFlags flags, gfsmArcListData data);
-
-/** Copy all arcs in \a src to \a dst, without changing type of \a dst.
- *  May set \a dst.flags.is_tmp to \c TRUE if copying was required.
- *  \param src source arc list
- *  \param dst destination arc list
- *  \returns modified \a dst
+/** Create and return a new ::gfsmArcListOld node, including arc data
+ *  \param src ID of source state
+ *  \param dst ID of target state
+ *  \param lo  Lower label
+ *  \param hi  Upper label
+ *  \param wt  Arc weight
+ *  \param nxt next arc list node
+ *  \returns head of a new ::gfsmArcListOld for new arc data
  */
 static inline
-gfsmArcList *gfsm_arclist_copy(gfsmArcList *dst, gfsmArcList *src);
+gfsmArcListOld *gfsm_arclist_new_full_old(gfsmStateId     src,
+					  gfsmStateId     dst,
+					  gfsmLabelVal    lo,
+					  gfsmLabelVal    hi,
+					  gfsmWeight      wt,
+					  gfsmArcListOld *nxt);
 
-/** Create and return a (deep) copy of an existing arc-list */
+/** Create a deep exact copy of a ::gfsmArcListOld \a src.
+ *  \param src arc list to copy
+ *  \returns head of a deep exact copy of \a src
+ */
 static inline
-gfsmArcList *gfsm_arclist_clone(gfsmArcList *src);
+gfsmArcListOld *gfsm_arclist_clone_old(gfsmArcListOld *src);
 
-/** Destroy an arc node and any temporary data it may have associated with it  */
+/** Clear an arc list, freeing arc data
+ * \returns NULL (new head of list)
+ */
 static inline
-void gfsm_arclist_free(gfsmArcList *al);
+gfsmArcListOld *gfsm_arclist_free_old(gfsmArcListOld *al);
 
-/** Insert a new arc into a (possibly sorted) arclist. */
-void gfsm_arclist_add(gfsmArcList *al,
-		      gfsmStateId  src,
-		      gfsmStateId  dst,
-		      gfsmLabelVal lo,
-		      gfsmLabelVal hi,
-		      gfsmWeight   wt,
-		      gfsmArcSortData *sdata);
+/** Get length of an arc-list */
+static inline
+guint gfsm_arclist_length_old(gfsmArcListOld *al);
+
+/** (low-level): insert a link into a (possibly sorted) arc-list
+ *  \returns new head of the list
+ */
+static inline
+gfsmArcListOld *gfsm_arclist_insert_link_old(gfsmArcListOld *al, gfsmArcListOld *link, gfsmArcSortData *sdata);
+
+/** Sort an arc list with user-specified comparison function and data
+ *  \returns new head of the list
+ */
+static inline
+gfsmArcListOld *gfsm_arclist_sort_full_old(gfsmArcListOld *al, GCompareDataFunc cmpfunc, gpointer data);
+
+/** Sort an arc list using one of the builtin comparisons
+ * \returns new head of the list
+ */
+static inline
+gfsmArcListOld *gfsm_arclist_sort_old(gfsmArcListOld *al, gfsmArcSortData *sdata);
 
 //@}
 
 
-/*======================================================================
- * Methods: Arc Lists: Utilities
- */
-///\name ArcList: Utilities
-//@{
+//-- inline definitions
+#include <gfsmArcList.def>
 
-/** Get length of a ::gfsmArcList \a al */
-static inline
-guint gfsm_arclist_length(gfsmArcList *al);
-
-/** Sort a ::gfsmArcList \a al with ::gfsmArcSortData \a sdata */
-void gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata);
-
-/** Sort a ::gfsmArcList \a al with user-defined comparison and data */
-void gfsm_arclist_sort_full(gfsmArcList *al, GCompareDataFunc cmpfunc, gpointer data);
-
-//@}
-
-#endif /* _GFSM_ARC_H */
+#endif /* _GFSM_ARC_LIST_H */

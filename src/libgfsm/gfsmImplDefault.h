@@ -1,6 +1,6 @@
 
 /*=============================================================================*\
- * File: gfsmDefaultImpl.h
+ * File: gfsmImplDefault.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: implementation: default wrappers
  *
@@ -21,12 +21,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-/** \file gfsmDefaultImpl.h
+/** \file gfsmImplDefault.h
  *  \brief Default methods for ::gfsmAutomaton API
  */
 
-#ifndef _GFSM_DEFAULT_IMPL_H
-#define _GFSM_DEFAULT_IMPL_H
+#ifndef _GFSM_IMPL_DEFAULT_H
+#define _GFSM_IMPL_DEFAULT_H
 
 #include <gfsmAutomatonTypes.h>
 
@@ -41,15 +41,6 @@
  *  \warning Default implementation aborts with an error.
  */
 void gfsm_automaton_init_default(gfsmAutomaton *fsm, guint n_states, guint n_arcs);
-
-/** Create a new gfsmAutomaton by cloning an existing one.
- *
- *  \b Requirements on \c src:
- *  \li gfsm_automtaton_copy()
- *  \li gfsm_automaton_classed_new_full()
- *
- */
-gfsmAutomaton *gfsm_automaton_clone_default(gfsmAutomaton *src);
 
 /** Assign the contents of \a src to \a dst, without altering \a dst's implementation class.
  *
@@ -141,20 +132,6 @@ gfsmStateId gfsm_automaton_get_root_default(gfsmAutomaton *fsm);
  *  \warning Default implementation aborts with an error.
  */
 void gfsm_automaton_set_root_default(gfsmAutomaton *fsm, gfsmStateId qid);
-
-/** Renumber states of an automaton using a user-specified renumbering scheme.
- *  Destructively alters \a fsm.
- *  \param fsm
- *    automaton whose states are to be renumbered
- *  \param old2new
- *    ::GArray of ::gfsmStateId s.t. \a qid_new=old2new[qid_old], where \a newid may be ::gfsmNoState to ignore
- *  \param n_new_states
- *     number of new states, or 0 (zero) to auto-compute
- *  \note
- *    Should be guaranteed \b not to increase either the number of states nor the number of arcs in \a fsm.
- *  \warning Default implementation aborts with an error.
- */
-void gfsm_automaton_renumber_states_full_default(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states);
 
 //@}
 
@@ -326,7 +303,6 @@ void gfsm_automaton_arcsort_full_default(gfsmAutomaton *fsm, GCompareDataFunc cm
  *
  *  \warning Default implementation aborts with an error message.
  */
-static inline
 void gfsm_arciter_init_default(gfsmArcIter *aip);
 
 /** Close a ::gfsmArcIter \a aip
@@ -334,7 +310,6 @@ void gfsm_arciter_init_default(gfsmArcIter *aip);
  *
  *  Default implementation does nothing.
  */
-static inline
 void gfsm_arciter_close_default(gfsmArcIter *aip);
 
 /** Check validity of a ::gfsmArcIteraor \a aip
@@ -343,7 +318,6 @@ void gfsm_arciter_close_default(gfsmArcIter *aip);
  *
  *  \warning default implementation always returns FALSE
  */
-static inline
 gboolean gfsm_arciter_ok_default(gfsmArcIter *aip);
 
 /** Increment a ::gfsmArcIter \a aip to the next available outgoing arc, if possible.
@@ -351,7 +325,6 @@ gboolean gfsm_arciter_ok_default(gfsmArcIter *aip);
  *
  *  \warning default implementation does nothing
  */
-static inline
 void gfsm_arciter_next(gfsmArcIter *aip);
 
 /** Reset a ::gfsmArcIter \a aip to the first available outgoing arc.
@@ -359,7 +332,6 @@ void gfsm_arciter_next(gfsmArcIter *aip);
  *
  *  \note default implementation juse calls gfsm_arciter_open()
  */
-static inline
 void gfsm_arciter_reset_default(gfsmArcIter *aip);
 
 /** Copy contents of a ::gfsmArcIteraor \a src to \a dst
@@ -370,7 +342,6 @@ void gfsm_arciter_reset_default(gfsmArcIter *aip);
  *  \note default implementation is just:
  *  \code (*dst)=(*src) \endcode
  */
-static inline
 void gfsm_arciter_copy_default(gfsmArcIter *dst, gfsmArcIter *src);
 
 
@@ -381,7 +352,6 @@ void gfsm_arciter_copy_default(gfsmArcIter *dst, gfsmArcIter *src);
  *  \note default implementation just calls:
  *  \code gfsm_arciter_copy_default((dst=g_new0(gfsmArcIter,1)),src) \endcode
  */
-static inline
 gfsmArcIter *gfsm_arciter_clone_default(const gfsmArcIter *src);
 
 
@@ -390,7 +360,6 @@ gfsmArcIter *gfsm_arciter_clone_default(const gfsmArcIter *src);
  *
  *  \warning default implementation always returns NULL.
  */
-static inline
 gfsmArc *gfsm_arciter_arc_default(gfsmArcIter *aip);
 
 /** Remove the arc referred to by a ::gfsmArcIter \a aip from its automaton,
@@ -400,7 +369,6 @@ gfsmArc *gfsm_arciter_arc_default(gfsmArcIter *aip);
  *
  *  \warning default implementation dies with an error message.
  */
-static inline
 void gfsm_arciter_remove_default(gfsmArcIter *aip);
 
 /** Position an arc-iterator to the next arc
@@ -411,7 +379,6 @@ void gfsm_arciter_remove_default(gfsmArcIter *aip);
  *  \note default implementation just wraps
  *        gfsm_arciter_ok(), gfsm_arciter_next(), and gfsm_arciter_arc().
  */
-static inline
 void gfsm_arciter_seek_both_default(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi);
 
 /** Position a :.gfsmArcIter \a aip to the next arc with lower label \a lo
@@ -420,7 +387,6 @@ void gfsm_arciter_seek_both_default(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabel
  *
  *  \note default implementation just wraps gfsm_arciter_seek_both()
  */
-static inline
 void gfsm_arciter_seek_lower_default(gfsmArcIter *aip, gfsmLabelVal lo);
 
 /** Position a :.gfsmArcIter \a aip to the next arc with upper label \a hi
@@ -429,28 +395,33 @@ void gfsm_arciter_seek_lower_default(gfsmArcIter *aip, gfsmLabelVal lo);
  *
  *  \note default implementation just wraps gfsm_arciter_seek_both()
  */
-static inline
 void gfsm_arciter_seek_upper_default(gfsmArcIter *aip, gfsmLabelVal hi);
 
-/** Position the ::gfsmArcIter \a aip to the next arc for which
- *  <tt>(*seekfunc)(aip,data)</tt>
- *  returns a true value.
- *
- *  \param aip the ::gfsmArcIter to reposition
- *  \param seekfunc user-defined seek function
- *  \param data user data passed to \a seekfunc
- *
- *  \note default implementation just wraps
- *        gfsm_arciter_ok(), gfsm_arciter_next(), and gfsm_arciter_arc().
+//@}
+
+/*======================================================================
+ * API: Automaton I/O
  */
-static inline
-void gfsm_arciter_seek_user_default(gfsmArcIter *aip,
-				    gfsmArcIterSeekFunc seekfunc,
-				    gpointer data);
+///\name API: Automaton I/O
+//@{
+
+/** Implements gfsm_automaton_save_bin_handle()
+ *  \warning No default implementation (return FALSE and sets \a *errp)
+ */
+gboolean gfsm_automaton_save_bin_handle_default(gfsmAutomaton        *fsm,
+						gfsmAutomatonHeader  *hdr,
+						gfsmIOHandle         *ioh,
+						gfsmError           **errp);
+
+/** Implements gfsm_automaton_load_bin_handle()
+ *  \warning No default implementation (return FALSE and sets \a *errp)
+ */
+gboolean gfsm_automaton_load_bin_handle_default(gfsmAutomaton       *fsm,
+						gfsmAutomatonHeader *hdr,
+						gfsmIOHandle        *ioh,
+						gfsmError          **errp);
 
 
 //@}
 
-#include <gfsmDefaultImpl.def>
-
-#endif /* _GFSM_DEFAULT_IMPL_H */
+#endif /* _GFSM_IMPL_DEFAULT_H */

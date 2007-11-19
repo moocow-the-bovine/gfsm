@@ -514,6 +514,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
 	gfsmArc *a = gfsm_arciter_arc(&ai);
 	a->target += offset;
       }
+    gfsm_arciter_close(&ai);
 
     //-- check for new final states: get weight & mark state is_final flag
     if ( (finals2 && gfsm_weightmap_lookup(finals2, GUINT_TO_POINTER(id2), &s2fw))
@@ -598,6 +599,7 @@ void gfsm_connect_fw_visit_state(gfsmAutomaton *fsm,
   for (gfsm_arciter_open_ptr(&ai,fsm,s); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
     gfsm_connect_fw_visit_state(fsm, gfsm_arciter_arc(&ai)->target, visited);
   }
+  gfsm_arciter_close(&ai);
 
   return;
 }
@@ -724,6 +726,7 @@ gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wa
 	  gfsm_arciter_next(&ai);
 	}
       }
+      gfsm_arciter_close(&ai);
     }
   }
 
@@ -1172,6 +1175,7 @@ gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm)
       a->lower        = a->upper;
       a->upper        = tmp;
     }
+    gfsm_arciter_close(&ai);
   }
   return fsm;
 }
@@ -1215,6 +1219,7 @@ gfsmAutomaton *_gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
       a = gfsm_arciter_arc(&ai);
       a->upper = gfsmEpsilon;
     }
+    gfsm_arciter_close(&ai);
   }
 
   //-- chuck out all upper-labels from fsm2
@@ -1225,6 +1230,7 @@ gfsmAutomaton *_gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
       a = gfsm_arciter_arc(&ai);
       a->lower = gfsmEpsilon;
     }
+    gfsm_arciter_close(&ai);
   }
 
   //-- concatenate
@@ -1251,6 +1257,7 @@ gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which)
       if (which==gfsmLSLower) a->upper = a->lower;
       else                    a->lower = a->upper;
     }
+    gfsm_arciter_close(&ai);
   }
   fsm->flags.is_transducer = FALSE;
   return fsm;
@@ -1275,7 +1282,7 @@ gfsmAutomaton *gfsm_automaton_replace(gfsmAutomaton *fsm1, gfsmLabelVal lo, gfsm
 	gfsm_automaton_insert_automaton(fsm1, id, a->target, fsm2, a->weight);
 	gfsm_arciter_remove(&ai); //-- implies gfsm_arciter_next()
       }
-    //gfsm_arciter_close(&ai);
+    gfsm_arciter_close(&ai);
   }
 
   return fsm1;
@@ -1325,6 +1332,7 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
 	gfsmArc *a = gfsm_arciter_arc(&ai);
 	a->target += offset;
       }
+    gfsm_arciter_close(&ai);
 
     //-- check for fsm2-final states: get weight & add arc to our sink state
     if (gfsm_weightmap_lookup(fsm2->finals, GUINT_TO_POINTER(id2), &s2fw)) {
@@ -1368,6 +1376,7 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 	gfsm_arciter_next(&ai);
       }
     }
+    gfsm_arciter_close(&ai);
   }
 
   //-- cleanup
@@ -1410,6 +1419,7 @@ void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
 					gfsm_sr_times(fsm->sr, weight_eps, a->weight),
 					sp2wh);
     }
+  gfsm_arciter_close(&ai);
 }
 
 /*--------------------------------------------------------------
@@ -1439,6 +1449,7 @@ void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gf
 			     gfsm_sr_times(fsm->sr, a->weight, w));
     }
   }
+  gfsm_arciter_close(&ai);
 }
 
 
@@ -1500,6 +1511,7 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
       a->target = a->source;
       a->source = tmp;
     }
+    gfsm_arciter_close(&ai);
   }
 
   //-- root flop
@@ -1565,6 +1577,7 @@ gfsmAutomaton *gfsm_automaton_reverse_old(gfsmAutomaton *fsm)
       gfsmArc *a = gfsm_arciter_arc(&ai);
       a->target -= new_root;
     }
+    gfsm_arciter_close(&ai);
   }
 
   //-- root flop
@@ -1634,6 +1647,8 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
       gfsmArc *a = gfsm_arciter_arc(&ai);
       a->target += offset;
     }
+    gfsm_arciter_close(&ai);
+
     //-- index final states from @fsm2
     if (s2->is_final) {
       gfsm_automaton_set_final_state_full(fsm1, id2+offset, TRUE, gfsm_automaton_get_final_weight(fsm2, id2));

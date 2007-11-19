@@ -53,6 +53,7 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
       g_ptr_array_index(rarcs,arc->target)
 	= gfsm_arclist_prepend(g_ptr_array_index(rarcs,arc->target), arc);
     }
+    gfsm_arciter_close(&ai);
   }
 
   return rarcs;
@@ -145,7 +146,7 @@ gfsmArcLabelIndex *gfsm_automaton_lower_label_index(gfsmAutomaton *fsm, gfsmArcL
 
   //-- populate arcs
   for (qid=0; qid < gfsm_automaton_n_states(fsm); qid++) {
-    for (gfsm_arciter_open(&ai,fsm,qid); 
+    for (gfsm_arciter_open(&ai,fsm,qid); FALSE; ) { ; } //-- CONTINUE HERE
   }
 }
 

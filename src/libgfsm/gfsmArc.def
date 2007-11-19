@@ -1,8 +1,8 @@
 
 /*=============================================================================*\
- * File: gfsmState.c
+ * File: gfsmArc.def
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library: states
+ * Description: finite state machine library: arcs: inline definitions
  *
  * Copyright (c) 2004-2007 Bryan Jurish.
  *
@@ -21,61 +21,80 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-#include <gfsmState.h>
-#include <gfsmMem.h>
+#include <stdlib.h>
 
 /*======================================================================
- * Methods: Constructors etc.
+ * Methods: Arcs: Constructors etc.
  */
 
 /*--------------------------------------------------------------
- * new_full()
+ * arc_new()
  */
-gfsmState *gfsm_state_new_full(gboolean is_final, gfsmArcList *arcs)
+static inline
+gfsmArc *gfsm_arc_new(void)
 {
-  gfsmState *s = g_new(gfsmState,1);
-  s->is_valid = TRUE;
-  s->is_final = is_final;
-  s->arcs     = arcs;
-  return s;
+  return g_new0(gfsmArc,1);
 }
 
 /*--------------------------------------------------------------
- * clone()
+ * arc_init()
  */
-gfsmState *gfsm_state_copy(gfsmState *dst, const gfsmState *src)
+static inline
+gfsmArc *gfsm_arc_init(gfsmArc *a,
+		       gfsmStateId src,
+		       gfsmStateId dst,
+		       gfsmLabelId lo,
+		       gfsmLabelId hi,
+		       gfsmWeight wt)
 {
-  gfsm_state_clear(dst);
-  if (!src->is_valid) return dst;
-  dst->is_valid = src->is_valid;
-  dst->is_final = src->is_final;
-  //dst->arcs     = gfsm_arclist_copy(src->arcs);
-  dst->arcs     = g_slist_concat(gfsm_arclist_copy(src->arcs), dst->arcs);
+  if (a) {
+    a->source = src;
+    a->target = dst;
+    a->lower  = lo;
+    a->upper  = hi;
+    a->weight = wt;
+  }
+  return a;
+}
+
+/*--------------------------------------------------------------
+ * arc_new_full()
+ */
+static inline
+gfsmArc *gfsm_arc_new_full(gfsmStateId src, gfsmStateId dst, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight wt)
+{
+  return gfsm_arc_init(g_malloc(sizeof(gfsmArc)),src,dst,lo,hi,wt);
+}
+
+/*--------------------------------------------------------------
+ * arc_clone()
+ */
+static inline
+gfsmArc *gfsm_arc_clone(gfsmArc *src)
+{
+  gfsmArc *dst = g_new(gfsmArc,1);
+  *dst = *src;
   return dst;
 }
 
 /*--------------------------------------------------------------
- * clear()
+ * arc_free()
  */
-void gfsm_state_clear(gfsmState *s)
-{
-  gfsm_arclist_free(s->arcs);
-  s->is_valid = FALSE;
-  s->is_final = FALSE;
-  s->arcs     = NULL;
-}
+static inline
+void gfsm_arc_free(gfsmArc *a)
+{ g_free(a); }
 
-/*--------------------------------------------------------------
- * free()
- */
-void gfsm_state_free(gfsmState *s, gboolean free_arcs)
-{
-  if (free_arcs && s->arcs) gfsm_arclist_free(s->arcs);
-  g_free(s);
-}
 
 /*======================================================================
- * Methods: Accessors
+ * Methods: Sorting
  */
-//(none)
 
+/*--------------------------------------------------------------
+ * compare()
+ */
+//-- PURE FUNCTION(s)
+
+/*======================================================================
+ * Methods: String utilities
+ */
+//-- PURE FUNCTION(s)

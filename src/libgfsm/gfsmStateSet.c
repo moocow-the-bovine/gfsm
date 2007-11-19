@@ -211,6 +211,7 @@ void gfsm_stateset_populate(gfsmStateSet *sset,
     {
       gfsm_stateset_populate(sset,fsm,gfsm_arciter_arc(&ai)->target,lo,hi);
     }
+  gfsm_arciter_close(&ai);
 }
 
 /*--------------------------------------------------------------

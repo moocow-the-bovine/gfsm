@@ -21,6 +21,9 @@
  *=============================================================================*/
 
 #include <gfsmAutomaton.h>
+#include <gfsmError.h>
+#include <gfsmIO.h>
+#include <gfsmVersion.h>
 #include <stdlib.h>
 
 /*======================================================================
@@ -57,8 +60,8 @@
  * API: Automaton I/O
  */
 
-const gfsmVersion gfsm_version_bincompat_min_store_old = {0,0,8};
-const gfsmVersion gfsm_version_bincompat_min_check_old = {0,0,2};
+const gfsmVersionInfo gfsm_version_bincompat_min_store_old = {0,0,8};
+const gfsmVersionInfo gfsm_version_bincompat_min_check_old = {0,0,2};
 
 /*--------------------------------------------------------------
  * save_bin_handle()
@@ -77,15 +80,15 @@ gboolean gfsm_automaton_save_bin_handle_old(gfsmAutomaton        *fsm,
   gboolean            rc = TRUE;
 
   //-- create & write header
-  hdr->version    = gfsm_version;
-  hdr.version_min = gfsm_version_bincompat_min_store_old;
-  hdr->flags      = fsm->flags;
-  hdr->root_id    = gfsm_automaton_get_root(fsm);
-  hdr->n_states   = gfsm_automaton_n_states(fsm);
-  hdr->n_arcs     = 0;
-  hdr->srtype     = fsm->sr->type;
-  hdr->itype      = fsm->itype;
-  if (!gfsm_automaton_save_header(&hdr,ioh,errp)) return FALSE; //-- errp shoud already be set
+  hdr->version     = gfsm_version;
+  hdr->version_min = gfsm_version_bincompat_min_store_old;
+  hdr->flags       = fsm->flags;
+  hdr->root_id     = gfsm_automaton_get_root(fsm);
+  hdr->n_states    = gfsm_automaton_n_states(fsm);
+  hdr->n_arcs      = 0;
+  hdr->srtype      = fsm->sr->type;
+  hdr->itype       = fsm->itype;
+  if (!gfsm_automaton_save_bin_header(hdr,ioh,errp)) return FALSE; //-- errp shoud already be set
 
   //-- zero stored state (allow zlib compression to work better for any 'unused' members)
   memset(&sst, 0, sizeof(gfsmStoredState));
@@ -93,8 +96,8 @@ gboolean gfsm_automaton_save_bin_handle_old(gfsmAutomaton        *fsm,
   //-- write states
   for (id=0; rc && id < hdr->n_states; id++) {
     //-- store basic state information
-    st           = gfsm_automaton_find_state_old(fsm,id);
-    sst.is_valid = st ? st->is_valid : FALSE;
+    st           = gfsm_impl_old_find_state(fsm->impl.old,id);
+    sst.is_valid = st->is_valid;
     sst.is_final = sst.is_valid ? st->is_final : FALSE;
     sst.n_arcs   = sst.is_valid ? gfsm_state_out_degree(st) : 0;
     if (!gfsmio_write(ioh, &sst, sizeof(sst))) {
@@ -117,7 +120,7 @@ gboolean gfsm_automaton_save_bin_handle_old(gfsmAutomaton        *fsm,
 
     //-- store arcs
     if (sst.is_valid) {
-      for (gfsm_arciter_open_ptr(&ai,fsm,st); rc && gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      for (gfsm_arciter_open(&ai,fsm,id); rc && gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
 	gfsmArc *a = gfsm_arciter_arc(&ai);
 	sa.target = a->target;
 	sa.lower  = a->lower;
@@ -148,10 +151,11 @@ typedef struct {
   guint    min_arc;      /**< index of stored minimum arc (not really necessary) */
 } gfsmStoredState_007;
 
-gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomaton *fsm,
-					      gfsmAutomatonHeader *hdr,
-					      gfsmIOHandle *ioh,
-					      gfsmError **errp)
+static
+gboolean gfsm_automaton_load_bin_handle_old_0_0_7(gfsmAutomaton *fsm,
+						  gfsmAutomatonHeader *hdr,
+						  gfsmIOHandle *ioh,
+						  gfsmError **errp)
 {
   gfsmImplOld    *fsmi = fsm->impl.old;
   gfsmStateId     id;
@@ -193,13 +197,13 @@ gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomaton *fsm,
     }
 
     //-- HACK: remember number of arcs!
-    st->arcs = (gfsmArcList*) GUINT_TO_POINTER(s_state.n_arcs);
+    st->arcs = (gfsmArcListOld*) GUINT_TO_POINTER(s_state.n_arcs);
   }
 
   //------ load arcs (state-by-state)
   for (id=0; rc && id < hdr->n_states; id++) {
     //-- get state
-    st = gfsm_automaton_find_state(fsm,id);
+    st = gfsm_impl_old_find_state(fsm->impl.old,id);
     if (!st || !st->is_valid) continue;
 
     //-- read in arcs (one-by-one)
@@ -231,11 +235,11 @@ gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomaton *fsm,
 /*--------------------------------------------------------------
  * load_bin_handle(): v0.0.8 .. CURRENT
  */
-
-gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomaton *fsm,
-					      gfsmAutomatonHeader *hdr,
-					      gfsmIOHandle *ioh,
-					      gfsmError **errp)
+static
+gboolean gfsm_automaton_load_bin_handle_old_0_0_8(gfsmAutomaton *fsm,
+						  gfsmAutomatonHeader *hdr,
+						  gfsmIOHandle *ioh,
+						  gfsmError **errp)
 {
   gfsmImplOld    *fsmi = fsm->impl.old;
   gfsmStateId     id;
@@ -267,7 +271,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomaton *fsm,
 
     if (!s_state.is_valid) continue;
 
-    st           = gfsm_impl_old_find_state(fsm,id);
+    st           = gfsm_impl_old_find_state(fsmi,id);
     st->is_valid = TRUE;
 
     if (s_state.is_final) {
@@ -283,7 +287,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomaton *fsm,
 
       //-- set final weight
       st->is_final = TRUE;
-      gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(id), w);
+      gfsm_weightmap_insert(fsmi->finals, GUINT_TO_POINTER(id), w);
     } else {
       st->is_final = FALSE;
     }
@@ -300,13 +304,12 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomaton *fsm,
       }
       if (!rc) break;
 
-      st->arcs = g_slist_prepend(st->arcs,
-				 gfsm_arc_new_full(id,
-						   s_arc.target,
-						   s_arc.lower,
-						   s_arc.upper,
-						   s_arc.weight,
-						   st->arcs));
+      st->arcs = gfsm_arclist_new_full_old(id,
+					   s_arc.target,
+					   s_arc.lower,
+					   s_arc.upper,
+					   s_arc.weight,
+					   st->arcs);
     }
 
     //-- reverse arc-list for sorted automata
@@ -322,7 +325,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomaton *fsm,
 gboolean gfsm_automaton_load_bin_handle_old(gfsmAutomaton        *fsm,
 					    gfsmAutomatonHeader  *hdr,
 					    gfsmIOHandle         *ioh,
-					    gfsmError           **errp);
+					    gfsmError           **errp)
 {
   if (gfsm_version_ge(hdr->version,((gfsmVersionInfo){0,0,8}))) {
     //-- v0.0.8 .. CURRENT

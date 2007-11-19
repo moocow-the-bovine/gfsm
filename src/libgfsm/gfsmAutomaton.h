@@ -1,6 +1,6 @@
 
 /*=============================================================================*\
- * File: gfsmAutomatonAPI.h
+ * File: gfsmAutomaton.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: generic automata
  *
@@ -53,10 +53,11 @@ extern const gfsmStateId gfsmAutomatonDefaultNStates;
 extern const gfsmArcId gfsmAutomatonDefaultNArcs;
 
 /** Class-type to symbolic name lookup table */
-extern const char *gfsmAutomatonClassNames[gfsmACNClasses];
+extern const gchar *gfsmAutomatonClassNames[gfsmACNClasses];
 
 /** Get symbolic class name for a class type, or NULL if \a itype is not a built-in type */
-const char *gfsm_class_name(gfsmAutomatonClass itype);
+static inline
+const gchar *gfsm_class_name(gfsmAutomatonClass itype);
 
 //@}
 
@@ -71,12 +72,6 @@ const char *gfsm_class_name(gfsmAutomatonClass itype);
  */
 static inline
 gfsmAutomaton *gfsm_automaton_new();
-#define gfsm_automaton_new() \
-  gfsm_automaton_classed_new_full(gfsmAutomatonDefaultClass,   \
-                                  gfsmAutomatonDefaultFlags,   \
-                                  gfsmAutomatonDefaultSRType,  \
-                                  gfsmAutomatonDefaultNStates, \
-                                  gfsmAutomatonDefaultNArcs)
 
 /** Allocate and return a new ::gfsmAutomaton of class \a itype using default flags and semiring
  *  \param itype implementation class of automaton to create
@@ -145,6 +140,17 @@ gfsmAutomaton *gfsm_automaton_shadow(gfsmAutomaton *fsm);
 static inline
 gfsmAutomaton *gfsm_automaton_shadow_classed(gfsmAutomaton *fsm, gfsmAutomatonClass itype);
 
+/** Convert implementation class of \a fsm to \a itype. 
+ *  Does nothing if \a fsm's class is already \a itype.
+ *  \param fsm      automaton to convert
+ *  \param itype    target implementation class
+ *  \returns converted \a fsm
+ *  \note
+ *    Basically just a wrapper for gfsm_automaton_classed_new_full(), gfsm_automaton_copy(), and gfsm_automaton_swap()
+ */
+static inline
+void gfsm_automaton_set_class(gfsmAutomaton *fsm, gfsmAutomatonClass itype);
+
 /** Swap the contents of ::gfsmAutomaton objects \a fsm1 and \a fsm2, including implementations. */
 static inline
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
@@ -160,11 +166,9 @@ void gfsm_automaton_free(gfsmAutomaton *fsm);
 /** Destroy an automaton, optionally retaining its implementation.
  *  \param fsm automaton to destroy
  *  \param free_impl if true, implementation will be freed
- *  \returns
- *    fsm->impl if \a free_impl is FALSE, otherwise undefined.
  */
 static inline
-gfsmAutomatonImpl gfsm_automaton_free_full(gfsmAutomaton *fsm, gboolean free_impl);
+void gfsm_automaton_free_full(gfsmAutomaton *fsm, gboolean free_impl);
 
 //@}
 
@@ -188,6 +192,7 @@ static inline
 gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr);
 
 /** Set the semiring associated with this automaton by semiring-type */
+static inline
 void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype);
 
 //@}
@@ -232,6 +237,7 @@ gfsmStateId gfsm_automaton_get_root(gfsmAutomaton *fsm);
 /** Set ID of root node, creating state if necessary
  *  \warning may not be supported by all implementations
  */
+static inline
 gfsmStateId gfsm_automaton_set_root(gfsmAutomaton *fsm, gfsmStateId new_root_id);
 
 //@}
@@ -484,8 +490,8 @@ void gfsm_automaton_close_state(gfsmAutomaton *fsm, gfsmState *qp);
  */
 static inline
 void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
-			    gfsmStateId qid1,
-			    gfsmStateId qid2,
+			    gfsmStateId    qid1,
+			    gfsmStateId    qid2,
 			    gfsmLabelVal   lo,
 			    gfsmLabelVal   hi,
 			    gfsmWeight     w);
@@ -508,13 +514,14 @@ gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode);
  *    User data for \a cmpfunc
  *  \returns
  *    modified \a fsm
+ *  \todo
+ *    implement gfsm_automaton_arcsort_full() in terms of (extended) ::gfsmArcIter API
  */
 static inline
-gfsmAutomaton *gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
+void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, gpointer data);
 
 /** Alias for gfsm_automaton_arcsort_full() */
-#define gfsm_automaton_arcsort_with_data(fsm,cmpfunc,data) \
-  gfsm_automaton_arcsort_full((fsm),(cmpfunc),(data))
+//#define gfsm_automaton_arcsort_with_data(fsm,cmpfunc,data) gfsm_automaton_arcsort_full((fsm),(cmpfunc),(data))
 
 //@}
 
@@ -684,11 +691,12 @@ void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi);
 
 /** Write a binary ::gfsmAutomatonHeader to a ::gfsmIOHandle*
  *  \param hdr  ::gfsmAutomatonHeader to write
- *  \param ioh  ::gfsmIOHandle to which data is to be written
+ *  \param ioh  ::gfsmIOHandle to which header data is to be written
  *  \param errp[out] if an error occurs, \a *errp will hold a diagnostic message.
  *  \returns a true value iff write succeeded.
  */
-gboolean gfsm_automaton_save_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *ioh, gfsmError **errp);
+static inline
+gboolean gfsm_automaton_save_bin_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *ioh, gfsmError **errp);
 
 /** Store a ::gfsmAutomaton \a fsm in binary form to a ::gfsmIOHandle* \a ioh.
  *  \param fsm  Automaton to store.
@@ -705,7 +713,7 @@ static inline
 gboolean gfsm_automaton_save_bin_handle(gfsmAutomaton        *fsm,
 					gfsmAutomatonHeader  *hdr,
 					gfsmIOHandle         *ioh,
-					gfsmError           **errp)
+					gfsmError           **errp);
 
 /** Load an automaton from a named binary file (implicitly clear()s \a fsm)
  *  \param fsm  Automaton to load, should already be instantiated.
@@ -722,5 +730,8 @@ gboolean gfsm_automaton_load_bin_handle(gfsmAutomaton       *fsm,
 					gfsmIOHandle        *ioh,
 					gfsmError          **errp);
 //@}
+
+
+#include <gfsmAutomaton.def>
 
 #endif /* _GFSM_AUTOMATON_API_H */

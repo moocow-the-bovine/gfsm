@@ -22,6 +22,7 @@
 
 #include <gfsmAutomaton.h>
 #include <gfsmImplOld.h>
+#include <gfsmImplDefault.h>
 
 /*======================================================================
  * Constants
@@ -44,7 +45,7 @@ const gfsmStateId gfsmAutomatonDefaultNStates  = 128;
 
 const gfsmArcId gfsmAutomatonDefaultNArcs = 128;
 
-const char *gfsmAutomatonClassNames[gfsmACNClasses] =
+const gchar *gfsmAutomatonClassNames[gfsmACNClasses] =
   {
     "Unknown",
     "Old", 
@@ -57,11 +58,7 @@ const char *gfsmAutomatonClassNames[gfsmACNClasses] =
 /*======================================================================
  * Wrappers: class name
  */
-const char *gfsm_class_name(gfsmAutomatonClass itype)
-{
-  if (itype >= gfsmACNClasses) return NULL;
-  return gfsmAutomatonClassNames[itype];
-}
+//-- inlined
 
 /*======================================================================
  * API: Constructors etc.
@@ -113,7 +110,7 @@ guint gfsm_automaton_n_arcs_full(gfsmAutomaton *fsm,
  * is_cyclic_state()
  */
 gboolean gfsm_automaton_is_cyclic_state(gfsmAutomaton *fsm,
-					gfsmStateIdVal qid,
+					gfsmStateId    qid,
 					gfsmBitVector *visited,
 					gfsmBitVector *completed)
 {
@@ -218,7 +215,7 @@ gfsmAutomaton *gfsm_automaton_map_states(gfsmAutomaton *fsm,
 
   //-- maybe get new number of states
   if (n_new_states==0) {
-    for (oldid=0; oldid < fsm->states->len; oldid++) {
+    for (oldid=0; oldid < old2new->len; oldid++) {
       if (!gfsm_automaton_has_state(fsm,oldid)) continue;
       newid = g_array_index(old2new,gfsmStateId,oldid);
       if (newid != gfsmNoState && newid >= n_new_states) { n_new_states=newid+1; }
@@ -229,7 +226,7 @@ gfsmAutomaton *gfsm_automaton_map_states(gfsmAutomaton *fsm,
   if (dst!=NULL) {
     gfsm_automaton_reserve_states(dst,n_new_states);
   } else {
-    dst = gfsm_automaton_classed_new_full(gfsmDefaultClass,n_new_states,0);
+    dst = gfsm_automaton_classed_new_full(gfsmAutomatonDefaultClass, fsm->flags, fsm->sr->type, n_new_states, 0);
   }
   gfsm_automaton_copy_shallow(dst,fsm); 
 
@@ -237,7 +234,7 @@ gfsmAutomaton *gfsm_automaton_map_states(gfsmAutomaton *fsm,
   dst->flags.sort_mode = gfsmASMNone;
 
   //-- renumber states
-  for (oldid=0; oldid < fsm->states->len; oldid++) {
+  for (oldid=0; oldid < old2new->len; oldid++) {
     gfsmArcIter ai; 
     newid = g_array_index(old2new,gfsmStateId,oldid);
 
@@ -301,8 +298,8 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
   dst = gfsm_automaton_map_states(fsm, old2new, newid+1, NULL);
 
   //-- swap & cleanup
-  gfsm_automaton_swap(dst,src);
-  gfsm_automaton_free(src);
+  gfsm_automaton_swap(dst,fsm);
+  gfsm_automaton_free(dst);
 }
 
 /*======================================================================
@@ -317,17 +314,3 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm)
  * API: Automaton I/O
  */
 
-/*--------------------------------------------------------------
- * save_header()
- */
-gboolean gfsm_automaton_save_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *ioh, gfsmError **errp)
-{
-  //-- write header
-  if (!gfsmio_write(ioh, &hdr, sizeof(gfsmAutomatonHeader))) {
-    g_set_error(errp, g_quark_from_static_string("gfsm"),                  //-- domain
-		      g_quark_from_static_string("automaton_save_header"), //-- code
-		      "could not store automaton header");
-    return FALSE;
-  }
-  return TRUE;
-}

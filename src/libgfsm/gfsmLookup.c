@@ -119,6 +119,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 	  stack = g_slist_prepend(stack, cfg_new);
 	}
       }
+    gfsm_arciter_close(&ai);
 
     //-- we're done with this config
     g_free(cfg);
@@ -271,6 +272,8 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
 	  }
 
 	} //-- END: seek input-matching arcs
+      gfsm_arciter_close(&ai);
+
     } //-- END: previous column iteration (prevcoli)
 
     //-- expand epsilons in current column
@@ -444,6 +447,7 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton        *fst,
 	  }
 
       } //-- END: seek epsilon arcs
+    gfsm_arciter_close(&ai);
 
   } //-- END column iteration
 

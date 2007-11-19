@@ -58,6 +58,7 @@ gfsmAutomaton *gfsm_automaton_arith(gfsmAutomaton    *fsm,
 	  gfsmArc *arc = gfsm_arciter_arc(&ai);
 	  arc->weight  = gfsm_weight_arith(fsm->sr, op, arc->weight, arg, do_zero);
 	}
+      gfsm_arciter_close(&ai);
     }
   }
 
@@ -94,6 +95,7 @@ gfsmAutomaton *gfsm_automaton_arith_state(gfsmAutomaton    *fsm,
 	gfsmArc *arc = gfsm_arciter_arc(&ai);
 	arc->weight  = gfsm_weight_arith(fsm->sr, op, arc->weight, arg, do_zero);
       }
+    gfsm_arciter_close(&ai);
   }
 
   //-- final weight

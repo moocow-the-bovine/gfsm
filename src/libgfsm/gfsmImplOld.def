@@ -35,7 +35,7 @@
 static inline
 gfsmState *gfsm_impl_old_find_state(gfsmImplOld *fsmi, gfsmStateId qid)
 {
-  return (qid < fsmi->states->len ? (((gfsmState*)fsmi->states->data)+id) : NULL);
+  return (qid < fsmi->states->len ? (((gfsmState*)fsmi->states->data)+qid) : NULL);
 }
 
 /*--------------------------------------------------------------
@@ -44,7 +44,7 @@ gfsmState *gfsm_impl_old_find_state(gfsmImplOld *fsmi, gfsmStateId qid)
 static inline
 const gfsmState *gfsm_impl_old_find_state_const(gfsmImplOld *fsmi, gfsmStateId qid)
 {
-  return (qid < fsmi->states->len ? (((const gfsmState*)fsmi->states->data)+id) : NULL);
+  return (qid < fsmi->states->len ? (((const gfsmState*)fsmi->states->data)+qid) : NULL);
 }
 
 
@@ -59,10 +59,9 @@ static inline
 void gfsm_automaton_init_old(gfsmAutomaton *fsm, gfsmStateId n_states, gfsmArcId n_arcs)
 {
   fsm->impl.old          = (gfsmImplOld*)g_new0(gfsmImplOld,1);
-  fsm->impl.old->states  = g_array_sized_new(FALSE, TRUE, sizeof(gfsmState), size);
+  fsm->impl.old->states  = g_array_sized_new(FALSE, TRUE, sizeof(gfsmState), n_states);
   fsm->impl.old->finals  = gfsm_weightmap_new(gfsm_uint_compare);
   fsm->impl.old->root_id = gfsmNoState;
-  return fsm;
 }
 
 /*--------------------------------------------------------------
@@ -104,8 +103,8 @@ void gfsm_automaton_clear_old(gfsmAutomaton *fsm)
   gfsmStateId qid;
   gfsmImplOld *fsmi = fsm->impl.old;
   if (!fsm) return;
-  for (qid=0; fsmi->states && qid < fsmi->states->len; i++) {
-    gfsmState *st = gfsm_impl_old_find_state(fsmi,i);
+  for (qid=0; fsmi->states && qid < fsmi->states->len; qid++) {
+    gfsmState *st = gfsm_impl_old_find_state(fsmi,qid);
     if (!st || !st->is_valid) continue;
     gfsm_state_clear(st);
   }
@@ -200,10 +199,10 @@ gfsmStateId gfsm_automaton_add_state_full_old(gfsmAutomaton *fsm, gfsmStateId qi
 {
   gfsmState *st;
 
-  if (id==gfsmNoState)
+  if (qid==gfsmNoState)
     qid=fsm->impl.old->states->len;
 
-  if (id >= fsm->impl.old->states->len)
+  if (qid >= fsm->impl.old->states->len)
     gfsm_automaton_reserve_states_old(fsm,qid+1);
   
   st           = gfsm_impl_old_find_state(fsm->impl.old, qid);
@@ -258,11 +257,10 @@ void gfsm_automaton_remove_state_old(gfsmAutomaton *fsm, gfsmStateId qid)
   gfsmState *s = gfsm_impl_old_find_state(fsm->impl.old, qid);
   if (!s || !s->is_valid) return;
 
-  if (s->is_final) gfsm_weightmap_remove(fsm->impl.old->finals,GUINT_TO_POINTER(id));
-  if (id==fsm->impl.old->root_id) fsm->impl.old->root_id = gfsmNoState;
+  if (s->is_final) gfsm_weightmap_remove(fsm->impl.old->finals,GUINT_TO_POINTER(qid));
+  if (qid==fsm->impl.old->root_id) fsm->impl.old->root_id = gfsmNoState;
 
-  gfsm_arclist_old_free(s->arcs);
-  s->arcs = NULL;
+  s->arcs = gfsm_arclist_free_old(s->arcs);
   s->is_valid = FALSE;
 }
 
@@ -292,7 +290,7 @@ gboolean gfsm_automaton_lookup_final_old(gfsmAutomaton *fsm, gfsmStateId qid, gf
     *wp = fsm->sr->zero;
     return FALSE;
   }
-  return gfsm_weightmap_lookup(fsm->impl.old->finals, GUINT_TO_POINTER(id), wp);
+  return gfsm_weightmap_lookup(fsm->impl.old->finals, GUINT_TO_POINTER(qid), wp);
 }
 
 /*--------------------------------------------------------------
@@ -336,7 +334,7 @@ void gfsm_automaton_add_arc_link_old(gfsmAutomaton  *fsm,
 {
   //-- possibly sorted
   gfsmArcSortData sdata = { fsm->flags.sort_mode, fsm->sr };
-  sp->arcs = gfsm_arclist_old_insert_link(sp->arcs, link, &sdata);
+  qp->arcs = gfsm_arclist_insert_link_old(qp->arcs, link, &sdata);
 
   //-- always unmark 'deterministic' flag -- better: check
   fsm->flags.is_deterministic = FALSE;
@@ -354,11 +352,11 @@ void gfsm_automaton_add_arc_old(gfsmAutomaton *fsm,
 				gfsmWeight     w)
 {
   gfsmState *qp1;
-  gfsm_automaton_ensure_state(fsm,q2);
-  qp1 = gfsm_automaton_get_state(fsm,q1);
+  gfsm_automaton_ensure_state(fsm,qid2);
+  qp1 = gfsm_automaton_get_state_old(fsm,qid1);
   gfsm_automaton_add_arc_link_old(fsm,
 				  qp1,
-				  gfsm_arclist_old_new_full(qid1,qid2,lo,hi,w,NULL));
+				  gfsm_arclist_new_full_old(qid1,qid2,lo,hi,w,NULL));
 }
 
 /*--------------------------------------------------------------
@@ -373,7 +371,7 @@ void gfsm_automaton_arcsort_full_old(gfsmAutomaton *fsm, GCompareDataFunc cmpfun
   for (qid=0; qid < fsmi->states->len; qid++) {
     gfsmState *qp = gfsm_impl_old_find_state(fsmi,qid);
     if (!qp || !qp->is_valid) continue;
-    qp->arcs = g_slist_sort_with_data(qp->arcs, cmpfunc, data);
+    qp->arcs = gfsm_arclist_sort_full_old(qp->arcs, cmpfunc, data);
   }
 }
 
@@ -388,7 +386,7 @@ void gfsm_automaton_arcsort_full_old(gfsmAutomaton *fsm, GCompareDataFunc cmpfun
 static inline
 void gfsm_arciter_init_old(gfsmArcIter *aip)
 {
-  aip->data.old.state = gfsm_impl_old_find_state(aip->fsm->impl.old, qip->qid);
+  aip->data.old.state = gfsm_impl_old_find_state(aip->fsm->impl.old, aip->qid);
   aip->data.old.arcs  = (aip->data.old.state ? aip->data.old.state->arcs : NULL);
   return;
 }
@@ -419,7 +417,7 @@ gboolean gfsm_arciter_ok_old(gfsmArcIter *aip)
  * next()
  */
 static inline
-void gfsm_arciter_next(gfsmArcIter *aip)
+void gfsm_arciter_next_old(gfsmArcIter *aip)
 {
   if (aip->data.old.arcs) aip->data.old.arcs=aip->data.old.arcs->next;
 }
@@ -471,8 +469,8 @@ gfsmArc *gfsm_arciter_arc_old(gfsmArcIter *aip)
 static inline
 void gfsm_arciter_remove_old(gfsmArcIter *aip)
 {
-  if (aip && aip->data.old) {
-    gfsmArcListOld *next = aip->data.old->next;
+  if (aip && aip->data.old.arcs) {
+    gfsmArcListOld *next = aip->data.old.arcs->next;
     gfsmArc         *arc = (gfsmArc*)aip->data.old.arcs->data;
     if (arc) gfsm_arc_free(arc);
     aip->data.old.state->arcs = g_slist_delete_link(aip->data.old.state->arcs, aip->data.old.arcs);

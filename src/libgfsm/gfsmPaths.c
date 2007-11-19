@@ -380,6 +380,7 @@ gfsmSet *gfsm_viterbi_trellis_paths_full(gfsmAutomaton *trellis, gfsmSet *paths,
       gfsm_set_insert(paths,path);
     }
   }
+  gfsm_arciter_close(&ai);
 
   return paths;
 }
@@ -401,6 +402,7 @@ gfsmPath *gfsm_viterbi_trellis_bestpath_full(gfsmAutomaton *trellis, gfsmPath *p
   } else {
     path->w = trellis->sr->zero;
   }
+  gfsm_arciter_close(&ai);
 
   //-- reverse the path we've created
   gfsm_path_reverse(path);
@@ -414,8 +416,8 @@ void _gfsm_viterbi_trellis_bestpath_r(gfsmAutomaton *trellis,
 				      gfsmLabelSide  which,
 				      gfsmStateId    qid)
 {
+  gfsmArcIter ai;
   while (TRUE) {
-    gfsmArcIter ai;
     gfsm_arciter_open(&ai, trellis, qid);
 
     if (gfsm_arciter_ok(&ai)) {
@@ -425,7 +427,11 @@ void _gfsm_viterbi_trellis_bestpath_r(gfsmAutomaton *trellis,
 		     (which!=gfsmLSLower ? arc->upper : gfsmEpsilon),
 		     trellis->sr->one, trellis->sr);
       qid = arc->target;
+      gfsm_arciter_close(&ai);
     }
-    else break;
+    else {
+      gfsm_arciter_close(&ai);
+      break;
+    }
   }
 }
