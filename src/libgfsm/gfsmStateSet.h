@@ -108,21 +108,17 @@ gboolean gfsm_stateset_contains(gfsmStateSet *sset, gfsmStateId id);
 /** Insert a single state-id into a state-set.
  *  \returns true iff \a sset already contained \a id
  */
-static inline
 gboolean gfsm_stateset_insert(gfsmStateSet *sset, gfsmStateId id);
 
 /** Assign \a sset1 to be the union of itself with \a sset2 */
-static inline
 gfsmStateSet *gfsm_stateset_union(gfsmStateSet *sset1, gfsmStateSet *sset2);
 
 /** Remove a state-id from a state-set
  * \returns true iff \a sset contained \a id
  */
-static inline
 gboolean gfsm_stateset_remove(gfsmStateSet *sset, gfsmStateId id);
 
 /** Equality test */
-static inline
 gboolean gfsm_stateset_equal(gfsmStateSet *sset1, gfsmStateSet *sset2);
 //@}
 
@@ -158,7 +154,6 @@ typedef gfsmStateId* gfsmStateSetIter;
 
 /** Find an iterator pointing to the element for \a id in \a sset,
  *  or a bad iterator if no such element exists */
-static inline
 gfsmStateSetIter gfsm_stateset_find(gfsmStateSet *sset, gfsmStateId id);
 
 //@}
@@ -173,7 +168,6 @@ gfsmStateSetIter gfsm_stateset_find(gfsmStateSet *sset, gfsmStateId id);
 typedef gboolean (*gfsmStateSetForeachFunc) (gfsmStateId id, gpointer data);
 
 /** General iteration utilitiy for state-sets */
-static inline
 void gfsm_stateset_foreach(gfsmStateSet *sset, gfsmStateSetForeachFunc func, gpointer data);
 
 /** Hashing function for state-sets */
@@ -207,14 +201,12 @@ void gfsm_stateset_populate(gfsmStateSet *sset,
   gfsm_stateset_populate((sset),(fsm),(id),gfsmEpsilon,gfsmEpsilon)
 
 /** Returns true iff some \a id in \a sset is a final state in \a fsm */
-static inline
 gboolean gfsm_stateset_has_final_state(gfsmStateSet *sset, gfsmAutomaton *fsm);
 
 /** Lookup sum of final weights in \a fsm of states \a id in \a sset
  *  Returns TRUE iff at least one state in \a sset is final, and
  *  sets \a *wp to the sum of final weights.
  */
-static inline
 gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeight *wp);
 
 //@}

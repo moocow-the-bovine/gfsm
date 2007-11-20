@@ -150,7 +150,7 @@ GSList *gfsm_paths_to_strings(gfsmSet *paths,
 			      GSList *strings);
 
 /** \brief Utility struct for gfsm_paths_to_strings() */
-struct gfsmPathsToStringsOptions_ {
+typedef struct gfsmPathsToStringsOptions_ {
   gfsmAlphabet *abet_lo;  ///< should be a gfsmStringAlphabet*
   gfsmAlphabet *abet_hi;  ///< should be a gfsmStringAlphabet*
   gfsmSemiring       *sr; ///< semiring for weight-based set sorting
