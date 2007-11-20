@@ -22,7 +22,7 @@
  *=============================================================================*/
 
 /** \file gfsmBitVector.h
- *  \brief Bit vector utilities using GPtrArray
+ *  \brief Bit vector utilities using GArray
  */
 
 #ifndef _GFSM_BITVECTOR_H
@@ -33,7 +33,7 @@
 /*======================================================================
  * Types
  */
-/// bit vector type: really just a wrapper for GByteArray
+/// bit vector type: really just a wrapper for GArray
 typedef GArray gfsmBitVector;
 
 /*======================================================================
