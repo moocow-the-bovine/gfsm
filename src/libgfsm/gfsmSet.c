@@ -37,6 +37,20 @@ gboolean gfsm_set_copy_foreach_func(gpointer key, gpointer value, gfsmSet *data)
   return FALSE; // don't stop iterating
 }
 
+/*--------------------------------------------------------------
+ * clear()
+ */
+void gfsm_set_clear(gfsmSet *set)
+{
+  guint i;
+  GPtrArray *keys = g_ptr_array_sized_new(gfsm_set_size(set));
+  gfsm_set_to_ptr_array(set,keys);
+  for (i=0; i < keys->len; i++) {
+    g_tree_remove(set, g_ptr_array_index(keys,i));
+  }
+  g_ptr_array_free(keys,TRUE);
+}
+
 
 /*======================================================================
  * Algebra
@@ -64,6 +78,22 @@ gboolean gfsm_set_difference_func(gpointer key, gpointer value, gfsmSet *set1)
 {
   gfsm_set_remove(set1,key);
   return FALSE;
+}
+
+/*--------------------------------------------------------------
+ * intersection()
+ */
+gfsmSet *gfsm_set_intersection(gfsmSet *set1, gfsmSet *set2)
+{
+  guint i;
+  GPtrArray *elts1 = g_ptr_array_sized_new(gfsm_set_size(set1));
+  gfsm_set_to_ptr_array(set1,elts1);
+  for (i=0; i < elts1->len; i++) {
+    gpointer elt = g_ptr_array_index(elts1,i);
+    if (!gfsm_set_contains(set2,elt)) gfsm_set_remove(set1,elt);
+  }
+  g_ptr_array_free(elts1,TRUE);
+  return set1;
 }
 
 

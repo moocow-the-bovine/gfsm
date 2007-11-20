@@ -34,7 +34,7 @@
  */
 
 /// Type for an automaton path
-typedef struct _gfsmPath {
+typedef struct {
   gfsmLabelVector *lo;  /**< lower label sequence */
   gfsmLabelVector *hi;  /**< upper label sequence */
   gfsmWeight       w;   /**< weight attached to this path */
@@ -150,19 +150,22 @@ GSList *gfsm_paths_to_strings(gfsmSet *paths,
 			      GSList *strings);
 
 /** \brief Utility struct for gfsm_paths_to_strings() */
-struct _gfsm_paths_to_strings_options {
+struct gfsmPathsToStringsOptions_ {
   gfsmAlphabet *abet_lo;  ///< should be a gfsmStringAlphabet*
   gfsmAlphabet *abet_hi;  ///< should be a gfsmStringAlphabet*
   gfsmSemiring       *sr; ///< semiring for weight-based set sorting
   gboolean warn_on_undefined;  ///< warn on undefined symbols?
   gboolean att_style;          ///< use ATT-style output?
   GSList *strings;             ///< output list
-};
+} gfsmPathsToStringsOptions;
+
+/** backwards compatible type alias */
+#define _gfsm_paths_to_strings_options gfsmPathsToStringsOptions_
 
 /** Utility for gfsm_paths_to_strings() */
 gboolean _gfsm_paths_to_strings_foreach_func(gfsmPath *path,
 					     gpointer value_dummy,
-					     struct _gfsm_paths_to_strings_options *opts);
+					     gfsmPathsToStringsOptions *opts);
 
 /** Append string for a single gfsmPath* to a GString,
  *  which may be NULL to allocate a new string.

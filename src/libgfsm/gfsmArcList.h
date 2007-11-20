@@ -73,6 +73,10 @@ gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
 				 gfsmWeight   wt,
 				 gfsmArcSortData *sdata);
 
+/** Low-level guts for gfsm_arclist_insert() */
+gfsmArcList *gfsm_arclist_insert_sorted(gfsmArcList *al, gfsmArc *a, gfsmArcSortData *sdata);
+
+
 /** Allocate and return a new arc-list node */
 static inline
 gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
@@ -90,17 +94,15 @@ gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
  *  \deprecated in favor of gfsm_automaton_add_arc(), gfsm_arciter_insert()
  */
 static inline
-gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al,
-				      gfsmArcList *link,
-				      gfsmArcSortData *sdata);
+gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al, gfsmArcList *link, gfsmArcSortData *sdata);
 
+/** Low-level guts for gfsm_arclist_insert_link() */
+gfsmArcList *gfsm_arclist_insert_link_sorted(gfsmArcList *al, gfsmArcList *link, gfsmArcSortData *sdata);
 
 /** Create and return a (deep) copy of an existing arc-list */
-static inline
 gfsmArcList *gfsm_arclist_clone(gfsmArcList *src);
 
 /** Destroy an arc-list node and all subsequent nodes */
-static inline
 void gfsm_arclist_free(gfsmArcList *al);
 
 /** Free one node of an arc-list */
@@ -129,8 +131,9 @@ void gfsm_arclist_free(gfsmArcList *al);
 ///\name Arc List: Utilities
 //@{
 
-/** Get length of an arc-list \a al (linear time) */
-#define gfsm_arclist_length(al) g_slist_length(al)
+/** Get length of an arc-list \a al (linear time)
+ *  Signature: <tt>guint gfsm_arclist_length(gfsmArcList *al)</tt> */
+#define gfsm_arclist_length g_slist_length
 
 /** Sort an arclist \a al using one of the builtin sort modes as specified by \a sdata.
  *  \param al    arc list to sort

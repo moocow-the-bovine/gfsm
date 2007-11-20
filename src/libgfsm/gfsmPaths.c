@@ -277,7 +277,7 @@ GSList *gfsm_paths_to_strings(gfsmSet *paths,
 			      gboolean att_style,
 			      GSList *strings)
 {
-  struct _gfsm_paths_to_strings_options opts =
+  gfsmPathsToStringsOptions opts =
     {
       abet_lo,
       abet_hi,
@@ -295,7 +295,7 @@ GSList *gfsm_paths_to_strings(gfsmSet *paths,
 //--------------------------------------------------------------
 gboolean _gfsm_paths_to_strings_foreach_func(gfsmPath *path,
 					     gpointer value_dummy,
-					     struct _gfsm_paths_to_strings_options *opts)
+					     gfsmPathsToStringsOptions *opts)
 {
   GString *gs = gfsm_path_to_gstring(path, NULL,
 				     opts->abet_lo, opts->abet_hi, opts->sr,

@@ -51,6 +51,8 @@ libgfsm_la_SOURCES = \
 	gfsmAlphabet.c \
 	gfsmSemiring.c \
 	gfsmArc.c \
+	gfsmArcList.c \
+	gfsmArcIter.c \
 	gfsmArcIndex.c \
 	gfsmStateSet.c \
 	gfsmAutomaton.c \

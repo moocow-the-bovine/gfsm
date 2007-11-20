@@ -46,6 +46,44 @@ const gfsmSRType gfsmAutomatonDefaultSRType = gfsmSRTTropical;
 //======================================================================
 // API: Constructors etc.
 
+/*--------------------------------------------------------------
+ * copy()
+ */
+gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src)
+{
+  gfsmStateId qid;
+  gfsm_automaton_clear(dst);
+  gfsm_automaton_copy_shallow(dst,src);
+  gfsm_automaton_reserve(dst,src->states->len);
+  gfsm_weightmap_copy(dst->finals, src->finals);
+  //
+  for (qid=0; qid < src->states->len; qid++) {
+    const gfsmState *src_s = gfsm_automaton_find_state_const(src,qid);
+          gfsmState *dst_s = gfsm_automaton_find_state(dst,qid);
+    gfsm_state_copy(dst_s, src_s);
+  }
+  return dst;
+}
+
+/*--------------------------------------------------------------
+ * clear()
+ */
+void gfsm_automaton_clear(gfsmAutomaton *fsm)
+{
+  gfsmStateId i;
+  if (!fsm) return;
+  for (i=0; fsm->states && i < fsm->states->len; i++) {
+    gfsmState *st = gfsm_automaton_find_state(fsm,i);
+    if (!st || !st->is_valid) continue;
+    gfsm_state_clear(st);
+  }
+  if (fsm->states) g_array_set_size(fsm->states,0);
+  if (fsm->finals) gfsm_set_clear(fsm->finals);
+  fsm->root_id = gfsmNoState;
+  return;
+}
+
+
 //======================================================================
 // API: Automaton Semiring
 
@@ -127,6 +165,29 @@ gboolean gfsm_automaton_is_cyclic_state(gfsmAutomaton *fsm,
   //-- finished traversal; this state isn't cyclic
   return FALSE;
 }
+
+/*--------------------------------------------------------------
+ * is_cyclic()
+ */
+gboolean gfsm_automaton_is_cyclic(gfsmAutomaton *fsm)
+{
+  gfsmBitVector *visited;    //-- records which states we've visited
+  gfsmBitVector *completed;  //-- records which states we've completed
+  gboolean       rc;         //-- return value
+
+  if (fsm->root_id==gfsmNoState || fsm->states->len==0) return FALSE; //-- sanity check(s)
+
+  visited   = gfsm_bitvector_sized_new(fsm->states->len);
+  completed = gfsm_bitvector_sized_new(fsm->states->len);
+  rc        = gfsm_automaton_is_cyclic_state(fsm, fsm->root_id, visited, completed);
+
+  //-- cleanup
+  gfsm_bitvector_free(visited);
+  gfsm_bitvector_free(completed);
+
+  return rc;
+}
+
 
 /*--------------------------------------------------------------
  * get_alphabet()

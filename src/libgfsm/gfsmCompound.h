@@ -127,9 +127,10 @@ gfsmStatePair *gfsm_statepair_new(gfsmStateId id1, gfsmStateId id2);
 static inline
 gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp);
 
-/** Free a ::gfsmStatePair */
-static inline
-void gfsm_statepair_free(gfsmStatePair *sp);
+/** Free a ::gfsmStatePair:
+ *  \code void gfsm_statepair_free(gfsmStatePair *sp); \endcode
+ */
+#define gfsm_statepair_free g_free
 
 /** Get a more or less sensible hash value from a state pair */
 guint gfsm_statepair_hash(gfsmStatePair *sp);
@@ -156,9 +157,10 @@ gfsmComposeState *gfsm_compose_state_new(gfsmStateId id1, gfsmStateId id2, gfsmC
 static inline
 gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp);
 
-/** Free a ::gfsmComposeState */
-static inline
-void gfsm_compose_state_free(gfsmComposeState *sp);
+/** Free a ::gfsmComposeState:
+ *  \code void gfsm_compose_state_free(gfsmComposeState *csp); \endcode
+*/
+#define gfsm_compose_state_free g_free
 
 /** Get a (more or less sensible) hash value from a ::gfsmComposeState */
 guint gfsm_compose_state_hash(gfsmComposeState *sp);
@@ -186,9 +188,10 @@ gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeight w);
 static inline
 gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp);
 
-/** Free a ::gfsmStateWeightPair */
-static inline
-void gfsm_state_weight_pair_free(gfsmStateWeightPair *swp);
+/** Free a ::gfsmStateWeightPair 
+ *  \code void gfsm_state_weight_pair_free(gfsmStateWeightPair *swp); \endcode
+ */
+#define gfsm_state_weight_pair_free g_free
 
 /** Get a (more or less sensible) hash value from a ::gfsmStateWeightPair (really just hashes id) */
 guint gfsm_state_weight_pair_hash(gfsmStateWeightPair *sp);
@@ -216,7 +219,7 @@ gfsmStatePairEnum *gfsm_statepair_enum_new(void);
 /** Alias \see gfsm_enum_clear() */
 #define gfsm_statepair_enum_clear gfsm_enum_clear
 
-/** Alias; \sa gfsm_enum_clear() */
+/** Alias; \see gfsm_enum_free() */
 #define gfsm_statepair_enum_free  gfsm_enum_free
 
 //@}
@@ -233,10 +236,10 @@ gfsmStatePairEnum *gfsm_statepair_enum_new(void);
 static inline
 gfsmComposeStateEnum *gfsm_compose_state_enum_new(void);
 
-/** Alias; \sa gfsm_enum_clear() */
+/** Alias; \see gfsm_enum_clear() */
 #define gfsm_compose_state_enum_clear gfsm_enum_clear
 
-/** Alias; \sa gfsm_enum_clear() */
+/** Alias; \see gfsm_enum_clear() */
 #define gfsm_compose_state_enum_free  gfsm_enum_free
 
 //@}

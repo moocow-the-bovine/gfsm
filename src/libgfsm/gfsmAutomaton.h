@@ -106,7 +106,6 @@ static inline
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src);
 
 /** Assign the contents of fsm \a src to fsm \a dst \returns \a dst */
-static inline
 gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src);
 
 /** Create a new ::gfsmAutomaton whose non-structural contents match those of \a fsm.
@@ -121,7 +120,6 @@ static inline
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
 /** Clear an automaton */
-static inline
 void gfsm_automaton_clear(gfsmAutomaton *fsm);
 
 /** Destroy an automaton: all associated states and arcs will be freed. */
@@ -281,7 +279,6 @@ gboolean gfsm_automaton_is_cyclic_state(gfsmAutomaton *fsm,
 					gfsmBitVector *completed);
 
 /** Test whether automaton is cyclic */
-static inline
 gboolean gfsm_automaton_is_cyclic(gfsmAutomaton *fsm);
 
 /** Test whether automaton is acyclic */
@@ -475,9 +472,7 @@ guint gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid);
 
 //@}
 
-/*======================================================================
- * Methods: Accessors: Automaton Arcs
- */
+/*======================================================================*/
 /// \name Accessors: Automaton Arcs
 //@{
 

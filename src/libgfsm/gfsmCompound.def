@@ -97,9 +97,11 @@ gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp)
 /*--------------------------------------------------------------
  * statepair_free()
  */
+#if 0
 static inline
 void gfsm_statepair_free(gfsmStatePair *sp)
 { g_free(sp); }
+#endif
 
 
 
@@ -132,9 +134,11 @@ gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp)
 /*--------------------------------------------------------------
  * compose_state_free()
  */
+#if 0
 static inline
 void gfsm_compose_state_free(gfsmComposeState *sp)
 { g_free(sp); }
+#endif
 
 
 
@@ -160,9 +164,11 @@ gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp
 }
 
 //--------------------------------------------------------------
+#if 0
 static inline
 void gfsm_state_weight_pair_free(gfsmStateWeightPair *swp)
 { g_free(swp); }
+#endif
 
 
 /*======================================================================

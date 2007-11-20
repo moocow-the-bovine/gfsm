@@ -165,14 +165,14 @@ gfsmAutomaton *gfsm_regex_compiler_concat(gfsmRegexCompiler *rec,
 
 
 //--------------------------------------------------------------
-struct _gfsm_regex_append_lab_data {
+struct gfsm_regex_append_lab_data_ {
   gfsmAutomaton     *fsm;
   gfsmLabelVal       lab;
   gfsmStateId        newid;
 };
 
 gboolean _gfsm_regex_append_lab_foreach_func(gfsmStateId qid, gpointer pw,
-					     struct _gfsm_regex_append_lab_data *data)
+					     struct gfsm_regex_append_lab_data_ *data)
 {
   gfsm_automaton_get_state(data->fsm,qid)->is_final = FALSE;
   gfsm_automaton_add_arc(data->fsm, qid, data->newid, data->lab, data->lab, gfsm_ptr2weight(pw));
@@ -181,7 +181,7 @@ gboolean _gfsm_regex_append_lab_foreach_func(gfsmStateId qid, gpointer pw,
 
 gfsmAutomaton *gfsm_regex_compiler_append_lab(gfsmRegexCompiler *rec, gfsmAutomaton *fsm, gfsmLabelVal lab)
 {
-  struct _gfsm_regex_append_lab_data data = { fsm, lab, gfsm_automaton_add_state(fsm) };
+  struct gfsm_regex_append_lab_data_ data = { fsm, lab, gfsm_automaton_add_state(fsm) };
   gfsm_weightmap_foreach(fsm->finals,
 			 (GTraverseFunc)_gfsm_regex_append_lab_foreach_func,
 			 &data);

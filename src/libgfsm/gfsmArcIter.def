@@ -107,48 +107,8 @@ void gfsm_arciter_next(gfsmArcIter *aip)
 
 
 //--------------------------------------------------------------
-// seek_lower()
-static inline
-void gfsm_arciter_seek_lower(gfsmArcIter *aip, gfsmLabelVal lo)
-{
-  for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
-    if (gfsm_arciter_arc(aip)->lower == lo) break;
-  }
-}
-
-//--------------------------------------------------------------
-// seek_upper()
-static inline
-void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi)
-{
-  for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
-    if (gfsm_arciter_arc(aip)->upper == hi) break;
-  }
-}
-
-//--------------------------------------------------------------
-// seek_both()
-static inline
-void gfsm_arciter_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi)
-{
-  for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
-    gfsmArc *a = gfsm_arciter_arc(aip);
-    if ((lo==gfsmNoLabel || a->lower==lo) && (hi==gfsmNoLabel || a->upper==hi)) break;
-  }
-}
-
-
-//--------------------------------------------------------------
-// seek_user()
-static inline
-void gfsm_arciter_seek_user(gfsmArcIter *aip,
-			    gfsmArcIterSeekFunc seekfunc,
-			    gpointer data)
-{
-  for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
-    if ((*seekfunc)(aip,data)) break;
-  }
-}
+// seek_X()
+//--EXTERN
 
 //--------------------------------------------------------------
 // remove()

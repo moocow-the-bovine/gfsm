@@ -156,7 +156,6 @@ void gfsm_arciter_remove(gfsmArcIter *aip);
  *    Currently just wraps gfsm_arciter_ok(), gfsm_arciter_next() and gfsm_arciter_arc()
  *    in a linear search from the current position.
  */
-static inline
 void gfsm_arciter_seek_lower(gfsmArcIter *aip, gfsmLabelVal lo);
 
 /** Position an arc-iterator to the current or next arc with upper label \a hi.
@@ -166,7 +165,6 @@ void gfsm_arciter_seek_lower(gfsmArcIter *aip, gfsmLabelVal lo);
  *    Currently just wraps gfsm_arciter_ok(), gfsm_arciter_next() and gfsm_arciter_arc()
  *    in a linear search from the current position.
  */
-static inline
 void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi);
 
 /** Position an arc-iterator to the current or next arc with lower label \a lo and upper label \a hi.
@@ -178,7 +176,6 @@ void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi);
  *    Default implementation wraps gfsm_arciter_ok(), gfsm_arciter_next() and gfsm_arciter_arc()
  *    in a linear search from the current position.
  */
-static inline
 void gfsm_arciter_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi);
 
 /// Typedef for user-seek functions
@@ -189,7 +186,6 @@ typedef gboolean (*gfsmArcIterSeekFunc) (gfsmArcIter *aip, gpointer data);
  *    Just wraps gfsm_arciter_ok() and gfsm_arciter_next()
  *    in a linear search from the current position.
  */
-static inline
 void gfsm_arciter_seek_user(gfsmArcIter *aip,
 			    gfsmArcIterSeekFunc seekfunc,
 			    gpointer data);

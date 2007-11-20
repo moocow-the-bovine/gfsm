@@ -62,12 +62,12 @@ gfsmSet *gfsm_set_copy(gfsmSet *dst, gfsmSet *src);
 gboolean gfsm_set_copy_foreach_func(gpointer key, gpointer value, gfsmSet *dst);
 
 /** clear a set */
-static inline
 void gfsm_set_clear(gfsmSet *set);
 
-/** destroy a set */
-static inline
-void gfsm_set_free(gfsmSet *set);
+/** Destroy a set
+ *  \code void gfsm_set_free(gfsmSet *set); \endcode
+ */
+#define gfsm_set_free g_tree_destroy
 
 //@}
 
@@ -114,7 +114,6 @@ gfsmSet *gfsm_set_difference(gfsmSet *set1, gfsmSet *set2);
 
 /** Remove all elements from \a set1 which are not also in \a set2.
  * \returns altered \a set1 */
-static inline
 gfsmSet *gfsm_set_intersection(gfsmSet *set1, gfsmSet *set2);
 
 //@}
