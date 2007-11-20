@@ -521,7 +521,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
 	 (!finals2 && gfsm_weightmap_lookup(fsm2->finals, GUINT_TO_POINTER(id2), &s2fw)) )
       {
 	s1->is_final = TRUE;
-	_gfsm_weightmap_insert(fsm1->finals, GUINT_TO_POINTER(id1), s2fw);
+	gfsm_weightmap_insert(fsm1->finals, GUINT_TO_POINTER(id1), s2fw);
       }
   }
 

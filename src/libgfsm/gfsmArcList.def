@@ -32,7 +32,7 @@
  */
 static inline
 gfsmArcList *gfsm_arclist_prepend(gfsmArcList *al, gfsmArc *a)
-{ return g_slist_prepend(al,arc); }
+{ return g_slist_prepend(al,a); }
 
 /*--------------------------------------------------------------
  * arclist_new_full()
@@ -99,6 +99,33 @@ gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al,
   al_prev->next = g_slist_concat(link, al);
   return al_first;
 }
+
+/*--------------------------------------------------------------
+ * arclist_clone()
+ */
+static inline
+gfsmArcList *gfsm_arclist_clone(gfsmArcList *src)
+{
+  gfsmArcList *al;
+  gfsmArcList *dst = g_slist_copy(src);
+  for (al=dst; al != NULL; al=al->next) {
+    al->data = gfsm_arc_clone(al->data);
+  }
+  return dst;
+}
+
+/*--------------------------------------------------------------
+ * arclist_free()
+ */
+static inline
+void gfsm_arclist_free(gfsmArcList *al)
+{
+  while (al != NULL) {
+    gfsm_arc_free((gfsmArc*)al->data);
+    al = g_slist_delete_link(al,al);
+  }
+}
+
 
 /*--------------------------------------------------------------
  * arclist_sort_full()

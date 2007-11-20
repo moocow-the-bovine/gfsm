@@ -1,1 +1,1 @@
-#include "gfsmConfig.h"
+#include "gfsmAutoConfig.h"

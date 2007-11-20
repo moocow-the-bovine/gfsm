@@ -150,6 +150,7 @@ static inline
 gfsmArcList *gfsm_arclist_sort_full(gfsmArcList *al, GCompareDataFunc cmpfunc, gpointer data);
 //@}
 
+//-- inline definitions
 #include <gfsmArcList.def>
 
 #endif /* _GFSM_ARC_LIST_H */

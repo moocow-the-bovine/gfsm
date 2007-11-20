@@ -132,6 +132,7 @@ gfsmArcLabelIndex *gfsm_arc_label_index_new_full(gfsmStateId n_states, guint n_a
  */
 gfsmArcLabelIndex *gfsm_automaton_lower_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix)
 {
+#if 0
   gfsmStateId qid;
   gfsmArcIter ai;
 
@@ -145,8 +146,14 @@ gfsmArcLabelIndex *gfsm_automaton_lower_label_index(gfsmAutomaton *fsm, gfsmArcL
 
   //-- populate arcs
   for (qid=0; qid < gfsm_automaton_n_states(fsm); qid++) {
-    for (gfsm_arciter_open(&ai,fsm,qid); 
+    for (gfsm_arciter_open(&ai,fsm,qid); foo; bar) {
+      ;
+    }
   }
+#endif
+  //-- TODO: CONTINUE HERE
+  g_assert_not_reached();
+  return NULL;
 }
 
 /*--------------------------------------------------------------
@@ -154,6 +161,7 @@ gfsmArcLabelIndex *gfsm_automaton_lower_label_index(gfsmAutomaton *fsm, gfsmArcL
  */
 gfsmArcLabelIndex *gfsm_automaton_upper_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix)
 {
+#if 0
   gfsmStateId qid;
 
   //-- maybe allocate
@@ -163,4 +171,7 @@ gfsmArcLabelIndex *gfsm_automaton_upper_label_index(gfsmAutomaton *fsm, gfsmArcL
     g_ptr_array_set_size(ix->arcs,  gfsm_automaton_n_arcs(fsm));
     g_ptr_array_set_size(ix->first, gfsm_automaton_n_states(fsm));
   }
+#endif
+  g_assert_not_reached();
+  return NULL; //-- TODO
 }

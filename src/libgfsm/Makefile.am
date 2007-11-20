@@ -48,14 +48,10 @@ libgfsm_la_SOURCES = \
 	gfsmUtils.c \
 	gfsmEnum.c \
 	gfsmSet.c \
-	gfsmWeightMap.c \
-	gfsmBitVector.c \
 	gfsmAlphabet.c \
 	gfsmSemiring.c \
 	gfsmArc.c \
-	gfsmArcIter.c \
 	gfsmArcIndex.c \
-	gfsmState.c \
 	gfsmStateSet.c \
 	gfsmAutomaton.c \
 	gfsmAutomatonIO.c \
@@ -68,8 +64,9 @@ libgfsm_la_SOURCES = \
 	gfsmScanner.c \
 	gfsmRegex.lex.l \
 	gfsmRegex.tab.y \
-	gfsmRegexCompiler.c \
-	\
+	gfsmRegexCompiler.c
+
+sources_old = \
 	gfsmIndexed.c \
 	gfsmIndexed2.c \
 	gfsmIndexedIO.c
@@ -80,34 +77,57 @@ libgfsm_la_SOURCES = \
 
 ## --- Additional dependencies
 
+##----------------------------------------------------
+## Additional rules
+
+gfsmNoConfig.h: gfsmAutoConfig.h.in
+	rm -f "$@"
+	cp "$<" "$@"
+
 ##-----------------------------------------------------------------------
 ## headers
-#-----------------------------------------------------------------------
+##-----------------------------------------------------------------------
 
 ## --- installable headers: @includedir@/@pkgname@
 #pkginclude_HEADERS = ${hfile_1} ... ${hfile_N}
 pkginclude_HEADERS = \
 	gfsmConfig.h \
+	gfsmNoConfig.h \
+	gfsmAutoConfig.h \
 	gfsmCommon.h \
 	gfsmCompound.h \
+	gfsmCompound.def \
 	gfsmDebug.h \
 	gfsmError.h \
 	gfsmIO.h \
 	gfsmMem.h \
+	gfsmMem.def \
 	gfsmVersion.h \
 	gfsmUtils.h \
 	gfsmEnum.h \
+	gfsmEnum.def \
 	gfsmSet.h \
+	gfsmSet.def \
 	gfsmWeightMap.h \
+	gfsmWeightMap.def \
 	gfsmBitVector.h \
+	gfsmBitVector.def \
 	gfsmAlphabet.h \
 	gfsmSemiring.h \
+	gfsmSemiring.def \
 	gfsmArc.h \
+	gfsmArc.def \
+	gfsmArcList.h \
+	gfsmArcList.def \
 	gfsmArcIter.h \
+	gfsmArcIter.def \
 	gfsmArcIndex.h \
 	gfsmState.h \
+	gfsmState.def \
 	gfsmStateSet.h \
+	gfsmStateSet.def \
 	gfsmAutomaton.h \
+	gfsmAutomaton.def \
 	gfsmAutomatonIO.h \
 	gfsmDraw.h \
 	gfsmAlgebra.h \
@@ -117,8 +137,9 @@ pkginclude_HEADERS = \
 	gfsmTrie.h \
 	gfsmScanner.h \
 	gfsmRegexCompiler.h \
-	gfsm.h \
-	\
+	gfsm.h
+
+headers_old = \
 	gfsmIndexed.h \
 	gfsmIndexed2.h \
 	gfsmIndexedIO.h
@@ -225,6 +246,7 @@ MAINTAINERCLEANFILES = \
 ## --- extra distribution files
 EXTRA_DIST = \
 	config.h \
+	gfsmNoConfig.h \
 	gfsmRegex.lex.c \
 	gfsmRegex.lex.h \
 	gfsmRegex.tab.c \

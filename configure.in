@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.9-pre8])
+define([THE_PACKAGE_VERSION], [0.0.9-pre8-head])
 define([THE_PACKAGE_MAINTAINER],  [moocow@ling.uni-potsdam.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -19,7 +19,7 @@ dnl use automake
 AM_INIT_AUTOMAKE(THE_PACKAGE_NAME, THE_PACKAGE_VERSION)
 
 dnl use autoheader
-AM_CONFIG_HEADER([src/libgfsm/gfsmConfig.h])
+AM_CONFIG_HEADER([src/libgfsm/gfsmAutoConfig.h])
 
 dnl default prefix
 AC_PREFIX_DEFAULT(/usr/local)

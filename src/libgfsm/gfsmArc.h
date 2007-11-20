@@ -31,16 +31,13 @@
 #include <gfsmSemiring.h>
 
 /// "Heavy" arc structure
-typedef struct _gfsmArc {
+typedef struct {
   gfsmStateId       source;  /**< ID of source node */
   gfsmStateId       target;  /**< ID of target node */
   gfsmLabelId       lower;   /**< Lower label */
   gfsmLabelId       upper;   /**< Upper label */
   gfsmWeight        weight;  /**< arc weight */
 } gfsmArc;
-
-/// "Heavy" arc-list structure, data is a (gfsmArc*)
-typedef GSList gfsmArcList;
 
 /// Enum type for arc sorting
 typedef enum {

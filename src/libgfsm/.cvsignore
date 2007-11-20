@@ -11,8 +11,7 @@
 *.tfst
 *.lab
 *.loT
-gfsmConfig.h
-gfsmConfig.h.in
+gfsmAutoConfig.*
 gmon.out
 *.output
 stamp-h*

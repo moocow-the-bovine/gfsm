@@ -276,11 +276,12 @@ guint gfsm_automaton_n_arcs_full(gfsmAutomaton *fsm,
 
 /** Low-level utility function for gfsm_automaton_is_cyclic() */
 gboolean gfsm_automaton_is_cyclic_state(gfsmAutomaton *fsm,
-					gfsmStateId    id,
+					gfsmStateId    qid,
 					gfsmBitVector *visited,
 					gfsmBitVector *completed);
 
 /** Test whether automaton is cyclic */
+static inline
 gboolean gfsm_automaton_is_cyclic(gfsmAutomaton *fsm);
 
 /** Test whether automaton is acyclic */
@@ -325,8 +326,8 @@ void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gf
 
 //@}
 
-/*======================================================================
- * \name API: gfsmState
+/*======================================================================*/
+///\name API: gfsmState
 //@{
 
 /** Open and return a pointer to a ::gfsmState struct for ::gfsmStateId \a qid in \a fsm.
@@ -391,20 +392,20 @@ gboolean gfsm_automaton_has_state(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Add a new state, specifying state ID.
  *  \param fsm automaton to modify
- *  \param id  ID of new state, or ::gfsmNoState to use the first available state ID.
+ *  \param qid  ID of new state, or ::gfsmNoState to use the first available state ID.
  *  \returns Id of the (new) state
  *  \note
  *   \li Implicitly sets \a fsm's root state if \a fsm was previously unrooted.
- *   \li Does nothing if \a fsm already has a state with ID \a id.
+ *   \li Does nothing if \a fsm already has a state with ID \a qid.
  */
 static inline
-gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId id);
+gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId qid);
 
-/** Ensures that state \a id exists \returns \a id
+/** Ensures that state \a id exists \returns \a qid
  *  Really just an alias for gfsm_automaton_add_state_full().
  */
 static inline
-gfsmStateId gfsm_automaton_ensure_state(gfsmAutomaton *fsm, gfsmStateId id);
+gfsmStateId gfsm_automaton_ensure_state(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Add a new state to \a fsm.
  *  Really just an alias for \code gfsm_automaton_add_state_full(fsm,gfsmNoState) \endcode
@@ -412,25 +413,25 @@ gfsmStateId gfsm_automaton_ensure_state(gfsmAutomaton *fsm, gfsmStateId id);
 static inline
 gfsmStateId gfsm_automaton_add_state(gfsmAutomaton *fsm);
 
-/** Remove the state with id \a id, if any.
+/** Remove the state with id \a qid, if any.
  *  \param fsm automaton from which to remove a state
  *  \param qid ID of the state to be removed
  *  \note
- *   Any incoming arcs for state \a id are NOT removed,
+ *   Any incoming arcs for state \a qid are NOT removed,
  *   although any outgoing arcs are removed and freed.
  */
 static inline
-void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId id);
+void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Lookup final weight for state with ID \a qid in automaton \a fsm.
  *  \param fsm automaton to examine
  *  \param qid ID of state to examine
  *  \param  wp output parameter for final weight
  *  \returns
- *     TRUE if state \a id is final, FALSE otherwise,
+ *     TRUE if state \a qid is final, FALSE otherwise
  */
 static inline
-gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId id, gfsmWeight *wp);
+gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp);
 
 /** Check whether the state with ID \a qid is final in \a fsm.
  *  Really just a wrapper for gfsm_automaton_lookup_final().
@@ -444,9 +445,9 @@ gboolean gfsm_automaton_state_is_final(gfsmAutomaton *fsm, gfsmStateId qid);
 /** Backwards-compatible alias for gfsm_automaton_state_is_final() */
 #define gfsm_automaton_is_final_state(fsm,qid) gfsm_automaton_state_is_final((fsm),(qid))
 
-/** Get final weight. \returns final weight if state \a id is final, else \a fsm->sr->zero */
+/** Get final weight. \returns final weight if state \a qid is final, else \a fsm->sr->zero */
 static inline
-gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId id);
+gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Set final-weight and/or final-states membership flag for state with ID \a qid in \a fsm.
  * \param fsm automaton to modify
@@ -467,8 +468,6 @@ void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
  */
 static inline
 void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId qid, gboolean is_final);
-
-//~~~~ OLD
 
 /** Get number of outgoing arcs from \a qid in \a fsm */
 static inline

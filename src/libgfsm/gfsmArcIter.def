@@ -1,8 +1,8 @@
 
 /*=============================================================================*\
- * File: gfsmArcIter.c
+ * File: gfsmArcIter.def
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library: arc iterators
+ * Description: finite state machine library: arc iterators: inline definitions
  *
  * Copyright (c) 2004-2007 Bryan Jurish.
  *
@@ -21,16 +21,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-#include <gfsmArcIter.h>
-
-
 /*======================================================================
  * Methods: Arc iterators: open/close
  */
 
-/*--------------------------------------------------------------
- * open()
- */
+//--------------------------------------------------------------
+// open()
+static inline
 void gfsm_arciter_open(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmStateId stateid)
 {
   aip->fsm = fsm;
@@ -39,9 +36,9 @@ void gfsm_arciter_open(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmStateId stateid
   gfsm_arciter_reset(aip);
 }
 
-/*--------------------------------------------------------------
- * open_ptr()
- */
+//--------------------------------------------------------------
+// open_ptr()
+static inline
 void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stateptr)
 {
   aip->fsm = fsm;
@@ -50,9 +47,9 @@ void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stat
   gfsm_arciter_reset(aip);
 }
 
-/*--------------------------------------------------------------
- * reset()
- */
+//--------------------------------------------------------------
+// reset()
+static inline
 void gfsm_arciter_reset(gfsmArcIter *aip) {
   if (aip->state && gfsm_state_is_ok(aip->state)) {
     aip->arcs = aip->state->arcs;
@@ -61,9 +58,9 @@ void gfsm_arciter_reset(gfsmArcIter *aip) {
   }
 }
 
-/*--------------------------------------------------------------
- * close()
- */
+//--------------------------------------------------------------
+// close()
+static inline
 void gfsm_arciter_close(gfsmArcIter *aip) {
   if (!aip) return;
   aip->fsm   = NULL;
@@ -71,17 +68,17 @@ void gfsm_arciter_close(gfsmArcIter *aip) {
   aip->arcs  = NULL;
 }
 
-/*--------------------------------------------------------------
- * copy()
- */
+//--------------------------------------------------------------
+// copy()
+static inline
 gfsmArcIter *gfsm_arciter_copy(gfsmArcIter *dst, const gfsmArcIter *src) {
   *dst = *src;
   return dst;
 }
 
-/*--------------------------------------------------------------
- * clone()
- */
+//--------------------------------------------------------------
+// clone()
+static inline
 gfsmArcIter *gfsm_arciter_clone(const gfsmArcIter *src) {
   return (gfsmArcIter*)gfsm_mem_dup_n(src,sizeof(gfsmArcIter));
 }
@@ -89,9 +86,29 @@ gfsmArcIter *gfsm_arciter_clone(const gfsmArcIter *src) {
 /*======================================================================
  * Methods: Arc iterators: Accessors
  */
-/*--------------------------------------------------------------
- * seek_lower()
- */
+
+//--------------------------------------------------------------
+// arc()
+static inline
+gfsmArc *gfsm_arciter_arc(const gfsmArcIter *aip)
+{ return aip->arcs ? ((gfsmArc*)aip->arcs->data) : NULL; }
+
+//--------------------------------------------------------------
+// ok()
+static inline
+gboolean gfsm_arciter_ok(const gfsmArcIter *aip)
+{ return (aip != NULL && aip->arcs != NULL); }
+
+//--------------------------------------------------------------
+// next()
+static inline
+void gfsm_arciter_next(gfsmArcIter *aip)
+{ if (aip && aip->arcs) aip->arcs = aip->arcs->next; }
+
+
+//--------------------------------------------------------------
+// seek_lower()
+static inline
 void gfsm_arciter_seek_lower(gfsmArcIter *aip, gfsmLabelVal lo)
 {
   for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
@@ -99,9 +116,9 @@ void gfsm_arciter_seek_lower(gfsmArcIter *aip, gfsmLabelVal lo)
   }
 }
 
-/*--------------------------------------------------------------
- * seek_upper()
- */
+//--------------------------------------------------------------
+// seek_upper()
+static inline
 void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi)
 {
   for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
@@ -109,9 +126,9 @@ void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi)
   }
 }
 
-/*--------------------------------------------------------------
- * seek_both()
- */
+//--------------------------------------------------------------
+// seek_both()
+static inline
 void gfsm_arciter_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi)
 {
   for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
@@ -121,9 +138,9 @@ void gfsm_arciter_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi)
 }
 
 
-/*--------------------------------------------------------------
- * seek_user()
- */
+//--------------------------------------------------------------
+// seek_user()
+static inline
 void gfsm_arciter_seek_user(gfsmArcIter *aip,
 			    gfsmArcIterSeekFunc seekfunc,
 			    gpointer data)
@@ -133,9 +150,9 @@ void gfsm_arciter_seek_user(gfsmArcIter *aip,
   }
 }
 
-/*--------------------------------------------------------------
- * remove()
- */
+//--------------------------------------------------------------
+// remove()
+static inline
 void gfsm_arciter_remove(gfsmArcIter *aip)
 {
   if (aip && aip->arcs) {

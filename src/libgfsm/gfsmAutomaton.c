@@ -223,7 +223,7 @@ void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gf
 
     //-- check for final state
     if (s_new->is_final) {
-      gfsmWeight fw;
+      gfsmWeight fw =0; //-- hack to convince gcc not to complain about unitialized fw
       gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(oldid), &fw);
       gfsm_weightmap_insert(new_finals,  GUINT_TO_POINTER(newid),  fw);
     }
@@ -267,5 +267,4 @@ void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, g
     if (!qp || !qp->is_valid) continue;
     qp->arcs = gfsm_arclist_sort_full(qp->arcs, cmpfunc, data);
   }
-  return fsm;
 }
