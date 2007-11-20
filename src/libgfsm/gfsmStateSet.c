@@ -22,7 +22,6 @@
  *=============================================================================*/
 
 #include <gfsmStateSet.h>
-#include <gfsmArcIter.h>
 
 /*======================================================================
  * Constants
@@ -32,129 +31,17 @@ const guint gfsmStateSetDefaultSize = 2;
 /*======================================================================
  * Methods: Constructors etc.
  */
-
-/*--------------------------------------------------------------
- * new_singleton()
- */
-gfsmStateSet *gfsm_stateset_new_singleton(gfsmStateId id)
-{
-  gfsmStateSet *sset = gfsm_stateset_new();
-  g_array_insert_val(sset,0,id);
-  return sset;
-}
-
-/*--------------------------------------------------------------
- * clone()
- */
-gfsmStateSet *gfsm_stateset_clone(gfsmStateSet *src)
-{
-  return g_array_append_vals(gfsm_stateset_sized_new(src->len), src->data, src->len);
-}
-
-/*--------------------------------------------------------------
- * free()
- */
-void gfsm_stateset_free(gfsmStateSet *sset)
-{
-  g_array_free(sset,TRUE);
-}
+//-- inlined
 
 /*======================================================================
  * Methods: Accessors
  */
-
-/*--------------------------------------------------------------
- * contains()
- */
-gboolean gfsm_stateset_contains(gfsmStateSet *sset, gfsmStateId id)
-{
-  gfsmStateSetIter sseti = gfsm_stateset_find(sset,id);
-  return sseti != NULL && *sseti != gfsmNoState;
-}
-
-/*--------------------------------------------------------------
- * insert()
- */
-gboolean gfsm_stateset_insert(gfsmStateSet *sset, gfsmStateId id)
-{
-  guint i;
-  for (i = 0; i < sset->len && id > g_array_index(sset,gfsmStateId,i); i++) ;
-
-  if (i == sset->len) {
-    g_array_append_val(sset,id);
-  }
-  else if (id == g_array_index(sset,gfsmStateId,i)) {
-    return TRUE;
-  }
-  else {
-    g_array_insert_val(sset,i,id);
-  }
-  return FALSE;
-}
-
-/*--------------------------------------------------------------
- * union()
- */
-gfsmStateSet *gfsm_stateset_union(gfsmStateSet *sset1, gfsmStateSet *sset2)
-{
-  guint i1=0, i2;
-  for (i2=0; i2 < sset2->len; i2++) {
-    gfsmStateId id = g_array_index(sset2,gfsmStateId,i2);
-    for (; i1 < sset1->len && id > g_array_index(sset1,gfsmStateId,i1); i1++) ;
-
-    if (i1 == sset1->len) g_array_append_val(sset1,id);
-    else if (id == g_array_index(sset1,gfsmStateId,i1)) continue;
-    else g_array_insert_val(sset1,i1,id);
-  }
-  return sset1;
-}
-
-
-/*--------------------------------------------------------------
- * remove()
- */
-gboolean gfsm_stateset_remove(gfsmStateSet *sset, gfsmStateId id) {
-  guint i;
-  for (i = 0; i < sset->len && id > g_array_index(sset,gfsmStateId,i); i++) ;
-  if (i != sset->len && id == g_array_index(sset,gfsmStateId,i)) {
-    g_array_remove_index(sset,i);
-    return TRUE;
-  }
-  return FALSE;
-}
-
-/*--------------------------------------------------------------
- * equal()
- */
-gboolean gfsm_stateset_equal(gfsmStateSet *sset1, gfsmStateSet *sset2)
-{
-  guint i;
-  if (sset1->len != sset2->len) return FALSE;
-  for (i=0; i < sset1->len; i++) {
-    if (g_array_index(sset1,gfsmStateId,i) != g_array_index(sset2,gfsmStateId,i)) return FALSE;
-  }
-  return TRUE;
-}
+//-- inlined
 
 /*======================================================================
  * Methods: iterators
  */
-/*--------------------------------------------------------------
- * find()
- */
-gfsmStateSetIter gfsm_stateset_find(gfsmStateSet *sset, gfsmStateId id)
-{
-  gfsmStateSetIter sseti;
-  gfsmStateId      iid;
-  for (sseti = gfsm_stateset_iter_begin(sset);
-       (iid=gfsm_stateset_iter_id(sseti)) != gfsmNoState;
-       sseti = gfsm_stateset_iter_next(sset,sseti))
-    {
-      if (id == iid) return sseti;
-      else if (id < iid) return NULL;
-    }
-  return NULL;
-}
+//-- inlined
 
 /*======================================================================
  * Methods: Utilities
@@ -178,17 +65,6 @@ guint gfsm_stateset_hash(gfsmStateSet *sset)
 }
 
 
-/*--------------------------------------------------------------
- * foreach()
- */
-void gfsm_stateset_foreach(gfsmStateSet *sset, gfsmStateSetForeachFunc func, gpointer data)
-{
-  guint i;
-  for (i = 0; i < sset->len; i++) {
-    if ((*func)(g_array_index(sset,gfsmStateId,i), data)) break;
-  }
-}
-
 /*======================================================================
  * Methods: Automaton access
  */
@@ -211,35 +87,15 @@ void gfsm_stateset_populate(gfsmStateSet *sset,
     {
       gfsm_stateset_populate(sset,fsm,gfsm_arciter_arc(&ai)->target,lo,hi);
     }
+  gfsm_arciter_close(&ai);
 }
 
 /*--------------------------------------------------------------
  * has_final_state()
  */
-gboolean gfsm_stateset_has_final_state(gfsmStateSet *sset, gfsmAutomaton *fsm)
-{
-  guint i;
-  for (i = 0; i < sset->len; i++) {
-    if (gfsm_automaton_is_final_state(fsm, g_array_index(sset,gfsmStateId,i))) return TRUE;
-  }
-  return FALSE;
-}
+//--inlined
 
 /*--------------------------------------------------------------
  * lookup_final_weight()
  */
-gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeight *wp)
-{
-  guint i;
-  gboolean rc=FALSE;
-  *wp = fsm->sr->one;
-  gfsmWeight w;
-  for (i = 0; i < sset->len; i++) {
-    gfsmStateId id = g_array_index(sset,gfsmStateId,i);
-    if (gfsm_automaton_lookup_final(fsm,id,&w)) {
-      *wp = gfsm_sr_plus(fsm->sr, *wp, w);
-      rc  = TRUE;
-    }
-  }
-  return rc;
-}
+//--inlined

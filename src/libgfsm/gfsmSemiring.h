@@ -36,7 +36,7 @@
 /** Builtin semiring types
  *  \see fsmcost(3)
  */
-typedef enum _gfsmSRType {
+typedef enum {
   gfsmSRTUnknown  = 0,  ///< unknown semiring (should never happen)
   gfsmSRTBoolean  = 1,  ///< boolean semiring <set:{0,1}, plus:||, times:&&, less:>, zero:0, one:1>
   gfsmSRTLog      = 2,  ///< negative log semiring <set:[-inf,inf], plus:-log(e^-x+e^-y), times:+, less:<, zero:inf, one:0>
@@ -51,7 +51,7 @@ typedef enum _gfsmSRType {
  * Semiring: types: structs
  */
 /// struct to represent a builtin semi-ring for gfsm arc weights
-typedef struct _gfsmSemiring {
+typedef struct {
   gfsmSRType type;    /**< type of this semiring */
   gfsmWeight zero;    /**< nil element of this semiring (identity for '+') */
   gfsmWeight one;     /**< unity element of this semiring (idendity for '*') */
@@ -77,7 +77,7 @@ typedef gfsmWeight (*gfsmSRBinaryOp) (gfsmSemiring *sr, gfsmWeight x, gfsmWeight
  * Semiring: types: user structs
  */
 /// User-defined semirings for gfsm operations
-typedef struct _gfsmSemiringUser {
+typedef struct {
   gfsmSemiring sr;                  /**< inheritance magic */
 
   //-- user-defined semirings *must* set these functions
@@ -94,21 +94,26 @@ typedef struct _gfsmSemiringUser {
 //@{
 
 /** Create, initialize (for builtin types), and return new semiring of type \a type */
+static inline
 gfsmSemiring *gfsm_semiring_new(gfsmSRType type);
 
 /** Initialize and return a builtin semiring */
+static inline
 void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type);
 
 /** Initialize and return a semiring */
+static inline
 gfsmUserSemiring *gfsm_user_semiring_new(gfsmSRBinaryPredicate equal_func,
 					 gfsmSRBinaryPredicate less_func,
 					 gfsmSRBinaryOp        plus_func,
 					 gfsmSRBinaryOp        times_func);
 
 /** Copy a semiring */
+static inline
 gfsmSemiring *gfsm_semiring_copy(gfsmSemiring *sr);
 
 /** Destroy a gfsmSemiring */
+static inline
 void gfsm_semiring_free(gfsmSemiring *sr);
 //@}
 
@@ -118,28 +123,32 @@ void gfsm_semiring_free(gfsmSemiring *sr);
 ///\name General Accessors
 //@{
 
-/** Get 'zero' element of the semiring \a sr */
-#define gfsm_sr_zero(sr) (sr ? sr->zero : 0)
+/** Get 'zero' element of the ::gfsmSemiring* \a sr */
+static inline
+gfsmWeight gfsm_sr_zero(gfsmSemiring *sr);
 
-/** Get 'one' element of the semiring \a sr */
-#define gfsm_sr_one(sr) (sr ? sr->one : 1)
 
-/** Check semiring element equality */
-#define gfsm_sr_equal(sr,x,y) \
-  (sr->type == gfsmSRTUser && ((gfsmUserSemiring*)sr)->equal_func \
-   ? ((*((gfsmUserSemiring*)sr)->equal_func)(sr,x,y)) \
-   : (x==y))
+/** Get 'one' element of the ::gfsmSemiring* \a sr */
+static inline
+gfsmWeight gfsm_sr_one(gfsmSemiring *sr);
+
+/** Check equality of elements \a x and \a y with respect to ::gfsmSemiring* \a sr */
+static inline
+gboolean gfsm_sr_equal(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** Check semiring element order */
+static inline
 gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** 3-way comparison for semiring values */
 gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** Semiring addition */
+static inline
 gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** Semiring multiplication */
+static inline
 gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 //@}
 
@@ -163,7 +172,11 @@ gchar *gfsm_sr_type_to_name(gfsmSRType type);
 /** stable log addition.
  *  \returns log(exp(x)+exp(y))
  */
+static inline
 gfsmWeight gfsm_log_add(gfsmWeight x, gfsmWeight y);
 //@}
+
+/*-- inline definitions --*/
+#include <gfsmSemiring.def>
 
 #endif /* _GFSM_SEMIRING_H */

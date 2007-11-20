@@ -33,7 +33,7 @@
 /*======================================================================
  * Types
  */
-/// bit vector type: really just a wrapper for GArray
+/// bit vector type: really just a wrapper for GByteArray
 typedef GArray gfsmBitVector;
 
 /*======================================================================
@@ -41,12 +41,14 @@ typedef GArray gfsmBitVector;
  */
 ///\name Utilities
 //@{
-/**  Utility macro to convert bit-indices to byte-indices (starting from 0) */
-#define _gfsm_bitvector_bits2bytes(nbits)  ( (nbits)/8 )
+/**  Low-level utility to convert bit-indices to byte-indices (starting from 0) */
+static inline
+guint gfsm_bitvector_bits2bytes_(guint nbits);
 
+/** Low-level utility to convert byte-sizes to bit-sizes */
+static inline
+guint gfsm_bitvector_bytes2bits_(guint nbytes);
 
-/** Utility macro to convert byte-sizes to bit-sizes */
-#define _gfsm_bitvector_bytes2bits(nbytes) ( (nbytes)*8 )
 //@}
 
 /*======================================================================
@@ -54,30 +56,38 @@ typedef GArray gfsmBitVector;
  */
 ///\name Constructors etc.
 //@{
+
 /** Create a new bit vector of length 0 */
-#define gfsm_bitvector_new() g_array_new(FALSE,TRUE,1)
+static inline
+gfsmBitVector *gfsm_bitvector_new(void);
 
 /** Create a new bit vector of length 0 with reserved space for at least \a nbits bits */
+static inline
 gfsmBitVector *gfsm_bitvector_sized_new(guint nbits);
 
 /** Resize a bit vector \a bv to at least \a nbits bits (rounded to next byte boundary) */
-#define gfsm_bitvector_resize(bv,nbits) \
-   g_array_set_size((bv), _gfsm_bitvector_bits2bytes(nbits)+1)
+static inline
+void gfsm_bitvector_resize(gfsmBitVector *bv, guint nbits);
 
 /** Get current size (in bits) of a bit vector \a bv */
-#define gfsm_bitvector_size(bv) (_gfsm_bitvector_bytes2bits((bv)->len))
+static inline
+guint gfsm_bitvector_size(gfsmBitVector *bv);
 
 /** Clear a bit vector */
-#define gfsm_bitvector_clear(bv) g_array_set_size((bv),0)
+static inline
+void gfsm_bitvector_clear(gfsmBitVector *bv);
 
 /** Set all bits to zero. \returns altered bv */
+static inline
 gfsmBitVector *gfsm_bitvector_zero(gfsmBitVector *bv);
 
 /** Set all bits to one. \returns altered bv */
+static inline
 gfsmBitVector *gfsm_bitvector_one(gfsmBitVector *bv);
 
 /** Destroy a bit vector */
-#define gfsm_bitvector_free(bv) g_array_free((bv),TRUE)
+static inline
+void gfsm_bitvector_free(gfsmBitVector *bv);
 //@}
 
 /*======================================================================
@@ -86,25 +96,20 @@ gfsmBitVector *gfsm_bitvector_one(gfsmBitVector *bv);
 ///\name Accessors
 //@{
 
-/** Get the value (0 or 1) of the bit at index \a i in vector \a bv
- *  \note Implemented as a macro which evaluates its arguments multiple times.
+/** Get the value (0 or 1) of the bit at index \a i in vector \a bv.
  */
-#define gfsm_bitvector_get(bv,i) \
-  ( (i) < gfsm_bitvector_size(bv) \
-    ? ( (g_array_index((bv), guint8, _gfsm_bitvector_bits2bytes(i)) & (1<<((i)%8))) ? 1 : 0 ) \
-    : 0 )
+static inline
+gboolean gfsm_bitvector_get(gfsmBitVector *bv, guint i);
 
 /** Set the value (0 or 1) of the bit at index \a i to boolean value \a v in vector \a bv.
  *  Formerly implemented as a macro which evaluates its arguments multiple times.
  */
+static inline
 void gfsm_bitvector_set(gfsmBitVector *bv, guint i, gboolean v);
-
-#define gfsm_bitvector_set_macro(bv,i,v) \
-  ( ((i) >= gfsm_bitvector_size(bv) ? gfsm_bitvector_resize((bv),(i)) : 0), \
-    ((v) ? ( g_array_index((bv), guint8, _gfsm_bitvector_bits2bytes(i)) |=  (1<<((i)%8)) ) \
-         : ( g_array_index((bv), guint8, _gfsm_bitvector_bits2bytes(i)) &= ~(1<<((i)%8)) ) ) )
 
 //@}
 
+//-- inline definitions
+#include <gfsmBitVector.def>
 
 #endif /* _GFSM_BITVECTOR_H */

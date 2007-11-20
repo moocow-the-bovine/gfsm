@@ -27,181 +27,18 @@
 /*======================================================================
  * Methods: Arcs: Constructors etc.
  */
-
-/*--------------------------------------------------------------
- * arc_init()
- */
-gfsmArc *gfsm_arc_init(gfsmArc *a,
-		       gfsmStateId src,
-		       gfsmStateId dst,
-		       gfsmLabelId lo,
-		       gfsmLabelId hi,
-		       gfsmWeight wt)
-{
-  if (a) {
-    a->source = src;
-    a->target = dst;
-    a->lower  = lo;
-    a->upper  = hi;
-    a->weight = wt;
-  }
-  return a;
-}
-
-/*--------------------------------------------------------------
- * arc_copy()
- */
-gfsmArc *gfsm_arc_copy(gfsmArc *src)
-{
-  gfsmArc *dst = g_new(gfsmArc,1);
-  *dst = *src;
-  return dst;
-}
-
-/*======================================================================
- * Methods: Arc Lists: Constructors etc.
- */
-
-/*--------------------------------------------------------------
- * arclist_alloc()
- */
-//(macro)
-
-
-/*--------------------------------------------------------------
- * arclist_prepend()
- */
-//(macro)
-
-/*--------------------------------------------------------------
- * arclist_insert()
- */
-gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
-				 gfsmStateId  src,
-				 gfsmStateId  dst,
-				 gfsmLabelVal lo,
-				 gfsmLabelVal hi,
-				 gfsmWeight   wt,
-				 gfsmArcSortData *sdata)
-{
-  gfsmArc *a = gfsm_arc_new_full(src,dst,lo,hi,wt);
-
-  if (!sdata || sdata->mode == gfsmASMNone) return gfsm_arclist_prepend(al,a);
-  else {
-    gfsmArcList *al_first=al;
-    gfsmArcList *al_prev=NULL;
-  
-    for (; al != NULL; al_prev=al, al=al->next) {
-      if (gfsm_arc_compare(a, (gfsmArc*)(al->data), sdata) >= 0) break;
-    }
-    if (al_prev==NULL) al_first      = gfsm_arclist_prepend(al_first, a);
-    else               al_prev->next = gfsm_arclist_prepend(al, a);
-    return al_first;
-  }
-}
-
-/*--------------------------------------------------------------
- * arclist_insert_link()
- */
-gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al,
-				      gfsmArcList *link,
-				      gfsmArcSortData *sdata)
-{
-  gfsmArcList *al_first=al;
-  gfsmArcList *al_prev=NULL;
-  gfsmArc     *a = (gfsmArc*)(link->data);
-
-  if (!sdata || sdata->mode == gfsmASMNone) return g_slist_concat(link,al);
-
-  for (; al != NULL; al_prev=al, al=al->next) {
-    if (gfsm_arc_compare(a, (gfsmArc*)(al->data), sdata) <= 0) break;
-  }
-
-  if (al_prev == NULL) return g_slist_concat(link,al);
-
-  al_prev->next = g_slist_concat(link, al);
-  return al_first;
-}
-
-/*--------------------------------------------------------------
- * arclist_copy()
- */
-gfsmArcList *gfsm_arclist_copy(gfsmArcList *src)
-{
-  gfsmArcList *al;
-  gfsmArcList *dst = g_slist_copy(src);
-  for (al=dst; al != NULL; al=al->next) {
-    al->data = gfsm_arc_copy(al->data);
-  }
-  return dst;
-}
-
-/*--------------------------------------------------------------
- * arclist_free()
- */
-void gfsm_arclist_free(gfsmArcList *al)
-{
-  while (al != NULL) {
-    gfsm_arc_free((gfsmArc*)(al->data));
-    al = g_slist_delete_link(al,al);
-  }
-}
-
-/*======================================================================
- * Methods: Arc Lists: Utilities
- */
+//--inline
 
 /*--------------------------------------------------------------
  * compare()
  */
-#define GFSM_ARC_COMPARE_COMPAT 1
 gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
-{
-  if (!a1) {
-    if (!a2) return 0;
-    return 1;
-  }
-  if (!a2) return -1;
+{ return gfsm_arc_compare_inline(a1,a2,sdata); }
 
-  switch (sdata->mode) {
-  case gfsmASMLower:
-    if      (a1->lower < a2->lower)   return -1;
-    else if (a1->lower > a2->lower)   return  1;
-    else if (a1->upper < a2->upper)   return -1;
-    else if (a1->upper > a2->upper)   return  1;
-    //else if (a1->source < a2->source) return -1;
-    //else if (a1->source > a2->source) return  1;
-    else if (a1->target < a2->target) return -1;
-    else if (a1->target > a2->target) return  1;
-    return 0;
-			
-  case gfsmASMUpper:
-    if      (a1->upper < a2->upper)   return -1;
-    else if (a1->upper > a2->upper)   return  1;
-    else if (a1->lower < a2->lower)   return -1;
-    else if (a1->lower > a2->lower)   return  1;
-    //else if (a1->source < a2->source) return -1;
-    //else if (a1->source > a2->source) return  1;
-    else if (a1->target < a2->target) return -1;
-    else if (a1->target > a2->target) return  1;
-    return 0;
-
-  case gfsmASMWeight:
-    return gfsm_sr_compare(sdata->sr, a1->weight, a2->weight);
-
-  case gfsmASMNone:
-  default:
-    return (GPOINTER_TO_INT(a2)-GPOINTER_TO_INT(a1));
-  }
-
-  return 0;
-}
-
-
-/*======================================================================
- * Methods: String utilities
+/*--------------------------------------------------------------
+ * sortmode_to_name()
  */
-gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode)
+const gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode)
 {
   switch (mode) {
   case gfsmASMNone:   return "none";

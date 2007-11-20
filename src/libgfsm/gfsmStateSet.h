@@ -62,24 +62,27 @@ extern const guint gfsmStateSetDefaultSize;
 //@{
 
 /** Create and return a new state-set, giving initial reserved size */
-#define gfsm_stateset_sized_new(isize) \
-  g_array_sized_new(FALSE,TRUE,sizeof(gfsmStateId),isize)
+static inline
+gfsmStateSet *gfsm_stateset_sized_new(guint isize);
 
 /** Create and return a new state-set */
-#define gfsm_stateset_new() \
-  gfsm_stateset_sized_new(gfsmStateSetDefaultSize)
+static inline
+gfsmStateSet *gfsm_stateset_new(void);
 
 /** Create and return a new singleton state-set */
+static inline
 gfsmStateSet *gfsm_stateset_new_singleton(gfsmStateId id);
 
 /** clear a state-set */
-#define gfsm_stateset_clear(sset) \
-  g_array_set_size(sset,0)
+static inline
+void gfsm_stateset_clear(gfsmStateSet *sset);
 
-/** create a copy of a state-set */
+/** Create and return an exact copy of a state-set */
+static inline
 gfsmStateSet *gfsm_stateset_clone(gfsmStateSet *src);
 
 /** destroy a state-set */
+static inline
 void gfsm_stateset_free(gfsmStateSet *sset);
 
 //@}
@@ -91,29 +94,35 @@ void gfsm_stateset_free(gfsmStateSet *sset);
 //@{
 
 /** Get minimum element of a state-set */
-#define gfsm_stateset_min(sset) \
-  ((sset)->len > 0 ? (*((gfsmStateId*)(sset->data))) : gfsmNoState)
+static inline
+gfsmStateId gfsm_stateset_min(gfsmStateSet *sset);
 
 /** Get number of elements in a state-set */
-#define gfsm_stateset_size(sset) ((sset)->len)
+static inline
+guint gfsm_stateset_size(gfsmStateSet *sset);
 
 /** Check whether a state-id is contained in a state-set */
+static inline
 gboolean gfsm_stateset_contains(gfsmStateSet *sset, gfsmStateId id);
 
 /** Insert a single state-id into a state-set.
  *  \returns true iff \a sset already contained \a id
  */
+static inline
 gboolean gfsm_stateset_insert(gfsmStateSet *sset, gfsmStateId id);
 
 /** Assign \a sset1 to be the union of itself with \a sset2 */
+static inline
 gfsmStateSet *gfsm_stateset_union(gfsmStateSet *sset1, gfsmStateSet *sset2);
 
 /** Remove a state-id from a state-set
  * \returns true iff \a sset contained \a id
  */
+static inline
 gboolean gfsm_stateset_remove(gfsmStateSet *sset, gfsmStateId id);
 
 /** Equality test */
+static inline
 gboolean gfsm_stateset_equal(gfsmStateSet *sset1, gfsmStateSet *sset2);
 //@}
 
@@ -149,6 +158,7 @@ typedef gfsmStateId* gfsmStateSetIter;
 
 /** Find an iterator pointing to the element for \a id in \a sset,
  *  or a bad iterator if no such element exists */
+static inline
 gfsmStateSetIter gfsm_stateset_find(gfsmStateSet *sset, gfsmStateId id);
 
 //@}
@@ -163,6 +173,7 @@ gfsmStateSetIter gfsm_stateset_find(gfsmStateSet *sset, gfsmStateId id);
 typedef gboolean (*gfsmStateSetForeachFunc) (gfsmStateId id, gpointer data);
 
 /** General iteration utilitiy for state-sets */
+static inline
 void gfsm_stateset_foreach(gfsmStateSet *sset, gfsmStateSetForeachFunc func, gpointer data);
 
 /** Hashing function for state-sets */
@@ -196,14 +207,19 @@ void gfsm_stateset_populate(gfsmStateSet *sset,
   gfsm_stateset_populate((sset),(fsm),(id),gfsmEpsilon,gfsmEpsilon)
 
 /** Returns true iff some \a id in \a sset is a final state in \a fsm */
+static inline
 gboolean gfsm_stateset_has_final_state(gfsmStateSet *sset, gfsmAutomaton *fsm);
 
 /** Lookup sum of final weights in \a fsm of states \a id in \a sset
  *  Returns TRUE iff at least one state in \a sset is final, and
  *  sets \a *wp to the sum of final weights.
  */
+static inline
 gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fsm, gfsmWeight *wp);
 
 //@}
+
+//-- inlined definitions
+#include <gfsmStateSet.def>
 
 #endif /* _GFSM_STATE_H */
