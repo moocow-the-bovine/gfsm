@@ -804,6 +804,12 @@ AC_SUBST(gfsm_WFLAGS)
 ## /warnings
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+## autotest
+AC_CONFIG_TESTDIR(tests,tests)
+## /autotest
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## configuration options
@@ -825,6 +831,7 @@ AC_CONFIG_FILES(doc/programs/Makefile)
 dnl AC_CONFIG_FILES(doc/tutorial/Makefile)
 AC_CONFIG_FILES(doc/Makefile)
 AC_CONFIG_FILES(config/Makefile)
+AC_CONFIG_FILES(tests/atlocal tests/Makefile)
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(gfsm.pc)
 AC_OUTPUT

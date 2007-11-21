@@ -92,7 +92,11 @@ int main (int argc, char **argv)
   printf("%-24s: %c\n", "Weighted?", bool2char(gfsm_automaton_is_weighted(fsm)));
   printf("%-24s: %c\n", "Deterministic?", bool2char(fsm->flags.is_deterministic));
   printf("%-24s: %s\n", "Sort Mode", gfsm_arc_sortmode_to_name(gfsm_automaton_sortmode(fsm)));
-  printf("%-24s: %u\n", "Initial state", fsm->root_id);
+  if (fsm->root_id != gfsmNoState) {
+    printf("%-24s: %u\n", "Initial state", fsm->root_id);
+  } else {
+    printf("%-24s: %s\n", "Initial state", "none");
+  }
   printf("%-24s: %u\n", "# of states", gfsm_automaton_n_states(fsm));
   printf("%-24s: %u\n", "# of final states", gfsm_automaton_n_final_states(fsm));
   printf("%-24s: %u\n", "# of arcs", gfsm_automaton_n_arcs_full(fsm, &n_eps_i, &n_eps_o, &n_eps_io));

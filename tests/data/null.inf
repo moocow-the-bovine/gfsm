@@ -1,10 +1,10 @@
-Filename                : null.gfst
+Filename                : -
 Semiring                : tropical
 Transducer?             : y
 Weighted?               : y
 Deterministic?          : n
 Sort Mode               : none
-Initial state           : 4294967295
+Initial state           : none
 # of states             : 0
 # of final states       : 0
 # of arcs               : 0

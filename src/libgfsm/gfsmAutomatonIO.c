@@ -709,7 +709,11 @@ gboolean gfsm_automaton_print_handle (gfsmAutomaton *fsm,
   GString *gs = g_string_new("");
   gboolean rc = TRUE;
 
-  if (fsm->root_id == gfsmNoState) rc = FALSE; //-- sanity check
+  //-- sanity check
+  if (fsm->root_id == gfsmNoState) {
+    g_printerr("gfsm: Warning: cowardly refusing to print() unrooted automaton\n");
+    return TRUE;
+  }
 
   for (i=0; rc && i < fsm->states->len; i++) {
     guint        id = (fsm->root_id + i) % fsm->states->len;

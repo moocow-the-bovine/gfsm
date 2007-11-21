@@ -32,8 +32,10 @@ check-local: atconfig atlocal $(TESTSUITE)
 	sh $(TESTSUITE)
 
 AUTOTEST = autom4te --language=autotest
-$(TESTSUITE): $(srcdir)/testsuite.at
-	$(AUTOTEST) -I $(srcdir) $@.at -o $@.tmp
+$(TESTSUITE):   $(srcdir)/testsuite.at \
+		$(srcdir)/01_basic.at \
+		$(srcdir)/02_arith.at
+	$(AUTOTEST) -I $(srcdir) $^ -o $@.tmp
 	mv $@.tmp $@
 
 #-----------------------------------------------------------------------
@@ -73,6 +75,8 @@ EXTRA_DIST = \
 	atconfig \
 	atlocal \
 	package.m4 \
+	01_basic.at \
+	02_arith.at \
 	testsuite.at \
 	testsuite
 
@@ -85,7 +89,9 @@ DISTHOOK_FILES = \
 	data/null.tfst \
 	data/null.inf \
 	data/t1.tfst \
-	data/t1.inf
+	data/t1.inf \
+	data/test.lab \
+	data/t1.ltfst
 
 dist-hook:
 	for d in $(DISTHOOK_DIRS); do\

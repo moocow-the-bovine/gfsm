@@ -1,0 +1,51 @@
+## -*- Mode: Autotest -*-
+##
+## File: basic.at
+## Package: gfsm
+## Description: autotest test-suite script: basic tests
+##
+
+AT_BANNER([basic.at: basic tests])
+
+##--------------------------------------------------------------
+## Test: compile+print: null
+AT_SETUP([compile+print.null])
+
+##-- compile: null
+AT_DATA([null.gfst],[])
+AT_CHECK([[$progdir/gfsmcompile $tdata/null.tfst -F null.gfst]],0,[],[])
+
+##-- print: null
+AT_CHECK([[$progdir/gfsmprint null.gfst]],0,[],[ignore])
+
+##-- info: null
+AT_DATA([null.inf],[])
+rm -f expout; ln $tdata/null.inf expout
+AT_CHECK([[$progdir/gfsminfo < null.gfst]],0,expout)
+
+AT_CLEANUP
+
+##--------------------------------------------------------------
+## Test: compile+print: simple
+AT_SETUP([compile+print.simple])
+
+##-- compile + print: simple
+AT_DATA([t1.gfst],[])
+AT_CHECK([[$progdir/gfsmcompile $tdata/t1.tfst -F t1.gfst]],0)
+
+rm -f expout; ln $tdata/t1.tfst expout
+AT_CHECK([[$progdir/gfsmprint t1.gfst]],0,expout,[])
+
+rm -f expout; ln $tdata/t1.inf expout
+AT_CHECK([[$progdir/gfsminfo < t1.gfst]],0,expout,[])
+
+AT_CLEANUP
+
+##--------------------------------------------------------------
+## Test: compile+print: with labels
+AT_SETUP([compile+print.labels])
+dnl AT_DATA([t1.gfst],[])
+AT_CHECK([[$progdir/gfsmcompile -i $tdata/test.lab -o $tdata/test.lab $tdata/t1.ltfst -F t1.gfst]],0)
+rm -f expout; ln $tdata/t1.ltfst expout
+AT_CHECK([[$progdir/gfsmprint -i $tdata/test.lab -o $tdata/test.lab t1.gfst]],0,expout,[])
+AT_CLEANUP
