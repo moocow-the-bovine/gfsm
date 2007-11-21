@@ -1,0 +1,14 @@
+Filename                : null.gfst
+Semiring                : tropical
+Transducer?             : y
+Weighted?               : y
+Deterministic?          : n
+Sort Mode               : none
+Initial state           : 4294967295
+# of states             : 0
+# of final states       : 0
+# of arcs               : 0
+# of i/o epsilon arcs   : 0
+# of input epsilon arcs : 0
+# of output epsilon arcs: 0
+cyclic?                 : n
