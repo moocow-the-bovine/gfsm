@@ -175,6 +175,7 @@ SEARCH_INCLUDES        = YES
 #INCLUDE_PATH           = @top_srcdir@/src/libgfsm @top_builddir@src/libgfsm
 INCLUDE_FILE_PATTERNS  = 
 #PREDEFINED             = __cplusplus
+PREDEFINED             = @DOXY_DEFINES@
 EXPAND_AS_DEFINED      = 
 #SKIP_FUNCTION_MACROS   = YES
 SKIP_FUNCTION_MACROS   = NO

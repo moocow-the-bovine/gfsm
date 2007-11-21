@@ -64,8 +64,8 @@ INPUT                  = \
 			 ../../src/libgfsm \
 			 .
 #FILE_PATTERNS          = *.h
-#FILE_PATTERNS          = *.h *.def
-FILE_PATTERNS          = *.h *.def *.c
+FILE_PATTERNS          = *.h *.hi
+#FILE_PATTERNS          = *.h *.hi *.c
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO

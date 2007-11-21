@@ -6,6 +6,7 @@
 
 \version @VERSION@
 
+<b>Project URL:</b> http://www.ling.uni-potsdam.de/~moocow/projects/gfsm
 
 \section Intro Introduction
 
@@ -20,7 +21,7 @@ state machines, as well as a low-level automaton interface.
 
 Run the \a configure script in the distribution directory, and then call \a make:
 
-\code
+\verbatim
 bash:~$ cd gfsm-XX.YY.ZZ
 
 bash:~/gfsm-XX.YY.ZZ$ ./configure
@@ -43,7 +44,7 @@ bash:~/gfsm-XX.YY.ZZ$ make install
 ...
 > make: Leaving directory `/home/moocow/gfsm-XX.YY.ZZ'
 
-\endcode
+\endverbatim
 
 libgfsm will install itself in /usr/local by default.
 
@@ -88,10 +89,10 @@ int main(void) {
 
 - Compile and link your program against libgfsm:
 
-  \code
+  \verbatim
 bash$ gcc `pkg-config --cflags gfsm` -o myprog.o -c myprog.c 
 bash$ gcc -o myprog myprog.o `pkg-config --libs gfsm`
-  \endcode
+  \endverbatim
 
 - ... and things ought to work
 

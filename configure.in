@@ -224,13 +224,13 @@ if test "$enable_inline" != "no" ; then
   AC_MSG_RESULT(yes)
   AC_DEFINE(GFSM_INLINE_ENABLED,1,
 	[Define this to enable inline functions])
-  DOXY_DEFINES="$DOXY_DEFINES GFSM_ENABLE_INLINE=1"
-  CONFIG_ENABLE_INLINE="1"
+  DOXY_DEFINES="$DOXY_DEFINES GFSM_INLINE_ENABLED=1 GFSM_INLINE:=\"static inline\""
+  CONFIG_INLINE_ENABLED="1"
 else
   AC_MSG_RESULT(no)
-  CONFIG_ENABLE_INLINE="0"
+  CONFIG_INLINE_ENABLED="0"
 fi
-CONFIG_OPTIONS="$CONFIG_OPTIONS INLINE=$CONFIG_ENABLE_INLINE"
+CONFIG_OPTIONS="$CONFIG_OPTIONS INLINE=$CONFIG_INLINE_ENABLED"
 ##
 ## /inline ?
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
