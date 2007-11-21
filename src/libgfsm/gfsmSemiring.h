@@ -94,26 +94,26 @@ typedef struct {
 //@{
 
 /** Create, initialize (for builtin types), and return new semiring of type \a type */
-static inline
+GFSM_INLINE
 gfsmSemiring *gfsm_semiring_new(gfsmSRType type);
 
 /** Initialize and return a builtin semiring */
-static inline
+GFSM_INLINE
 void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type);
 
 /** Initialize and return a semiring */
-static inline
+GFSM_INLINE
 gfsmUserSemiring *gfsm_user_semiring_new(gfsmSRBinaryPredicate equal_func,
 					 gfsmSRBinaryPredicate less_func,
 					 gfsmSRBinaryOp        plus_func,
 					 gfsmSRBinaryOp        times_func);
 
 /** Copy a semiring */
-static inline
+GFSM_INLINE
 gfsmSemiring *gfsm_semiring_copy(gfsmSemiring *sr);
 
 /** Destroy a gfsmSemiring */
-static inline
+GFSM_INLINE
 void gfsm_semiring_free(gfsmSemiring *sr);
 //@}
 
@@ -124,31 +124,31 @@ void gfsm_semiring_free(gfsmSemiring *sr);
 //@{
 
 /** Get 'zero' element of the ::gfsmSemiring* \a sr */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_sr_zero(gfsmSemiring *sr);
 
 
 /** Get 'one' element of the ::gfsmSemiring* \a sr */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_sr_one(gfsmSemiring *sr);
 
 /** Check equality of elements \a x and \a y with respect to ::gfsmSemiring* \a sr */
-static inline
+GFSM_INLINE
 gboolean gfsm_sr_equal(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** Check semiring element order */
-static inline
+GFSM_INLINE
 gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** 3-way comparison for semiring values */
 gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** Semiring addition */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
 /** Semiring multiplication */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 //@}
 
@@ -172,11 +172,13 @@ gchar *gfsm_sr_type_to_name(gfsmSRType type);
 /** stable log addition.
  *  \returns log(exp(x)+exp(y))
  */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_log_add(gfsmWeight x, gfsmWeight y);
 //@}
 
-/*-- inline definitions --*/
-#include <gfsmSemiring.def>
+//-- inline definitions
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmSemiring.hi>
+#endif
 
 #endif /* _GFSM_SEMIRING_H */

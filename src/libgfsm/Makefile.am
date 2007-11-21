@@ -48,12 +48,15 @@ libgfsm_la_SOURCES = \
 	gfsmUtils.c \
 	gfsmEnum.c \
 	gfsmSet.c \
+	gfsmWeightMap.c \
+	gfsmBitVector.c \
 	gfsmAlphabet.c \
 	gfsmSemiring.c \
 	gfsmArc.c \
 	gfsmArcList.c \
 	gfsmArcIter.c \
 	gfsmArcIndex.c \
+	gfsmState.c \
 	gfsmStateSet.c \
 	gfsmAutomaton.c \
 	gfsmAutomatonIO.c \
@@ -98,38 +101,38 @@ pkginclude_HEADERS = \
 	gfsmAutoConfig.h \
 	gfsmCommon.h \
 	gfsmCompound.h \
-	gfsmCompound.def \
+	gfsmCompound.hi \
 	gfsmDebug.h \
 	gfsmError.h \
 	gfsmIO.h \
 	gfsmMem.h \
-	gfsmMem.def \
+	gfsmMem.hi \
 	gfsmVersion.h \
 	gfsmUtils.h \
 	gfsmEnum.h \
-	gfsmEnum.def \
+	gfsmEnum.hi \
 	gfsmSet.h \
-	gfsmSet.def \
+	gfsmSet.hi \
 	gfsmWeightMap.h \
-	gfsmWeightMap.def \
+	gfsmWeightMap.hi \
 	gfsmBitVector.h \
-	gfsmBitVector.def \
+	gfsmBitVector.hi \
 	gfsmAlphabet.h \
 	gfsmSemiring.h \
-	gfsmSemiring.def \
+	gfsmSemiring.hi \
 	gfsmArc.h \
-	gfsmArc.def \
+	gfsmArc.hi \
 	gfsmArcList.h \
-	gfsmArcList.def \
+	gfsmArcList.hi \
 	gfsmArcIter.h \
-	gfsmArcIter.def \
+	gfsmArcIter.hi \
 	gfsmArcIndex.h \
 	gfsmState.h \
-	gfsmState.def \
+	gfsmState.hi \
 	gfsmStateSet.h \
-	gfsmStateSet.def \
+	gfsmStateSet.hi \
 	gfsmAutomaton.h \
-	gfsmAutomaton.def \
+	gfsmAutomaton.hi \
 	gfsmAutomatonIO.h \
 	gfsmDraw.h \
 	gfsmAlgebra.h \

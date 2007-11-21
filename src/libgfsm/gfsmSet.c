@@ -22,7 +22,10 @@
 
 #include <gfsmSet.h>
 
-
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmSet.hi>
+#endif
 
 /*======================================================================
  * Constructors etc.

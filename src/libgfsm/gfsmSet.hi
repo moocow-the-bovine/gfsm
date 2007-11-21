@@ -1,5 +1,5 @@
 /*=============================================================================*\
- * File: gfsmSet.def
+ * File: gfsmSet.hi
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
@@ -27,7 +27,7 @@
 /*--------------------------------------------------------------
  * to_slist()
  */
-static inline
+GFSM_INLINE
 GSList *gfsm_set_to_slist(gfsmSet *set)
 {
   GSList *l = NULL;
@@ -38,7 +38,7 @@ GSList *gfsm_set_to_slist(gfsmSet *set)
 /*--------------------------------------------------------------
  * to_ptr_array()
  */
-static inline
+GFSM_INLINE
 void gfsm_set_to_ptr_array(gfsmSet *set, GPtrArray *array)
 {
   gfsm_set_foreach(set,(GTraverseFunc)gfsm_set_to_ptr_array_foreach_func, array);
@@ -52,7 +52,7 @@ void gfsm_set_to_ptr_array(gfsmSet *set, GPtrArray *array)
 /*--------------------------------------------------------------
  * new_full()
  */
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_new_full(GCompareDataFunc key_cmp_func, gpointer key_cmp_data, GDestroyNotify key_free_func)
 {
   return g_tree_new_full(key_cmp_func, key_cmp_data, key_free_func, NULL);
@@ -61,7 +61,7 @@ gfsmSet *gfsm_set_new_full(GCompareDataFunc key_cmp_func, gpointer key_cmp_data,
 /*--------------------------------------------------------------
  * new()
  */
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_new(GCompareFunc key_cmp_func)
 {
   return g_tree_new(key_cmp_func);
@@ -70,7 +70,7 @@ gfsmSet *gfsm_set_new(GCompareFunc key_cmp_func)
 /*--------------------------------------------------------------
  * copy()
  */
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_copy(gfsmSet *dst, gfsmSet *src)
 {
   gfsm_set_clear(dst);
@@ -88,7 +88,7 @@ gfsmSet *gfsm_set_copy(gfsmSet *dst, gfsmSet *src)
  * free()
  */
 #if 0
-static inline
+GFSM_INLINE
 void gfsm_set_free(gfsmSet *set)
 {
   g_tree_destroy(set);
@@ -114,7 +114,7 @@ typedef struct {
  */
 gboolean gfsm_set_union_func(gpointer key, gpointer value, gfsmSetUnionData *data);
 
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_union(gfsmSet *set1, gfsmSet *set2, gfsmDupFunc dupfunc)
 {
   gfsmSetUnionData data = { set1, dupfunc };
@@ -127,7 +127,7 @@ gfsmSet *gfsm_set_union(gfsmSet *set1, gfsmSet *set2, gfsmDupFunc dupfunc)
  */
 gboolean gfsm_set_difference_func(gpointer key, gpointer value, gfsmSet *set1);
 
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_difference(gfsmSet *set1, gfsmSet *set2)
 {
   g_tree_foreach(set2, (GTraverseFunc)gfsm_set_difference_func, set1);

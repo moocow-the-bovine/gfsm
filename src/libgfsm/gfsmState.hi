@@ -1,6 +1,6 @@
 
 /*=============================================================================*\
- * File: gfsmState.def
+ * File: gfsmState.hi
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: states: inline definitions
  *
@@ -30,7 +30,7 @@
 /*--------------------------------------------------------------
  * new_full()
  */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_state_new_full(gboolean is_final, gfsmArcList *arcs)
 {
   gfsmState *s = g_new(gfsmState,1);
@@ -43,7 +43,7 @@ gfsmState *gfsm_state_new_full(gboolean is_final, gfsmArcList *arcs)
 /*--------------------------------------------------------------
  * new()
  */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_state_new(void)
 {
   return gfsm_state_new_full(FALSE, NULL);
@@ -52,7 +52,7 @@ gfsmState *gfsm_state_new(void)
 /*--------------------------------------------------------------
  * clear()
  */
-static inline
+GFSM_INLINE
 void gfsm_state_clear(gfsmState *s)
 {
   gfsm_arclist_free(s->arcs);
@@ -64,7 +64,7 @@ void gfsm_state_clear(gfsmState *s)
 /*--------------------------------------------------------------
  * clone()
  */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_state_copy(gfsmState *dst, const gfsmState *src)
 {
   gfsm_state_clear(dst);
@@ -79,7 +79,7 @@ gfsmState *gfsm_state_copy(gfsmState *dst, const gfsmState *src)
 /*--------------------------------------------------------------
  * free()
  */
-static inline
+GFSM_INLINE
 void gfsm_state_free(gfsmState *s, gboolean free_arcs)
 {
   if (free_arcs && s->arcs) gfsm_arclist_free(s->arcs);
@@ -89,7 +89,7 @@ void gfsm_state_free(gfsmState *s, gboolean free_arcs)
 /*--------------------------------------------------------------
  * close()
  */
-static inline
+GFSM_INLINE
 void gfsm_state_close(gfsmState *s)
 {
   if (s->arc_data_temp) {
@@ -112,7 +112,7 @@ void gfsm_state_close(gfsmState *s)
 /*--------------------------------------------------------------
  * is_ok()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_state_is_ok(const gfsmState *s)
 { return s && s->is_valid; }
 
@@ -120,21 +120,21 @@ gboolean gfsm_state_is_ok(const gfsmState *s)
 /*--------------------------------------------------------------
  * is_final()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_state_is_final(const gfsmState *s)
 { return s && s->is_final; }
 
 /*--------------------------------------------------------------
  * set_final()
  */
-static inline
+GFSM_INLINE
 void gfsm_state_set_final(gfsmState *s, gboolean is_final)
 { s->is_final=is_final; }
 
 /*--------------------------------------------------------------
  * out_degree()
  */
-static inline
+GFSM_INLINE
 guint gfsm_state_out_degree(const gfsmState *s)
 {
   return gfsm_arclist_length(s->arcs);

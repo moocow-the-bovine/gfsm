@@ -1,10 +1,13 @@
 
 /*=============================================================================*\
- * File: gfsmArc.c
+ * File: gfsmBitVector.c
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library: arcs
+ * Description: finite state machine library: bit vectors: extern functions
  *
  * Copyright (c) 2004-2007 Bryan Jurish.
+ *
+ * For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ * WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,35 +24,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-#include <gfsmArc.h>
-#include <stdlib.h>
+#include <gfsmConfig.h>
 
+//-- no-inline definitions
 #ifndef GFSM_INLINE_ENABLED
-//-- no inline definitions
-# include <gfsmArc.hi>
+# include <gfsmBitVector.h>
+# include <gfsmBitVector.hi>
 #endif
-
-/*======================================================================
- * Methods: Arcs: Constructors etc.
- */
-//--inline
-
-/*--------------------------------------------------------------
- * compare()
- */
-gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
-{ return gfsm_arc_compare_inline(a1,a2,sdata); }
-
-/*--------------------------------------------------------------
- * sortmode_to_name()
- */
-const gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode)
-{
-  switch (mode) {
-  case gfsmASMNone:   return "none";
-  case gfsmASMLower:  return "lower";
-  case gfsmASMUpper:  return "upper";
-  case gfsmASMWeight: return "weight";
-  default:            return "unknown";
-  }
-}

@@ -1,5 +1,5 @@
 /*=============================================================================*\
- * File: gfsmAutomaton.def
+ * File: gfsmAutomaton.hidef
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: automata: inline definitions
  *
@@ -31,7 +31,7 @@
 /*--------------------------------------------------------------
  * new_full()
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, gfsmStateId size)
 {
   gfsmAutomaton *fsm = (gfsmAutomaton*)g_new0(gfsmAutomaton,1);
@@ -46,7 +46,7 @@ gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srty
 /*--------------------------------------------------------------
  * new()
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_new(void)
 {
   return gfsm_automaton_new_full(gfsmAutomatonDefaultFlags,
@@ -58,7 +58,7 @@ gfsmAutomaton *gfsm_automaton_new(void)
 /*--------------------------------------------------------------
  * copy_shallow()
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src)
 {
   dst->flags   = src->flags;
@@ -80,7 +80,7 @@ gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *sr
 /*--------------------------------------------------------------
  * clone()
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_clone(gfsmAutomaton *fsm)
 {
   return gfsm_automaton_copy(gfsm_automaton_new_full(gfsmAutomatonDefaultFlags,fsm->sr->type,0),fsm);
@@ -89,7 +89,7 @@ gfsmAutomaton *gfsm_automaton_clone(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * shadow()
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_shadow(gfsmAutomaton *fsm)
 {
   return gfsm_automaton_copy_shallow(gfsm_automaton_new(), fsm);
@@ -98,7 +98,7 @@ gfsmAutomaton *gfsm_automaton_shadow(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * swap()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   if (fsm1 != fsm2) {
@@ -118,7 +118,7 @@ void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 /*--------------------------------------------------------------
  * free()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_free(gfsmAutomaton *fsm)
 {
   if (!fsm) return;
@@ -136,13 +136,13 @@ void gfsm_automaton_free(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * get_semiring()
  */
-static inline
+GFSM_INLINE
 gfsmSemiring *gfsm_automaton_get_semiring(gfsmAutomaton *fsm) { return fsm->sr; }
 
 /*--------------------------------------------------------------
  * set_semiring()
  */
-static inline
+GFSM_INLINE
 gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr)
 {
   if (fsm->sr) gfsm_semiring_free(fsm->sr);
@@ -153,7 +153,7 @@ gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr)
 /*--------------------------------------------------------------
  * set_semiring_type()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype)
 {
   if (!fsm->sr) fsm->sr = gfsm_semiring_new(srtype);
@@ -169,7 +169,7 @@ void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype)
 /*--------------------------------------------------------------
  * reserve_states()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_reserve_states(gfsmAutomaton *fsm, gfsmStateId n_states)
 {
   if (n_states != gfsmNoState && n_states > fsm->states->len)
@@ -179,7 +179,7 @@ void gfsm_automaton_reserve_states(gfsmAutomaton *fsm, gfsmStateId n_states)
 /*--------------------------------------------------------------
  * reserve_arcs()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_reserve_arcs(gfsmAutomaton *fsm, guint n_arcs)
 {
   return;
@@ -188,7 +188,7 @@ void gfsm_automaton_reserve_arcs(gfsmAutomaton *fsm, guint n_arcs)
 /*--------------------------------------------------------------
  * n_states()
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_n_states(gfsmAutomaton *fsm)
 {
   return fsm->states->len;
@@ -197,7 +197,7 @@ gfsmStateId gfsm_automaton_n_states(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * n_arcs()
  */
-static inline
+GFSM_INLINE
 guint gfsm_automaton_n_arcs(gfsmAutomaton *fsm)
 {
   return gfsm_automaton_n_arcs_full(fsm,NULL,NULL,NULL);
@@ -206,7 +206,7 @@ guint gfsm_automaton_n_arcs(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * n_final_states()
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_n_final_states(gfsmAutomaton *fsm)
 {
   return gfsm_weightmap_size(fsm->finals);
@@ -215,7 +215,7 @@ gfsmStateId gfsm_automaton_n_final_states(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * finals_foreach
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_finals_foreach(gfsmAutomaton *fsm, GTraverseFunc func, gpointer data)
 {
   gfsm_weightmap_foreach(fsm->finals,func,data);
@@ -225,7 +225,7 @@ void gfsm_automaton_finals_foreach(gfsmAutomaton *fsm, GTraverseFunc func, gpoin
 /*--------------------------------------------------------------
  * get_root()
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_get_root(gfsmAutomaton *fsm)
 {
   return fsm->root_id;
@@ -234,7 +234,7 @@ gfsmStateId gfsm_automaton_get_root(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * set_root()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_set_root(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   if (qid!=gfsmNoState) qid = gfsm_automaton_ensure_state(fsm,qid);
@@ -268,7 +268,7 @@ void gfsm_automaton_set_root(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * open_state() [aka find_state()]
  */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_automaton_open_state(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   return (qid < fsm->states->len
@@ -279,7 +279,7 @@ gfsmState *gfsm_automaton_open_state(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * add_state_full()
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   gfsmState *st;
@@ -293,14 +293,14 @@ gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * ensure_state()
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_ensure_state(gfsmAutomaton *fsm, gfsmStateId qid)
 { return gfsm_automaton_add_state_full(fsm,qid); }
 
 /*--------------------------------------------------------------
  * open_state_force() [aka get_state()]
  */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_automaton_open_state_force(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   return ((gfsmState*)fsm->states->data) + gfsm_automaton_ensure_state(fsm,qid);
@@ -309,7 +309,7 @@ gfsmState *gfsm_automaton_open_state_force(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * close_state()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_close_state(gfsmAutomaton *fsm, gfsmState *qp)
 {
   //gfsm_state_close(qp);
@@ -323,7 +323,7 @@ void gfsm_automaton_close_state(gfsmAutomaton *fsm, gfsmState *qp)
 /*--------------------------------------------------------------
  * has_state()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_automaton_has_state(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   return qid < fsm->states->len && ((gfsmState*)fsm->states->data)[qid].is_valid;
@@ -332,7 +332,7 @@ gboolean gfsm_automaton_has_state(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * state_is_final()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_automaton_state_is_final(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   gfsmState *qp = gfsm_automaton_find_state(fsm,qid);
@@ -342,7 +342,7 @@ gboolean gfsm_automaton_state_is_final(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * add_state()
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_add_state(gfsmAutomaton *fsm)
 {
   return gfsm_automaton_add_state_full(fsm,gfsmNoState);
@@ -352,7 +352,7 @@ gfsmStateId gfsm_automaton_add_state(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * remove_state()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   gfsmState *s = gfsm_automaton_find_state(fsm,qid);
@@ -369,7 +369,7 @@ void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * lookup_final()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp)
 {
   gfsmState *qp = gfsm_automaton_find_state(fsm,qid);
@@ -383,7 +383,7 @@ gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWe
 /*--------------------------------------------------------------
  * get_final_weight
  */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   gfsmWeight w =0; //-- convince gcc not to complain about uninitialized 'w'
@@ -400,7 +400,7 @@ gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * set_final_state_full
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 					 gfsmStateId    qid,
 					 gboolean       is_final,
@@ -417,7 +417,7 @@ void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 /*--------------------------------------------------------------
  * set_final_state()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId qid, gboolean is_final)
 {
   gfsm_automaton_set_final_state_full(fsm,qid,is_final,fsm->sr->one);
@@ -427,7 +427,7 @@ void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId qid, gboolea
 /*--------------------------------------------------------------
  * out_degree()
  */
-static inline
+GFSM_INLINE
 guint gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid)
 {
   gfsmState *qp = gfsm_automaton_open_state(fsm,qid);
@@ -453,7 +453,7 @@ guint gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid)
 /*--------------------------------------------------------------
  * add_arc_link()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
 				 gfsmState      *sp,
 				 gfsmArcList    *link)
@@ -480,7 +480,7 @@ void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
 /*--------------------------------------------------------------
  * add_arc()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
 			    gfsmStateId qid1,
 			    gfsmStateId qid2,
@@ -505,7 +505,7 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
 /*--------------------------------------------------------------
  * arcsort()
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode)
 {
   if (mode != fsm->flags.sort_mode && mode != gfsmASMNone) {

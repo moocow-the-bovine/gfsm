@@ -68,7 +68,7 @@ typedef enum {
 /// \name Arcs: Constructors etc.
 //@{
 /** Create and return a new (empty) ::gfsmArc */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arc_new(void);
 
 /** Initialize a ::gfsmArc
@@ -80,7 +80,7 @@ gfsmArc *gfsm_arc_new(void);
  * \param w   arc weight
  * \returns initialized arc \a a
  */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arc_init(gfsmArc *a,
 		       gfsmStateId src,
 		       gfsmStateId dst,
@@ -96,18 +96,18 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
  * \param w   arc weight
  * \returns newly allocated and initalized ::gfsmArc
  */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arc_new_full(gfsmStateId src, gfsmStateId dst, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight wt);
 
 /** Create an exact copy of the ::gfsmArc \a src */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arc_clone(gfsmArc *src);
 
 /** Backwards-compatible convenience alias for gfsm_arc_clone() */
 #define gfsm_arc_copy(src) gfsm_arc_clone(src)
 
 /** Destroy a ::gfsmArc \a a */
-static inline
+GFSM_INLINE
 void gfsm_arc_free(gfsmArc *a);
 //@}
 
@@ -153,7 +153,7 @@ void gfsm_arc_free(gfsmArc *a);
  *    \li Prefer gfsm_arc_compare() if you're passing function pointers around, since
  *        its address is guaranteed not to change between compilation units.
  */
-static inline
+GFSM_INLINE
 gint gfsm_arc_compare_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata);
 
 /** Default 3-way comparison on arcs (extern version)
@@ -165,6 +165,9 @@ gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata);
 const gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode);
 //@}
 
-#include <gfsmArc.def>
+//-- inline definitions
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmArc.hi>
+#endif
 
 #endif /* _GFSM_ARC_H */

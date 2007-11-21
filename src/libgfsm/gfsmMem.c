@@ -22,7 +22,10 @@
  *=============================================================================*/
 
 #include <gfsmMem.h>
-#include <string.h>
+
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmMem.hi>
+#endif
 
 /*----------------------------------------------------------------------
  * Allocators

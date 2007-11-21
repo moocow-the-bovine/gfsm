@@ -20,11 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-#include <glib.h>
 #include <gfsmSemiring.h>
-#include <float.h>
-#include <math.h>
-#include <string.h>
+
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmSemiring.hi>
+#endif
 
 /*======================================================================
  * Semiring: methods: constructors etc.

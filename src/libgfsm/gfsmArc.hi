@@ -1,6 +1,6 @@
 
 /*=============================================================================*\
- * File: gfsmArc.def
+ * File: gfsmArc.hi
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arcs: inline definitions
  *
@@ -30,7 +30,7 @@
 /*--------------------------------------------------------------
  * arc_new()
  */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arc_new(void)
 {
   return g_new0(gfsmArc,1);
@@ -39,7 +39,7 @@ gfsmArc *gfsm_arc_new(void)
 /*--------------------------------------------------------------
  * arc_init()
  */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arc_init(gfsmArc *a,
 		       gfsmStateId src,
 		       gfsmStateId dst,
@@ -60,7 +60,7 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 /*--------------------------------------------------------------
  * arc_new_full()
  */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arc_new_full(gfsmStateId src, gfsmStateId dst, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight wt)
 {
   return gfsm_arc_init(g_malloc(sizeof(gfsmArc)),src,dst,lo,hi,wt);
@@ -69,7 +69,7 @@ gfsmArc *gfsm_arc_new_full(gfsmStateId src, gfsmStateId dst, gfsmLabelVal lo, gf
 /*--------------------------------------------------------------
  * arc_clone()
  */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arc_clone(gfsmArc *src)
 {
   gfsmArc *dst = g_new(gfsmArc,1);
@@ -80,14 +80,14 @@ gfsmArc *gfsm_arc_clone(gfsmArc *src)
 /*--------------------------------------------------------------
  * arc_free()
  */
-static inline
+GFSM_INLINE
 void gfsm_arc_free(gfsmArc *a)
 { g_free(a); }
 
 /*======================================================================
  * Methods: Comparison
  */
-static inline
+GFSM_INLINE
 gint gfsm_arc_compare_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
 {
   if (!a1) {

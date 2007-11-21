@@ -22,6 +22,11 @@
 
 #include <gfsmEnum.h>
 
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmEnum.hi>
+#endif
+
 /*======================================================================
  * Constants
  */

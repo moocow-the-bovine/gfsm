@@ -24,6 +24,11 @@
 #include <gfsmStateSet.h>
 #include <gfsmArcIter.h>
 
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmStateSet.hi>
+#endif
+
 /*======================================================================
  * Constants
  */

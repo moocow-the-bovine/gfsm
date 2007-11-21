@@ -1,6 +1,6 @@
 
 /*=============================================================================*\
- * File: gfsmStateSet.def
+ * File: gfsmStateSet.hi
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: state sets: inlined definitions
  *
@@ -27,7 +27,7 @@
 
 //--------------------------------------------------------------
 // sized_new()
-static inline
+GFSM_INLINE
 gfsmStateSet *gfsm_stateset_sized_new(guint isize) 
 {
   return g_array_sized_new(FALSE,TRUE,sizeof(gfsmStateId),isize);
@@ -35,7 +35,7 @@ gfsmStateSet *gfsm_stateset_sized_new(guint isize)
 
 //--------------------------------------------------------------
 // new()
-static inline
+GFSM_INLINE
 gfsmStateSet *gfsm_stateset_new(void)
 {
   return gfsm_stateset_sized_new(gfsmStateSetDefaultSize);
@@ -43,7 +43,7 @@ gfsmStateSet *gfsm_stateset_new(void)
 
 //--------------------------------------------------------------
 // new_singleton()
-static inline
+GFSM_INLINE
 gfsmStateSet *gfsm_stateset_new_singleton(gfsmStateId id)
 {
   gfsmStateSet *sset = gfsm_stateset_new();
@@ -53,7 +53,7 @@ gfsmStateSet *gfsm_stateset_new_singleton(gfsmStateId id)
 
 //--------------------------------------------------------------
 // clear()
-static inline
+GFSM_INLINE
 void gfsm_stateset_clear(gfsmStateSet *sset)
 {
   g_array_set_size(sset,0);
@@ -61,7 +61,7 @@ void gfsm_stateset_clear(gfsmStateSet *sset)
 
 //--------------------------------------------------------------
 // clone()
-static inline
+GFSM_INLINE
 gfsmStateSet *gfsm_stateset_clone(gfsmStateSet *src)
 {
   return g_array_append_vals(gfsm_stateset_sized_new(src->len), src->data, src->len);
@@ -69,7 +69,7 @@ gfsmStateSet *gfsm_stateset_clone(gfsmStateSet *src)
 
 //--------------------------------------------------------------
 // free()
-static inline
+GFSM_INLINE
 void gfsm_stateset_free(gfsmStateSet *sset)
 {
   g_array_free(sset,TRUE);
@@ -81,7 +81,7 @@ void gfsm_stateset_free(gfsmStateSet *sset)
 
 //--------------------------------------------------------------
 // min()
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_stateset_min(gfsmStateSet *sset)
 {
   return sset->len > 0 ? (*((gfsmStateId*)sset->data)) : gfsmNoState;
@@ -89,7 +89,7 @@ gfsmStateId gfsm_stateset_min(gfsmStateSet *sset)
 
 //--------------------------------------------------------------
 // size()
-static inline
+GFSM_INLINE
 guint gfsm_stateset_size(gfsmStateSet *sset)
 {
   return sset->len;
@@ -101,7 +101,7 @@ guint gfsm_stateset_size(gfsmStateSet *sset)
 
 //--------------------------------------------------------------
 // contains()
-static inline
+GFSM_INLINE
 gboolean gfsm_stateset_contains(gfsmStateSet *sset, gfsmStateId id)
 {
   gfsmStateSetIter sseti = gfsm_stateset_find(sset,id);

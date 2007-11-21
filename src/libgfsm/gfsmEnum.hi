@@ -30,7 +30,7 @@
 /*--------------------------------------------------------------
  * new_full()
  */
-static inline
+GFSM_INLINE
 gfsmEnum *gfsm_enum_new_full(gfsmDupFunc key_dup_func,
 			     GHashFunc   key_hash_func,
 			     GEqualFunc  key_equal_func,
@@ -49,7 +49,7 @@ gfsmEnum *gfsm_enum_new_full(gfsmDupFunc key_dup_func,
 /*--------------------------------------------------------------
  * clear()
  */
-static inline
+GFSM_INLINE
 void gfsm_enum_clear(gfsmEnum *en)
 {
   g_hash_table_foreach_remove(en->table, gfsm_hash_clear_func, NULL);
@@ -59,7 +59,7 @@ void gfsm_enum_clear(gfsmEnum *en)
 /*--------------------------------------------------------------
  * free()
  */
-static inline
+GFSM_INLINE
 void gfsm_enum_free(gfsmEnum *en)
 {
   g_hash_table_destroy(en->table);
@@ -74,7 +74,7 @@ void gfsm_enum_free(gfsmEnum *en)
 /*--------------------------------------------------------------
  * lookup_extended()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_enum_lookup_extended(gfsmEnum      *en,
 				   gconstpointer  lookup_key,
 				   gpointer      *stored_key,
@@ -86,7 +86,7 @@ gboolean gfsm_enum_lookup_extended(gfsmEnum      *en,
 /*--------------------------------------------------------------
  * lookup()
  */
-static inline
+GFSM_INLINE
 guint gfsm_enum_lookup(gfsmEnum *en, gconstpointer key)
 {
   gpointer s_val;
@@ -98,7 +98,7 @@ guint gfsm_enum_lookup(gfsmEnum *en, gconstpointer key)
 /*--------------------------------------------------------------
  * insert_full()
  */
-static inline
+GFSM_INLINE
 guint gfsm_enum_insert_full(gfsmEnum *en, gpointer key, guint val)
 {
   gpointer s_key;

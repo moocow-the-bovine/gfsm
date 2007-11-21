@@ -26,6 +26,10 @@
 #include <gfsmBitVector.h>
 #include <stdlib.h>
 
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmAutomaton.hi>
+#endif
+
 /*======================================================================
  * Constants
  */

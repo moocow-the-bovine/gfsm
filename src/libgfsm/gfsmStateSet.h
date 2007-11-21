@@ -62,27 +62,27 @@ extern const guint gfsmStateSetDefaultSize;
 //@{
 
 /** Create and return a new state-set, giving initial reserved size */
-static inline
+GFSM_INLINE
 gfsmStateSet *gfsm_stateset_sized_new(guint isize);
 
 /** Create and return a new state-set */
-static inline
+GFSM_INLINE
 gfsmStateSet *gfsm_stateset_new(void);
 
 /** Create and return a new singleton state-set */
-static inline
+GFSM_INLINE
 gfsmStateSet *gfsm_stateset_new_singleton(gfsmStateId id);
 
 /** clear a state-set */
-static inline
+GFSM_INLINE
 void gfsm_stateset_clear(gfsmStateSet *sset);
 
 /** Create and return an exact copy of a state-set */
-static inline
+GFSM_INLINE
 gfsmStateSet *gfsm_stateset_clone(gfsmStateSet *src);
 
 /** destroy a state-set */
-static inline
+GFSM_INLINE
 void gfsm_stateset_free(gfsmStateSet *sset);
 
 //@}
@@ -94,15 +94,15 @@ void gfsm_stateset_free(gfsmStateSet *sset);
 //@{
 
 /** Get minimum element of a state-set */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_stateset_min(gfsmStateSet *sset);
 
 /** Get number of elements in a state-set */
-static inline
+GFSM_INLINE
 guint gfsm_stateset_size(gfsmStateSet *sset);
 
 /** Check whether a state-id is contained in a state-set */
-static inline
+GFSM_INLINE
 gboolean gfsm_stateset_contains(gfsmStateSet *sset, gfsmStateId id);
 
 /** Insert a single state-id into a state-set.
@@ -211,7 +211,9 @@ gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fs
 
 //@}
 
-//-- inlined definitions
-#include <gfsmStateSet.def>
+//-- inline definitions
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmStateSet.hi>
+#endif
 
-#endif /* _GFSM_STATE_H */
+#endif /* _GFSM_STATESET_H */

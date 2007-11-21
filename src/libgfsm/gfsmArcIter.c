@@ -23,6 +23,11 @@
 
 #include <gfsmArcIter.h>
 
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmArcIter.hi>
+#endif
+
 /*======================================================================
  * Methods: Arc iterators: open/close
  */

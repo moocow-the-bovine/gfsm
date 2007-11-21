@@ -25,6 +25,7 @@
  *=============================================================================*/
 
 #include <stdlib.h>
+#include <string.h>
 
 /*======================================================================
  * Utilities
@@ -32,27 +33,27 @@
 
 //--------------------------------------------------------------
 // bits2bytes()
-static inline
+GFSM_INLINE
 guint gfsm_bitvector_bits2bytes_(guint nbits)
 { return nbits/8; }
 
 //--------------------------------------------------------------
 // bytes2bits()
-static inline
+GFSM_INLINE
 guint gfsm_bitvector_bytes2bits_(guint nbytes)
 { return nbytes*8; }
 
 /*--------------------------------------------------------------
  * size()
  */
-static inline
+GFSM_INLINE
 guint gfsm_bitvector_size(gfsmBitVector *bv)
 { return gfsm_bitvector_bytes2bits_(bv->len); }
 
 /*--------------------------------------------------------------
  * get()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_bitvector_get(gfsmBitVector *bv, guint i)
 {
   if (i < gfsm_bitvector_size(bv)) {
@@ -64,14 +65,14 @@ gboolean gfsm_bitvector_get(gfsmBitVector *bv, guint i)
 /*--------------------------------------------------------------
  * resize()
  */
-static inline
+GFSM_INLINE
 void gfsm_bitvector_resize(gfsmBitVector *bv, guint nbits)
 { g_array_set_size(bv, gfsm_bitvector_bits2bytes_(nbits)+1); }
 
 /*--------------------------------------------------------------
  * set()
  */
-static inline
+GFSM_INLINE
 void gfsm_bitvector_set(gfsmBitVector *bv, guint i, gboolean v)
 {
   if (i >= gfsm_bitvector_size(bv)) { gfsm_bitvector_resize(bv,i); }
@@ -82,14 +83,14 @@ void gfsm_bitvector_set(gfsmBitVector *bv, guint i, gboolean v)
 /*--------------------------------------------------------------
  * new()
  */
-static inline
+GFSM_INLINE
 gfsmBitVector *gfsm_bitvector_new(void)
 { return g_array_new(FALSE,TRUE,1); }
 
 /*--------------------------------------------------------------
  * sized_new()
  */
-static inline
+GFSM_INLINE
 gfsmBitVector *gfsm_bitvector_sized_new(guint nbits)
 {
   gfsmBitVector *bv = g_array_sized_new(FALSE,TRUE,1, gfsm_bitvector_bits2bytes_(nbits)+1);
@@ -100,21 +101,21 @@ gfsmBitVector *gfsm_bitvector_sized_new(guint nbits)
 /*--------------------------------------------------------------
  * free()
  */
-static inline
+GFSM_INLINE
 void gfsm_bitvector_free(gfsmBitVector *bv)
 { g_array_free(bv,TRUE); }
 
 /*--------------------------------------------------------------
  * clear()
  */
-static inline
+GFSM_INLINE
 void gfsm_bitvector_clear(gfsmBitVector *bv)
 { g_array_set_size(bv,0); }
 
 /*--------------------------------------------------------------
  * zero()
  */
-static inline
+GFSM_INLINE
 gfsmBitVector *gfsm_bitvector_zero(gfsmBitVector *bv)
 {
   memset(bv->data, 0, bv->len);
@@ -124,7 +125,7 @@ gfsmBitVector *gfsm_bitvector_zero(gfsmBitVector *bv)
 /*--------------------------------------------------------------
  * one()
  */
-static inline
+GFSM_INLINE
 gfsmBitVector *gfsm_bitvector_one(gfsmBitVector *bv)
 {
   memset(bv->data, 255, bv->len);

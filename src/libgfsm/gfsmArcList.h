@@ -49,7 +49,7 @@ typedef GSList gfsmArcList;
  *  \returns a pointer to the new 1st element of the arclist
  *  \deprecated in favor of gfsm_automaton_add_arc(), gfsm_arciter_insert()
  */
-static inline
+GFSM_INLINE
 gfsmArcList *gfsm_arclist_prepend(gfsmArcList *al, gfsmArc *a);
 
 
@@ -64,7 +64,7 @@ gfsmArcList *gfsm_arclist_prepend(gfsmArcList *al, gfsmArc *a);
  *  \returns a pointer to the (possibly new) 1st node of the arc list
  *  \deprecated in favor of gfsm_automaton_add_arc(), gfsm_arciter_insert()
  */
-static inline
+GFSM_INLINE
 gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
 				 gfsmStateId  src,
 				 gfsmStateId  dst,
@@ -78,7 +78,7 @@ gfsmArcList *gfsm_arclist_insert_sorted(gfsmArcList *al, gfsmArc *a, gfsmArcSort
 
 
 /** Allocate and return a new arc-list node */
-static inline
+GFSM_INLINE
 gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
 				   gfsmStateId  dst,
 				   gfsmLabelVal lo,
@@ -93,7 +93,7 @@ gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
  *  \returns a pointer to the (possibly new) 1st element of the arclist
  *  \deprecated in favor of gfsm_automaton_add_arc(), gfsm_arciter_insert()
  */
-static inline
+GFSM_INLINE
 gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al, gfsmArcList *link, gfsmArcSortData *sdata);
 
 /** Low-level guts for gfsm_arclist_insert_link() */
@@ -140,7 +140,7 @@ void gfsm_arclist_free(gfsmArcList *al);
  *  \param sdata sort data for builtin comparison
  *  \returns pointer to the new head of the sorted arc list
  */
-static inline
+GFSM_INLINE
 gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata);
 
 /** Sort an arclist \a al using a user-defined arc comparison function.
@@ -149,11 +149,13 @@ gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata);
  *  \param data     additional data for \a cmpfunc
  *  \returns pointer to the new head of the sorted arc list
  */
-static inline
+GFSM_INLINE
 gfsmArcList *gfsm_arclist_sort_full(gfsmArcList *al, GCompareDataFunc cmpfunc, gpointer data);
 //@}
 
 //-- inline definitions
-#include <gfsmArcList.def>
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmArcList.hi>
+#endif
 
 #endif /* _GFSM_ARC_LIST_H */

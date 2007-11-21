@@ -80,18 +80,18 @@ extern const gfsmSRType gfsmAutomatonDefaultSRType;
 //@{
 
 /** Create a new ::gfsmAutomaton, preallocating \a n_states states */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, gfsmStateId n_states);
 
 /** Create and return a new ::gfsmAutomaton, using default flags, semiring type and size */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_new(void);
 
 /** Create a new gfsmAutomaton as a deep exact copy of \a fsm.
  *  \param fsm automaton to be cloned
  *  \returns new deep copy of \a src
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_clone(gfsmAutomaton *fsm);
 
 /** Assign non-structural contents (flags, semiring) of \a src to \a dst,
@@ -102,7 +102,7 @@ gfsmAutomaton *gfsm_automaton_clone(gfsmAutomaton *fsm);
  *  \warning Earlier versions of this function also set the root state of \a dst
  *           to that of \a src, but this is no longer the case!
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src);
 
 /** Assign the contents of fsm \a src to fsm \a dst \returns \a dst */
@@ -112,18 +112,18 @@ gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src);
  *  \param fsm source automaton
  *  \returns new automaton whose non-structural fields match those of \a fsm
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_shadow(gfsmAutomaton *fsm);
 
 /** Swap the contents of automata \a fsm1 and \a fsm2 */
-static inline
+GFSM_INLINE
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
 /** Clear an automaton */
 void gfsm_automaton_clear(gfsmAutomaton *fsm);
 
 /** Destroy an automaton: all associated states and arcs will be freed. */
-static inline
+GFSM_INLINE
 void gfsm_automaton_free(gfsmAutomaton *fsm);
 //@}
 
@@ -133,7 +133,7 @@ void gfsm_automaton_free(gfsmAutomaton *fsm);
 //@{
 
 /** Get pointer to the semiring associated with this automaton */
-static inline
+GFSM_INLINE
 gfsmSemiring *gfsm_automaton_get_semiring(gfsmAutomaton *fsm);
 
 /** Set the semiring associated with this automaton
@@ -145,7 +145,7 @@ gfsmSemiring *gfsm_automaton_get_semiring(gfsmAutomaton *fsm);
  *  \warning
  *    Prior to libgfsm-v0.0.9 this function returned the parameter \a sr itself
  */
-static inline
+GFSM_INLINE
 gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr);
 
 /** Set the semiring associated with this automaton by type.
@@ -156,7 +156,7 @@ gfsmSemiring *gfsm_automaton_set_semiring(gfsmAutomaton *fsm, gfsmSemiring *sr);
  *   \li If \a srtype is ::gfsmSRTUser, \a fsm's new semiring will be unitialized
  *   \li Implicitly frees the semiring previously associated with \a fsm, if any.
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype);
 
 //@}
@@ -169,7 +169,7 @@ void gfsm_automaton_set_semiring_type(gfsmAutomaton *fsm, gfsmSRType srtype);
  *  \param fsm automaton to modify
  *  \param n_states number of states to reserve, if supported by implementation
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_reserve_states(gfsmAutomaton *fsm, gfsmStateId n_states);
 
 /** Backwards-compatible alias for gfsm_automaton_reserve_states()
@@ -184,7 +184,7 @@ void gfsm_automaton_reserve_states(gfsmAutomaton *fsm, gfsmStateId n_states);
  *  \note
  *   Currently does nothing.
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_reserve_arcs(gfsmAutomaton *fsm, guint n_arcs);
 
 /** Get the number of states in an automaton (modulo 'gaps' in state ID numbering).
@@ -193,22 +193,22 @@ void gfsm_automaton_reserve_arcs(gfsmAutomaton *fsm, guint n_arcs);
  *    The least ::gfsmStateId \b q such that for all <b>r >= q</b>,
  *    \a fsm has no state with ID \b r.
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_n_states(gfsmAutomaton *fsm);
 
 /** Get number of final states in \a fsm */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_n_final_states(gfsmAutomaton *fsm);
 
 /** Get total number of arcs in \a fsm. 
  *  \note
  *   Currently just a wrapper for gfsm_automaton_n_arcs_full(), so time is <em>O(n_arcs)</em>
  */
-static inline
+GFSM_INLINE
 guint gfsm_automaton_n_arcs(gfsmAutomaton *fsm);
 
 /** Get ID of root state, or ::gfsmNoState if undefined */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_get_root(gfsmAutomaton *fsm);
 
 /** Set ID of root state, creating state if necessary.
@@ -217,7 +217,7 @@ gfsmStateId gfsm_automaton_get_root(gfsmAutomaton *fsm);
  *   \li If \a new_root_id is ::gfsmNoState, \a fsm is marked as 'unrooted'
  *   \li otherwise, a new state with ID \a new_root_id is implicitly created if none already existed
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_set_root(gfsmAutomaton *fsm, gfsmStateId new_root_id);
 
 /** Call a user-defined function \a func for each final state of \a fsm.
@@ -240,7 +240,7 @@ gboolean my_final_func(gpointer id_p, gpointer fw_p, gpointer data) {
 }
 \endcode
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_finals_foreach(gfsmAutomaton *fsm, GTraverseFunc func, gpointer data);
 
 //@}
@@ -336,7 +336,7 @@ void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gf
  *  \deprecated
  *    prefer gfsm_automaton_has_state(), gfsm_automaton_state_is_final(), gfsm_arciter_open() etc.
  */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_automaton_open_state(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Open and return a pointer to a ::gfsmState struct for ::gfsmStateId \a qid in \a fsm,
@@ -349,7 +349,7 @@ gfsmState *gfsm_automaton_open_state(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \deprecated
  *    prefer gfsm_automaton_has_state(), gfsm_automaton_state_is_final(), gfsm_arciter_open() etc.
  */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_automaton_open_state_force(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Close a pointer to a ::gfsmState opened with gfsm_automaton_open_state() for \a fsm.
@@ -357,7 +357,7 @@ gfsmState *gfsm_automaton_open_state_force(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param qp  pointer as returned by gfsm_automaton_open_state()
  *  \note Currently does nothing.
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_close_state(gfsmAutomaton *fsm, gfsmState *qp);
 
 /** Backwards-compatible alias for gfsm_automaton_open_state().
@@ -384,7 +384,7 @@ void gfsm_automaton_close_state(gfsmAutomaton *fsm, gfsmState *qp);
 /*--------------------------------------------------------------
  * has_state()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_automaton_has_state(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Add a new state, specifying state ID.
@@ -395,19 +395,19 @@ gboolean gfsm_automaton_has_state(gfsmAutomaton *fsm, gfsmStateId qid);
  *   \li Implicitly sets \a fsm's root state if \a fsm was previously unrooted.
  *   \li Does nothing if \a fsm already has a state with ID \a qid.
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_add_state_full(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Ensures that state \a id exists \returns \a qid
  *  Really just an alias for gfsm_automaton_add_state_full().
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_ensure_state(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Add a new state to \a fsm.
  *  Really just an alias for \code gfsm_automaton_add_state_full(fsm,gfsmNoState) \endcode
  */
-static inline
+GFSM_INLINE
 gfsmStateId gfsm_automaton_add_state(gfsmAutomaton *fsm);
 
 /** Remove the state with id \a qid, if any.
@@ -417,7 +417,7 @@ gfsmStateId gfsm_automaton_add_state(gfsmAutomaton *fsm);
  *   Any incoming arcs for state \a qid are NOT removed,
  *   although any outgoing arcs are removed and freed.
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Lookup final weight for state with ID \a qid in automaton \a fsm.
@@ -427,7 +427,7 @@ void gfsm_automaton_remove_state(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \returns
  *     TRUE if state \a qid is final, FALSE otherwise
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp);
 
 /** Check whether the state with ID \a qid is final in \a fsm.
@@ -436,14 +436,14 @@ gboolean gfsm_automaton_lookup_final(gfsmAutomaton *fsm, gfsmStateId qid, gfsmWe
  *  \param qid ID of state to check for finality
  *  \returns TRUE if \a qid is final in \a fsm, FALSE otherwise.
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_automaton_state_is_final(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Backwards-compatible alias for gfsm_automaton_state_is_final() */
 #define gfsm_automaton_is_final_state(fsm,qid) gfsm_automaton_state_is_final((fsm),(qid))
 
 /** Get final weight. \returns final weight if state \a qid is final, else \a fsm->sr->zero */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId qid);
 
 /** Set final-weight and/or final-states membership flag for state with ID \a qid in \a fsm.
@@ -454,7 +454,7 @@ gfsmWeight gfsm_automaton_get_final_weight(gfsmAutomaton *fsm, gfsmStateId qid);
  *    If \a is_final is true, final weight for state. 
  *    Otherwise, final weight is implicitly <tt>fsm->sr->zero</tt>
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 					 gfsmStateId    qid,
 					 gboolean       is_final,
@@ -463,11 +463,11 @@ void gfsm_automaton_set_final_state_full(gfsmAutomaton *fsm,
 /** Backwards-compatble wrapper for <code>gfsm_automaton_set_final_state_fulll(fsm,qid,is_final,fsm->sr->one)</code>
  *  \see gfsm_automaton_set_final_state_full()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_set_final_state(gfsmAutomaton *fsm, gfsmStateId qid, gboolean is_final);
 
 /** Get number of outgoing arcs from \a qid in \a fsm */
-static inline
+GFSM_INLINE
 guint gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid);
 
 //@}
@@ -486,7 +486,7 @@ guint gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid);
  *  \param hi   Upper label
  *  \param w    Arc weight
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
 			    gfsmStateId qid1,
 			    gfsmStateId qid2,
@@ -500,7 +500,7 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
  *
  *  \deprecated prefer gfsm_automaton_add_arc()
  */
-static inline
+GFSM_INLINE
 void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
 				 gfsmState     *sp,
 				 gfsmArcList   *link);
@@ -514,7 +514,7 @@ void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
  *    \li Does nothing if \code (mode==gfsmASMNone || mode==fsm->flags.sort_mode) \endcode
  *    \li Really just a wrapper for gfsm_automaton_arcsort_full()
  */
-static inline
+GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode);
 
 /** Sort all arcs in an automaton by a user-specified comparison function.
@@ -536,6 +536,8 @@ void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, g
 //@}
 
 //-- inline definitions
-#include <gfsmAutomaton.def>
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmAutomaton.hi>
+#endif
 
 #endif /* _GFSM_AUTOMATON_H */

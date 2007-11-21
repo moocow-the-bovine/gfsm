@@ -1,6 +1,6 @@
 
 /*=============================================================================*\
- * File: gfsmArcIter.def
+ * File: gfsmArcIter.hi
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arc iterators: inline definitions
  *
@@ -27,7 +27,7 @@
 
 //--------------------------------------------------------------
 // open()
-static inline
+GFSM_INLINE
 void gfsm_arciter_open(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmStateId stateid)
 {
   aip->fsm = fsm;
@@ -38,7 +38,7 @@ void gfsm_arciter_open(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmStateId stateid
 
 //--------------------------------------------------------------
 // open_ptr()
-static inline
+GFSM_INLINE
 void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stateptr)
 {
   aip->fsm = fsm;
@@ -49,7 +49,7 @@ void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stat
 
 //--------------------------------------------------------------
 // reset()
-static inline
+GFSM_INLINE
 void gfsm_arciter_reset(gfsmArcIter *aip) {
   if (aip->state && gfsm_state_is_ok(aip->state)) {
     aip->arcs = aip->state->arcs;
@@ -60,7 +60,7 @@ void gfsm_arciter_reset(gfsmArcIter *aip) {
 
 //--------------------------------------------------------------
 // close()
-static inline
+GFSM_INLINE
 void gfsm_arciter_close(gfsmArcIter *aip) {
   if (!aip) return;
   aip->fsm   = NULL;
@@ -70,7 +70,7 @@ void gfsm_arciter_close(gfsmArcIter *aip) {
 
 //--------------------------------------------------------------
 // copy()
-static inline
+GFSM_INLINE
 gfsmArcIter *gfsm_arciter_copy(gfsmArcIter *dst, const gfsmArcIter *src) {
   *dst = *src;
   return dst;
@@ -78,7 +78,7 @@ gfsmArcIter *gfsm_arciter_copy(gfsmArcIter *dst, const gfsmArcIter *src) {
 
 //--------------------------------------------------------------
 // clone()
-static inline
+GFSM_INLINE
 gfsmArcIter *gfsm_arciter_clone(const gfsmArcIter *src) {
   return (gfsmArcIter*)gfsm_mem_dup_n(src,sizeof(gfsmArcIter));
 }
@@ -89,19 +89,19 @@ gfsmArcIter *gfsm_arciter_clone(const gfsmArcIter *src) {
 
 //--------------------------------------------------------------
 // arc()
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arciter_arc(const gfsmArcIter *aip)
 { return aip->arcs ? ((gfsmArc*)aip->arcs->data) : NULL; }
 
 //--------------------------------------------------------------
 // ok()
-static inline
+GFSM_INLINE
 gboolean gfsm_arciter_ok(const gfsmArcIter *aip)
 { return (aip != NULL && aip->arcs != NULL); }
 
 //--------------------------------------------------------------
 // next()
-static inline
+GFSM_INLINE
 void gfsm_arciter_next(gfsmArcIter *aip)
 { if (aip && aip->arcs) aip->arcs = aip->arcs->next; }
 
@@ -112,7 +112,7 @@ void gfsm_arciter_next(gfsmArcIter *aip)
 
 //--------------------------------------------------------------
 // remove()
-static inline
+GFSM_INLINE
 void gfsm_arciter_remove(gfsmArcIter *aip)
 {
   if (aip && aip->arcs) {

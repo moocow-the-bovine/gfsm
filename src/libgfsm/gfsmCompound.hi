@@ -1,5 +1,5 @@
 /*=============================================================================*\
- * File: gfsmCompound.def
+ * File: gfsmCompound.hi
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: compound states: inline definitions
  *
@@ -31,7 +31,7 @@
 
 //--------------------------------------------------------------
 // labelpair_new()
-static inline
+GFSM_INLINE
 gfsmLabelPair gfsm_labelpair_new(guint32 lo, guint32 hi)
 {
   return ((hi<<16)|lo);
@@ -39,13 +39,13 @@ gfsmLabelPair gfsm_labelpair_new(guint32 lo, guint32 hi)
 
 //--------------------------------------------------------------
 // labelpair_lower()
-static inline
+GFSM_INLINE
 gfsmLabelId gfsm_labelpair_lower(gfsmLabelPair lp)
 { return (lp & 0xffff); }
 
 //--------------------------------------------------------------
 // labelpair_upper()
-static inline
+GFSM_INLINE
 gfsmLabelId gfsm_labelpair_upper(gfsmLabelPair lp)
 { return ((lp>>16) & 0xffff); }
 
@@ -53,7 +53,7 @@ gfsmLabelId gfsm_labelpair_upper(gfsmLabelPair lp)
 /*--------------------------------------------------------------
  * labelpair_compare()
  */
-static inline
+GFSM_INLINE
 gint gfsm_labelpair_compare_inline(gfsmLabelPair lp1, gfsmLabelPair lp2)
 {
   gfsmLabelId
@@ -76,7 +76,7 @@ gint gfsm_labelpair_compare_inline(gfsmLabelPair lp1, gfsmLabelPair lp2)
 /*--------------------------------------------------------------
  * statepair_new()
  */
-static inline
+GFSM_INLINE
 gfsmStatePair *gfsm_statepair_new(gfsmStateId id1, gfsmStateId id2)
 {
   gfsmStatePair *sp = g_new(gfsmStatePair,1);
@@ -88,7 +88,7 @@ gfsmStatePair *gfsm_statepair_new(gfsmStateId id1, gfsmStateId id2)
 /*--------------------------------------------------------------
  * statepair_clone()
  */
-static inline
+GFSM_INLINE
 gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp)
 {
   return (gfsmStatePair*)gfsm_mem_dup_n(sp, sizeof(gfsmStatePair));
@@ -98,7 +98,7 @@ gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp)
  * statepair_free()
  */
 #if 0
-static inline
+GFSM_INLINE
 void gfsm_statepair_free(gfsmStatePair *sp)
 { g_free(sp); }
 #endif
@@ -112,7 +112,7 @@ void gfsm_statepair_free(gfsmStatePair *sp)
 /*--------------------------------------------------------------
  * compose_state_new()
  */
-static inline
+GFSM_INLINE
 gfsmComposeState *gfsm_compose_state_new(gfsmStateId id1, gfsmStateId id2, gfsmComposeFilterState idf)
 {
   gfsmComposeState *sp = g_new(gfsmComposeState,1);
@@ -125,7 +125,7 @@ gfsmComposeState *gfsm_compose_state_new(gfsmStateId id1, gfsmStateId id2, gfsmC
 /*--------------------------------------------------------------
  * compose_state_clone()
  */
-static inline
+GFSM_INLINE
 gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp)
 {
   return (gfsmComposeState*)gfsm_mem_dup_n(sp, sizeof(gfsmComposeState));
@@ -135,7 +135,7 @@ gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp)
  * compose_state_free()
  */
 #if 0
-static inline
+GFSM_INLINE
 void gfsm_compose_state_free(gfsmComposeState *sp)
 { g_free(sp); }
 #endif
@@ -147,7 +147,7 @@ void gfsm_compose_state_free(gfsmComposeState *sp)
  */
 
 //--------------------------------------------------------------
-static inline
+GFSM_INLINE
 gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeight w)
 {
   gfsmStateWeightPair *swp = g_new(gfsmStateWeightPair,1);
@@ -157,7 +157,7 @@ gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeight w)
 }
 
 //--------------------------------------------------------------
-static inline
+GFSM_INLINE
 gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp)
 {
   return gfsm_state_weight_pair_new(swp->id,swp->w);
@@ -165,7 +165,7 @@ gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp
 
 //--------------------------------------------------------------
 #if 0
-static inline
+GFSM_INLINE
 void gfsm_state_weight_pair_free(gfsmStateWeightPair *swp)
 { g_free(swp); }
 #endif
@@ -178,7 +178,7 @@ void gfsm_state_weight_pair_free(gfsmStateWeightPair *swp)
 /*--------------------------------------------------------------
  * statepair_enum_new()
  */
-static inline
+GFSM_INLINE
 gfsmStatePairEnum *gfsm_statepair_enum_new(void)
 {
   return gfsm_enum_new_full((gfsmDupFunc)gfsm_statepair_clone,
@@ -195,7 +195,7 @@ gfsmStatePairEnum *gfsm_statepair_enum_new(void)
 /*--------------------------------------------------------------
  * compose_state_enum_new()
  */
-static inline
+GFSM_INLINE
 gfsmComposeStateEnum *gfsm_compose_state_enum_new(void)
 {
   return gfsm_enum_new_full((gfsmDupFunc)gfsm_compose_state_clone,
@@ -207,7 +207,7 @@ gfsmComposeStateEnum *gfsm_compose_state_enum_new(void)
 /*======================================================================
  * Methods: StatePair2WeightHash
  */
-static inline
+GFSM_INLINE
 gfsmStatePair2WeightHash *gfsm_statepair2weighthash_new(void)
 {
   return gfsm_weighthash_new_full((gfsmDupFunc)gfsm_statepair_clone,

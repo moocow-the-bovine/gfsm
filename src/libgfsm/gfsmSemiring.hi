@@ -37,7 +37,7 @@
 #define LOG_ONE    0
 #define LOG_NONE   1
 */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_log_add(gfsmWeight x, gfsmWeight y)
 {
   if      (y-x > LOG_BIG) return y;
@@ -56,7 +56,7 @@ gfsmWeight gfsm_log_add(gfsmWeight x, gfsmWeight y)
 /*--------------------------------------------------------------
  * init()
  */
-static inline
+GFSM_INLINE
 void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type)
 {
   memset(sr, 0, type==gfsmSRTUser ? sizeof(gfsmUserSemiring) : sizeof(gfsmSemiring));
@@ -93,7 +93,7 @@ void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type)
 /*--------------------------------------------------------------
  * new()
  */
-static inline
+GFSM_INLINE
 gfsmSemiring *gfsm_semiring_new(gfsmSRType type)
 {
   gfsmSemiring *sr = (gfsmSemiring*)g_new(gfsmSemiring,1);
@@ -104,7 +104,7 @@ gfsmSemiring *gfsm_semiring_new(gfsmSRType type)
 /*--------------------------------------------------------------
  * user_new()
  */
-static inline
+GFSM_INLINE
 gfsmUserSemiring *gfsm_user_semiring_new(gfsmSRBinaryPredicate equal_func,
 					 gfsmSRBinaryPredicate less_func,
 					 gfsmSRBinaryOp        plus_func,
@@ -122,7 +122,7 @@ gfsmUserSemiring *gfsm_user_semiring_new(gfsmSRBinaryPredicate equal_func,
 /*--------------------------------------------------------------
  * copy()
  */
-static inline
+GFSM_INLINE
 gfsmSemiring *gfsm_semiring_copy(gfsmSemiring *sr)
 {
   if (sr->type==gfsmSRTUser)
@@ -136,7 +136,7 @@ gfsmSemiring *gfsm_semiring_copy(gfsmSemiring *sr)
 /*--------------------------------------------------------------
  * free()
  */
-static inline
+GFSM_INLINE
 void gfsm_semiring_free(gfsmSemiring *sr)
 {
   if (sr->type==gfsmSRTUser) g_free((gfsmUserSemiring*)sr);
@@ -151,19 +151,19 @@ void gfsm_semiring_free(gfsmSemiring *sr)
 /*--------------------------------------------------------------
  * zero()
  */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_sr_zero(gfsmSemiring *sr) { return sr ? sr->zero : 0; }
 
 /*--------------------------------------------------------------
  * one()
  */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_sr_one(gfsmSemiring *sr) { return sr ? sr->one : 1; }
 
 /*--------------------------------------------------------------
  * equal()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_sr_equal(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
   return (sr->type == gfsmSRTUser && ((gfsmUserSemiring*)sr)->equal_func
@@ -174,7 +174,7 @@ gboolean gfsm_sr_equal(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 /*--------------------------------------------------------------
  * less()
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
   switch (sr->type) {
@@ -199,7 +199,7 @@ gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 /*--------------------------------------------------------------
  * plus()
  */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 { 
   switch (sr->type) {
@@ -223,7 +223,7 @@ gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 /*--------------------------------------------------------------
  * times()
  */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
   switch (sr->type) {

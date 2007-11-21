@@ -52,27 +52,27 @@ typedef struct {
 /// \name gfsmState: Constructors etc.
 //@{
 /** Create a new state (generic) */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_state_new_full(gboolean is_final, gfsmArcList *arcs);
 
 /** Create a new state (empty) */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_state_new(void);
 
 /** Copy an existing state */
-static inline
+GFSM_INLINE
 gfsmState *gfsm_state_copy(gfsmState *dst, const gfsmState *src);
 
 /** Clear an existing state */
-static inline
+GFSM_INLINE
 void gfsm_state_clear(gfsmState *s);
 
 /** Destroy a state */
-static inline
+GFSM_INLINE
 void gfsm_state_free(gfsmState *s, gboolean free_arcs);
 
 /** Close a state (generic) */
-static inline
+GFSM_INLINE
 void gfsm_state_close(gfsmState *s);
 
 //@}
@@ -84,23 +84,26 @@ void gfsm_state_close(gfsmState *s);
 //@{
 
 /** Check if state is valid */
-static inline
+GFSM_INLINE
 gboolean gfsm_state_is_ok(const gfsmState *s);
 
 /** Check for final state */
-static inline
+GFSM_INLINE
 gboolean gfsm_state_is_final(const gfsmState *s);
 
 /** Set final state flag */
-static inline
+GFSM_INLINE
 void gfsm_state_set_final(gfsmState *s, gboolean is_final);
 
 /** Get number of outgoing arcs */
-static inline
+GFSM_INLINE
 guint gfsm_state_out_degree(const gfsmState *s);
 
 //@}
 
-#include <gfsmState.def>
+//-- inline definitions
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmState.hi>
+#endif
 
 #endif /* _GFSM_STATE_H */

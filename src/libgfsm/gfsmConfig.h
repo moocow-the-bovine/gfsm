@@ -32,6 +32,15 @@
  */
 
 /* 
+ * Putting autoheader files within the #ifndef/#endif idiom (below)
+ * is potentially a BAD IDEA, since we might need to (re-)define
+ * the autoheader-generated preprocessor symbols (e.g. after
+ * (#include)ing in some config.h from another autoheader package
+ */
+#include <gfsmNoConfig.h>
+#include <gfsmAutoConfig.h>
+
+/* 
  * Define a sentinel preprocessor symbol _GFSM_CONFIG_H, just
  * in case someone wants to check whether we've already
  * (#include)d this file ....
@@ -45,15 +54,6 @@
 #else
 /** Macro for declaring small functions inline (inlining disabled) */
 # define GFSM_INLINE
-#endif
+#endif /* GFSM_INLINE_ENABLED */
 
 #endif /* _GFSM_CONFIG_H */
-
-/* 
- * Putting autoheader files within the above #ifndef/#endif idiom
- * is potentially a BAD IDEA, since we might need to (re-)define
- * the autoheader-generated preprocessor symbols (e.g. after
- * (#include)ing in some config.h from another autoheader package
- */
-#include <gfsmNoConfig.h>
-#include <gfsmAutoConfig.h>

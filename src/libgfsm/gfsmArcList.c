@@ -22,7 +22,11 @@
  *=============================================================================*/
 
 #include <gfsmArcList.h>
-#include <stdlib.h>
+
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmArcList.hi>
+#endif
 
 /*======================================================================
  * Methods: Arc lists

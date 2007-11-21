@@ -21,10 +21,11 @@
  *=============================================================================*/
 
 #include <gfsmCompound.h>
-#include <gfsmMem.h>
-#include <stdlib.h>
-#include <gfsmUtils.h>
 
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmCompound.hi>
+#endif
 
 /*======================================================================
  * Label Pair: Methods

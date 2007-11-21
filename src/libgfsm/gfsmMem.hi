@@ -26,7 +26,7 @@
 /*----------------------------------------------------------------------
  * init_allocators()
  */
-static inline
+GFSM_INLINE
 void gfsm_allocators_init(void)
 {
   if (!gfsm_node_allocator) gfsm_node_allocator = g_allocator_new("gfsm_node_allocator",128);
@@ -37,7 +37,7 @@ void gfsm_allocators_init(void)
 /*----------------------------------------------------------------------
  * allocators_enable()
  */
-static inline
+GFSM_INLINE
 void gfsm_allocators_enable(void)
 {
   if (!gfsm_allocators_enabled) {
@@ -52,7 +52,7 @@ void gfsm_allocators_enable(void)
 /*----------------------------------------------------------------------
  * allocators_disable()
  */
-static inline
+GFSM_INLINE
 void gfsm_allocators_disable(void)
 {
   if (gfsm_allocators_enabled) {
@@ -67,7 +67,7 @@ void gfsm_allocators_disable(void)
 /*----------------------------------------------------------------------
  * allocators_free()
  */
-static inline
+GFSM_INLINE
 void gfsm_allocators_free(void)
 {
   gfsm_allocators_disable();
@@ -85,21 +85,21 @@ void gfsm_allocators_free(void)
 /*----------------------------------------------------------------------
  * string_dup_n()
  */
-static inline
+GFSM_INLINE
 gpointer gfsm_string_dup_n(gconstpointer src, gsize size)
 { return g_strndup(src,size); };
 
 /*----------------------------------------------------------------------
  * mem_dup_n()
  */
-static inline
+GFSM_INLINE
 gpointer gfsm_mem_dup_n(gconstpointer src, gsize size)
 { return g_memdup(src,size); };
 
 /*----------------------------------------------------------------------
  * gstring_dup()
  */
-static inline
+GFSM_INLINE
 GString *gfsm_gstring_dup (GString *gstr)
 {
   GString *dst = g_string_sized_new(gstr->len);
@@ -110,7 +110,7 @@ GString *gfsm_gstring_dup (GString *gstr)
 /*----------------------------------------------------------------------
  * gstring_asign_bytes()
  */
-static inline
+GFSM_INLINE
 void gfsm_gstring_assign_bytes (GString *gstr, const gchar *src, gsize len)
 {
   g_string_truncate(gstr, 0);
@@ -120,7 +120,7 @@ void gfsm_gstring_assign_bytes (GString *gstr, const gchar *src, gsize len)
 /*----------------------------------------------------------------------
  * gstring_new_bytes()
  */
-static inline
+GFSM_INLINE
 GString *gfsm_gstring_new_bytes (const gchar *src, gsize len)
 {
   GString *dst = g_string_sized_new(src[len]=='\0' ? len : (len+1));

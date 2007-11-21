@@ -55,13 +55,13 @@ typedef struct {
  *   \li The arc iterator should be closed with gfsm_arciter_close() when it is no longer needed.
  *   \li Caller is responsible for allocation and freeing of \a *aip.
  */
-static inline
+GFSM_INLINE
 void gfsm_arciter_open(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmStateId stateid);
 
 /** "Open" an arc iterator for the outgoing arcs from a state pointer into \a fsm
  *  \deprecated prefer gfsm_arciter_open()
  */
-static inline
+GFSM_INLINE
 void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stateptr);
 
 /** Close a ::gfsmArcIter \a aip if already opened, otherwise does nothing.
@@ -71,7 +71,7 @@ void gfsm_arciter_open_ptr(gfsmArcIter *aip, gfsmAutomaton *fsm, gfsmState *stat
  *   \li Currently does nothing useful; in future versions this function may
  *       be required to free temporary allocations, etc.
  */
-static inline
+GFSM_INLINE
 void gfsm_arciter_close(gfsmArcIter *aip);
 
 /** Copy positional data from \a src to \a dst.
@@ -84,7 +84,7 @@ void gfsm_arciter_close(gfsmArcIter *aip);
  *      you should subsequently call gfsm_arciter_close() on only
  *      \e one of them!
  */
-static inline
+GFSM_INLINE
 gfsmArcIter *gfsm_arciter_copy(gfsmArcIter *dst, const gfsmArcIter *src);
 
 /* Create and return a new (shallow) copy of a ::gfsmArcIter.
@@ -96,7 +96,7 @@ gfsmArcIter *gfsm_arciter_copy(gfsmArcIter *dst, const gfsmArcIter *src);
  *      you should subsequently call gfsm_arciter_close() on only
  *      \e one of them!
  */
-static inline
+GFSM_INLINE
 gfsmArcIter *gfsm_arciter_clone(const gfsmArcIter *src);
 
 //@}
@@ -111,19 +111,19 @@ gfsmArcIter *gfsm_arciter_clone(const gfsmArcIter *src);
  *  \param aip The ::gfsmArcIter whose status is to be queried.
  *  \returns a true value if \a aip is considered valid, FALSE otherwise.
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_arciter_ok(const gfsmArcIter *aip);
 
 /** Position the ::gfsmArcIter \a aip to the next available outgoing arc for which it was opened.
  *  \param aip The ::gfsmArcIter to be incremented.
  */
-static inline
+GFSM_INLINE
 void gfsm_arciter_next(gfsmArcIter *aip);
 
 /** Reset an arc iterator to the first outgoing arc for which it was initially opened.
  *  \param aip the ::gfsmArcIter to be reset
  */
-static inline
+GFSM_INLINE
 void gfsm_arciter_reset(gfsmArcIter *aip);
 
 /** Get current arc associated with a :gfsmArcIter, or NULL if none is available.
@@ -138,14 +138,14 @@ void gfsm_arciter_reset(gfsmArcIter *aip);
  *   \li It is expected to remain the case that for the default automaton implementation class,
  *       the arcs returned by this function should be modifiable in-place.
  */
-static inline
+GFSM_INLINE
 gfsmArc *gfsm_arciter_arc(const gfsmArcIter *aip);
 
 /** Remove the arc referred to by a ::gfsmArcIter \a aip from the associated ::gfsmAutomaton,
  *  and position \aip to the next available arc, if any.
  *  \param aip The ::gfsmArcIter whose 'current' arc is to be removed.
  */
-static inline
+GFSM_INLINE
 void gfsm_arciter_remove(gfsmArcIter *aip);
 
 
@@ -194,7 +194,9 @@ void gfsm_arciter_seek_user(gfsmArcIter *aip,
 //@}
 
 //-- inline definitions
-#include <gfsmArcIter.def>
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmArcIter.hi>
+#endif
 
 #endif /* _GFSM_ARCITER_H */
 

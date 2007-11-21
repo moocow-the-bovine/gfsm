@@ -89,15 +89,15 @@ typedef gfsmWeightHash gfsmStatePair2WeightHash;
 //@{
 
 /** Create a "new" gsfmLabelPair */
-static inline
+GFSM_INLINE
 gfsmLabelPair gfsm_labelpair_new(guint32 lo, guint32 hi);
 
 /** Get lower label of of a label-pair */
-static inline
+GFSM_INLINE
 gfsmLabelId gfsm_labelpair_lower(gfsmLabelPair lp);
 
 /** Get upper label of of a label-pair */
-static inline
+GFSM_INLINE
 gfsmLabelId gfsm_labelpair_upper(gfsmLabelPair lp);
 
 /** Hash function alias for ::gfsmLabelPair */
@@ -120,11 +120,11 @@ gint gfsm_labelpair_compare_with_data(gfsmLabelPair lp1, gfsmLabelPair lp2, gpoi
 //@{
 
 /** Create a new ::gfsmStatePair */
-static inline
+GFSM_INLINE
 gfsmStatePair *gfsm_statepair_new(gfsmStateId id1, gfsmStateId id2);
 
 /** Clone an existing ::gfsmStatePair */
-static inline
+GFSM_INLINE
 gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp);
 
 /** Free a ::gfsmStatePair:
@@ -150,11 +150,11 @@ gboolean gfsm_statepair_equal(const gfsmStatePair *sp1, const gfsmStatePair *sp2
 //@{
 
 /** Create a new ::gfsmComposeState */
-static inline
+GFSM_INLINE
 gfsmComposeState *gfsm_compose_state_new(gfsmStateId id1, gfsmStateId id2, gfsmComposeFilterState idf);
 
 /** Clone an existing ::gfsmComposeState */
-static inline
+GFSM_INLINE
 gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp);
 
 /** Free a ::gfsmComposeState:
@@ -181,11 +181,11 @@ gboolean gfsm_compose_state_equal(const gfsmComposeState *sp1, const gfsmCompose
 //@{
 
 /** Create a new ::gfsmStateWeightPair */
-static inline
+GFSM_INLINE
 gfsmStateWeightPair *gfsm_state_weight_pair_new(gfsmStateId id, gfsmWeight w);
 
 /** Clone an existing ::gfsmStateWeightPair */
-static inline
+GFSM_INLINE
 gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp);
 
 /** Free a ::gfsmStateWeightPair 
@@ -213,7 +213,7 @@ gboolean gfsm_state_weight_pair_equal(const gfsmStateWeightPair *swp1, const gfs
 /** create a new ::gfsmStatePairEnum (copies & frees keys)
  *  \see gfsmEnum
  */
-static inline
+GFSM_INLINE
 gfsmStatePairEnum *gfsm_statepair_enum_new(void);
 
 /** Alias \see gfsm_enum_clear() */
@@ -233,7 +233,7 @@ gfsmStatePairEnum *gfsm_statepair_enum_new(void);
 /** create a new ::gfsmComposeStateEnum (copies & frees keys)
  *  \see gfsmEnum
  */
-static inline
+GFSM_INLINE
 gfsmComposeStateEnum *gfsm_compose_state_enum_new(void);
 
 /** Alias; \see gfsm_enum_clear() */
@@ -254,12 +254,14 @@ gfsmComposeStateEnum *gfsm_compose_state_enum_new(void);
 /** create a new ::gfsmStatePair2WeightHash (copies & frees keys)
  *  \see gfsmWeightHash
  */
-static inline
+GFSM_INLINE
 gfsmStatePair2WeightHash *gfsm_statepair2weighthash_new(void);
 
 //@}
 
 //-- inline definitions
-#include <gfsmCompound.def>
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmCompound.hi>
+#endif
 
 #endif /* _GFSM_COMPOUND_H */

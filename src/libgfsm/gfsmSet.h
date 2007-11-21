@@ -45,17 +45,17 @@ typedef GTree gfsmSet;
 ///\name gfsmSet: Constructors etc.
 //@{
 /** Create and return a new set */
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_new_full(GCompareDataFunc key_cmp_func, gpointer key_cmp_data, GDestroyNotify key_free_func);
 
 /** gfsm_set_new(key_compare_func): create and return a new set
  *  (returned set will not free elements)
  */
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_new(GCompareFunc key_cmp_func);
 
 /** Copy set \a src to \a dst. \returns \a dst */
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_copy(gfsmSet *dst, gfsmSet *src);
 
 /** Utilitiy for gfsm_set_copy() */
@@ -104,12 +104,12 @@ void gfsm_set_clear(gfsmSet *set);
  *  otherwise elements will be copied as literal gpointer values.
  * \returns altered \a set1
  */
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_union(gfsmSet *set1, gfsmSet *set2, gfsmDupFunc dupfunc);
 
 /** Remove all elements in \a set2 from \a set1.
  * \returns altered \a set1 */
-static inline
+GFSM_INLINE
 gfsmSet *gfsm_set_difference(gfsmSet *set1, gfsmSet *set2);
 
 /** Remove all elements from \a set1 which are not also in \a set2.
@@ -126,14 +126,14 @@ gfsmSet *gfsm_set_intersection(gfsmSet *set1, gfsmSet *set2);
 //@{
 
 /** Get a GSList of a set's elements */
-static inline
+GFSM_INLINE
 GSList *gfsm_set_to_slist(gfsmSet *set);
 
 /** Low-level utilitity for gfsm_set_to_slist() */
 gboolean gfsm_set_to_slist_foreach_func(gpointer key, gpointer value, GSList **dst);
 
 /** Append a set's elements to a GPtrArray */
-static inline
+GFSM_INLINE
 void gfsm_set_to_ptr_array(gfsmSet *set, GPtrArray *array);
 
 /** Low-level foreach utilitity for gfsm_set_to_array() */
@@ -156,6 +156,8 @@ void gfsm_set_print_uint(gfsmSet *set, FILE *f);
 #endif /* GFSM_DEBUG_ENABLED */
 
 //-- inline definitions
-#include <gfsmSet.def>
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmSet.hi>
+#endif
 
 #endif /* _GFSM_SET_H */

@@ -64,11 +64,11 @@ typedef union {
 //@{
 
 /** Convert a gpointer to a gfsmWeight */
-static inline
+GFSM_INLINE
 gfsmWeight gfsm_ptr2weight(const gpointer p);
 
 /** Macro to convert gfsmWeight->gpointer */
-static inline
+GFSM_INLINE
 gpointer gfsm_weight2ptr(const gfsmWeight w);
 
 //@}
@@ -82,25 +82,25 @@ gpointer gfsm_weight2ptr(const gfsmWeight w);
 
 /** Create and return a new ::gfsmWeightMap
  */
-static inline
+GFSM_INLINE
 gfsmWeightMap *gfsm_weightmap_new_full(GCompareDataFunc key_cmp_func,
 				       gpointer         key_cmp_data,
 				       GDestroyNotify   key_free_func);
 
 /** Create and return a new weightmap which does not stored keys. */
-static inline
+GFSM_INLINE
 gfsmWeightMap *gfsm_weightmap_new(GCompareFunc key_cmp_func);
 
 /** Copy weightmap \a src to \a dst. \returns \a dst */
-static inline
+GFSM_INLINE
 gfsmWeightMap *gfsm_weightmap_copy(gfsmWeightMap *dst, gfsmWeightMap *src);
 
 /** Clear a ::gfsmWeightMap */
-static inline
+GFSM_INLINE
 void gfsm_weightmap_clear(gfsmWeightMap *wm);
 
 /** Destroy a weightmap */
-static inline
+GFSM_INLINE
 void gfsm_weightmap_free(gfsmWeightMap *wm);
 //@}
 
@@ -112,18 +112,18 @@ void gfsm_weightmap_free(gfsmWeightMap *wm);
 //@{
 
 /** lookup: check weightmap membership */
-static inline
+GFSM_INLINE
 gboolean gfsm_weightmap_contains(gfsmWeightMap *weightmap, gconstpointer key);
 
 /** extended lookup: get weight associated with key */
-static inline
+GFSM_INLINE
 gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight *wp);
 
 /** insert a new key->weight mapping into the weightmap */
 //#define _gfsm_weightmap_insert(weightmap,key,w) g_tree_insert((weightmap),((gpointer)(key)),gfsm_weight2ptr(w))
 
 /** insert a new key->weight mapping into the weightmap */
-static inline
+GFSM_INLINE
 void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w);
 
 /** Get size of weightmap */
@@ -144,7 +144,7 @@ void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeig
 ///\name gfsmWeightHash: Constructors etc.
 //@{
 /** Create and return a new hashing weight-map  */
-static inline
+GFSM_INLINE
 gfsmWeightHash *gfsm_weighthash_new_full(gfsmDupFunc key_dup_func,
 					 GHashFunc   key_hash_func,
 					 GEqualFunc  key_equal_func,
@@ -155,11 +155,11 @@ gfsmWeightHash *gfsm_weighthash_new_full(gfsmDupFunc key_dup_func,
   gfsm_weighthash_new_full(NULL,(key_hash_f),(key_equal_f),NULL)
 
 /** clear a weight-hash */
-static inline
+GFSM_INLINE
 void gfsm_weighthash_clear(gfsmWeightHash *wh);
 
 /** destroy a weight-hash */
-static inline
+GFSM_INLINE
 void gfsm_weighthash_free(gfsmWeightHash *wh);
 //@}
 
@@ -171,11 +171,11 @@ void gfsm_weighthash_free(gfsmWeightHash *wh);
 //@{
 
 /** extended lookup: get weight associated with key */
-static inline
+GFSM_INLINE
 gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeight *wp);
 
 /** insert a key->weight mapping into the weighthash */
-static inline
+GFSM_INLINE
 void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w);
 
 /** Possibly insert a key->weight mapping into the weighthash
@@ -184,7 +184,7 @@ void gfsm_weighthash_insert(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w)
  *
  *  \returns TRUE if the mapping was updated, otherwise FALSE.
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr);
 
 /** Possibly insert a key->weight mapping into the weighthash
@@ -194,7 +194,7 @@ gboolean gfsm_weighthash_insert_if_less(gfsmWeightHash *wh, gconstpointer key, g
  *
  *  \returns TRUE if the mapping was updated, otherwise FALSE.
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer key, gfsmWeight w, gfsmSemiring *sr);
 
 /** Traversal (see g_hash_table_foreach) */
@@ -203,7 +203,9 @@ gboolean gfsm_weighthash_insert_sum_if_less(gfsmWeightHash *wh, gconstpointer ke
 
 //@}
 
-//-- inlined definitions
-#include <gfsmWeightMap.def>
+//-- inline definitions
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmWeightMap.hi>
+#endif
 
 #endif /* _GFSM_WEIGHTMAP_H */

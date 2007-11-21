@@ -28,6 +28,7 @@
 #ifndef _GFSM_BITVECTOR_H
 #define _GFSM_BITVECTOR_H
 
+#include <gfsmConfig.h>
 #include <glib.h>
 
 /*======================================================================
@@ -42,11 +43,11 @@ typedef GArray gfsmBitVector;
 ///\name Utilities
 //@{
 /**  Low-level utility to convert bit-indices to byte-indices (starting from 0) */
-static inline
+GFSM_INLINE
 guint gfsm_bitvector_bits2bytes_(guint nbits);
 
 /** Low-level utility to convert byte-sizes to bit-sizes */
-static inline
+GFSM_INLINE
 guint gfsm_bitvector_bytes2bits_(guint nbytes);
 
 //@}
@@ -58,35 +59,35 @@ guint gfsm_bitvector_bytes2bits_(guint nbytes);
 //@{
 
 /** Create a new bit vector of length 0 */
-static inline
+GFSM_INLINE
 gfsmBitVector *gfsm_bitvector_new(void);
 
 /** Create a new bit vector of length 0 with reserved space for at least \a nbits bits */
-static inline
+GFSM_INLINE
 gfsmBitVector *gfsm_bitvector_sized_new(guint nbits);
 
 /** Resize a bit vector \a bv to at least \a nbits bits (rounded to next byte boundary) */
-static inline
+GFSM_INLINE
 void gfsm_bitvector_resize(gfsmBitVector *bv, guint nbits);
 
 /** Get current size (in bits) of a bit vector \a bv */
-static inline
+GFSM_INLINE
 guint gfsm_bitvector_size(gfsmBitVector *bv);
 
 /** Clear a bit vector */
-static inline
+GFSM_INLINE
 void gfsm_bitvector_clear(gfsmBitVector *bv);
 
 /** Set all bits to zero. \returns altered bv */
-static inline
+GFSM_INLINE
 gfsmBitVector *gfsm_bitvector_zero(gfsmBitVector *bv);
 
 /** Set all bits to one. \returns altered bv */
-static inline
+GFSM_INLINE
 gfsmBitVector *gfsm_bitvector_one(gfsmBitVector *bv);
 
 /** Destroy a bit vector */
-static inline
+GFSM_INLINE
 void gfsm_bitvector_free(gfsmBitVector *bv);
 //@}
 
@@ -98,18 +99,20 @@ void gfsm_bitvector_free(gfsmBitVector *bv);
 
 /** Get the value (0 or 1) of the bit at index \a i in vector \a bv.
  */
-static inline
+GFSM_INLINE
 gboolean gfsm_bitvector_get(gfsmBitVector *bv, guint i);
 
 /** Set the value (0 or 1) of the bit at index \a i to boolean value \a v in vector \a bv.
  *  Formerly implemented as a macro which evaluates its arguments multiple times.
  */
-static inline
+GFSM_INLINE
 void gfsm_bitvector_set(gfsmBitVector *bv, guint i, gboolean v);
 
 //@}
 
 //-- inline definitions
-#include <gfsmBitVector.def>
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmBitVector.hi>
+#endif
 
 #endif /* _GFSM_BITVECTOR_H */
