@@ -73,7 +73,7 @@ MAINTAINERCLEANFILES = *~ \
 ## --- extra distribution files
 EXTRA_DIST = \
 	atconfig \
-	atlocal \
+	atlocal.in \
 	package.m4 \
 	01_basic.at \
 	02_arith.at \
@@ -91,7 +91,8 @@ DISTHOOK_FILES = \
 	data/t1.tfst \
 	data/t1.inf \
 	data/test.lab \
-	data/t1.ltfst
+	data/t1.ltfst \
+	data/t1.linf
 
 dist-hook:
 	for d in $(DISTHOOK_DIRS); do\
