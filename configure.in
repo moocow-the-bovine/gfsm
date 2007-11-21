@@ -66,7 +66,7 @@ fi
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## flex
-
+##
 AC_ARG_VAR(FLEX, [Path to GNU flex; "no" to disable])
 if test -z "$FLEX" ; then
   AC_PATH_PROG(FLEX,flex,[no])
@@ -80,13 +80,13 @@ if test "$FLEX" = "no"; then
 fi
 
 AM_CONDITIONAL(HAVE_FLEX,[test "$FLEX" != "no"])
-
+##
 ## /flex
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## bison
-
+##
 AC_ARG_VAR(BISON, [Path to GNU bison; "no" to disable])
 if test -z "$BISON" ; then
   AC_PATH_PROG(BISON,bison,[no])
@@ -100,7 +100,7 @@ if test "$BISON" = "no"; then
 fi
 
 AM_CONDITIONAL(HAVE_BISON,[test "$BISON" != "no"])
-
+##
 ## /bison
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -178,14 +178,14 @@ fi
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## gnulib: funcs
-
+##
 dnl AC_CHECK_FUNCS(getline)
 
 gl_FUNC_GETDELIM
 gl_FUNC_VASPRINTF
 
 AC_CHECK_FUNCS([vfprintf],[],[])
-
+##
 ## /gnulib: funcs
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -208,9 +208,37 @@ if test "$CFLAGS" != "$USER_CFLAGS" ; then
 fi
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+## config options: init
+CONFIG_OPTIONS=""
+## /config options
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+## inline ?
+##
+AC_MSG_CHECKING([whether to enable inline functions])
+AC_ARG_ENABLE(inline,
+	AC_HELP_STRING([--disable-inline], [disable function inlining (default=enabled)]))
+
+if test "$enable_inline" != "no" ; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(GFSM_INLINE_ENABLED,1,
+	[Define this to enable inline functions])
+  DOXY_DEFINES="$DOXY_DEFINES GFSM_ENABLE_INLINE=1"
+  CONFIG_ENABLE_INLINE="1"
+else
+  AC_MSG_RESULT(no)
+  CONFIG_ENABLE_INLINE="0"
+fi
+CONFIG_OPTIONS="$CONFIG_OPTIONS INLINE=$CONFIG_ENABLE_INLINE"
+##
+## /inline ?
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## debug ?
 ##
-CONFIG_OPTIONS=""
 AC_MSG_CHECKING([whether to build debug version])
 AC_ARG_ENABLE(debug,
 	AC_HELP_STRING([--enable-debug], [build debug version (default=no)]))
@@ -225,7 +253,13 @@ if test "$enable_debug" == "yes" ; then
    dnl    + libtool  1.5.20
    dnl
    dnl AC_DISABLE_SHARED
-   gfsm_OFLAGS="-g"
+   if test "$GCC" == "yes" ; then
+     AC_MSG_NOTICE([GNU C compiler detected: setting appropriate debug flags])
+     gfsm_OFLAGS="-g"
+   else
+     AC_MSG_WARN([GNU C compiler not detected: you must use CFLAGS to set compiler debugging flags])
+     gfsm_OFLAGS=""
+   fi
 
    AC_DEFINE(GFSM_DEBUG_ENABLED,1,
 	     [Define this to enable debugging code])
@@ -234,18 +268,25 @@ if test "$enable_debug" == "yes" ; then
    CONFIG_OPTIONS="DEBUG=1"
 else
   AC_MSG_RESULT(no)
-  case "$CFLAGS" in
+  if test "$GCC" == "yes"; then
+   case "$CFLAGS" in
     *-O*)
       AC_MSG_NOTICE([CFLAGS appears already to contain optimization flags - skipping])
       gfsm_OFLAGS=""
       ;;
     *)
+     AC_MSG_NOTICE([GNU C compiler detected: setting appropriate optimization flags])
      #gfsm_OFLAGS="-O2"
      #gfsm_OFLAGS="-O3 -fomit-frame-pointer -funroll-loops -finline-limit-100000"
      #gfsm_OFLAGS="-O3 -fomit-frame-pointer -funroll-loops"
-     gfsm_OFLAGS="-O2"
+     #gfsm_OFLAGS="-O2"
+     gfsm_OFLAGS="-O3"
      ;;
-  esac
+   esac
+  else
+    AC_MSG_WARN([GNU C compiler not detected: you must use CFLAGS to set compiler optimization flags])
+    gfsm_OFLAGS=""
+  fi
   #CONFIG_OPTIONS="$CONFIG_OPTIONS DEBUG=0"
   CONFIG_OPTIONS="DEBUG=0"
 fi
@@ -391,9 +432,9 @@ AC_ARG_VAR(OPTGEN_PERL, [Path to the 'optgen.perl' script; "no" to disable])
 ##-- test for working optgen.perl
 AC_MSG_CHECKING([whether Getopt::Gen works])
   if test "$PERL" != "no" && $PERL -MGetopt::Gen -e'exit 0;' >>config.log 2>&1; then
-  AC_MSG_RESULT([yes])
+  AC_MSG_RESULT(yes)
 else
-  AC_MSG_RESULT([no])
+  AC_MSG_RESULT(no)
   AC_MSG_WARN([Getopt::Gen (or something it depends on) is broken!])
   AC_MSG_WARN([- you probably need to fix your Parse::Lex module])
   OPTGEN_PERL="no"
@@ -747,7 +788,13 @@ AC_ARG_ENABLE(warnings,
 
 if test "$enable_warnings" != "no" ; then
    AC_MSG_RESULT(yes)
-   gfsm_WFLAGS="-Wall"
+   if test "$GCC" == "yes"; then
+     AC_MSG_NOTICE([GNU C compiler detected: setting appropriate warning flags])
+     gfsm_WFLAGS="-Wall -Winline"
+   else
+     AC_MSG_NOTICE([GNU C compiler not detected: not setting warning flags])
+     gfsm_WFLAGS=""
+   fi
 else
   AC_MSG_RESULT(no)
   gfsm_WFLAGS=""
