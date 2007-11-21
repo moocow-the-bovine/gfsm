@@ -14,6 +14,9 @@
 /* Define this to enable debugging code */
 #undef GFSM_DEBUG_ENABLED
 
+/* Define this to enable inline functions */
+#undef GFSM_INLINE_ENABLED
+
 /* Major gfsm version */
 #undef GFSM_VERSION_MAJOR
 
