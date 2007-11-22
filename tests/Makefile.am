@@ -34,7 +34,8 @@ check-local: atconfig atlocal $(TESTSUITE)
 AUTOTEST = autom4te --language=autotest
 $(TESTSUITE):   $(srcdir)/testsuite.at \
 		$(srcdir)/01_basic.at \
-		$(srcdir)/02_arith.at
+		$(srcdir)/02_arith.at \
+		$(srcdir)/03_algebra.at
 	$(AUTOTEST) -I $(srcdir) $^ -o $@.tmp
 	mv $@.tmp $@
 
@@ -86,13 +87,57 @@ DIST_SUBDIRS = $(SUBDIRS)
 ## --- dist-hook: when another 'Makefile.am' is overkill
 DISTHOOK_DIRS = data
 DISTHOOK_FILES = \
-	data/null.tfst \
-	data/null.inf \
-	data/basic1.tfst \
 	data/basic1.inf \
-	data/test.lab \
+	data/basic1.tfst \
+	data/basic2.labs.inf \
 	data/basic2.labs.tfst \
-	data/basic2.labs.inf
+	data/closure-plus-in.tfst \
+	data/closure-plus-want.tfst \
+	data/closure-star-in.tfst \
+	data/closure-star-want.tfst \
+	data/complement-b-in.tfst \
+	data/complement-b-want.tfst \
+	data/complement-in.tfst \
+	data/complement-want.tfst \
+	data/compose-in-1.tfst \
+	data/compose-in-2.tfst \
+	data/compose-want.tfst \
+	data/concat-in-1.tfst \
+	data/concat-in-2.tfst \
+	data/concat-want.tfst \
+	data/connect-in.tfst \
+	data/connect-want.tfst \
+	data/determinize-in.tfst \
+	data/determinize-want.tfst \
+	data/difference-in-1.tfst \
+	data/difference-in-2.tfst \
+	data/difference-want.tfst \
+	data/intersect-in-1.tfst \
+	data/intersect-in-2.tfst \
+	data/intersect-want.tfst \
+	data/invert-in.tfst \
+	data/invert-want.tfst \
+	data/lookup-123-want.tfst \
+	data/lookup-223-want.tfst \
+	data/lookup.tfst \
+	data/n_closure-in.tfst \
+	data/n_closure-want.tfst \
+	data/null.inf \
+	data/null.tfst \
+	data/optional-in.tfst \
+	data/optional-want.tfst \
+	data/project-hi-in.tfst \
+	data/project-hi-want.tfst \
+	data/project-lo-in.tfst \
+	data/project-lo-want.tfst \
+	data/renumber-in.tfst \
+	data/renumber-want.tfst \
+	data/rmepsilon-in.tfst \
+	data/rmepsilon-want.tfst \
+	data/test.lab \
+	data/union-in-1.tfst \
+	data/union-in-2.tfst \
+	data/union-want.tfst
 
 dist-hook:
 	for d in $(DISTHOOK_DIRS); do\

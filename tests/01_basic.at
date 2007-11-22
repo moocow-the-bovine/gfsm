@@ -5,7 +5,7 @@
 ## Description: autotest test-suite script: basic tests
 ##
 
-AT_BANNER([Basic tests])
+AT_BANNER([basic automaton manipulation])
 
 ##--------------------------------------------------------------
 ## Test: compile+print: null

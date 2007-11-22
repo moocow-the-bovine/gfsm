@@ -5,7 +5,7 @@
 ## Description: autotest test-suite script: semiring
 ##
 
-AT_BANNER([(Semiring-)Arithmetic tests])
+AT_BANNER([(semiring-)arithmetic])
 
 ##--------------------------------------------------------------
 ## gfsmarith (real: vanilla)
