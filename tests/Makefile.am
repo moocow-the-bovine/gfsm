@@ -88,11 +88,11 @@ DISTHOOK_DIRS = data
 DISTHOOK_FILES = \
 	data/null.tfst \
 	data/null.inf \
-	data/t1.tfst \
-	data/t1.inf \
+	data/basic1.tfst \
+	data/basic1.inf \
 	data/test.lab \
-	data/t1.ltfst \
-	data/t1.linf
+	data/basic2.labs.tfst \
+	data/basic2.labs.inf
 
 dist-hook:
 	for d in $(DISTHOOK_DIRS); do\
