@@ -100,7 +100,7 @@ gfsmAutomaton *gfsm_automaton_clone(gfsmAutomaton *fsm);
  *  \param src source automaton
  *  \returns modified \a dst
  *  \warning Earlier versions of this function also set the root state of \a dst
- *           to that of \a src, but this is no longer the case!
+ *           to that of \a src, but you should no longer rely on this being the case!
  */
 GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src);

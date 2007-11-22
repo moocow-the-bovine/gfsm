@@ -58,6 +58,7 @@ gfsmAutomaton *gfsm_automaton_copy(gfsmAutomaton *dst, gfsmAutomaton *src)
   gfsmStateId qid;
   gfsm_automaton_clear(dst);
   gfsm_automaton_copy_shallow(dst,src);
+  dst->root_id = src->root_id;                    //-- since copy_shallow() no longer does this!
   gfsm_automaton_reserve(dst,src->states->len);
   gfsm_weightmap_copy(dst->finals, src->finals);
   //

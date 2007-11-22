@@ -1,5 +1,5 @@
 /*=============================================================================*\
- * File: gfsmAutomaton.hidef
+ * File: gfsmAutomaton.hi
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: automata: inline definitions
  *
@@ -62,7 +62,7 @@ GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src)
 {
   dst->flags   = src->flags;
-  //dst->root_id = src->root_id; //-- pre v0.0.9: DANGEROUS!
+  //dst->root_id = src->root_id; //-- pre v0.0.9: DANGEROUS! (assumed by clone() ?!)
   //
   //-- copy semiring
   if (dst->sr && dst->sr->type != src->sr->type) {
