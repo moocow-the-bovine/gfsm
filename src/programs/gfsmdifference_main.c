@@ -82,7 +82,7 @@ void compute_operation(const char *infilename)
     exit(255);
   }
 
-  //-- compute differenceion
+  //-- compute difference
   if (fsmOut == NULL) {
     fsmOut = fsmIn;
     fsmIn  = gfsm_automaton_new();
