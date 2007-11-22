@@ -58,11 +58,15 @@ gfsmAutomaton *gfsm_automaton_new(void)
 /*--------------------------------------------------------------
  * copy_shallow()
  */
+//#define GFSM_SHALLOW_ROOT 1
+#undef  GFSM_SHALLOW_ROOT  //-- for local testing
 GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_copy_shallow(gfsmAutomaton *dst, gfsmAutomaton *src)
 {
   dst->flags   = src->flags;
-  //dst->root_id = src->root_id; //-- pre v0.0.9: DANGEROUS! (assumed by clone() ?!)
+#ifdef GFSM_SHALLOW_ROOT
+  dst->root_id = src->root_id; //-- pre v0.0.9: DANGEROUS! (assumed by clone() ?!)
+#endif
   //
   //-- copy semiring
   if (dst->sr && dst->sr->type != src->sr->type) {
