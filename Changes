@@ -1,6 +1,13 @@
 Change log for gfsm
 
-v0.0.9 Mon, 05 Nov 2007 12:00:03 +0100
+v0.0.9 Fri, 23 Nov 2007 22:43:52 +0100
+   + moved gfsmArcList to a native linked-list type, rather than GSList
+     - saves 1 pointer per arc
+     - adapted some code from glib/gslist.c (sort, remove_link, etc)
+   + moved autoheader config file to gfsmAutoConfig.h
+     - added header-safe gfsmConfig.h hack to "safely" read in autoheader config
+     - requires clobbering any existing autoheader type macros with gfsmNoConfig.h
+       ~ there are better ways of doing this (e.g. sed), but this should suffice for most purposes
    + altered behavior of gfsm_automaton_copy_shallow(), gfsm_automaton_shadow()
      - root state id is no longer copied: not considered 'shallow' data
    + moved most simple accessor function code from macros to 'static inline' defined in *.hi
