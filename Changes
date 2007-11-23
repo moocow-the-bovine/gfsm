@@ -1,6 +1,10 @@
 Change log for gfsm
 
 v0.0.9 Mon, 05 Nov 2007 12:00:03 +0100
+   + altered behavior of gfsm_automaton_copy_shallow(), gfsm_automaton_shadow()
+     - root state id is no longer copied: not considered 'shallow' data
+   + moved most simple accessor function code from macros to 'static inline' defined in *.hi
+     - added configure option '--disable-inline' to disable function inlining
    + added "source" field to gfsmArc: source gfsmStateId
      - fixed gfsm_automaton_reverse() and gfsmReverseArcIndex to use new feature
      - added additional argument to various methods in gfsmArc.h to deal with new datum
