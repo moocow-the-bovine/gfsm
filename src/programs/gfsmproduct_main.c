@@ -87,7 +87,7 @@ void compute_operation(const char *infilename)
     fsmOut = fsmIn;
     fsmIn  = gfsm_automaton_new();
   } else {
-    _gfsm_automaton_product(fsmOut,fsmIn); //-- dual-destructive version
+    gfsm_automaton_product2(fsmOut,fsmIn); //-- dual-destructive version
   }
 }
 

@@ -458,13 +458,13 @@ guint gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId qid)
  * add_arc_link()
  */
 GFSM_INLINE
-void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
+void gfsm_automaton_add_arc_node(gfsmAutomaton *fsm,
 				 gfsmState      *sp,
-				 gfsmArcList    *link)
+				 gfsmArcList    *node)
 {
   //-- possibly sorted
   gfsmArcSortData sdata = { fsm->flags.sort_mode, fsm->sr };
-  sp->arcs = gfsm_arclist_insert_link(sp->arcs, link, &sdata);
+  sp->arcs = gfsm_arclist_insert_node(sp->arcs, node, &sdata);
 
   //-- always unmark 'deterministic' flag -- better: check
   fsm->flags.is_deterministic = FALSE;
@@ -495,7 +495,7 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
   gfsmState *qp1;
   gfsm_automaton_ensure_state(fsm,qid2);
   qp1 = gfsm_automaton_get_state(fsm,qid1);
-  gfsm_automaton_add_arc_link(fsm,
+  gfsm_automaton_add_arc_node(fsm,
 			      qp1,
 			      gfsm_arclist_new_full(qid1,qid2,lo,hi,w,NULL));
 }

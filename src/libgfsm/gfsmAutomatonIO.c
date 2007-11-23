@@ -190,7 +190,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_8(gfsmAutomatonHeader *hdr, gfsmAuto
     }
 
     //-- reverse arc-list for sorted automata
-    if (fsm->flags.sort_mode != gfsmASMNone) st->arcs = g_slist_reverse(st->arcs);
+    if (fsm->flags.sort_mode != gfsmASMNone) st->arcs = gfsm_arclist_reverse(st->arcs);
   }
 
   return rc;
@@ -280,7 +280,7 @@ gboolean gfsm_automaton_load_bin_handle_0_0_7(gfsmAutomatonHeader *hdr, gfsmAuto
     }
 
     //-- reverse arc-list for sorted automata
-    if (fsm->flags.sort_mode != gfsmASMNone) st->arcs = g_slist_reverse(st->arcs);
+    if (fsm->flags.sort_mode != gfsmASMNone) st->arcs = gfsm_arclist_reverse(st->arcs);
   }
 
   return rc;

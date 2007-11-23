@@ -71,7 +71,8 @@ gfsmState *gfsm_state_copy(gfsmState *dst, const gfsmState *src)
   if (!src->is_valid) return dst;
   dst->is_valid = src->is_valid;
   dst->is_final = src->is_final;
-  dst->arcs     = g_slist_concat(gfsm_arclist_clone(src->arcs), dst->arcs);
+  //dst->arcs     = g_slist_concat(gfsm_arclist_clone(src->arcs), dst->arcs);
+  dst->arcs     = gfsm_arclist_clone(src->arcs);
   return dst;
 }
 
@@ -97,11 +98,13 @@ void gfsm_state_close(gfsmState *s)
     gfsm_arclist_free(s->arcs);
     s->arcs = NULL;
   }
+#if 0 //-- only sensible for GSList arclists
   else if (s->arc_list_temp) {
     //-- data=shared, list=temp
     g_slist_free(s->arcs);
     s->arcs = NULL;
   }
+#endif
   if (s->is_temp) { g_free(s); }
 }
 

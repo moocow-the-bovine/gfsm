@@ -45,13 +45,9 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
   for (idfrom=0; idfrom < fsm->states->len; idfrom++) {
     for (gfsm_arciter_open(&ai,fsm,idfrom); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
       arc  = gfsm_arciter_arc(&ai);
-      /*rarc = gfsm_arc_copy(arc);
-	rarc->target = idfrom;
       g_ptr_array_index(rarcs,arc->target)
-	= gfsm_arclist_prepend(g_ptr_array_index(rarcs,arc->target), rarc);
-      */
-      g_ptr_array_index(rarcs,arc->target)
-	= gfsm_arclist_prepend(g_ptr_array_index(rarcs,arc->target), arc);
+	//= gfsm_arclist_prepend(g_ptr_array_index(rarcs,arc->target), arc);
+	= g_slist_prepend(g_ptr_array_index(rarcs,arc->target),arc);
     }
   }
 

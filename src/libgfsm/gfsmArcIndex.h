@@ -35,8 +35,8 @@
  */
 
 /// Reverse arc-index type
-/**  \a element at \a qto is a gfsmArcList*
- *    which contains an element \a gfsmArc* \a {qfrom,qto,lo,hi,w}
+/**  \a element at \a qto is a GSList*
+ *    which contains a data element \a gfsmArc* \a {qfrom,qto,lo,hi,w}
  *    whenever source \a fsm contains an arc \a {qfrom,qto,lo,hi,w}
  *    from \a qfrom.
  *

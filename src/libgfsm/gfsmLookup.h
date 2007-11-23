@@ -198,7 +198,8 @@ void _gfsm_viterbi_expand_column(gfsmAutomaton      *fst,
 // gfsmViterbiNode
 
 /** gfsmViterbiNode: Accessor: unique outgoing arc for \a nod */
-#define gfsm_viterbi_node_arc(nod) ((gfsmArc*)((nod)->arcs->data))
+//#define gfsm_viterbi_node_arc(nod) ((gfsmArc*)((nod)->arcs->data))
+#define gfsm_viterbi_node_arc(nod) gfsm_arclist_arc((nod)->arcs)
 
 /** gfsmViterbiNode: Accessor: Best preceeding state accessor for \a nod */
 #define gfsm_viterbi_node_best_prevstate(nod) gfsm_viterbi_node_arc(nod)->target

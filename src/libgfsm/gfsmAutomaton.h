@@ -501,9 +501,9 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
  *  \deprecated prefer gfsm_automaton_add_arc()
  */
 GFSM_INLINE
-void gfsm_automaton_add_arc_link(gfsmAutomaton *fsm,
+void gfsm_automaton_add_arc_node(gfsmAutomaton *fsm,
 				 gfsmState     *sp,
-				 gfsmArcList   *link);
+				 gfsmArcList   *node);
 
 
 /** Sort all arcs in an automaton by one of the built-in comparison functions.

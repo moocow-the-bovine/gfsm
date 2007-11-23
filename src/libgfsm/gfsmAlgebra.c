@@ -37,7 +37,8 @@
  * closure_final_func()
  *  + called for each final @id of @fsm during closure(@fsm)
  */
-gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm)
+static
+gboolean gfsm_automaton_closure_final_func_(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm)
 {
   gfsmWeight w = gfsm_ptr2weight(pw);
   if (id != fsm->root_id)
@@ -55,7 +56,7 @@ gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus)
   if (!fsm || fsm->root_id == gfsmNoState) return fsm;
 
   //-- add epsilon arcs from old final states to translated new root
-  g_tree_foreach(fsm->finals, (GTraverseFunc)_gfsm_automaton_closure_final_func, fsm);
+  g_tree_foreach(fsm->finals, (GTraverseFunc)gfsm_automaton_closure_final_func_, fsm);
 
   //-- reflexive+transitive or reflexive?
   if (!is_plus) gfsm_automaton_optional(fsm);
@@ -188,70 +189,13 @@ gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 }
 
 /*--------------------------------------------------------------
- * compose_full()
- */
-//#define GFSM_DEBUG_COMPOSE
-#ifdef GFSM_DEBUG_COMPOSE
-# include <gfsmAutomatonIO.h>
-#endif
-gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
-					   gfsmAutomaton *fsm2,
-					   gfsmAutomaton *composition,
-					   gfsmComposeStateEnum *spenum
-					   )
-{
-  gboolean          spenum_is_temp;
-  gfsmComposeState  rootpair;
-  gfsmStateId       rootid;
-#ifdef GFSM_DEBUG_COMPOSE
-  gfsmError *err =NULL;
-#endif
-
-  //-- setup: output fsm
-  if (!composition) {
-    composition=gfsm_automaton_shadow(fsm1);
-  } else {
-    gfsm_automaton_clear(composition);
-    gfsm_automaton_copy_shallow(composition,fsm1);
-  }
-  composition->flags.sort_mode     = gfsmASMNone;
-  composition->flags.is_transducer = 1;
-
-  //-- setup: ComposeStateEnum
-  if (spenum==NULL) {
-    spenum_is_temp=TRUE;
-    spenum = gfsm_compose_state_enum_new();
-  } else {
-    spenum_is_temp=FALSE;
-    gfsm_enum_clear(spenum);
-  }
-
-  //-- guts: recursively visit states depth-first from root
-  rootpair.id1 = fsm1->root_id;
-  rootpair.id2 = fsm2->root_id;
-  rootpair.idf = 0;
-  rootid = _gfsm_automaton_compose_visit(rootpair, fsm1, fsm2, composition, spenum);
-
-  //-- finalize: set new root state
-  if (rootid != gfsmNoState) {
-    gfsm_automaton_set_root(composition, rootid);
-  } else {
-    composition->root_id = gfsmNoState;
-  }
-  //-- cleanup
-  if (spenum_is_temp) gfsm_enum_free(spenum);
-
-  return composition;
-}
-
-/*--------------------------------------------------------------
- * compose_visit()
+ * compose_visit_()
  */
 //#define GFSM_DEBUG_COMPOSE_VISIT 1
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
 # include <stdio.h>
 #endif
-gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
+gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 					  gfsmAutomaton     *fsm1,
 					  gfsmAutomaton     *fsm2,
 					  gfsmAutomaton     *fsm,
@@ -311,7 +255,7 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
   if (gfsm_automaton_sortmode(fsm1)==gfsmASMUpper) al1 = q1->arcs;
   else {
     gfsmArcSortData sortdata = {gfsmASMUpper,NULL};
-    al1 = gfsm_arclist_sort(g_slist_copy(q1->arcs), &sortdata);
+    al1 = gfsm_arclist_sort(gfsm_arclist_clone(q1->arcs), &sortdata);
     al1_temp = TRUE;
   }
 
@@ -319,26 +263,26 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
   if (gfsm_automaton_sortmode(fsm2)==gfsmASMLower) al2 = q2->arcs;
   else {
     gfsmArcSortData sortdata = {gfsmASMLower,NULL};
-    al2 = gfsm_arclist_sort(g_slist_copy(q2->arcs), &sortdata);
+    al2 = gfsm_arclist_sort(gfsm_arclist_clone(q2->arcs), &sortdata);
     al2_temp = TRUE;
   }
 
   //--------------------------------
   // recusrse: arcs: handle epsilons
-  for (ai1_noneps=al1; ai1_noneps!=NULL && ((gfsmArc*)ai1_noneps->data)->upper==gfsmEpsilon; ai1_noneps=ai1_noneps->next) {;}
-  for (ai2_noneps=al2; ai2_noneps!=NULL && ((gfsmArc*)ai2_noneps->data)->lower==gfsmEpsilon; ai2_noneps=ai2_noneps->next) {;}
+  for (ai1_noneps=al1; ai1_noneps!=NULL && ai1_noneps->arc.upper==gfsmEpsilon; ai1_noneps=ai1_noneps->next) {;}
+  for (ai2_noneps=al2; ai2_noneps!=NULL && ai2_noneps->arc.lower==gfsmEpsilon; ai2_noneps=ai2_noneps->next) {;}
 
   //-- (eps,NULL): case fsm1(q1 --a:eps(~eps2)--> q1b), filter:({0,2} --eps2:eps2--> 2), fsm2(q2 --(NULL~eps2:eps)--> q2)
   if (sp.idf != 1) {
     for (ai1=al1; ai1!=ai1_noneps; ai1=ai1->next) {
-      a1   = (gfsmArc*)ai1->data;
+      a1   = &(ai1->arc);
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
       fprintf(stderr,
 	      "compose(): MATCH[e,NULL]: (q%u --%d:eps(e2)--> q%u) ~ ({0,2}--(e2:e2)-->2) ~ (q%u --(NULL~e2:eps)--> q%u) ***\n",
 	      sp.id1, a1->lower, a1->target,
 	      sp.id2, sp.id2);
 #endif
-      qid2 = _gfsm_automaton_compose_visit((gfsmComposeState){a1->target, sp.id2, 2}, fsm1, fsm2, fsm, spenum);
+      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target, sp.id2, 2}, fsm1, fsm2, fsm, spenum);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, gfsmEpsilon, a1->weight);
     }
@@ -346,14 +290,14 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
   //-- (NULL,eps): case fsm1(q1 --(NULL~eps:eps1)--> q1), filter:({0,1} --eps1:eps1--> 1), fsm2(q2 --eps(~eps1):b--> q2b)
   if (sp.idf != 2) {
     for (ai2=al2; ai2!=ai2_noneps; ai2=ai2->next) {
-      a2   = (gfsmArc*)ai2->data;
+      a2   = &(ai2->arc);
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
       fprintf(stderr,
 	      "compose(): MATHC[NULL,e]: (q%u --(NULL~eps:e1)--> q%u) ~ ({0,1}--(e1:e1)-->1) ~ (q%u --eps(e1):%d--> q%u) ***\n",
 	      sp.id1, sp.id1,
 	      sp.id2, a2->upper, a2->target);
 #endif
-      qid2 = _gfsm_automaton_compose_visit((gfsmComposeState){sp.id1, a2->target, 1}, fsm1, fsm2, fsm, spenum);
+      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){sp.id1, a2->target, 1}, fsm1, fsm2, fsm, spenum);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, a2->upper, a2->weight);
     }
@@ -361,16 +305,16 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
   //-- (eps,eps): case fsm1(q1 --a:eps(~eps2)--> q1b), filter:({0} --eps2:eps1--> 0), fsm2(q2 --eps:b--> q2b)
   if (sp.idf == 0) {
     for (ai1=al1; ai1!=ai1_noneps; ai1=ai1->next) {
-      a1 = (gfsmArc*)ai1->data;
+      a1 = &(ai1->arc);
       for (ai2=al2; ai2!=ai2_noneps; ai2=ai2->next) {
-	a2   = (gfsmArc*)ai2->data;
+	a2   = &(ai2->arc);
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
 	fprintf(stderr,
 		"compose(): MATCH[e,e]: (q%u --%d:eps(e2)--> q%u) ~ ({0}--(e2:e1)-->0) ~ (q%u --eps(e1):%d--> q%u) ***\n",
 		sp.id1, a1->lower, a1->target,
 		sp.id2, a2->upper, a2->target);
 #endif
-	qid2 = _gfsm_automaton_compose_visit((gfsmComposeState){a1->target, a2->target, 0}, fsm1, fsm2, fsm, spenum);
+	qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target, a2->target, 0}, fsm1, fsm2, fsm, spenum);
 	if (qid2 != gfsmNoState)
 	  gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a2->upper,
 				 gfsm_sr_times(fsm->sr, a1->weight, a2->weight));
@@ -381,10 +325,10 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
   //--------------------------------
   // recurse: arcs: non-eps: iterate
   for (ai1=ai1_noneps, ai2_continue=ai2_noneps; ai1!=NULL; ai1=ai1->next) {
-    a1 = (gfsmArc*)ai1->data;
+    a1 = &(ai1->arc);
 
     for (ai2=ai2_continue; ai2!=NULL; ai2=ai2->next) {
-      a2 = (gfsmArc*)ai2->data;
+      a2 = &(ai2->arc);
 
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
       fprintf(stderr,
@@ -404,7 +348,7 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
 #endif
 
       //-- non-eps: case fsm1:(q1 --a:b--> q1'), fsm2:(q2 --b:c-->  q2')
-      qid2 = _gfsm_automaton_compose_visit((gfsmComposeState){a1->target,a2->target,0},
+      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target,a2->target,0},
 					   fsm1, fsm2, fsm, spenum);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a2->upper,
@@ -413,11 +357,69 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
   }
 
   //-- maybe cleanup temporary arc-lists
-  if (al1_temp) g_slist_free(al1);
-  if (al2_temp) g_slist_free(al2);
+  if (al1_temp) gfsm_arclist_free(al1);
+  if (al2_temp) gfsm_arclist_free(al2);
 
   return qid;
 }
+
+/*--------------------------------------------------------------
+ * compose_full()
+ */
+//#define GFSM_DEBUG_COMPOSE
+#ifdef GFSM_DEBUG_COMPOSE
+# include <gfsmAutomatonIO.h>
+#endif
+gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
+					   gfsmAutomaton *fsm2,
+					   gfsmAutomaton *composition,
+					   gfsmComposeStateEnum *spenum
+					   )
+{
+  gboolean          spenum_is_temp;
+  gfsmComposeState  rootpair;
+  gfsmStateId       rootid;
+#ifdef GFSM_DEBUG_COMPOSE
+  gfsmError *err =NULL;
+#endif
+
+  //-- setup: output fsm
+  if (!composition) {
+    composition=gfsm_automaton_shadow(fsm1);
+  } else {
+    gfsm_automaton_clear(composition);
+    gfsm_automaton_copy_shallow(composition,fsm1);
+  }
+  composition->flags.sort_mode     = gfsmASMNone;
+  composition->flags.is_transducer = 1;
+
+  //-- setup: ComposeStateEnum
+  if (spenum==NULL) {
+    spenum_is_temp=TRUE;
+    spenum = gfsm_compose_state_enum_new();
+  } else {
+    spenum_is_temp=FALSE;
+    gfsm_enum_clear(spenum);
+  }
+
+  //-- guts: recursively visit states depth-first from root
+  rootpair.id1 = fsm1->root_id;
+  rootpair.id2 = fsm2->root_id;
+  rootpair.idf = 0;
+  rootid = gfsm_automaton_compose_visit_(rootpair, fsm1, fsm2, composition, spenum);
+
+  //-- finalize: set new root state
+  if (rootid != gfsmNoState) {
+    gfsm_automaton_set_root(composition, rootid);
+  } else {
+    composition->root_id = gfsmNoState;
+  }
+  //-- cleanup
+  if (spenum_is_temp) gfsm_enum_free(spenum);
+
+  return composition;
+}
+
 
 
 /*--------------------------------------------------------------
@@ -425,7 +427,8 @@ gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState   sp,
  *  + called for each final @id of @fsm during concat(@fsm,@fsm2)
  *  + during the call @fsm1->root_id should be set to the translated root of @fsm2
  */
-gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm)
+static
+gboolean gfsm_automaton_concat_final_func_(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm)
 {
   gfsmWeight w = gfsm_ptr2weight(pw);
   gfsm_automaton_add_arc(fsm, id, fsm->root_id, gfsmEpsilon, gfsmEpsilon, w);
@@ -438,11 +441,13 @@ gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAuto
  *  + called for singleton final @id of @fsm during concat(@fsm,@fsm2)
  *  + BAD if singleton final of @fsm has outgoing arcs!
  */
+#if 0
 struct gfsm_automaton_concat_1_final_data_ {
   gfsmStateId *rootxp;
   gfsmWeight  *weightp;
 };
-gboolean _gfsm_automaton_concat_final_func_1(gfsmStateId id,
+static
+gboolean gfsm_automaton_concat_final_func_1_(gfsmStateId id,
 					     gpointer pw,
 					     struct gfsm_automaton_concat_1_final_data_ *data)
 {
@@ -450,6 +455,7 @@ gboolean _gfsm_automaton_concat_final_func_1(gfsmStateId id,
   *(data->weightp) = gfsm_ptr2weight(pw);
   return TRUE;
 }
+#endif
 
 /*--------------------------------------------------------------
  * concat()
@@ -483,7 +489,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
     gfsmStateId root_tmp = fsm1->root_id;
     rootx                = fsm2->root_id+offset;
     fsm1->root_id        = rootx;
-    g_tree_foreach(fsm1->finals, (GTraverseFunc)_gfsm_automaton_concat_final_func, fsm1);
+    g_tree_foreach(fsm1->finals, (GTraverseFunc)gfsm_automaton_concat_final_func_, fsm1);
     fsm1->root_id        = root_tmp;
   } else /*if (fsm2->root_id != gfsmNoState)*/ {
     fsm1->root_id = rootx = fsm2->root_id + offset;
@@ -642,7 +648,7 @@ gboolean gfsm_connect_bw_visit_state(gfsmStateId id,
 				     gpointer    pw,
 				     struct      gfsm_connect_bw_data_ *data)
 {
-  gfsmArcList *al;
+  GSList *rl;
 
   //-- already visited
   if (gfsm_bitvector_get(data->finalizable,id)     //-- already visited?
@@ -653,8 +659,8 @@ gboolean gfsm_connect_bw_visit_state(gfsmStateId id,
   gfsm_bitvector_set(data->finalizable,id,1);
 
   //-- visit sources of incoming arcs
-  for (al=g_ptr_array_index(data->rarcs,id); al != NULL; al=al->next) {
-    gfsmArc *arc = (gfsmArc*)al->data;
+  for (rl=g_ptr_array_index(data->rarcs,id); rl != NULL; rl=rl->next) {
+    gfsmArc *arc = (gfsmArc*)rl->data;
     gfsm_connect_bw_visit_state(arc->source,pw,data);
   }
 
@@ -738,7 +744,7 @@ gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wa
 }
 
 /*--------------------------------------------------------------
- * _determinize_lp2ec_foreach_func()
+ * determinize_lp2ec_foreach_func_()
  */
 typedef struct {
   gfsmAutomaton *nfa;
@@ -747,7 +753,8 @@ typedef struct {
   gfsmEnum      *ec2id;
 } gfsmLp2EcForeachData;
 
-gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
+static
+gboolean gfsm_determinize_lp2ec_foreach_func_(gfsmLabelPair         lp,
 					      gfsmWeightedStateSet *wss,
 					      gfsmLp2EcForeachData *data)
 {
@@ -788,7 +795,7 @@ gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
 			     wss->weight);
 
       //-- ... and recurse
-      _gfsm_determinize_visit_state(data->nfa,   data->dfa,
+      gfsm_determinize_visit_state_(data->nfa,   data->dfa,
 				    wss->set,    ec2id_val,
 				    data->ec2id);
     }
@@ -796,9 +803,9 @@ gboolean _gfsm_determinize_lp2ec_foreach_func(gfsmLabelPair         lp,
 }
 
 /*--------------------------------------------------------------
- * _determinize_visit_state()
+ * determinize_visit_state_()
  */
-void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
+void gfsm_determinize_visit_state_(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 				   gfsmStateSet  *nfa_ec, gfsmStateId    dfa_id,
 				   gfsmEnum      *ec2id)
 {
@@ -867,12 +874,13 @@ void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
   lp2ec_foreach_data.dfa_src_id  = dfa_id;
   lp2ec_foreach_data.ec2id       = ec2id;
   g_tree_foreach(lp2ecw,
-		 (GTraverseFunc)_gfsm_determinize_lp2ec_foreach_func,
+		 (GTraverseFunc)gfsm_determinize_lp2ec_foreach_func_,
 		 (gpointer)(&lp2ec_foreach_data));
 
   //-- cleanup
   g_tree_destroy(lp2ecw);
 }
+
 
 /*--------------------------------------------------------------
  * determinize()
@@ -928,7 +936,7 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
   gfsm_automaton_set_root(dfa, dfa_id);
 
   //-- guts: determinize recursively outwards from root node
-  _gfsm_determinize_visit_state(nfa, dfa, nfa_ec, dfa_id, ec2id);
+  gfsm_determinize_visit_state_(nfa, dfa, nfa_ec, dfa_id, ec2id);
 
   //-- set flag in dfa
   dfa->flags.is_deterministic = TRUE;
@@ -1021,7 +1029,7 @@ gfsmAutomaton *gfsm_automaton_intersect_full(gfsmAutomaton *fsm1,
   //-- guts
   rootpair.id1 = fsm1->root_id;
   rootpair.id2 = fsm2->root_id;
-  rootid = _gfsm_automaton_intersect_visit(rootpair, fsm1, fsm2, intersect, spenum);
+  rootid = gfsm_automaton_intersect_visit_(rootpair, fsm1, fsm2, intersect, spenum);
 
   //-- finalize: set root state
   if (rootid != gfsmNoState) {
@@ -1039,7 +1047,7 @@ gfsmAutomaton *gfsm_automaton_intersect_full(gfsmAutomaton *fsm1,
 /*--------------------------------------------------------------
  * intersect_visit()
  */
-gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair sp,
+gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair sp,
 					    gfsmAutomaton *fsm1,
 					    gfsmAutomaton *fsm2,
 					    gfsmAutomaton *fsm,
@@ -1085,36 +1093,36 @@ gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair sp,
   //-- arcs: sort arclists: fsm12
   if (gfsm_automaton_sortmode(fsm1)==gfsmASMLower) al1 = q1->arcs;
   else {
-    al1 = gfsm_arclist_sort(g_slist_copy(q1->arcs), &sortdata);
+    al1 = gfsm_arclist_sort(gfsm_arclist_clone(q1->arcs), &sortdata);
     al1_temp = TRUE;
   }
 
   //-- arcs: sort arclists: fsm2
   if (gfsm_automaton_sortmode(fsm2)==gfsmASMLower) al2 = q2->arcs;
   else {
-    al2 = gfsm_arclist_sort(g_slist_copy(q2->arcs), &sortdata);
+    al2 = gfsm_arclist_sort(gfsm_arclist_clone(q2->arcs), &sortdata);
     al2_temp = TRUE;
   }
 
   //--------------------------------
   // recurse: arcs: iterate
   for (ai1=al1, ai2=al2; ai1 != NULL; ai1=ai1->next) {
-    a1 = (gfsmArc*)ai1->data;
+    a1 = &(ai1->arc);
     if (a1->lower == gfsmEpsilon) {
       //-- handle epsilon arcs
 
       //-- eps: case fsm1:(q1 --eps-->  q1'), fsm2:(q2)
-      qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){a1->target,sp.id2},
+      qid2 = gfsm_automaton_intersect_visit_((gfsmStatePair){a1->target,sp.id2},
 						fsm1, fsm2, fsm, spenum);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon, a1->weight);
 
       //-- eps: case fsm1:(q1 --eps-->  q1'), fsm2:(q2 --eps-->  q2')
       for (ai2eps=al2; ai2eps != NULL; ai2eps=ai2eps->next) {
-	a2 = (gfsmArc*)ai2eps->data;
+	a2 = &(ai2eps->arc);
 	if (a2->lower != gfsmEpsilon) break;
 
-	qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){a1->target,a2->target},
+	qid2 = gfsm_automaton_intersect_visit_((gfsmStatePair){a1->target,a2->target},
 						  fsm1, fsm2, fsm, spenum);
 	if (qid2 != gfsmNoState)
 	  gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon,
@@ -1124,12 +1132,12 @@ gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair sp,
     else {
       //-- handle non-epsilon arcs
       for ( ; ai2 != NULL; ai2=ai2->next) {
-	a2 = (gfsmArc*)ai2->data;
+	a2 = &(ai2->arc);
 
 	if      (a2->lower < a1->lower) continue;
 	else if (a2->lower > a1->lower) break;
 
-	qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){a1->target,a2->target},
+	qid2 = gfsm_automaton_intersect_visit_((gfsmStatePair){a1->target,a2->target},
 						  fsm1, fsm2, fsm, spenum);
 	if (qid2 != gfsmNoState)
 	  gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a1->lower,
@@ -1140,19 +1148,19 @@ gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair sp,
 
   //-- handle epsilon-arcs on fsm2
   for (ai2=al2 ; ai2 != NULL; ai2=ai2->next) {
-    a2 = (gfsmArc*)ai2->data;
+    a2 = &(ai2->arc);
     if (a2->lower != gfsmEpsilon) break;
 
     //-- eps: case fsm1:(q1), fsm2:(q2 --eps-->  q2')
-    qid2 = _gfsm_automaton_intersect_visit((gfsmStatePair){sp.id1,a2->target},
+    qid2 = gfsm_automaton_intersect_visit_((gfsmStatePair){sp.id1,a2->target},
 					 fsm1, fsm2, fsm, spenum);
     if (qid2 != gfsmNoState)
       gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon, a2->weight);
   }
 
   //-- cleanup
-  if (al1_temp) g_slist_free(al1);
-  if (al2_temp) g_slist_free(al2);
+  if (al1_temp) gfsm_arclist_free(al1);
+  if (al2_temp) gfsm_arclist_free(al2);
 
   return qid;
 }
@@ -1192,7 +1200,7 @@ gfsmAutomaton *gfsm_automaton_optional(gfsmAutomaton *fsm)
 gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   gfsmAutomaton *fsm2_tmp = gfsm_automaton_clone(fsm2);
-  _gfsm_automaton_product(fsm1,fsm2_tmp);
+  gfsm_automaton_product2(fsm1,fsm2_tmp);
   gfsm_automaton_free(fsm2_tmp);
   return fsm1;
 }
@@ -1200,7 +1208,7 @@ gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 /*--------------------------------------------------------------
  * _product() (dual-destructive)
  */
-gfsmAutomaton *_gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+gfsmAutomaton *gfsm_automaton_product2(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   gfsmStateId  qid;
   gfsmState   *qp;
@@ -1339,6 +1347,35 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
   return fsm1;
 }
 
+/*--------------------------------------------------------------
+ * rmepsilon_foreach_func()
+ */
+static
+void gfsm_automaton_rmeps_pass2_foreach_func_(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm)
+{
+  gfsmWeight  w = gfsm_ptr2weight(pw);
+  gfsmWeight  fw2;
+  gfsmArcIter ai;
+  gfsmArc     *a;
+  if (sp->id1==sp->id2) return; //-- sanity check
+
+  //-- adopt final weights (plus)
+  if (gfsm_automaton_lookup_final(fsm, sp->id2, &fw2)) {
+    gfsm_automaton_set_final_state_full(fsm, sp->id1, TRUE,
+					gfsm_sr_plus(fsm->sr,
+						     gfsm_automaton_get_final_weight(fsm, sp->id1),
+						     gfsm_sr_times(fsm->sr, w, fw2)));
+  }
+
+  //-- adopt non-epsilon arcs
+  for (gfsm_arciter_open(&ai,fsm,sp->id2); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    a = gfsm_arciter_arc(&ai);
+    if (a->lower != gfsmEpsilon || a->upper != gfsmEpsilon) {
+      gfsm_automaton_add_arc(fsm, sp->id1, a->target, a->lower, a->upper,
+			     gfsm_sr_times(fsm->sr, a->weight, w));
+    }
+  }
+}
 
 /*--------------------------------------------------------------
  * rmepsilon()
@@ -1352,11 +1389,11 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 
   //-- pass-1: populate sp2wh with epsilon-reachable states
   for (qid=0; qid < fsm->states->len; qid++) {
-    _gfsm_automaton_rmeps_visit_state(fsm, qid, qid, fsm->sr->one, sp2wh);
+    gfsm_automaton_rmeps_visit_state_(fsm, qid, qid, fsm->sr->one, sp2wh);
   }
 
   //-- pass-2: adopt non-epsilon arcs & final weights from eps-reachable states
-  gfsm_weighthash_foreach(sp2wh, (GHFunc)_gfsm_automaton_rmeps_pass2_foreach_func, fsm);
+  gfsm_weighthash_foreach(sp2wh, (GHFunc)gfsm_automaton_rmeps_pass2_foreach_func_, fsm);
 
   //-- pass-3: actual removal of now-redundant epsilon arcs
   for (qid=0; qid < fsm->states->len; qid++) {
@@ -1379,7 +1416,7 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * rmepsilon_visit_state()
  */
-void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
+void gfsm_automaton_rmeps_visit_state_(gfsmAutomaton *fsm,
 				       gfsmStateId qid_noeps, //-- state reachable by non-eps arcs
 				       gfsmStateId qid_eps,   //-- eps-reachable state from qid_noeps
 				       gfsmWeight weight_eps, //-- total weight of followed eps-arcs
@@ -1406,39 +1443,10 @@ void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
        gfsm_arciter_next(&ai), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon))
     {
       a = gfsm_arciter_arc(&ai);
-      _gfsm_automaton_rmeps_visit_state(fsm, qid_noeps, a->target,
+      gfsm_automaton_rmeps_visit_state_(fsm, qid_noeps, a->target,
 					gfsm_sr_times(fsm->sr, weight_eps, a->weight),
 					sp2wh);
     }
-}
-
-/*--------------------------------------------------------------
- * rmepsilon_foreach_func()
- */
-void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm)
-{
-  gfsmWeight  w = gfsm_ptr2weight(pw);
-  gfsmWeight  fw2;
-  gfsmArcIter ai;
-  gfsmArc     *a;
-  if (sp->id1==sp->id2) return; //-- sanity check
-
-  //-- adopt final weights (plus)
-  if (gfsm_automaton_lookup_final(fsm, sp->id2, &fw2)) {
-    gfsm_automaton_set_final_state_full(fsm, sp->id1, TRUE,
-					gfsm_sr_plus(fsm->sr,
-						     gfsm_automaton_get_final_weight(fsm, sp->id1),
-						     gfsm_sr_times(fsm->sr, w, fw2)));
-  }
-
-  //-- adopt non-epsilon arcs
-  for (gfsm_arciter_open(&ai,fsm,sp->id2); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-    a = gfsm_arciter_arc(&ai);
-    if (a->lower != gfsmEpsilon || a->upper != gfsmEpsilon) {
-      gfsm_automaton_add_arc(fsm, sp->id1, a->target, a->lower, a->upper,
-			     gfsm_sr_times(fsm->sr, a->weight, w));
-    }
-  }
 }
 
 
@@ -1487,7 +1495,7 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm)
 
       //-- move arc
       ts = gfsm_automaton_find_state(fsm,a->target);
-      gfsm_automaton_add_arc_link(fsm, ts, al);
+      gfsm_automaton_add_arc_node(fsm, ts, al);
     }
   }
 
@@ -1578,7 +1586,7 @@ gfsmAutomaton *gfsm_automaton_reverse_old(gfsmAutomaton *fsm)
 /*--------------------------------------------------------------
  * sigma()
  */
-gboolean _gfsm_automaton_sigma_foreach_func(gfsmAlphabet *abet, gpointer key, gfsmLabelVal lab, gfsmAutomaton *fsm)
+gboolean gfsm_automaton_sigma_foreach_func_(gfsmAlphabet *abet, gpointer key, gfsmLabelVal lab, gfsmAutomaton *fsm)
 {
   gfsm_automaton_add_arc(fsm,0,1,lab,lab,fsm->sr->one);
   return FALSE;
@@ -1591,12 +1599,12 @@ gfsmAutomaton *gfsm_automaton_sigma(gfsmAutomaton *fsm, gfsmAlphabet *abet)
   fsm->root_id = gfsm_automaton_add_state_full(fsm,0);
   gfsm_automaton_add_state_full(fsm,1);
   gfsm_automaton_set_final_state_full(fsm,1,TRUE,fsm->sr->one);
-  gfsm_alphabet_foreach(abet, (gfsmAlphabetForeachFunc)_gfsm_automaton_sigma_foreach_func, fsm);
+  gfsm_alphabet_foreach(abet, (gfsmAlphabetForeachFunc)gfsm_automaton_sigma_foreach_func_, fsm);
   return fsm;
 }
 
 /*--------------------------------------------------------------
- * union()
+ * union_()
  */
 gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {

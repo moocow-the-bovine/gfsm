@@ -52,8 +52,8 @@
  */
 gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus);
 
-/** Final-state pre-traversal utility for \c closure(fsm). */
-gboolean _gfsm_automaton_closure_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
+/* Final-state pre-traversal utility for \c closure(fsm). */
+//gboolean gfsm_automaton_closure_final_func_(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
 
 /** Compute \a n-ary closure of \a fsm.
  *  \note Destructively alters \a fsm.
@@ -110,11 +110,16 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton    *fsm,
 
 /** Compute the composition of \a fsm1 with \a fsm2
  *  (upper-side of \a fsm1 intersection with lower-side of \a fsm2).
- *  \note Pseudo-destructive on \a fsm1.
  *
  *  \param fsm1 Lower-middle transducer
  *  \param fsm2 Middle-upper transducer
  *  \returns Altered \a fsm1
+ *
+ *  \note
+ *    \li Pseudo-destructive on \a fsm1.
+ *    \li Runtime efficiency can be greatly improved if
+ *        \a fsm1 is sorted on upper labels (::gfsmASMUpper)
+ *        and \a fsm2 is sorted on lower labels (::gfsmASMLower).
  *
  *  \sa gfsm_automaton_compose_full()
  */
@@ -143,7 +148,7 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 
 
 /** Guts for gfsm_automaton_compose() \returns (new) StateId for \a sp */
-gfsmStateId _gfsm_automaton_compose_visit(gfsmComposeState  sp,
+gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState  sp,
 					  gfsmAutomaton    *fsm1,
 					  gfsmAutomaton    *fsm2,
 					  gfsmAutomaton    *fsm,
@@ -171,7 +176,7 @@ gfsmAutomaton *gfsm_automaton_n_concat(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2,
  */
 gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2);
 
-/** Final-state pre-traversal utility for \a concat(fsm,fsm2).
+/* Final-state pre-traversal utility for \a concat(fsm,fsm2).
  *
  *  \note Assumes \a fsm->root_id has been temporarily set to the translated gfsmStateId
  *        of \a fsm2->root_id.
@@ -180,7 +185,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2);
  *  \param fsm concatenation first argument / return value
  *  \returns FALSE
  */
-gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
+//gboolean gfsm_automaton_concat_final_func_(gfsmStateId id, gpointer pw, gfsmAutomaton *fsm);
 
 //@}
 
@@ -253,7 +258,7 @@ gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wa
 //@{
 
 /** Utility for \a gfsm_automaton_determinize(). */
-void _gfsm_determinize_visit_state(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
+void gfsm_determinize_visit_state_(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
 				   gfsmStateSet  *nfa_ec, gfsmStateId    dfa_id,
 				   gfsmEnum      *ec2id);
 
@@ -355,7 +360,7 @@ gfsmAutomaton *gfsm_automaton_intersect_full(gfsmAutomaton *fsm1,
 /** Guts for gfsm_automaton_intersect()
  *  \returns (new) ::gfsmStateId for \a sp
  */
-gfsmStateId _gfsm_automaton_intersect_visit(gfsmStatePair  sp,
+gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair  sp,
 					    gfsmAutomaton *fsm1,
 					    gfsmAutomaton *fsm2,
 					    gfsmAutomaton *fsm,
@@ -411,7 +416,7 @@ gfsmAutomaton *gfsm_automaton_optional(gfsmAutomaton *fsm);
  *  \param fsm2 Acceptor (upper)
  *  \returns \a fsm1 (transducer)
  *
- *  \sa _gfsm_automaton_product()
+ *  \sa gfsm_automaton_product2()
  */
 gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
@@ -422,7 +427,7 @@ gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
  *  \param fsm2 Acceptor (upper)
  *  \returns \a fsm1 
  */
-gfsmAutomaton *_gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+gfsmAutomaton *gfsm_automaton_product2(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 
 //@}
 
@@ -492,15 +497,15 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm);
  *  with state-pairs (qid_noeps,qid_eps)=>weight for all
  *  \a qid_eps epsilon-reachable from \a qid_noeps in \a fsm
  */
-void _gfsm_automaton_rmeps_visit_state(gfsmAutomaton *fsm,
+void gfsm_automaton_rmeps_visit_state_(gfsmAutomaton *fsm,
 				       gfsmStateId qid_noeps,
 				       gfsmStateId qid_eps,
 				       gfsmWeight weight_eps,
 				       gfsmStatePair2WeightHash *sp2wh
 				       );
 
-/** Pass-2 for gfsm_automaton_rmepsilon(): arc-adoption iterator */
-void _gfsm_automaton_rmeps_pass2_foreach_func(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm);
+/* Pass-2 for gfsm_automaton_rmepsilon(): arc-adoption iterator */
+//void gfsm_automaton_rmeps_pass2_foreach_func_(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm);
 //@}
 
 //------------------------------

@@ -35,8 +35,14 @@
 
 #include <gfsmArc.h>
 
-/// "Heavy" arc-list structure using glib GSList, data is a ::gfsmArc*
-typedef GSList gfsmArcList;
+/// "Heavy" arc-list structure, no longer using GSList
+typedef struct gfsmArcListNode_ {
+  gfsmArc arc;                    /**< current arc */
+  struct gfsmArcListNode_ *next;  /**< next node in the list */
+} gfsmArcListNode;
+
+/// Alias for gfsmArcListNode
+typedef gfsmArcListNode gfsmArcList;
 
 
 /*======================================================================
@@ -45,12 +51,21 @@ typedef GSList gfsmArcList;
 /// \name Arc List: Constructors etc.
 //@{
 
-/** Create a new arc-list node for \a arc, prepending it to \a nxt
+/** Prepend the node \a nod to the ::gfsmArcList \a al
  *  \returns a pointer to the new 1st element of the arclist
  *  \deprecated in favor of gfsm_automaton_add_arc(), gfsm_arciter_insert()
  */
 GFSM_INLINE
-gfsmArcList *gfsm_arclist_prepend(gfsmArcList *al, gfsmArc *a);
+gfsmArcList *gfsm_arclist_prepend_node(gfsmArcList *al, gfsmArcList *nod);
+
+/** Allocate and return a new arc-list node */
+GFSM_INLINE
+gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
+				   gfsmStateId  dst,
+				   gfsmLabelVal lo,
+				   gfsmLabelVal hi,
+				   gfsmWeight   wt,
+				   gfsmArcList  *nxt);
 
 
 /** Insert an arc into a (possibly sorted) arclist.
@@ -73,18 +88,6 @@ gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
 				 gfsmWeight   wt,
 				 gfsmArcSortData *sdata);
 
-/** Low-level guts for gfsm_arclist_insert() */
-gfsmArcList *gfsm_arclist_insert_sorted(gfsmArcList *al, gfsmArc *a, gfsmArcSortData *sdata);
-
-
-/** Allocate and return a new arc-list node */
-GFSM_INLINE
-gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
-				   gfsmStateId  dst,
-				   gfsmLabelVal lo,
-				   gfsmLabelVal hi,
-				   gfsmWeight   wt,
-				   gfsmArcList  *nxt);
 
 /** Insert a single arc-link into a (possibly sorted) arclist.
  *  \param al   arc list into which \a link is to be inserted
@@ -94,25 +97,27 @@ gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
  *  \deprecated in favor of gfsm_automaton_add_arc(), gfsm_arciter_insert()
  */
 GFSM_INLINE
-gfsmArcList *gfsm_arclist_insert_link(gfsmArcList *al, gfsmArcList *link, gfsmArcSortData *sdata);
+gfsmArcList *gfsm_arclist_insert_node(gfsmArcList *al, gfsmArcList *nod, gfsmArcSortData *sdata);
 
-/** Low-level guts for gfsm_arclist_insert_link() */
-gfsmArcList *gfsm_arclist_insert_link_sorted(gfsmArcList *al, gfsmArcList *link, gfsmArcSortData *sdata);
+/** Low-level guts for gfsm_arclist_insert(), gfsm_arclist_insert_node() */
+gfsmArcList *gfsm_arclist_insert_node_sorted(gfsmArcList *al, gfsmArcList *link, gfsmArcSortData *sdata);
 
 /** Create and return a (deep) copy of an existing arc-list */
 gfsmArcList *gfsm_arclist_clone(gfsmArcList *src);
 
+
 /** Destroy an arc-list node and all subsequent nodes */
 void gfsm_arclist_free(gfsmArcList *al);
 
-/** Free one node of an arc-list */
-//#define gfsm_arclist_free1(al) g_free(al)
+/* Free a single node of an arc-list */
+//void gfsm_arclist_free_node(gfsmArcList *nod);
+
 //@}
 
 /*======================================================================
  * Methods: Arc List: Accessors
  */
-///\name Arc List: Accessors
+///\name Arc List: Access & Manipulation
 //@{
 
 /** Get the arc pointer for an arclist -- may be \c NULL
@@ -120,7 +125,39 @@ void gfsm_arclist_free(gfsmArcList *al);
  *  \see gfsmArcIter.h
  */
 #define gfsm_arclist_arc(al) \
-  ((al) ? ((gfsmArc*)((al)->data)) : NULL)
+  ((al) ? (&(al->arc)) : NULL)
+
+//  ((al) ? ((gfsmArc*)((al)->data)) : NULL)
+
+/** Concatenate 2 arc-lists
+ *  \param al1 initial sublist
+ *  \param al2 final sublist
+ *  \returns pointer to head of the concatenated list
+ */
+gfsmArcList *gfsm_arclist_concat(gfsmArcList *al1, gfsmArcList *al2);
+
+/** Splice a single node out from a ::gfsmArcList.
+ *  \param al  arc list
+ *  \param nod node to extract
+ *  \returns pointer to head of the new arc list, without \a nod
+ *  \warning removed \a nod is not freed!
+ *  \see gfsm_arclist_delte_node()
+ */
+gfsmArcList *gfsm_arclist_remove_node(gfsmArcList *al, gfsmArcList *nod);
+
+/** Remove and free a single node from a ::gfsmArcList.
+ *  \param al  arc list
+ *  \param nod node to extract
+ *  \returns pointer to head of the new arc list, without \a nod
+ */
+GFSM_INLINE
+gfsmArcList *gfsm_arclist_delete_node(gfsmArcList *al, gfsmArcList *nod);
+
+/** Reverse a ::gfsmArcList
+ *  \param al  arc list to reverse
+ *  \returns pointer to head of the reversed arc list
+ */
+gfsmArcList *gfsm_arclist_reverse(gfsmArcList *al);
 
 //@}
 
@@ -131,9 +168,10 @@ void gfsm_arclist_free(gfsmArcList *al);
 ///\name Arc List: Utilities
 //@{
 
-/** Get length of an arc-list \a al (linear time)
- *  Signature: <tt>guint gfsm_arclist_length(gfsmArcList *al)</tt> */
-#define gfsm_arclist_length g_slist_length
+/** Get length of an arc-list \a al (linear time) */
+guint gfsm_arclist_length(gfsmArcList *al);
+ //  Signature: <tt>guint gfsm_arclist_length(gfsmArcList *al)</tt>
+//#define gfsm_arclist_length g_slist_length
 
 /** Sort an arclist \a al using one of the builtin sort modes as specified by \a sdata.
  *  \param al    arc list to sort
@@ -149,8 +187,15 @@ gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata);
  *  \param data     additional data for \a cmpfunc
  *  \returns pointer to the new head of the sorted arc list
  */
-GFSM_INLINE
-gfsmArcList *gfsm_arclist_sort_full(gfsmArcList *al, GCompareDataFunc cmpfunc, gpointer data);
+gfsmArcList *gfsm_arclist_sort_with_data(gfsmArcList *al, GCompareDataFunc cmpfunc, gpointer data);
+
+/** Alias for gfsm_arclist_sort_with_data() */
+#define gfsm_arclist_sort_full gfsm_arclist_sort_with_data
+
+/** low-level guts for gfsm_arclist_sort() */
+gfsmArcList *gfsm_arclist_sort_real (gfsmArcList *list, GFunc compare_func, gpointer user_data);
+
+
 //@}
 
 //-- inline definitions

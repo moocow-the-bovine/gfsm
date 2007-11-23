@@ -256,7 +256,7 @@ gfsmAutomaton *gfsm_regex_compiler_intersect(gfsmRegexCompiler *rec, gfsmAutomat
 //--------------------------------------------------------------
 gfsmAutomaton *gfsm_regex_compiler_product(gfsmRegexCompiler *rec, gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
-  _gfsm_automaton_product(fsm1,fsm2);
+  gfsm_automaton_product2(fsm1,fsm2);
   gfsm_automaton_free(fsm2);
   RETURN(rec,fsm1);
 }

@@ -33,35 +33,18 @@
  */
 
 /*--------------------------------------------------------------
- * arclist_insert_sorted()
+ * arclist_insert_node_sorted()
  */
-gfsmArcList *gfsm_arclist_insert_sorted(gfsmArcList *al, gfsmArc *a, gfsmArcSortData *sdata)
+gfsmArcList *gfsm_arclist_insert_node_sorted(gfsmArcList *al, gfsmArcList *nod, gfsmArcSortData *sdata)
 {
   gfsmArcList *al_first=al;
   gfsmArcList *al_prev=NULL;
-  
-  for (; al != NULL; al_prev=al, al=al->next) {
-    if (gfsm_arc_compare_inline(a, (gfsmArc*)(al->data), sdata) >= 0) break;
-  }
-  if (al_prev==NULL) al_first      = gfsm_arclist_prepend(al_first, a);
-  else               al_prev->next = gfsm_arclist_prepend(al, a);
-  return al_first;
-}
-
-/*--------------------------------------------------------------
- * arclist_insert_link_sorted()
- */
-gfsmArcList *gfsm_arclist_insert_link_sorted(gfsmArcList *al, gfsmArcList *link, gfsmArcSortData *sdata)
-{
-  gfsmArcList *al_first=al;
-  gfsmArcList *al_prev=NULL;
-  gfsmArc     *a = gfsm_arclist_arc(link); //(gfsmArc*)(link->data);
 
   for (; al != NULL; al_prev=al, al=al->next) {
-    if (gfsm_arc_compare_inline(a, (gfsmArc*)(al->data), sdata) <= 0) break;
+    if (gfsm_arc_compare_inline(&(nod->arc), &(al->arc), sdata) <= 0) break;
   }
-  if (al_prev == NULL) return g_slist_concat(link,al);
-  al_prev->next = g_slist_concat(link, al);
+  if (al_prev == NULL) return gfsm_arclist_prepend_node(al,nod);
+  al_prev->next = gfsm_arclist_prepend_node(al,nod);
 
   return al_first;
 }
@@ -71,12 +54,47 @@ gfsmArcList *gfsm_arclist_insert_link_sorted(gfsmArcList *al, gfsmArcList *link,
  */
 gfsmArcList *gfsm_arclist_clone(gfsmArcList *src)
 {
-  gfsmArcList *al;
-  gfsmArcList *dst = g_slist_copy(src);
-  for (al=dst; al != NULL; al=al->next) {
-    al->data = gfsm_arc_clone(al->data);
+  gfsmArcList *dst = NULL, *prev=NULL;
+  while (src != NULL) {
+    gfsmArcList *nod = gfsm_arclist_new_full(src->arc.source,
+					     src->arc.target,
+					     src->arc.lower,
+					     src->arc.upper,
+					     src->arc.weight,
+					     NULL);
+    if (prev==NULL) {
+      dst = nod;
+    } else {
+      prev->next = nod;
+    }
+    prev = nod;
+    src  = src->next;
   }
   return dst;
+}
+
+/*--------------------------------------------------------------
+ * arclist_concat()
+ */
+gfsmArcList *gfsm_arclist_concat(gfsmArcList *al1, gfsmArcList *al2)
+{
+  if (al1==NULL) { return al2; }
+  else {
+    gfsmArcList *nod=al1;
+    while (nod->next != NULL) { nod=nod->next; }
+    nod->next = al2;
+  }
+  return al1;
+}
+
+/*--------------------------------------------------------------
+ * arclist_length()
+ */
+guint gfsm_arclist_length(gfsmArcList *al)
+{
+  guint len=0;
+  while (al != NULL) { ++len; al=al->next; }
+  return len;
 }
 
 /*--------------------------------------------------------------
@@ -85,7 +103,124 @@ gfsmArcList *gfsm_arclist_clone(gfsmArcList *src)
 void gfsm_arclist_free(gfsmArcList *al)
 {
   while (al != NULL) {
-    gfsm_arc_free((gfsmArc*)al->data);
-    al = g_slist_delete_link(al,al);
+    gfsmArcList *nxt = al->next;
+    g_free(al);
+    al = nxt;
   }
+}
+
+/*--------------------------------------------------------------
+ * arclist_sort_with_data() & friends
+ *  + adapted from code in GLib glib/gslist.c:
+ *    Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald,
+ *    Modified by the GLib Team and others 1997-2000.
+ */
+static
+gfsmArcList *gfsm_arclist_sort_merge (gfsmArcList   *l1, 
+				      gfsmArcList   *l2,
+				      GFunc     compare_func,
+				      gpointer  user_data)
+{
+  gfsmArcList list, *l;
+  gint cmp;
+
+  l=&list;
+
+  while (l1 && l2)
+    {
+      cmp = ((GCompareDataFunc) compare_func) (&(l1->arc), (&l2->arc), user_data);
+
+      if (cmp <= 0)
+        {
+	  l=l->next=l1;
+	  l1=l1->next;
+        } 
+      else 
+	{
+	  l=l->next=l2;
+	  l2=l2->next;
+        }
+    }
+  l->next= l1 ? l1 : l2;
+  
+  return list.next;
+}
+
+
+gfsmArcList *gfsm_arclist_sort_real (gfsmArcList   *list,
+				     GFunc     compare_func,
+				     gpointer  user_data)
+{
+  gfsmArcList *l1, *l2;
+
+  if (!list) 
+    return NULL;
+  if (!list->next) 
+    return list;
+
+  l1 = list; 
+  l2 = list->next;
+
+  while ((l2 = l2->next) != NULL)
+    {
+      if ((l2 = l2->next) == NULL) 
+	break;
+      l1=l1->next;
+    }
+  l2 = l1->next; 
+  l1->next = NULL;
+
+  return gfsm_arclist_sort_merge (gfsm_arclist_sort_real (list, compare_func, user_data),
+				  gfsm_arclist_sort_real (l2, compare_func, user_data),
+				  compare_func,
+				  user_data);
+}
+
+
+/*--------------------------------------------------------------
+ * arclist_remove_node()
+ *  + adapted from _g_slist_remove_link()
+ */
+gfsmArcList *gfsm_arclist_remove_node(gfsmArcList *al, gfsmArcList *nod)
+{
+  gfsmArcList *tmp;
+  gfsmArcList *prev;
+
+  prev = NULL;
+  tmp = al;
+
+  while (tmp)
+    {
+      if (tmp == nod)
+	{
+	  if (prev)
+	    prev->next = tmp->next;
+	  if (al == tmp)
+	    al = al->next;
+
+	  tmp->next = NULL;
+	  break;
+	}
+
+      prev = tmp;
+      tmp = tmp->next;
+    }
+
+  return al;
+}
+
+
+/*--------------------------------------------------------------
+ * arclist_reverse()
+ */
+gfsmArcList* gfsm_arclist_reverse(gfsmArcList *al)
+{
+  gfsmArcList *prev=NULL;
+  while (al) {
+    gfsmArcList *next = al->next;
+    al->next = prev;
+    prev     = al;
+    al       = next;
+  }
+  return prev;
 }
