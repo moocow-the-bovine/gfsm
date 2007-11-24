@@ -104,10 +104,10 @@ gfsmArcList *gfsm_arclist_insert_node(gfsmArcList *al,
 /*--------------------------------------------------------------
  * arclist_sort_with_data()
  */
-gfsmArcList *
-gfsm_arclist_sort_with_data (gfsmArcList      *al,
-			     GCompareDataFunc  compare_func,
-			     gpointer          user_data)
+GFSM_INLINE
+gfsmArcList *gfsm_arclist_sort_with_data (gfsmArcList      *al,
+					  GCompareDataFunc  compare_func,
+					  gpointer          user_data)
 {
   return gfsm_arclist_sort_real (al, (GFunc)compare_func, user_data);
 }

@@ -187,6 +187,7 @@ gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata);
  *  \param data     additional data for \a cmpfunc
  *  \returns pointer to the new head of the sorted arc list
  */
+GFSM_INLINE
 gfsmArcList *gfsm_arclist_sort_with_data(gfsmArcList *al, GCompareDataFunc cmpfunc, gpointer data);
 
 /** Alias for gfsm_arclist_sort_with_data() */
