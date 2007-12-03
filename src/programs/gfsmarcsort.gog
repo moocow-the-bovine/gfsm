@@ -42,7 +42,7 @@ flag -        o "Alias for '-u'"
 flag "weight" w "Sort by weight (ascending)."
 flag "cost"   C "Alias for '-w'"
 
-string "mode" m "Sort by mode-string overrides --lower, --upper, and --weight" \
+string "mode" m "Sort by explicit mode string (overrides -l, -u, etc.)" \
   arg="MODE" \
   default="" \
   details="

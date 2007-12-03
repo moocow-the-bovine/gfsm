@@ -95,7 +95,7 @@ cmdline_parser_print_help (void)
   printf("   -o                         Alias for '-u'\n");
   printf("   -w       --weight          Sort by weight (ascending).\n");
   printf("   -C       --cost            Alias for '-w'\n");
-  printf("   -mMODE   --mode=MODE       Sort by mode-string overrides --lower, --upper, and --weight\n");
+  printf("   -mMODE   --mode=MODE       Sort by explicit mode string (overrides -l, -u, etc.)\n");
   printf("   -zLEVEL  --compress=LEVEL  Specify compression level of output file.\n");
   printf("   -FFILE   --output=FILE     Specifiy output file (default=stdout).\n");
 }
@@ -303,7 +303,7 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
            args_info->cost_flag = !(args_info->cost_flag);
           break;
         
-        case 'm':	 /* Sort by mode-string overrides --lower, --upper, and --weight */
+        case 'm':	 /* Sort by explicit mode string (overrides -l, -u, etc.) */
           if (args_info->mode_given) {
             fprintf(stderr, "%s: `--mode' (`-m') option given more than once\n", PROGRAM);
           }
@@ -392,7 +392,7 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
              args_info->cost_flag = !(args_info->cost_flag);
           }
           
-          /* Sort by mode-string overrides --lower, --upper, and --weight */
+          /* Sort by explicit mode string (overrides -l, -u, etc.) */
           else if (strcmp(olong, "mode") == 0) {
             if (args_info->mode_given) {
               fprintf(stderr, "%s: `--mode' (`-m') option given more than once\n", PROGRAM);

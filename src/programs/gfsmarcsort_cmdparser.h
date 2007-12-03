@@ -25,7 +25,7 @@ struct gengetopt_args_info {
   int o_flag;	 /* Alias for '-u' (default=0). */
   int weight_flag;	 /* Sort by weight (ascending). (default=0). */
   int cost_flag;	 /* Alias for '-w' (default=0). */
-  char * mode_arg;	 /* Sort by mode-string overrides --lower, --upper, and --weight (default=). */
+  char * mode_arg;	 /* Sort by explicit mode string (overrides -l, -u, etc.) (default=). */
   int compress_arg;	 /* Specify compression level of output file. (default=-1). */
   char * output_arg;	 /* Specifiy output file (default=stdout). (default=-). */
 

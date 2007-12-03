@@ -24,7 +24,7 @@ gfsmarcsort [OPTIONS] BINFILE
     -o                         Alias for '-u'
     -w       --weight          Sort by weight (ascending).
     -C       --cost            Alias for '-w'
-    -mMODE   --mode=MODE       Sort by mode-string overrides --lower, --upper, and --weight
+    -mMODE   --mode=MODE       Sort by explicit mode string (overrides -l, -u, etc.)
     -zLEVEL  --compress=LEVEL  Specify compression level of output file.
     -FFILE   --output=FILE     Specifiy output file (default=stdout).
 
@@ -161,7 +161,7 @@ Default: '0'
 
 =item C<--mode=MODE> , C<-mMODE>
 
-Sort by mode-string overrides --lower, --upper, and --weight
+Sort by explicit mode string (overrides -l, -u, etc.)
 
 Default: ''
 
