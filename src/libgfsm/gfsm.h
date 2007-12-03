@@ -38,6 +38,7 @@ extern "C" {
 */
 
 #include <glib.h>
+#include <gfsmAssert.h>
 #include <gfsmCommon.h>
 #include <gfsmCompound.h>
 #include <gfsmVersion.h>
@@ -65,11 +66,8 @@ extern "C" {
 #include <gfsmTrie.h>
 #include <gfsmScanner.h>
 #include <gfsmRegexCompiler.h>
-
-/*-- WORK IN PROGRESS --
 #include <gfsmIndexed.h>
 #include <gfsmIndexedIO.h>
-*/
 
 /*
 #ifdef __cplusplus

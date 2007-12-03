@@ -24,81 +24,15 @@
 #include <gfsmIndexed.h>
 #include <gfsmArcIter.h>
 
-/*======================================================================
- * Constants
- */
-
-const gfsmArcId gfsmNoArc = (gfsmArcId)-1;
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmIndexed.hi>
+#endif
 
 /*======================================================================
  * Constructors etc.
  */
 
-//----------------------------------------
-gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
-						      gfsmSRType         srtype,
-						      gfsmStateId        n_states,
-						      gfsmArcId          n_arcs)
-{
-  gfsmIndexedAutomaton *xfsm = g_new(gfsmIndexedAutomaton,1);
-  gfsmStateId qid;
-  gfsmWeight  srzero;
-
-  xfsm->flags   = flags;
-  xfsm->sr      = gfsm_semiring_new(srtype);
-  xfsm->root_id = gfsmNoState;
-
-  xfsm->state_is_valid     = gfsm_bitvector_sized_new(n_states);
-  xfsm->state_final_weight = g_array_sized_new(FALSE, FALSE, sizeof(gfsmWeight), n_states);
-  xfsm->arcs               = g_array_sized_new(FALSE, TRUE,  sizeof(gfsmArc),    n_arcs);
-  xfsm->state_first_arc    = g_array_sized_new(FALSE, TRUE,  sizeof(gfsmArcId),  n_states+1);
-
-  xfsm->arcix_lower        = g_array_sized_new(FALSE, TRUE,  sizeof(gfsmArcId),  n_arcs);
-  xfsm->arcix_upper        = g_array_sized_new(FALSE, TRUE,  sizeof(gfsmArcId),  n_arcs);
-
-  //-- set lengths
-  xfsm->state_final_weight->len = n_states;
-  xfsm->arcs->len = n_arcs;
-  xfsm->state_first_arc->len = n_states+1;
-  xfsm->arcix_lower->len = n_arcs;
-  xfsm->arcix_upper->len = n_arcs;
-
-  //-- initialize: states
-  srzero = xfsm->sr->zero;
-  for (qid=0; qid < n_states; qid++) {
-    g_array_index(xfsm->state_final_weight,gfsmWeight,qid) = srzero;
-  }
-
-  return xfsm;
-}
-
-//----------------------------------------
-void gfsm_indexed_automaton_clear(gfsmIndexedAutomaton *xfsm)
-{
-  gfsm_bitvector_clear(xfsm->state_is_valid);
-  xfsm->state_final_weight->len=0;
-  xfsm->arcs->len=0;
-  xfsm->state_first_arc->len=0;
-  xfsm->arcix_lower->len=0;
-  xfsm->arcix_upper->len=0;
-  xfsm->root_id = gfsmNoState;
-  return;
- }
-
-//----------------------------------------
-void gfsm_indexed_automaton_free(gfsmIndexedAutomaton *xfsm)
-{
-  if (!xfsm) return;
-  //gfsm_indexed_automaton_clear(xfsm);
-  if (xfsm->sr)                 gfsm_semiring_free(xfsm->sr);
-  if (xfsm->state_is_valid)     gfsm_bitvector_free(xfsm->state_is_valid);
-  if (xfsm->state_final_weight) g_array_free(xfsm->state_final_weight, TRUE);
-  if (xfsm->arcs)               g_array_free(xfsm->arcs,               TRUE);
-  if (xfsm->state_first_arc)    g_array_free(xfsm->state_first_arc,    TRUE);
-  if (xfsm->arcix_lower)        g_array_free(xfsm->arcix_lower,        TRUE);
-  if (xfsm->arcix_upper)        g_array_free(xfsm->arcix_upper,        TRUE);
-  g_free(xfsm);
-}
 
 /*======================================================================
  * Methods: Import & Export
@@ -107,122 +41,38 @@ void gfsm_indexed_automaton_free(gfsmIndexedAutomaton *xfsm)
 //----------------------------------------
 gfsmIndexedAutomaton *gfsm_automaton_to_indexed(gfsmAutomaton *fsm, gfsmIndexedAutomaton *xfsm)
 {
-  gfsmStateId qid;
-  gfsmArcIter ai;
-  gfsmArcId   aid;
-
   //-- maybe allocate new indexed automaton
   if (xfsm==NULL) {
     xfsm = gfsm_indexed_automaton_new_full(fsm->flags,
 					   fsm->sr->type,
 					   gfsm_automaton_n_states(fsm),
-					   gfsm_automaton_n_arcs(fsm));
+					   gfsm_automaton_n_arcs(fsm),
+					   gfsmASMNone);
   } else {
     gfsm_indexed_automaton_clear(xfsm);
     xfsm->flags = fsm->flags;
-    xfsm->sr    = gfsm_semiring_copy(fsm->sr);
     gfsm_indexed_automaton_reserve_states(xfsm,gfsm_automaton_n_states(fsm));
     gfsm_indexed_automaton_reserve_arcs(xfsm,gfsm_automaton_n_arcs(fsm));
   }
+  gfsm_indexed_automaton_set_semiring(xfsm,fsm->sr); //-- copy semiring
 
   //-- set root id
   xfsm->root_id = fsm->root_id;
 
-  //-- update state-wise
-  for (qid=0,aid=0; qid < fsm->states->len; qid++) {
-
-    //-- state_is_valid, state_final_weight
-    if (!gfsm_automaton_has_state(fsm,qid)) {
-      gfsm_bitvector_set(xfsm->state_is_valid,qid,FALSE);
-      g_array_index(xfsm->state_final_weight,gfsmWeight,qid) = fsm->sr->zero;
-    } else {
-      gfsm_bitvector_set(xfsm->state_is_valid,qid,TRUE);
-      g_array_index(xfsm->state_final_weight,gfsmWeight,qid) = gfsm_automaton_get_final_weight(fsm,qid);
-    }
-
-    //-- state_first_arc, arcs
-    g_array_index(xfsm->state_first_arc,gfsmArcId,qid) = aid;
-    for (gfsm_arciter_open(&ai,fsm,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai),aid++) {
-      g_array_index(xfsm->arcs,gfsmArc,aid) = *(gfsm_arciter_arc(&ai));
-    }
-  }
-  g_array_index(xfsm->state_first_arc, gfsmArcId, qid) = aid; //-- arc upper bound
-
-  //-- rebuild upper & lower arc-indices
-  gfsm_indexed_automaton_build_indices(xfsm);
+  //-- index final weights
+  gfsm_automaton_to_final_weight_vector(fsm, xfsm->state_final_weight);
+  gfsm_automaton_to_arc_table_index(fsm, xfsm->arcs);
+  gfsm_indexed_automaton_sort(xfsm, xfsm->sort_mask);
 
   return xfsm;
 }
 
-//----------------------------------------
-void gfsm_indexed_automaton_build_indices(gfsmIndexedAutomaton *xfsm)
-{
-  gfsmStateId qid;
-  gfsmArcId   aid, lb, ub;
-  gfsmIndexedAutomatonSortData sortdata = { ((gfsmArc*)xfsm->arcs->data), xfsm->sr };
 
-  //-- initialize both arc indices to the full arc sequence
-  for (aid=0; aid < xfsm->arcs->len; aid++) {
-    g_array_index(xfsm->arcix_lower,gfsmArcId,aid) = aid;
-    g_array_index(xfsm->arcix_upper,gfsmArcId,aid) = aid;
-  }
-
-  //-- sort subsequences by state
-  for (qid=0; qid < gfsm_indexed_automaton_n_states(xfsm); qid++) {
-    lb = g_array_index(xfsm->state_first_arc, gfsmArcId, qid);
-    ub = g_array_index(xfsm->state_first_arc, gfsmArcId, qid+1);
-    if (ub <= lb) continue;
-
-    if (xfsm->flags.sort_mode != gfsmASMLower) {
-      g_qsort_with_data(((gfsmArcId*)xfsm->arcix_lower->data)+lb,
-			ub-lb,
-			sizeof(gfsmArcId),
-			(GCompareDataFunc)gfsm_indexed_automaton_build_cmp_lo,
-			&sortdata
-			);
-    }
-    if (xfsm->flags.sort_mode != gfsmASMUpper) {
-      g_qsort_with_data(((gfsmArcId*)xfsm->arcix_upper->data)+lb,
-			ub-lb,
-			sizeof(gfsmArcId),
-			(GCompareDataFunc)gfsm_indexed_automaton_build_cmp_hi,
-			&sortdata
-			);
-    }
-  }
-
-  return;
-}
-
-//----------------------------------------
-gint gfsm_indexed_automaton_build_cmp_lo(const gfsmArcId *aidp1,
-					 const gfsmArcId *aidp2,
-					 gfsmIndexedAutomatonSortData *sdata)
-{
-  gfsmArc *a1 = sdata->arcs + (*aidp1);
-  gfsmArc *a2 = sdata->arcs + (*aidp2);
-  if (a1->lower < a2->lower) return -1;
-  if (a1->lower > a2->lower) return  1;
-  return gfsm_sr_compare(sdata->sr, a1->weight, a2->weight);
-};
-
-//----------------------------------------
-gint gfsm_indexed_automaton_build_cmp_hi(const gfsmArcId *aidp1,
-					 const gfsmArcId *aidp2,
-					 gfsmIndexedAutomatonSortData *sdata)
-{
-  gfsmArc *a1 = sdata->arcs + (*aidp1);
-  gfsmArc *a2 = sdata->arcs + (*aidp2);
-  if (a1->upper < a2->upper) return -1;
-  if (a1->upper > a2->upper) return  1;
-  return gfsm_sr_compare(sdata->sr, a1->weight, a2->weight);
-};
 
 //----------------------------------------
 gfsmAutomaton *gfsm_indexed_to_automaton(gfsmIndexedAutomaton *xfsm, gfsmAutomaton *fsm)
 {
   gfsmStateId qid;
-  gfsmArcId   aid, aid_max;
   gfsmWeight  srzero;
 
   //-- maybe allocate new automaton
@@ -241,20 +91,18 @@ gfsmAutomaton *gfsm_indexed_to_automaton(gfsmIndexedAutomaton *xfsm, gfsmAutomat
   //-- update state-wise
   srzero = xfsm->sr->zero;
   for (qid=0; qid < xfsm->state_final_weight->len; qid++) {
-
-    //-- state_is_valid
-    if (!gfsm_bitvector_get(xfsm->state_is_valid,qid)) continue;
+    gfsmArcRange range;
 
     //-- state_final_weight
     gfsmWeight fw = g_array_index(xfsm->state_final_weight,gfsmWeight,qid);
     if (fw != srzero) { gfsm_automaton_set_final_state_full(fsm,qid,TRUE,fw); }
 
     //-- arcs
-    aid_max = g_array_index(xfsm->state_first_arc, gfsmArcId, qid+1);
-    for (aid=g_array_index(xfsm->state_first_arc,gfsmArcId,qid); aid<aid_max; aid++) {
-      gfsmArc *a = &(g_array_index(xfsm->arcs,gfsmArc,aid));
-      gfsm_automaton_add_arc(fsm,qid,a->target,a->lower,a->upper,a->weight);
+    for (gfsm_arcrange_open_indexed(&range, xfsm, qid); gfsm_arcrange_ok(&range); gfsm_arcrange_next(&range)) {
+      gfsmArc *a = gfsm_arcrange_arc(&range);
+      gfsm_automaton_add_arc(fsm,a->source,a->target,a->lower,a->upper,a->weight);
     }
+    gfsm_arcrange_close(&range);
   }
 
   return fsm;
@@ -263,110 +111,18 @@ gfsmAutomaton *gfsm_indexed_to_automaton(gfsmIndexedAutomaton *xfsm, gfsmAutomat
 /*======================================================================
  * Methods: Accessors: gfsmIndexedAutomaton
  */
-
-//----------------------------------------
-gfsmStateId gfsm_indexed_automaton_reserve_states(gfsmIndexedAutomaton *xfsm, gfsmStateId n_states)
-{
-  gfsmStateId n_states_old = gfsm_indexed_automaton_n_states(xfsm);
-  gfsmStateId qid;
-  gfsmWeight  srzero;
-
-  //-- resize state-indexed arrays
-  gfsm_bitvector_resize(xfsm->state_is_valid, n_states);
-  g_array_set_size(xfsm->state_final_weight,  n_states);
-  g_array_set_size(xfsm->state_first_arc,     n_states+1);
-
-  //-- ... adjust final weights & arcs
-  srzero = xfsm->sr->zero;
-  for (qid=n_states_old; qid < n_states; qid++) {
-    g_array_index(xfsm->state_final_weight,gfsmWeight,qid) = srzero;
-  }
-
-  return n_states;
-}
-
-//----------------------------------------
-gfsmArcId gfsm_indexed_automaton_reserve_arcs(gfsmIndexedAutomaton *xfsm, gfsmArcId n_arcs)
-{
-  g_array_set_size(xfsm->arcs,        n_arcs);
-  g_array_set_size(xfsm->arcix_lower, n_arcs);
-  g_array_set_size(xfsm->arcix_upper, n_arcs);
-  return n_arcs;
-}
-
+//-- inlined
 
 /*======================================================================
  * Methods: Accessors: gfsmAutomaton API: Automaton
  */
-
-//----------------------------------------
-gfsmSemiring *gfsm_indexed_automaton_set_semiring(gfsmIndexedAutomaton *xfsm, gfsmSemiring *sr)
-{
-  if (xfsm->sr) gfsm_semiring_free(xfsm->sr);
-  xfsm->sr = gfsm_semiring_copy(sr);
-  return sr;
-}
-
-//----------------------------------------
-void gfsm_indexed_automaton_set_semiring_type(gfsmIndexedAutomaton *xfsm, gfsmSRType srtype)
-{
-  if (!xfsm->sr) xfsm->sr = gfsm_semiring_new(srtype);
-  else if (xfsm->sr->type != srtype) {
-    gfsm_semiring_free(xfsm->sr);
-    xfsm->sr = gfsm_semiring_new(srtype);  
-  }
-}
+//-- inlined
 
 /*======================================================================
  * Methods: Accessors: gfsmAutomaton API: States
  */
+//-- inlined
 
-//----------------------------------------
-gfsmStateId gfsm_indexed_automaton_ensure_state(gfsmIndexedAutomaton *xfsm, gfsmStateId id)
-{
-  if (gfsm_indexed_automaton_has_state(xfsm,id)) return id;
-  gfsm_indexed_automaton_reserve_states(xfsm,id);
-  gfsm_bitvector_set(xfsm->state_is_valid,id,TRUE);
-  return id;
-}
-
-//----------------------------------------
-void gfsm_indexed_automaton_remove_state(gfsmIndexedAutomaton *xfsm, gfsmStateId id)
-{
-  if (!gfsm_indexed_automaton_has_state(xfsm,id)) return;
-  gfsm_bitvector_set(xfsm->state_is_valid,id,FALSE);
-}
-
-//----------------------------------------
-/** Set final weight. \returns (void) */
-void gfsm_indexed_automaton_set_final_state_full(gfsmIndexedAutomaton *fsm,
-						 gfsmStateId    qid,
-						 gboolean       is_final,
-						 gfsmWeight     final_weight)
-{
-  gfsm_indexed_automaton_ensure_state(fsm,qid);
-  if (!is_final) final_weight = fsm->sr->zero;
-  g_array_index(fsm->state_final_weight,gfsmWeight,qid) = final_weight;
-}
-
-//----------------------------------------
-/** Lookup final weight. \returns TRUE iff state \a id is final, and sets \a *wp to its final weight. */
-gboolean gfsm_indexed_automaton_lookup_final(gfsmIndexedAutomaton *fsm, gfsmStateId qid, gfsmWeight *wp)
-{
-  if (!gfsm_indexed_automaton_has_state(fsm,qid)) {
-    *wp = fsm->sr->zero;
-    return FALSE;
-  }
-  *wp = g_array_index(fsm->state_final_weight,gfsmWeight,qid);
-  return ((*wp)!=fsm->sr->zero);
-}
-
-//----------------------------------------
-/** Get number of outgoing arcs. \returns guint */
-guint gfsm_indexed_automaton_out_degree(gfsmIndexedAutomaton *fsm, gfsmStateId qid)
-{
-  if (!gfsm_indexed_automaton_has_state(fsm,qid)) return 0;
-  gfsmArcId aid1 = g_array_index(fsm->state_first_arc, gfsmArcId, qid);
-  gfsmArcId aid2 = g_array_index(fsm->state_first_arc, gfsmArcId, qid+1);
-  return aid2 > aid1 ? (aid2-aid1) : 0;
-}
+/*======================================================================
+ * I/O
+ */

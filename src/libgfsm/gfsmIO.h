@@ -30,6 +30,7 @@
 #ifndef _GFSM_IO_H
 #define _GFSM_IO_H
 
+#include <gfsmConfig.h>
 #include <gfsmError.h>
 
 #include <stdarg.h>

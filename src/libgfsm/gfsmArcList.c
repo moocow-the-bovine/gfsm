@@ -35,13 +35,13 @@
 /*--------------------------------------------------------------
  * arclist_insert_node_sorted()
  */
-gfsmArcList *gfsm_arclist_insert_node_sorted(gfsmArcList *al, gfsmArcList *nod, gfsmArcSortData *sdata)
+gfsmArcList *gfsm_arclist_insert_node_sorted(gfsmArcList *al, gfsmArcList *nod, gfsmArcCompData *acdata)
 {
   gfsmArcList *al_first=al;
   gfsmArcList *al_prev=NULL;
 
   for (; al != NULL; al_prev=al, al=al->next) {
-    if (gfsm_arc_compare_inline(&(nod->arc), &(al->arc), sdata) <= 0) break;
+    if (gfsm_arc_compare_bymask_inline(&(nod->arc), &(al->arc), acdata) <= 0) break;
   }
   if (al_prev == NULL) return gfsm_arclist_prepend_node(al,nod);
   al_prev->next = gfsm_arclist_prepend_node(al,nod);

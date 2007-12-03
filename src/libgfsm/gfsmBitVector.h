@@ -28,8 +28,7 @@
 #ifndef _GFSM_BITVECTOR_H
 #define _GFSM_BITVECTOR_H
 
-#include <gfsmConfig.h>
-#include <glib.h>
+#include <gfsmIO.h>
 
 /*======================================================================
  * Types
@@ -107,6 +106,30 @@ gboolean gfsm_bitvector_get(gfsmBitVector *bv, guint i);
  */
 GFSM_INLINE
 void gfsm_bitvector_set(gfsmBitVector *bv, guint i, gboolean v);
+
+//@}
+
+/*======================================================================
+ * I/O
+ */
+///\name I/O
+//@{
+
+/** Write the contents of a ::gfsmBitVector to a (binary) ::gfsmIOHandle.
+ *  \param bv bit-vector to write
+ *  \param ioh handle to which data is to be written
+ *  \param errp if an error occurs, \a *errp will hold an error message
+ *  \returns true on success
+ */
+gboolean gfsm_bitvector_write_bin_handle(gfsmBitVector *bv, gfsmIOHandle *ioh, gfsmError **errp);
+
+/** Read the contents of a ::gfsmBitVector from a (binary) ::gfsmIOHandle.
+ *  \param bv bit-vector into which data is to be read
+ *  \param ioh handle from which data is to be read
+ *  \param errp if an error occurs, \a *errp will hold an error message
+ *  \returns true on success
+ */
+gboolean gfsm_bitvector_read_bin_handle(gfsmBitVector *bv, gfsmIOHandle *ioh, gfsmError **errp);
 
 //@}
 

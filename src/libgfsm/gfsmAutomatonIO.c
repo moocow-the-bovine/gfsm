@@ -44,7 +44,7 @@ const gfsmVersionInfo gfsm_version_bincompat_min_store =
   {
     0, // major
     0, // minor
-    8  // micro
+    10  // micro //--8
   };
 
 const gfsmVersionInfo gfsm_version_bincompat_min_check =
@@ -59,6 +59,27 @@ const gchar gfsm_header_magic[16] = "gfsm_automaton\0";
 /*======================================================================
  * Methods: Binary I/O: load()
  */
+
+/*--------------------------------------------------------------
+ * gfsmAutomatonFlags_009
+ */
+typedef struct {
+  guint32 is_transducer         : 1;       /**< whether this automaton is a transducer */
+  guint32 is_weighted           : 1;       /**< whether this automaton is weighted */
+  guint32 sort_mode_009         : 4;       /* old-style sort-mode (cast to ::gfsmArcSortMode_009) */
+  guint32 is_deterministic_009  : 1;       /**< whether fsm is known to be deterministic */
+  guint32 unused_009            : 25;      /**< reserved */
+} gfsmAutomatonFlags_009;
+
+/*--------------------------------------------------------------
+ * gfsmArcSortMode_009
+ */
+typedef enum {
+  gfsmASMNone_009,
+  gfsmASMLower_009,
+  gfsmASMUpper_009,
+  gfsmASMWeight_009
+} gfsmArcSortMode_009;
 
 /*--------------------------------------------------------------
  * load_bin_header()
@@ -105,10 +126,27 @@ gboolean gfsm_automaton_load_bin_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *
 		hdr->version_min.micro);
     return FALSE;
   }
+  if (gfsm_version_less(hdr->version, ((gfsmVersionInfo){0,0,10}))) {
+    //-- flags compatibility hack
+    gfsmAutomatonFlags_009 flags_009;
+    flags_009  = *((gfsmAutomatonFlags_009*)(&(hdr->flags)));
+    hdr->flags.is_transducer    = flags_009.is_transducer;
+    hdr->flags.is_weighted      = flags_009.is_weighted;
+    hdr->flags.is_deterministic = flags_009.is_deterministic_009;
+    hdr->flags.unused           = flags_009.unused_009;
+    switch (flags_009.sort_mode_009) {
+    case gfsmASMLower_009: hdr->flags.sort_mode = gfsmASMLower; break;
+    case gfsmASMUpper_009: hdr->flags.sort_mode = gfsmASMUpper; break;
+    case gfsmASMWeight_009: hdr->flags.sort_mode = gfsmASMWeight; break;
+    default:
+      hdr->flags.sort_mode = flags_009.sort_mode_009;
+    }
+  }
   if (hdr->srtype == gfsmSRTUnknown || hdr->srtype >= gfsmSRTUser) {
     //-- compatibility hack
     hdr->srtype = gfsmAutomatonDefaultSRType;
   }
+
   return TRUE;
 }
 

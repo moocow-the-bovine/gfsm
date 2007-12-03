@@ -20,9 +20,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-#include <gfsmConfig.h>
+#include <gfsmWeightMap.h>
+#include <gfsmCompound.h>
 
+//-- (no-)inline definitions
 #ifndef GFSM_INLINE_ENABLED
-# include <gfsmWeightMap.h>
 # include <gfsmWeightMap.hi>
 #endif
+
+//--------------------------------------------------------------
+// weightmap_to_array_foreach_func_()
+static
+gboolean gfsm_weightmap_to_array_foreach_func_(gpointer stateid_p, gpointer weight_p, gfsmStateWeightPairArray *array)
+{
+  gfsmStateWeightPair wp;
+  wp.id = GPOINTER_TO_UINT(stateid_p);
+  wp.w  = gfsm_ptr2weight(weight_p);
+  g_array_append_val(array,wp);
+  return FALSE; //-- continue traversal
+}
+
+//--------------------------------------------------------------
+gfsmStateWeightPairArray *gfsm_weightmap_to_array(gfsmWeightMap *weightmap, gfsmStateWeightPairArray *array)
+{
+  if (!array) {
+    array = g_array_sized_new(FALSE,FALSE,sizeof(gfsmStateWeightPair),gfsm_weightmap_size(weightmap));
+  } else {
+    g_array_set_size(array,gfsm_weightmap_size(weightmap));
+    array->len = 0;
+  }
+  gfsm_weightmap_foreach(weightmap, (GTraverseFunc)gfsm_weightmap_to_array_foreach_func_, array);
+  return array;
+}

@@ -79,14 +79,14 @@ gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
 				 gfsmLabelVal lo,
 				 gfsmLabelVal hi,
 				 gfsmWeight   wt,
-				 gfsmArcSortData *sdata)
+				 gfsmArcCompData *acdata)
 {
   gfsmArcList *nod = gfsm_arclist_new_full(src,dst,lo,hi,wt,NULL);
-  if (!sdata || sdata->mode == gfsmASMNone) {
+  if (!acdata || acdata->mask == gfsmASMNone) {
     nod->next = al;
     return nod;
   }
-  return gfsm_arclist_insert_node_sorted(al,nod,sdata);
+  return gfsm_arclist_insert_node_sorted(al,nod,acdata);
 }
 
 /*--------------------------------------------------------------
@@ -95,10 +95,10 @@ gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
 GFSM_INLINE
 gfsmArcList *gfsm_arclist_insert_node(gfsmArcList *al,
 				      gfsmArcList *nod,
-				      gfsmArcSortData *sdata)
+				      gfsmArcCompData *acdata)
 {
-  if (!sdata || sdata->mode == gfsmASMNone) return gfsm_arclist_prepend_node(al,nod);
-  return gfsm_arclist_insert_node_sorted(al,nod,sdata);
+  if (!acdata || acdata->mask == gfsmASMNone) return gfsm_arclist_prepend_node(al,nod);
+  return gfsm_arclist_insert_node_sorted(al,nod,acdata);
 }
 
 /*--------------------------------------------------------------
@@ -118,7 +118,7 @@ gfsmArcList *gfsm_arclist_sort_with_data (gfsmArcList      *al,
  * arclist_sort()
  */
 GFSM_INLINE
-gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata)
+gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcCompData *acdata)
 {
-  return gfsm_arclist_sort_real(al, (GFunc)gfsm_arc_compare, sdata);
+  return gfsm_arclist_sort_real(al, (GFunc)gfsm_arc_compare_bymask, acdata);
 }

@@ -75,7 +75,7 @@ gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
  *  \param lo  lower label for the new arc
  *  \param hi  upper label for the new arc
  *  \parm  wt  weight for the new arc
- *  \param sdata sort data for 'smart' sorted insertion
+ *  \param acdata comparison data for 'smart' sorted insertion
  *  \returns a pointer to the (possibly new) 1st node of the arc list
  *  \deprecated in favor of gfsm_automaton_add_arc(), gfsm_arciter_insert()
  */
@@ -86,21 +86,21 @@ gfsmArcList *gfsm_arclist_insert(gfsmArcList *al,
 				 gfsmLabelVal lo,
 				 gfsmLabelVal hi,
 				 gfsmWeight   wt,
-				 gfsmArcSortData *sdata);
+				 gfsmArcCompData *acdata);
 
 
 /** Insert a single arc-link into a (possibly sorted) arclist.
  *  \param al   arc list into which \a link is to be inserted
  *  \param link arc list node to insert
- *  \param sdata sort data for 'smart' sorted insertion
+ *  \param acdata sort data for 'smart' sorted insertion
  *  \returns a pointer to the (possibly new) 1st element of the arclist
  *  \deprecated in favor of gfsm_automaton_add_arc(), gfsm_arciter_insert()
  */
 GFSM_INLINE
-gfsmArcList *gfsm_arclist_insert_node(gfsmArcList *al, gfsmArcList *nod, gfsmArcSortData *sdata);
+gfsmArcList *gfsm_arclist_insert_node(gfsmArcList *al, gfsmArcList *nod, gfsmArcCompData *acdata);
 
 /** Low-level guts for gfsm_arclist_insert(), gfsm_arclist_insert_node() */
-gfsmArcList *gfsm_arclist_insert_node_sorted(gfsmArcList *al, gfsmArcList *link, gfsmArcSortData *sdata);
+gfsmArcList *gfsm_arclist_insert_node_sorted(gfsmArcList *al, gfsmArcList *link, gfsmArcCompData *acdata);
 
 /** Create and return a (deep) copy of an existing arc-list */
 gfsmArcList *gfsm_arclist_clone(gfsmArcList *src);
@@ -173,13 +173,13 @@ guint gfsm_arclist_length(gfsmArcList *al);
  //  Signature: <tt>guint gfsm_arclist_length(gfsmArcList *al)</tt>
 //#define gfsm_arclist_length g_slist_length
 
-/** Sort an arclist \a al using one of the builtin sort modes as specified by \a sdata.
+/** Sort an arclist \a al using one of the builtin sort modes as specified by \a acdata.
  *  \param al    arc list to sort
- *  \param sdata sort data for builtin comparison
+ *  \param acdata sort data for builtin comparison
  *  \returns pointer to the new head of the sorted arc list
  */
 GFSM_INLINE
-gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcSortData *sdata);
+gfsmArcList *gfsm_arclist_sort(gfsmArcList *al, gfsmArcCompData *acdata);
 
 /** Sort an arclist \a al using a user-defined arc comparison function.
  *  \param al       arc list to sort

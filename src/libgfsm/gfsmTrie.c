@@ -30,11 +30,11 @@
 
 const gfsmAutomatonFlags gfsmTrieDefaultFlags =
   {
-    TRUE,        //-- is_transducer:1
-    TRUE,        //-- is_weighted:1
-    gfsmASMLower, //-- sort_mode:4
-    TRUE,        //-- is_deterministic:1
-    0            //-- unused:25
+    TRUE,         //-- is_transducer:1
+    TRUE,         //-- is_weighted:1
+    TRUE,         //-- is_deterministic:1
+    gfsmASMLower, //-- sort_mode:24
+    0             //-- unused:5
   };
 
 const gfsmSRType gfsmTrieDefaultSRType = gfsmSRTReal;

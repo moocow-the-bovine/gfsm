@@ -25,9 +25,56 @@
  *=============================================================================*/
 
 #include <gfsmConfig.h>
+#include <gfsmBitVector.h>
 
 //-- no-inline definitions
 #ifndef GFSM_INLINE_ENABLED
-# include <gfsmBitVector.h>
 # include <gfsmBitVector.hi>
 #endif
+
+/*======================================================================
+ * I/O
+ */
+
+//--------------------------------------------------------------
+// bitvector_write_bin_handle()
+gboolean gfsm_bitvector_write_bin_handle(gfsmBitVector *bv, gfsmIOHandle *ioh, gfsmError **errp)
+{
+  guint32 len = bv->len;
+  if (!gfsmio_write(ioh,&len,sizeof(guint32))) {
+    g_set_error(errp, g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("bitvector_write_bin_handle:len"),
+		"could not store bit vector length ");
+    return FALSE;
+  }
+  if (!gfsmio_write(ioh, bv->data, bv->len)) {
+    g_set_error(errp, g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("bitvector_write_bin_handle:weights"),
+		"could not store bit vector data");
+    return FALSE;
+  }
+  return TRUE;
+}
+
+//--------------------------------------------------------------
+// bitvector_read_bin_handle()
+gboolean gfsm_bitvector_read_bin_handle(gfsmBitVector *bv, gfsmIOHandle *ioh, gfsmError **errp)
+{
+  guint32 len;
+  if (!gfsmio_read(ioh, &len, sizeof(guint32))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("bitvector_read_bin_handle:len"),
+		"could not read bit vector length");
+    return FALSE;
+  }
+  gfsm_bitvector_resize(bv,len);
+  if (!gfsmio_read(ioh, bv->data, len)) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("bitvector_read_bin_handle:data"),
+		"could not read bit vector data");
+    return FALSE;
+  }
+  return TRUE;
+}

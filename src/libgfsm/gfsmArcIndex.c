@@ -24,14 +24,19 @@
 #include <gfsmArcIndex.h>
 #include <gfsmArcIter.h>
 
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmArcIndex.hi>
+#endif
+
 /*======================================================================
- * Methods: ReverseArcIndex
+ * gfsmReverseArcIndex
  */
 
 /*--------------------------------------------------------------
  * automaton_reverse_arc_index()
  */
-gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmReverseArcIndex *rarcs)
+gfsmReverseArcIndex *gfsm_automaton_to_reverse_arc_index(gfsmAutomaton *fsm, gfsmReverseArcIndex *rarcs)
 {
   gfsmStateId idfrom;
   gfsmArcIter ai;
@@ -49,6 +54,7 @@ gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmRe
 	//= gfsm_arclist_prepend(g_ptr_array_index(rarcs,arc->target), arc);
 	= g_slist_prepend(g_ptr_array_index(rarcs,arc->target),arc);
     }
+    gfsm_arciter_close(&ai);
   }
 
   return rarcs;
@@ -69,105 +75,407 @@ void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists
   g_ptr_array_free(rarcs,TRUE);
 }
 
+
+
 /*======================================================================
- * Methods: gfsmFinalWeightIndex
+ * gfsmWeightVector
  */
 
 /*--------------------------------------------------------------
- * automaton_final_weight_index()
+ * automaton_to_weight_vector()
  */
-gfsmFinalWeightIndex *gfsm_automaton_final_weight_index(gfsmAutomaton *fsm, gfsmFinalWeightIndex *ix)
+gfsmWeightVector *gfsm_automaton_to_final_weight_vector(gfsmAutomaton *fsm, gfsmWeightVector *wv)
 {
   gfsmStateId qid;
-  gfsmWeight  fw, srzero = fsm->sr->zero;
+  guint n_states = gfsm_automaton_n_states(fsm);
+  gfsmWeight  *wp;
 
-  if (ix==NULL) {
-    ix = gfsm_final_weight_index_sized_new(gfsm_automaton_n_states(fsm));
+  if (wv==NULL) {
+    wv = gfsm_weight_vector_sized_new(n_states);
   } else {
-    g_array_set_size(ix,gfsm_automaton_n_states(fsm));
-    ix->len = 0;
+    gfsm_weight_vector_resize(wv,n_states);
+  }
+  wv->len = n_states;
+
+  for (qid=0,wp=(gfsmWeight*)wv->data; qid < n_states; qid++,wp++) {
+    gfsm_automaton_lookup_final(fsm,qid,wp);
   }
 
-  for (qid=0; qid < gfsm_automaton_n_states(fsm); qid++) {
-    if (gfsm_automaton_lookup_final(fsm,qid,&fw)) {
-      g_array_index(ix,gfsmWeight,qid) = fw;
-    } else {
-      g_array_index(ix,gfsmWeight,qid) = srzero;
-    }
-  }
+  return wv;
+}
 
-  return ix;
+/*--------------------------------------------------------------
+ * weight_vector_write_bin_handle()
+ */
+gboolean gfsm_weight_vector_write_bin_handle(gfsmWeightVector *wv, gfsmIOHandle *ioh, gfsmError **errp)
+{
+  guint32 len = wv->len;
+  if (!gfsmio_write(ioh,&len,sizeof(guint32))) {
+    g_set_error(errp, g_quark_from_static_string("gfsm"),                              //-- domain
+		g_quark_from_static_string("weight_vector_write_bin_handle:len"), //-- code
+		"could not store weight vector length");
+    return FALSE;
+  }
+  if (!gfsmio_write(ioh,wv->data,wv->len*sizeof(gfsmWeight))) {
+    g_set_error(errp, g_quark_from_static_string("gfsm"),                                  //-- domain
+		g_quark_from_static_string("weight_vector_write_bin_handle:weights"), //-- code
+		"could not store weight vector data");
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/*--------------------------------------------------------------
+ * weight_vector_read_bin_handle()
+ */
+gboolean gfsm_weight_vector_read_bin_handle(gfsmWeightVector *wv, gfsmIOHandle *ioh, gfsmError **errp)
+{
+  guint32 len;
+  if (!gfsmio_read(ioh, &len, sizeof(guint32))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),                                    //-- domain
+		g_quark_from_static_string("weight_vector_read_bin_handle:len"),  //-- code
+		"could not read weight vector length");
+    return FALSE;
+  }
+  gfsm_weight_vector_resize(wv,len);
+  if (!gfsmio_read(ioh, wv->data, len*sizeof(gfsmWeight))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),                                     //-- domain
+		g_quark_from_static_string("weight_vector_read_bin_handle:data"),  //-- code
+		"could not read weight vector data");
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /*======================================================================
- * Methods: gfsmArcLabelIndex
+ * gfsmArcTable
  */
 
 /*--------------------------------------------------------------
- * new()
+ * automaton_to_arc_table()
  */
-gfsmArcLabelIndex *gfsm_arc_label_index_new(void) {
-  gfsmArcLabelIndex *ix = g_new(gfsmArcLabelIndex,1);
-  ix->arcs  = g_ptr_array_new();
-  ix->first = g_ptr_array_new();
-  return ix;
-}
-
-/*--------------------------------------------------------------
- * new_full()
- */
-gfsmArcLabelIndex *gfsm_arc_label_index_new_full(gfsmStateId n_states, guint n_arcs) {
-  gfsmArcLabelIndex *ix = g_new(gfsmArcLabelIndex,1);
-  ix->arcs  = g_ptr_array_sized_new(n_arcs);
-  ix->first = g_ptr_array_sized_new(n_states);
-  return ix;
-}
-
-/*--------------------------------------------------------------
- * automaton_lower_label_index()
- */
-gfsmArcLabelIndex *gfsm_automaton_lower_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix)
+gfsmArcTable *gfsm_automaton_to_arc_table(gfsmAutomaton *fsm, gfsmArcTable *tab)
 {
-#if 0
-  gfsmStateId qid;
+  gfsmStateId qid, n_states=gfsm_automaton_n_states(fsm);
+  guint              n_arcs=gfsm_automaton_n_arcs(fsm);
   gfsmArcIter ai;
+  gfsmArc  *arcp;
 
   //-- maybe allocate
-  if (ix==NULL) {
-    ix = gfsm_arc_label_index_new_full(gfsm_automaton_n_states(fsm), gfsm_automaton_n_arcs(fsm));
+  if (!tab) {
+    tab = gfsm_arc_table_sized_new(n_arcs);
   } else {
-    g_ptr_array_set_size(ix->arcs,  gfsm_automaton_n_arcs(fsm));
-    g_ptr_array_set_size(ix->first, gfsm_automaton_n_states(fsm));
+    gfsm_arc_table_resize(tab, n_arcs);
   }
+  tab->len = n_arcs;
 
   //-- populate arcs
-  for (qid=0; qid < gfsm_automaton_n_states(fsm); qid++) {
-    for (gfsm_arciter_open(&ai,fsm,qid); foo; bar) {
-      ;
+  for (qid=0,arcp=(gfsmArc*)tab->data; qid < n_states; qid++) {
+    if (!gfsm_automaton_has_state(fsm,qid)) continue;
+    for (gfsm_arciter_open(&ai,fsm,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      gfsmArc *a = gfsm_arciter_arc(&ai);
+      *(arcp++) = *a;
     }
+    gfsm_arciter_close(&ai);
   }
-#endif
-  //-- TODO: CONTINUE HERE
-  g_assert_not_reached();
-  return NULL;
+
+  //-- return
+  return tab;
 }
 
 /*--------------------------------------------------------------
- * automaton_upper_label_index()
+ * arc_table_write_bin_handle()
  */
-gfsmArcLabelIndex *gfsm_automaton_upper_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix)
+gboolean gfsm_arc_table_write_bin_handle(gfsmArcTable *tab, gfsmIOHandle *ioh, gfsmError **errp)
 {
-#if 0
-  gfsmStateId qid;
+  guint32 len = tab->len;
+  if (!gfsmio_write(ioh, &len, sizeof(guint32))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("arc_table_write_bin_handle:len"),
+		"could not write arc table length");
+    return FALSE;
+  }
+  if (!gfsmio_write(ioh, tab->data, len*sizeof(gfsmArc))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("arc_table_write_bin_handle:data"),
+		"could not write arc table data");
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/*--------------------------------------------------------------
+ * arc_table_read_bin_handle()
+ */
+gboolean gfsm_arc_table_read_bin_handle(gfsmArcTable *tab, gfsmIOHandle *ioh, gfsmError **errp)
+{
+  guint32 len;
+  if (!gfsmio_read(ioh, &len, sizeof(guint32))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("arc_table_read_bin_handle:len"),
+		"could not read arc table length");
+    return FALSE;
+  }
+  gfsm_arc_table_resize(tab,len);
+  if (!gfsmio_read(ioh, tab->data, len*sizeof(gfsmArc))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("arc_table_read_bin_handle:data"),
+		"could not read arc table data");
+    return FALSE;
+  }
+  return TRUE;
+}
+
+
+
+/*======================================================================
+ * gfsmArcTableIndex
+ */
+
+
+/*--------------------------------------------------------------
+ * automaton_to_arc_table_index()
+ */
+gfsmArcTableIndex *gfsm_automaton_to_arc_table_index(gfsmAutomaton *fsm, gfsmArcTableIndex *tabx)
+{
+  gfsmStateId qid, n_states=gfsm_automaton_n_states(fsm);
+  guint              n_arcs=gfsm_automaton_n_arcs(fsm);
+  gfsmArc  *arcp, *arcp_max;
+  gfsmArc **firstp;
 
   //-- maybe allocate
-  if (ix==NULL) {
-    ix = gfsm_arc_label_index_new_full(gfsm_automaton_n_states(fsm), gfsm_automaton_n_arcs(fsm));
+  if (!tabx) {
+    tabx = gfsm_arc_table_index_sized_new(n_states, n_arcs);
   } else {
-    g_ptr_array_set_size(ix->arcs,  gfsm_automaton_n_arcs(fsm));
-    g_ptr_array_set_size(ix->first, gfsm_automaton_n_states(fsm));
+    gfsm_arc_table_index_resize(tabx, n_states, n_arcs);
   }
-#endif
-  g_assert_not_reached();
-  return NULL; //-- TODO
+
+  //-- populate tabx->arcs
+  gfsm_automaton_to_arc_table(fsm,tabx->tab);
+
+  //-- populate tabx->first
+  arcp     = (gfsmArc*)tabx->tab->data;
+  arcp_max = arcp + n_arcs;
+  for (qid=0,firstp=(gfsmArc**)tabx->first->pdata; qid<n_states; qid++,firstp++) {
+    *firstp = arcp;
+    for ( ; arcp<arcp_max && arcp->source==qid; arcp++) { ; }
+  }
+  *firstp = arcp_max;
+
+  //-- return
+  return tabx;
 }
+
+/*--------------------------------------------------------------
+ * arc_table_index_sort_with_data()
+ */
+void gfsm_arc_table_index_sort_with_data(gfsmArcTableIndex *tabx, GCompareDataFunc compare_func, gpointer data)
+{
+  gfsmArc **firstp     = (gfsmArc**)tabx->first->pdata;
+  gfsmArc **firstp_max = firstp + tabx->first->len - 1;
+  for ( ; firstp < firstp_max; firstp++) {
+    gfsmArc *min = *firstp;
+    gfsmArc *max = *(firstp+1);
+    g_qsort_with_data(min, max-min, sizeof(gfsmArc), compare_func, data);
+  }
+}
+
+/*--------------------------------------------------------------
+ * arc_table_index_write_bin_handle()
+ */
+gboolean gfsm_arc_table_index_write_bin_handle(gfsmArcTableIndex *tabx, gfsmIOHandle *ioh, gfsmError **errp)
+{
+  gfsmStateId first_len=tabx->first->len, qid;
+  if (!gfsm_arc_table_write_bin_handle(tabx->tab, ioh, errp)) return FALSE;
+
+  if (!gfsmio_write(ioh, &first_len, sizeof(gfsmStateId))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("arc_table_index_write_bin_handle:len"),
+		"could not write arc table index 'first' length");
+    return FALSE;
+  }
+  for (qid=0; qid < first_len; qid++) {
+    gfsmArc     *a = (gfsmArc*)g_ptr_array_index(tabx->first,qid);
+    guint32 offset = a - ((gfsmArc*)tabx->tab->data);
+    if (!gfsmio_write(ioh, &offset, sizeof(guint32))) {
+      g_set_error(errp,
+		  g_quark_from_static_string("gfsm"),
+		  g_quark_from_static_string("arc_table_index_write_bin_handle:data"),
+		  "could not write state arc offset for state '%u'", qid);
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
+/*--------------------------------------------------------------
+ * arc_table_index_read_bin_handle()
+ */
+gboolean gfsm_arc_table_index_read_bin_handle(gfsmArcTableIndex *tabx, gfsmIOHandle *ioh, gfsmError **errp)
+{
+  gfsmStateId first_len, qid;
+  if (!gfsm_arc_table_read_bin_handle(tabx->tab, ioh, errp)) return FALSE;
+
+  if (!gfsmio_read(ioh, &first_len, sizeof(gfsmStateId))) {
+    g_set_error(errp,
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("arc_table_index_read_bin_handle:len"),
+		"could not read arc table index 'first' length");
+    return FALSE;
+  }
+  g_ptr_array_set_size(tabx->first,first_len);
+  for (qid=0; qid < first_len; qid++) {
+    guint32 offset;
+    if (!gfsmio_read(ioh, &offset, sizeof(guint32))) {
+      g_set_error(errp,
+		  g_quark_from_static_string("gfsm"),
+		  g_quark_from_static_string("arc_table_index_write_bin_handle:data"),
+		  "could not read state arc offset for state '%u'", qid);
+      return FALSE;
+    }
+    g_ptr_array_index(tabx->first,qid) = &g_array_index(tabx->tab,gfsmArc,offset);
+  }
+  return TRUE;
+}
+
+
+/*======================================================================
+ * gfsmArcLabelIndex [GONE]
+ */
+//--------------------------------------------------------------
+// arc_label_index_compare_arcs()
+/*
+gint gfsm_arc_label_index_compare_arcs(gfsmArc *a1, gfsmArc *a2, gfsmArcLabelIndexSortData *sdata)
+{ return gfsm_arc_label_index_compare_arcs_inline(a1,a2,sdata); }
+*/
+
+
+/*======================================================================
+ * gfsmArcRange
+ */
+
+#undef GFSM_ARCRANGE_ENABLE_BSEARCH
+#undef GFSM_ARCRANGE_ENABLE_SEEK
+
+#ifdef GFSM_ARCRANGE_ENABLE_BSEARCH
+/*--------------------------------------------------------------
+ * arc_range_bsearch_*()
+ *  + NOT WORTH IT (tested for out_degree {1,2,4,8,16,32,64,128,256,512})
+ */
+void gfsm_arcrange_bsearch_source(gfsmArcRange *range, gfsmStateId find)
+{
+  gfsmArc *min=range->min, *max=range->max;
+  while (min < max) {
+    gfsmArc *mid = min + (max-min)/2;
+    if (mid->source < find) { min = mid+1; }
+    else                    { max = mid; }
+  }
+  range->min = min;
+}
+
+//--------------------------------------------------------------
+void gfsm_arcrange_bsearch_target(gfsmArcRange *range, gfsmStateId find)
+{
+  gfsmArc *min=range->min, *max=range->max;
+  while (min < max) {
+    gfsmArc *mid = min + (max-min)/2;
+    if (mid->target < find) { min = mid+1; }
+    else                    { max = mid; }
+  }
+  range->min = min;
+}
+
+//--------------------------------------------------------------
+void gfsm_arcrange_bsearch_lower(gfsmArcRange *range, gfsmLabelId find)
+{
+  gfsmArc *min=range->min, *max=range->max;
+  while (min < max) {
+    gfsmArc *mid = min + (max-min)/2;
+    if (mid->lower < find) { min = mid+1; }
+    else                   { max = mid; }
+  }
+  range->min = min;
+}
+
+//--------------------------------------------------------------
+void gfsm_arcrange_bsearch_upper(gfsmArcRange *range, gfsmLabelId find)
+{
+  gfsmArc *min=range->min, *max=range->max;
+  while (min < max) {
+    gfsmArc *mid = min + (max-min)/2;
+    if (mid->upper < find) { min = mid+1; }
+    else                    { max = mid; }
+  }
+  range->min = min;
+}
+
+//--------------------------------------------------------------
+void gfsm_arcrange_bsearch_weight(gfsmArcRange *range, gfsmWeight find, gfsmSemiring *sr)
+{
+  gfsmArc *min=range->min, *max=range->max;
+  while (min < max) {
+    gfsmArc *mid = min + (max-min)/2;
+    if (gfsm_sr_compare(sr,mid->weight,find) < 0) { range->min = mid+1; }
+    else                                          { range->max = mid; }
+  }
+  range->min = min;
+}
+#endif /* GFSM_ARCRANGE_ENABLE_BSEARCH */
+
+#ifdef GFSM_ARCRANGE_ENABLE_SEEK
+//--------------------------------------------------------------
+// arcrange_seek_X()
+//  -- also not worth it
+
+//----------------------------------------------
+GFSM_INLINE
+void gfsm_arcrange_seek_source(gfsmArcRange *range, gfsmStateId find)
+{
+  gfsm_assert(range != NULL);
+  while (gfsm_arcrange_ok(range) && gfsm_arcrange_arc(range)->source < find)
+    gfsm_arcrange_next(range);
+}
+
+//----------------------------------------------
+GFSM_INLINE
+void gfsm_arcrange_seek_target(gfsmArcRange *range, gfsmStateId find)
+{
+  gfsm_assert(range != NULL);
+  while (gfsm_arcrange_ok(range) && gfsm_arcrange_arc(range)->target < find)
+    gfsm_arcrange_next(range);
+}
+
+//----------------------------------------------
+GFSM_INLINE
+void gfsm_arcrange_seek_lower(gfsmArcRange *range, gfsmLabelId find)
+{
+  gfsm_assert(range != NULL);
+  while (gfsm_arcrange_ok(range) && gfsm_arcrange_arc(range)->lower < find)
+    gfsm_arcrange_next(range);
+}
+
+//----------------------------------------------
+GFSM_INLINE
+void gfsm_arcrange_seek_upper(gfsmArcRange *range, gfsmLabelId find)
+{
+  gfsm_assert(range != NULL);
+  while (gfsm_arcrange_ok(range) && gfsm_arcrange_arc(range)->upper < find)
+    gfsm_arcrange_next(range);
+}
+
+//----------------------------------------------
+GFSM_INLINE
+void gfsm_arcrange_seek_weight(gfsmArcRange *range, gfsmWeight find, gfsmSemiring *sr)
+{
+  gfsm_assert(range != NULL);
+  while (gfsm_arcrange_ok(range) && gfsm_sr_compare(sr,gfsm_arcrange_arc(range)->weight,find) < 0)
+    gfsm_arcrange_next(range);
+}
+#endif /* GFSM_ARCRANGE_ENABLE_SEEK */

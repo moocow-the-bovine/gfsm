@@ -146,13 +146,21 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 					   gfsmAutomaton *composition,
 					   gfsmComposeStateEnum *spenum);
 
+typedef guint32 gfsmComposeFlags; /**< flags for gfsm_automaton_compose_visit_state_() */
+
+/** \brief Enum type for low-level flags to gfsm_automaton_compose_visit_state_() */
+typedef enum {
+  gfsmCFEfsm1NeedsArcSort = 0x1,
+  gfsmCFEfsm2NeedsArcSort = 0x2
+} gfsmComposeFlagsE;
 
 /** Guts for gfsm_automaton_compose() \returns (new) StateId for \a sp */
 gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState  sp,
 					  gfsmAutomaton    *fsm1,
 					  gfsmAutomaton    *fsm2,
 					  gfsmAutomaton    *fsm,
-					  gfsmComposeStateEnum *spenum);
+					  gfsmComposeStateEnum *spenum,
+					  gfsmComposeFlags  flags);
 //@}
 
 //------------------------------
@@ -364,7 +372,8 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair  sp,
 					    gfsmAutomaton *fsm1,
 					    gfsmAutomaton *fsm2,
 					    gfsmAutomaton *fsm,
-					    gfsmStatePairEnum *spenum);
+					    gfsmStatePairEnum *spenum,
+					    gfsmComposeFlags   flags);
 //@}
 
 
@@ -428,6 +437,9 @@ gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
  *  \returns \a fsm1 
  */
 gfsmAutomaton *gfsm_automaton_product2(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+
+/* Backwards-compatible alias for gfsm_automaton_product2() [DISABLED] */
+//#define _gfsm_automaton_product gfsm_automaton_product2
 
 //@}
 

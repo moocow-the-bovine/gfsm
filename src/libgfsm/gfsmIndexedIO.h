@@ -45,9 +45,9 @@ typedef struct {
   gfsmAutomatonFlags flags;        /**< automaton flags */
   gfsmStateId        root_id;      /**< Id of root node */
   gfsmStateId        n_states;     /**< number of stored states */
-  gfsmStateId        n_arcs;       /**< number of stored arcs (v0.0.2 .. v0.0.7) */
-  guint32            srtype;       /**< semiring type (cast to gfsmSRType) */
-  guint32            reserved1;    /**< reserved */
+  gfsmStateId        n_arcs;       /**< number of stored arcs */
+  guint32            srtype;       /**< semiring type (cast to ::gfsmSRType) */
+  guint32            sort_mask;    /**< arc-sort priorities (a ::gfsmArcCompMask) */
   guint32            reserved2;    /**< reserved */
   guint32            reserved3;    /**< reserved */
 } gfsmIndexedAutomatonHeader;
@@ -87,6 +87,7 @@ gboolean gfsm_indexed_automaton_load_bin_filename(gfsmIndexedAutomaton *fsm, con
 /** Load an automaton from an in-memory buffer */
 gboolean gfsm_indexed_automaton_load_bin_gstring(gfsmIndexedAutomaton *fsm, GString *gs, gfsmError **errp);
 
+/*--------------------------------------------------------------*/
 
 /** Store an automaton in binary form to a gfsmIOHandle* */
 gboolean gfsm_indexed_automaton_save_bin_handle(gfsmIndexedAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp);

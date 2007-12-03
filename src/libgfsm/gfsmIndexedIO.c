@@ -66,22 +66,22 @@ gboolean gfsm_indexed_automaton_load_bin_header(gfsmIndexedAutomatonHeader *hdr,
 {
   if (!gfsmio_read(ioh, hdr, sizeof(gfsmIndexedAutomatonHeader))) {
     g_set_error(errp,
-		g_quark_from_static_string("gfsm"),                           //-- domain
-		g_quark_from_static_string("indexed_automaton_load_bin_header:size"), //-- code
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("indexed_automaton_load_bin_header:size"),
 		"could not read header");
     return FALSE;
   }
   else if (strcmp(hdr->magic, gfsm_indexed_header_magic) != 0) {
     g_set_error(errp,
-		g_quark_from_static_string("gfsm"),                            //-- domain
-		g_quark_from_static_string("indexed_automaton_load_bin_header:magic"), //-- code
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("indexed_automaton_load_bin_header:magic"),
 		"bad magic");
     return FALSE;
   }
   else if (gfsm_version_compare(hdr->version, gfsm_version_bincompat_min_check) < 0) {
     g_set_error(errp,
-		g_quark_from_static_string("gfsm"),                              //-- domain
-		g_quark_from_static_string("indexed_automaton_load_bin_header:version"), //-- code
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("indexed_automaton_load_bin_header:version"),
 		"stored format v%u.%u.%u is obsolete - need at least v%u.%u.%u",
 		hdr->version.major,
 		hdr->version.minor,
@@ -93,8 +93,8 @@ gboolean gfsm_indexed_automaton_load_bin_header(gfsmIndexedAutomatonHeader *hdr,
   }
   else if (gfsm_version_compare(gfsm_version, hdr->version_min) < 0) {
     g_set_error(errp,
-		g_quark_from_static_string("gfsm"),                              //-- domain
-		g_quark_from_static_string("indexed_automaton_load_bin_header:version"), //-- code
+		g_quark_from_static_string("gfsm"),
+		g_quark_from_static_string("indexed_automaton_load_bin_header:version"),
 		"libgfsm v%u.%u.%u is obsolete - stored automaton needs at least v%u.%u.%u",
 		gfsm_version.major,
 		gfsm_version.minor,
@@ -116,72 +116,25 @@ gboolean gfsm_indexed_automaton_load_bin_header(gfsmIndexedAutomatonHeader *hdr,
  *   + supports stored file versions v0.0.9 -- CURRENT
  */
 gboolean gfsm_indexed_automaton_load_bin_handle_0_0_9(gfsmIndexedAutomatonHeader *hdr,
-						      gfsmIndexedAutomaton *fsm,
+						      gfsmIndexedAutomaton *xfsm,
 						      gfsmIOHandle *ioh,
 						      gfsmError **errp)
 {
   //-- reserve states & ars
-  gfsm_indexed_automaton_reserve_states(fsm, hdr->n_states);
-  gfsm_indexed_automaton_reserve_arcs(fsm, hdr->n_arcs);
+  gfsm_indexed_automaton_reserve_states(xfsm, hdr->n_states);
+  gfsm_indexed_automaton_reserve_arcs(xfsm, hdr->n_arcs);
 
   //-- set automaton-global properties
-  fsm->flags   = hdr->flags;
-  gfsm_indexed_automaton_set_semiring_type(fsm, hdr->srtype);
-  fsm->root_id = hdr->root_id;
-
-  //------ load: state_is_valid
-  if (!gfsmio_read(ioh, fsm->state_is_valid->data, _gfsm_bitvector_bits2bytes(hdr->n_states)+1)) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                                      //-- domain
-		  g_quark_from_static_string("indexed_automaton_load_bin:state_is_valid"), //-- code
-		  "could not read stored state validity flags");
-      return FALSE;
-  }
+  xfsm->flags      = hdr->flags;
+  gfsm_indexed_automaton_set_semiring_type(xfsm, hdr->srtype);
+  xfsm->root_id    = hdr->root_id;
+  xfsm->sort_mask  = hdr->sort_mask;
 
   //------ load: state_final_weight
-  if (!gfsmio_read(ioh, fsm->state_final_weight->data, hdr->n_states*sizeof(gfsmWeight))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                                          //-- domain
-		  g_quark_from_static_string("indexed_automaton_load_bin:state_final_weight"), //-- code
-		  "could not read stored final weights");
-      return FALSE;
-  }
+  if (!gfsm_weight_vector_read_bin_handle(xfsm->state_final_weight, ioh, errp)) { return FALSE; }
 
   //------ load: arcs
-  if (!gfsmio_read(ioh, fsm->arcs->data, hdr->n_arcs*sizeof(gfsmArc))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                            //-- domain
-		  g_quark_from_static_string("indexed_automaton_load_bin:arcs"), //-- code
-		  "could not read stored arcs");
-      return FALSE;
-  }
-
-  //------ load: state_first_arc
-  if (!gfsmio_read(ioh, fsm->state_first_arc->data, (hdr->n_states+1)*sizeof(gfsmArcId))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                                       //-- domain
-		  g_quark_from_static_string("indexed_automaton_load_bin:state_first_arc"), //-- code
-		  "could not read state arc offsets");
-      return FALSE;
-  }
-
-  //------ load: arcix_lower
-  if (!gfsmio_read(ioh, fsm->arcix_lower->data, hdr->n_arcs*sizeof(gfsmArcId))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                                   //-- domain
-		  g_quark_from_static_string("indexed_automaton_load_bin:arcix_lower"), //-- code
-		  "could not read lower-label arc index");
-      return FALSE;
-  }
-
-  //------ load: arcix_upper
-  if (!gfsmio_read(ioh, fsm->arcix_upper->data, hdr->n_arcs*sizeof(gfsmArcId))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                                   //-- domain
-		  g_quark_from_static_string("indexed_automaton_load_bin:arcix_upper"), //-- code
-		  "could not read upper-label arc index");
-      return FALSE;
-  }
+  if (!gfsm_arc_table_index_read_bin_handle(xfsm->arcs, ioh, errp)) { return FALSE; }
 
   return TRUE;
 }
@@ -254,7 +207,7 @@ gboolean gfsm_indexed_automaton_load_bin_gstring(gfsmIndexedAutomaton *fsm, GStr
 /*--------------------------------------------------------------
  * save_bin_handle()
  */
-gboolean gfsm_indexed_automaton_save_bin_handle(gfsmIndexedAutomaton *fsm, gfsmIOHandle *ioh, gfsmError **errp)
+gboolean gfsm_indexed_automaton_save_bin_handle(gfsmIndexedAutomaton *xfsm, gfsmIOHandle *ioh, gfsmError **errp)
 {
   gfsmIndexedAutomatonHeader hdr;
 
@@ -263,71 +216,26 @@ gboolean gfsm_indexed_automaton_save_bin_handle(gfsmIndexedAutomaton *fsm, gfsmI
   strcpy(hdr.magic, gfsm_indexed_header_magic);
   hdr.version     = gfsm_version;
   hdr.version_min = gfsm_indexed_version_bincompat_min_store;
-  hdr.flags       = fsm->flags;
-  hdr.root_id     = fsm->root_id;
-  hdr.n_states    = gfsm_indexed_automaton_n_states(fsm);
-  hdr.n_arcs      = gfsm_indexed_automaton_n_arcs(fsm);
-  hdr.srtype      = gfsm_indexed_automaton_get_semiring(fsm)->type;
+  hdr.flags       = xfsm->flags;
+  hdr.root_id     = xfsm->root_id;
+  hdr.n_states    = gfsm_indexed_automaton_n_states(xfsm);
+  hdr.n_arcs      = gfsm_indexed_automaton_n_arcs(xfsm);
+  hdr.srtype      = gfsm_indexed_automaton_get_semiring(xfsm)->type;
+  hdr.sort_mask   = xfsm->sort_mask;
 
   //-- write header
   if (!gfsmio_write(ioh, &hdr, sizeof(gfsmIndexedAutomatonHeader))) {
-    g_set_error(errp, g_quark_from_static_string("gfsm"),                              //-- domain
-		      g_quark_from_static_string("indexed_automaton_save_bin:header"), //-- code
+    g_set_error(errp, g_quark_from_static_string("gfsm"),
+		      g_quark_from_static_string("indexed_automaton_save_bin:header"),
 		      "could not store header");
     return FALSE;
   }
 
-  //------ save: state_is_valid
-  if (!gfsmio_write(ioh, fsm->state_is_valid->data, _gfsm_bitvector_bits2bytes(hdr.n_states)+1)) {
-      g_set_error(errp, g_quark_from_static_string("gfsm"),                                      //-- domain
-			g_quark_from_static_string("indexed_automaton_save_bin:state_is_valid"), //-- code
-			"could not store state validity flags");
-      return FALSE;
-  }
-
   //------ save: state_final_weight
-  if (!gfsmio_write(ioh, fsm->state_final_weight->data, hdr.n_states*sizeof(gfsmWeight))) {
-      g_set_error(errp, g_quark_from_static_string("gfsm"),                                          //-- domain
-			g_quark_from_static_string("indexed_automaton_save_bin:state_final_weight"), //-- code
-			"could not store state final weights");
-      return FALSE;
-  }
+  if (!gfsm_weight_vector_write_bin_handle(xfsm->state_final_weight, ioh, errp)) { return FALSE; }
 
   //------ save: arcs
-  if (!gfsmio_write(ioh, fsm->arcs->data, hdr.n_arcs*sizeof(gfsmArc))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                            //-- domain
-		  g_quark_from_static_string("indexed_automaton_save_bin:arcs"), //-- code
-		  "could not store arcs");
-      return FALSE;
-  }
-
-  //------ save: state_first_arc
-  if (!gfsmio_write(ioh, fsm->state_first_arc->data, (hdr.n_states+1)*sizeof(gfsmArcId))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                                       //-- domain
-		  g_quark_from_static_string("indexed_automaton_save_bin:state_first_arc"), //-- code
-		  "could not store state arc offsets");
-      return FALSE;
-  }
-
-  //------ save: arcix_lower
-  if (!gfsmio_write(ioh, fsm->arcix_lower->data, hdr.n_arcs*sizeof(gfsmArcId))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                                   //-- domain
-		  g_quark_from_static_string("indexed_automaton_save_bin:arcix_lower"), //-- code
-		  "could not store lower-label arc index");
-      return FALSE;
-  }
-
-  //------ save: arcix_upper
-  if (!gfsmio_write(ioh, fsm->arcix_upper->data, hdr.n_arcs*sizeof(gfsmArcId))) {
-      g_set_error(errp,
-		  g_quark_from_static_string("gfsm"),                                   //-- domain
-		  g_quark_from_static_string("indexed_automaton_save_bin:arcix_upper"), //-- code
-		  "could not store upper-label arc index");
-      return FALSE;
-  }
+  if (!gfsm_arc_table_index_write_bin_handle(xfsm->arcs, ioh, errp)) { return FALSE; }
 
   return TRUE;
 }
@@ -401,7 +309,7 @@ gboolean gfsm_indexed_automaton_save_bin_gstring(gfsmIndexedAutomaton *fsm, GStr
 /*--------------------------------------------------------------
  * print_handle()
  */
-gboolean gfsm_indexed_automaton_print_handle (gfsmIndexedAutomaton *fsm,
+gboolean gfsm_indexed_automaton_print_handle (gfsmIndexedAutomaton *xfsm,
 					      gfsmIOHandle  *ioh,
 					      gfsmAlphabet  *lo_alphabet,
 					      gfsmAlphabet  *hi_alphabet,
@@ -409,21 +317,19 @@ gboolean gfsm_indexed_automaton_print_handle (gfsmIndexedAutomaton *fsm,
 					      gfsmError     **errp)
 {
   gfsmStateId qid;
-  gfsmArcId   aid, aid_ub;
+  gfsmArcRange range;
   GString *gs = g_string_new("");
   gboolean rc = TRUE;
   gpointer  key;
 
-  if (fsm->root_id == gfsmNoState) rc = FALSE; //-- sanity check
+  if (xfsm->root_id == gfsmNoState) rc = FALSE; //-- sanity check
 
-  for (qid=0; rc && qid < gfsm_indexed_automaton_n_states(fsm); qid++) {
-    if (!gfsm_indexed_automaton_has_state(fsm,qid)) continue;
+  for (qid=0; rc && qid < gfsm_indexed_automaton_n_states(xfsm); qid++) {
+    if (!gfsm_indexed_automaton_has_state(xfsm,qid)) continue;
 
-    for (aid=g_array_index(fsm->state_first_arc,gfsmArcId,qid), aid_ub=g_array_index(fsm->state_first_arc,gfsmArcId,qid+1);
-	 aid < aid_ub;
-	 aid++)
+    for (gfsm_arcrange_open_indexed(&range,xfsm,qid); gfsm_arcrange_ok(&range); gfsm_arcrange_next(&range))
       {
-	gfsmArc *a = &(g_array_index(fsm->arcs,gfsmArc,aid));
+	gfsmArc *a = gfsm_arcrange_arc(&range);
 
 	//-- source state
 	if (state_alphabet && (key=gfsm_alphabet_find_key(state_alphabet,qid)) != gfsmNoKey) {
@@ -455,7 +361,7 @@ gboolean gfsm_indexed_automaton_print_handle (gfsmIndexedAutomaton *fsm,
 	}
 
 	//-- upper label
-	if (fsm->flags.is_transducer) {
+	if (xfsm->flags.is_transducer) {
 	  gfsmio_putc(ioh, '\t');
 	  if (hi_alphabet && (key=gfsm_alphabet_find_key(hi_alphabet,a->upper)) != gfsmNoKey) {
 	    gfsm_alphabet_key2string(hi_alphabet,key,gs);
@@ -467,23 +373,24 @@ gboolean gfsm_indexed_automaton_print_handle (gfsmIndexedAutomaton *fsm,
 	}
 
 	//-- weight
-	if (fsm->flags.is_weighted) { // && a->weight != fsm->sr->one
+	if (xfsm->flags.is_weighted) { // && a->weight != fsm->sr->one
 	  gfsmio_printf(ioh, "\t%g", a->weight);
 	}
 
 	gfsmio_putc(ioh, '\n');
       }
+    gfsm_arcrange_close(&range);
 
     //-- final?
-    if (gfsm_indexed_automaton_is_final_state(fsm,qid)) {
+    if (gfsm_indexed_automaton_state_is_final(xfsm,qid)) {
       if (state_alphabet && (key=gfsm_alphabet_find_key(state_alphabet,qid)) != NULL) {
 	gfsm_alphabet_key2string(state_alphabet,key,gs);
 	gfsmio_puts(ioh, gs->str);
       } else {
 	gfsmio_printf(ioh, "%u", qid);
       }
-      if (fsm->flags.is_weighted) {
-	gfsmio_printf(ioh, "\t%g", gfsm_indexed_automaton_get_final_weight(fsm,qid));
+      if (xfsm->flags.is_weighted) {
+	gfsmio_printf(ioh, "\t%g", gfsm_indexed_automaton_get_final_weight(xfsm,qid));
       }
       gfsmio_putc(ioh, '\n');
     }

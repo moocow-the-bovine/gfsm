@@ -84,44 +84,119 @@ GFSM_INLINE
 void gfsm_arc_free(gfsmArc *a)
 { g_free(a); }
 
+
 /*======================================================================
- * Methods: Comparison
+ * Methods: Arc Comparison (backwards-compatible)
  */
+//-- none
+
+/*======================================================================
+ * Methods: arc comparison mask utilties
+ */
+
+//--------------------------------------------------------------
 GFSM_INLINE
-gint gfsm_arc_compare_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
+gfsmArcCompMask gfsm_acmask_new(gfsmArcComp cmp, gint nth)
+{ return (cmp&gfsmACAll)<<(nth*gfsmACShift); }
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmArcComp gfsm_acmask_nth(gfsmArcCompMask m, gint nth)
+{ return (m>>(nth*gfsmACShift))&gfsmACAll; }
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmArcComp gfsm_acmask_nth_comp(gfsmArcCompMask m, gint nth)
+{ return gfsm_acmask_nth(m,nth)&(~gfsmACReverse); }
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gboolean gfsm_acmask_nth_reverse(gfsmArcCompMask m, gint nth)
+{ return (gfsm_acmask_nth(m,nth)&gfsmACReverse) ? TRUE : FALSE; }
+
+
+/*======================================================================
+ * Methods: Arc comparison: prioritized
+ */
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gint gfsm_arc_compare_bymask_1_(gfsmArc *a1, gfsmArc *a2, gfsmArcComp cmp, gfsmArcCompData *acdata)
 {
+  switch (cmp) { 
+    //
+    //-- forward (ascending)
+  case gfsmACLower:
+    if (a1->lower < a2->lower)   return -1;
+    if (a1->lower > a2->lower)   return  1;
+    return 0;
+  case gfsmACUpper:
+    if (a1->upper < a2->upper)   return -1;
+    if (a1->upper > a2->upper)   return  1;
+    return 0;
+  case gfsmACWeight:
+    return acdata->sr ? gfsm_sr_compare(acdata->sr, a1->weight, a2->weight) : 0;
+  case gfsmACSource:
+    if (a1->source < a2->source) return -1;
+    if (a1->source > a2->source) return  1;
+    return 0;
+  case gfsmACTarget:
+    if (a1->target < a2->target) return -1;
+    if (a1->target > a2->target) return  1;
+    return 0;
+    //
+    //-- reverse (descending)
+   case gfsmACLowerR:
+    if (a1->lower < a2->lower)   return  1;
+    if (a1->lower > a2->lower)   return -1;
+    return 0;
+  case gfsmACUpperR:
+    if (a1->upper < a2->upper)   return  1;
+    if (a1->upper > a2->upper)   return -1;
+    return 0;
+  case gfsmACWeightR:
+    return acdata->sr ? gfsm_sr_compare(acdata->sr, a2->weight, a1->weight) : 0;
+  case gfsmACSourceR:
+    if (a1->source < a2->source) return  1;
+    if (a1->source > a2->source) return -1;
+    return 0;
+  case gfsmACTargetR:
+    if (a1->target < a2->target) return  1;
+    if (a1->target > a2->target) return -1;
+    return 0;
+    //
+    //-- user
+  case gfsmACUser:
+    if (acdata->user_compare_func) {
+      return (*(acdata->user_compare_func))(a1,a2,acdata->user_data);
+    }
+    //
+    //-- default
+  case gfsmACNone:
+  default:
+    return 0;
+  }
+  return 0;
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gint gfsm_arc_compare_bymask_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *acdata)
+{
+  gint rc=0;
+  //-- NULL check
   if (!a1) {
     if (!a2) return 0;
     return 1;
   }
   if (!a2) return -1;
-  switch (sdata->mode) {
-  case gfsmASMLower:
-    if      (a1->lower < a2->lower)   return -1;
-    else if (a1->lower > a2->lower)   return  1;
-    else if (a1->upper < a2->upper)   return -1;
-    else if (a1->upper > a2->upper)   return  1;
-    //else if (a1->source < a2->source) return -1;
-    //else if (a1->source > a2->source) return  1;
-    else if (a1->target < a2->target) return -1;
-    else if (a1->target > a2->target) return  1;
-    return 0;
-  case gfsmASMUpper:
-    if      (a1->upper < a2->upper)   return -1;
-    else if (a1->upper > a2->upper)   return  1;
-    else if (a1->lower < a2->lower)   return -1;
-    else if (a1->lower > a2->lower)   return  1;
-    //else if (a1->source < a2->source) return -1;
-    //else if (a1->source > a2->source) return  1;
-    else if (a1->target < a2->target) return -1;
-    else if (a1->target > a2->target) return  1;
-    return 0;
-  case gfsmASMWeight:
-    return gfsm_sr_compare(sdata->sr, a1->weight, a2->weight);
-  case gfsmASMNone:
-  default:
-    return (GPOINTER_TO_INT(a2)-GPOINTER_TO_INT(a1));
-  }
+  //
+  if ( (rc=gfsm_arc_compare_bymask_1_(a1,a2,gfsm_acmask_nth(acdata->mask,0),acdata)) ) return rc;
+  if ( (rc=gfsm_arc_compare_bymask_1_(a1,a2,gfsm_acmask_nth(acdata->mask,1),acdata)) ) return rc;
+  if ( (rc=gfsm_arc_compare_bymask_1_(a1,a2,gfsm_acmask_nth(acdata->mask,2),acdata)) ) return rc;
+  if ( (rc=gfsm_arc_compare_bymask_1_(a1,a2,gfsm_acmask_nth(acdata->mask,3),acdata)) ) return rc;
+  if ( (rc=gfsm_arc_compare_bymask_1_(a1,a2,gfsm_acmask_nth(acdata->mask,4),acdata)) ) return rc;
+  if ( (rc=gfsm_arc_compare_bymask_1_(a1,a2,gfsm_acmask_nth(acdata->mask,5),acdata)) ) return rc;
   return 0;
 }
 
@@ -129,4 +204,27 @@ gint gfsm_arc_compare_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
 /*======================================================================
  * Methods: String utilities
  */
-//--EXTERN
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gchar gfsm_acmask_nth_char(gfsmArcCompMask m, gint nth)
+{
+  switch (gfsm_acmask_nth(m,nth)) {
+  case gfsmACLower:  return 'l';
+  case gfsmACUpper:  return 'u';
+  case gfsmACWeight: return 'w';
+  case gfsmACSource: return 's';
+  case gfsmACTarget: return 't';
+    //
+  case gfsmACLowerR:  return 'L';
+  case gfsmACUpperR:  return 'U';
+  case gfsmACWeightR: return 'W';
+  case gfsmACSourceR: return 'S';
+  case gfsmACTargetR: return 'T';
+    //
+  case gfsmACUser:    return 'x';
+  case gfsmACNone:    return '_';
+  default:            return '?';
+  }
+  return '?';
+}

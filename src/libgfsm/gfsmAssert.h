@@ -1,10 +1,10 @@
 
 /*=============================================================================*\
- * File: gfsmDebug.h
+ * File: gfsmAssert.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library: debugging
+ * Description: finite state machine library: assertions
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2007 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,26 +21,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-/** \file gfsmDebug.h
- *  \brief Debugging utilities
+/** \file gfsmAssert.h
+ *  \brief Assertions
  */
 
-#ifndef _GFSM_DEBUG_H
-#define _GFSM_DEBUG_H
+#ifndef _GFSM_ASSERT_H
+#define _GFSM_ASSERT_H
 
 #include <glib.h>
 
-/* Define these to enable verbose memory debugging */
-/*#define GFSM_MEM_DEBUG*/
-/*#define GFSM_ALLOC_DEBUG*/
+/**
+ *  \def    gfsm_assert_not_reached()
+ *  \detail If ever actually evaluated, aborts with an error message.
+ *          Only available if libgfsm was configured with debugging enabled.
+ *
+ * \def     gfsm_assert(expr)
+ * \detail  If \a expr does not evaluate to a true value, aborts with an error message.
+ *          Only available if libgfsm was configured with debugging enabled.
+ */
 
-/** Initialize debugging -- should be called before any other gfsm operations */
-void gfsm_debug_init(void);
+#ifdef GFSM_DEBUG_ENABLED
+# define gfsm_assert_not_reached() g_assert_not_reached()
+# define gfsm_assert(expr)         g_assert(expr)
+#else
+# define gfsm_assert_not_reached() 
+# define gfsm_assert(expr)         
+#endif
 
-/** Finish debugging -- be nice and clean up after ourselves */
-void gfsm_debug_finish(void);
-
-/** Print memory debugging trace information */
-void gfsm_debug_print(void);
-
-#endif /* _GFSM_DEBUG_H */
+#endif /* _GFSM_ASSERT_H */

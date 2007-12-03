@@ -227,6 +227,15 @@ void gfsm_automaton_finals_foreach(gfsmAutomaton *fsm, GTraverseFunc func, gpoin
 }
 
 /*--------------------------------------------------------------
+ * finals_to_array
+ */
+GFSM_INLINE
+gfsmStateWeightPairArray* gfsm_automaton_finals_to_array(gfsmAutomaton *fsm, gfsmStateWeightPairArray *array)
+{
+  return gfsm_weightmap_to_array(fsm->finals,array);
+}
+
+/*--------------------------------------------------------------
  * get_root()
  */
 GFSM_INLINE
@@ -463,8 +472,8 @@ void gfsm_automaton_add_arc_node(gfsmAutomaton *fsm,
 				 gfsmArcList    *node)
 {
   //-- possibly sorted
-  gfsmArcSortData sdata = { fsm->flags.sort_mode, fsm->sr };
-  sp->arcs = gfsm_arclist_insert_node(sp->arcs, node, &sdata);
+  gfsmArcCompData acdata = { fsm->flags.sort_mode, fsm->sr, NULL, NULL };
+  sp->arcs = gfsm_arclist_insert_node(sp->arcs, node, &acdata);
 
   //-- always unmark 'deterministic' flag -- better: check
   fsm->flags.is_deterministic = FALSE;
@@ -510,11 +519,11 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
  * arcsort()
  */
 GFSM_INLINE
-gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode)
+gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcCompMask mode)
 {
   if (mode != fsm->flags.sort_mode && mode != gfsmASMNone) {
-    gfsmArcSortData sdata = { mode, fsm->sr };    
-    gfsm_automaton_arcsort_full(fsm, (GCompareDataFunc)gfsm_arc_compare, &sdata);
+    gfsmArcCompData acdata = { mode, fsm->sr, NULL, NULL };    
+    gfsm_automaton_arcsort_full(fsm, (GCompareDataFunc)gfsm_arc_compare_bymask, &acdata);
   }
   fsm->flags.sort_mode = mode;
   return fsm;

@@ -39,9 +39,10 @@ const gfsmAutomatonFlags gfsmAutomatonDefaultFlags =
   {
     TRUE,        //-- is_transducer:1
     TRUE,        //-- is_weighted:1
-    gfsmASMNone, //-- sort_mode:4
+    //0,           //-- sort_mode_old__:4
     FALSE,       //-- is_deterministic:1
-    0            //-- unused:25
+    0,           //-- unused:29 (was: 25)
+    gfsmASMNone  //-- sort_mode
   };
 
 //const gfsmSRType gfsmAutomatonDefaultSRType = gfsmSRTReal;

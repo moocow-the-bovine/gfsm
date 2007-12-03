@@ -58,10 +58,16 @@ int gfsm_version_compare(gfsmVersionInfo v1, gfsmVersionInfo v2);
 /** Equality check for gfsmVersionInfo structures */
 #define gfsm_version_eq(v1,v2) (gfsm_version_compare((gfsmVersionInfo)(v1),(gfsmVersionInfo)(v2))==0)
 
-/** Less-than-or-equal comparison for gfsmVersionInfo structures */
+/** Less-than comparison for gfsmVersionInfo structures: v1 < v2 */
+#define gfsm_version_less(v1,v2) (gfsm_version_compare((gfsmVersionInfo)(v1),(gfsmVersionInfo)(v2))<0)
+
+/** Less-than-or-equal comparison for gfsmVersionInfo structures: v1 <= v2 */
 #define gfsm_version_le(v1,v2) (gfsm_version_compare((gfsmVersionInfo)(v1),(gfsmVersionInfo)(v2))<=0)
 
-/** Greater-than-or-equal comparison for gfsmVersionInfo structures */
+/** Greater-than comparison for gfsmVersionInfo structures: v1 > v2 */
+#define gfsm_version_greater(v1,v2) (gfsm_version_compare((gfsmVersionInfo)(v1),(gfsmVersionInfo)(v2))>0)
+
+/** Greater-than-or-equal comparison for gfsmVersionInfo structures: v1 >= v2 */
 #define gfsm_version_ge(v1,v2) (gfsm_version_compare((gfsmVersionInfo)(v1),(gfsmVersionInfo)(v2))>=0)
 
 #endif /* _GFSM_VERSION_H */

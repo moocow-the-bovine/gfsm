@@ -311,7 +311,8 @@ gfsmAutomaton *gfsm_automaton_lookup_viterbi_full(gfsmAutomaton     *fst,
   //-- mark single best path from new root
   qid_trellis = qid_trellis_nxt;
   q_trellis = gfsm_automaton_find_state(trellis,qid_trellis);
-  q_trellis->arcs = gfsm_arclist_sort(q_trellis->arcs, &((gfsmArcSortData){gfsmASMWeight,fst->sr}));
+  q_trellis->arcs = gfsm_arclist_sort(q_trellis->arcs,
+				      &((gfsmArcCompData){gfsmASMWeight,fst->sr,NULL,NULL}));
 
   //-- break dummy arc on trellis final state (old root)
   q_trellis = gfsm_automaton_find_state(trellis,trellis->root_id);

@@ -1,4 +1,95 @@
 //=================================================================================
+// arc sorting (old)
+//=================================================================================
+
+/// Typedef for mode-dependent arc-sorting parameters
+/** \see gfsm_arc_compare(), gfsm_arclist_sort(), gfsm_automaton_arcsort() */
+typedef struct {
+  gfsmArcSortMode  mode; /**< sort mode */
+  gfsmSemiring    *sr;   /**< semiring for weight-mode, otherwise ignored */
+} gfsmArcSortDataOLD;
+
+/** Old-style default 3-way comparison on arcs (inline version)
+ *  \param a1 first arc to compare
+ *  \param a2 second arc to compare
+ *  \param sdata specifies comparison mode
+ *  \returns
+ *    negative, zero, or positive integer depending on whether
+ *    \a a1 is less-than, equal-to, or greater-than \a a2 according to \a sdata.
+ *  \note
+ *    \li Prefer gfsm_arc_compare_inline() for literal direct arc comparisons in new code
+ *    \li Prefer gfsm_arc_compare() if you're passing function pointers around, since
+ *        its address is guaranteed not to change between compilation units.
+ */
+GFSM_INLINE
+gint gfsm_arc_compare_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcSortDataOLD *sdata);
+
+/** Old-style default 3-way comparison on arcs (extern version)
+ *  Really just a wrapper for gfsm_arc_compare_inline()
+ */
+gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortDataOLD *sdata);
+
+GFSM_INLINE
+gint gfsm_arc_compare_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcSortData *sdata)
+{
+  if (!a1) {
+    if (!a2) return 0;
+    return 1;
+  }
+  if (!a2) return -1;
+  switch (sdata->mode) {
+  case gfsmASMLower:
+    if (a1->lower < a2->lower)   return -1;
+    if (a1->lower > a2->lower)   return  1;
+    if (a1->upper < a2->upper)   return -1;
+    if (a1->upper > a2->upper)   return  1;
+    //if (a1->source < a2->source) return -1;
+    //if (a1->source > a2->source) return  1;
+    if (a1->target < a2->target) return -1;
+    if (a1->target > a2->target) return  1;
+    return 0;
+  case gfsmASMUpper:
+    if (a1->upper < a2->upper)   return -1;
+    if (a1->upper > a2->upper)   return  1;
+    if (a1->lower < a2->lower)   return -1;
+    if (a1->lower > a2->lower)   return  1;
+    //if (a1->source < a2->source) return -1;
+    //if (a1->source > a2->source) return  1;
+    if (a1->target < a2->target) return -1;
+    if (a1->target > a2->target) return  1;
+    return 0;
+  case gfsmASMWeight:
+    return gfsm_sr_compare(sdata->sr, a1->weight, a2->weight);
+  case gfsmASMNone:
+  default:
+    return (GPOINTER_TO_INT(a2)-GPOINTER_TO_INT(a1));
+  }
+  return 0;
+}
+
+/** Backwards-compatible wrapper for gfsm_arc_compare_bymask() */
+gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortDataOLD *sdata);
+
+/** Return symbolic name of an (old-style) arc-sort mode */
+const gchar *gfsm_arc_sortmode_to_name(gfsmArcSortModeOLD mode);
+
+/*--------------------------------------------------------------
+ * compare()
+ */
+gint gfsm_arc_compare(gfsmArc *a1, gfsmArc *a2, gfsmArcSortDataOLD *sdata)
+{
+  gfsmArcCompData acdata = { 0, sdata->sr, NULL,NULL };
+  switch (sdata->mode) {
+  case gfsmASMLowerOLD:  acdata.mask = gfsmASMLower; break;
+  case gfsmASMUpperOLD:  acdata.mask = gfsmASMUpper; break;
+  case gfsmASMWeightOLD: acdata.mask = gfsmASMWeight; break;
+  default:
+    break;
+  }
+  return gfsm_arc_compare_bymask_inline(a1,a2,&acdata);
+}
+
+//=================================================================================
 // statepair2weightXXX
 //=================================================================================
 

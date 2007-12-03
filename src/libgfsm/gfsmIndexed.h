@@ -28,26 +28,11 @@
 #ifndef _GFSM_INDEXED_H
 #define _GFSM_INDEXED_H
 
-#include <gfsmAutomaton.h>
+#include <gfsmArcIndex.h>
 
 /*======================================================================
  * Types
  */
-
-/// Final-weight index type for gfsmIndexedAutomaton
-/** GArray of ::gfsmWeight, indexed by state id: final weight or sr->zero if state is non-final */
-typedef GArray gfsmWeightArray;
-
-/// Arc storage type for gfsmIndexedAutomaton
-/** GArray of ::gfsmArc, indexed by absolute arc offset */
-typedef GArray gfsmArcArray;
-
-/// Type for an arc offset in a gfsmIndexedAutomaton
-typedef guint gfsmArcId;
-
-/// Type for for an array of arc offsets
-/** GArray of gfsmArcId, indexed by whatever */
-typedef GArray gfsmArcIdArray;
 
 /// Type for an indexed automaton.
 typedef struct {
@@ -57,38 +42,13 @@ typedef struct {
   gfsmStateId         root_id;            /**< id of root state, or gfsmNoState if not defined */
   //
   //-- Basic data
-  gfsmBitVector      *state_is_valid;     /**< per-state validity flags */
-  gfsmWeightArray    *state_final_weight; /**< State final weight, or sr->zero */
-  gfsmArcArray       *arcs;               /**< Arc storage (sorted primarily by source state) */
-  gfsmArcIdArray     *state_first_arc;    /**< ID of first outgoing arc, indexed by state */
+  //gfsmBitVector      *state_is_valid;     /* per-state validity flags */
+  gfsmWeightVector   *state_final_weight; /**< State final weight, or sr->zero */
+  gfsmArcTableIndex  *arcs;               /**< Arc storage (sorted primarily by source state) */
   //
-  //-- Forward indices
-  gfsmArcIdArray     *arcix_lower;        /**< arc-ids (state_first_arc applies) sorted by lower label */
-  gfsmArcIdArray     *arcix_upper;        /**< arc-ids (state_first_arc applies) sorted by upper label */
-  //
-#if 0
-  //-- Reverse indices
-  gfsmArcIdArray     *rarcs;              /**< arc-ids sorted primarily by target state */
-  gfsmArcIdArray     *state_first_rarc;   /**< ID of first incoming arc in rarcs, indexed by target state */
-  gfsmArcIdArray     *rarcix_lower;       /**< arc-ids (state_first_rarc applies) sorted by lower label */
-  gfsmArcIdArray     *rarcix_upper;       /**< arc-ids (state_first_rarc applies) sorted by upper label */
-#endif
-  //
-  //-- .... more here?
+  //-- Sort priority data
+  gfsmArcCompMask       sort_mask;        /**< arc-sort priority mask */
 } gfsmIndexedAutomaton;
-
-/// sort data passed to gfsm_indexed_automaton_build_indices()
-typedef struct {
-  gfsmArc       *arcs; ///< pointer to populate arc array
-  gfsmSemiring  *sr;   ///< pointer to fsm semiring
-} gfsmIndexedAutomatonSortData;
-
-/*======================================================================
- * Constants
- */
-
-/// Constant indicating an invalid arc (or state)
-extern const gfsmArcId gfsmNoArc;
 
 /*======================================================================
  * Methods: gfsmIndexedAutomaton: constructors, etc.
@@ -96,23 +56,24 @@ extern const gfsmArcId gfsmNoArc;
 /// \name Constructors etc.
 //@{
 
-/** Create a new ::gfsmIndexedAutomaton, specifying some basic automaton structure */
+/** Create a new ::gfsmIndexedAutomaton, specifying some basic automaton & index structure */
+GFSM_INLINE
 gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
 						      gfsmSRType         srtype,
 						      gfsmStateId        n_states,
-						      gfsmArcId          n_arcs);
+						      guint              n_arcs,
+						      gfsmArcCompMask    sort_mask);
 
 /** Create a new indexed automaton, using some default values */
-#define gfsm_indexed_automaton_new() \
-    gfsm_indexed_automaton_new_full(gfsmAutomatonDefaultFlags,\
-                                    gfsmAutomatonDefaultSRType,\
-                                    gfsmAutomatonDefaultSize,\
-                                    gfsmAutomatonDefaultSize)
+GFSM_INLINE
+gfsmIndexedAutomaton *gfsm_indexed_automaton_new(void);
 
 /** Clear a ::gfsmIndexedAutomaton */
+GFSM_INLINE
 void gfsm_indexed_automaton_clear(gfsmIndexedAutomaton *xfsm);
 
 /** Free a ::gfsmIndexedAutomaton */
+GFSM_INLINE
 void gfsm_indexed_automaton_free(gfsmIndexedAutomaton *xfsm);
 
 //@}
@@ -132,20 +93,6 @@ void gfsm_indexed_automaton_free(gfsmIndexedAutomaton *xfsm);
  */
 gfsmIndexedAutomaton *gfsm_automaton_to_indexed(gfsmAutomaton *fsm, gfsmIndexedAutomaton *xfsm);
 
-/** (low-level) populate xfsm->arcix_lower and xfsm->arcix_upper  */
-void gfsm_indexed_automaton_build_indices(gfsmIndexedAutomaton *xfsm);
-
-/** Comparison function for gfsm_indexed_automaton_build_indices() */
-gint gfsm_indexed_automaton_build_cmp_lo(const gfsmArcId *aidp1,
-					 const gfsmArcId *aidp2,
-					 gfsmIndexedAutomatonSortData *sdata);
-
-/** Comparison function for gfsm_indexed_automaton_build_indices() */
-gint gfsm_indexed_automaton_build_cmp_hi(const gfsmArcId *aidp1,
-					 const gfsmArcId *aidp2,
-					 gfsmIndexedAutomatonSortData *sdata);
-
-
 /** Export a ::gfsmIndexedAutomaton to a ::gfsmAutomaton
  *  \param xfsm source indexed automaton
  *  \param fsm destination :.gfsmAutomaton
@@ -164,108 +111,118 @@ gfsmAutomaton *gfsm_indexed_to_automaton(gfsmIndexedAutomaton *xfsm, gfsmAutomat
 //@{
 
 /** Reserve space for at least \a n_states states */
-gfsmStateId gfsm_indexed_automaton_reserve_states(gfsmIndexedAutomaton *fsm, gfsmStateId n_states);
+GFSM_INLINE
+void gfsm_indexed_automaton_reserve_states(gfsmIndexedAutomaton *xfsm, gfsmStateId n_states);
 
 /** Reserve space for at least \a n_arcs arcs */
-gfsmArcId gfsm_indexed_automaton_reserve_arcs(gfsmIndexedAutomaton *fsm, gfsmArcId n_arcs);
+GFSM_INLINE
+void gfsm_indexed_automaton_reserve_arcs(gfsmIndexedAutomaton *xfsm, guint n_arcs);
+
+/** (re-)sort arcs in a ::gfsmIndexedAutomaton */
+GFSM_INLINE
+void gfsm_indexed_automaton_sort(gfsmIndexedAutomaton *xfsm, gfsmArcCompMask sort_mask);
 
 //@}
 
 /*======================================================================
- * Methods: Accessors: gfsmAutomaton API: Automaton
+ * gfsmAutomaton API: Automaton properties
  */
-/// \name Accessors: gfsmAutomaton API: Automaton
+/// \name gfsmAutomaton API: automaton properties
 //@{
 
 /** Get pointer to the semiring associated with this automaton */
 #define gfsm_indexed_automaton_get_semiring(xfsm) (xfsm->sr)
 
 /** Set the semiring associated with this automaton */
-gfsmSemiring *gfsm_indexed_automaton_set_semiring(gfsmIndexedAutomaton *fsm, gfsmSemiring *sr);
+GFSM_INLINE
+gfsmSemiring *gfsm_indexed_automaton_set_semiring(gfsmIndexedAutomaton *xfsm, gfsmSemiring *sr);
 
 /** Set the semiring associated with this automaton by semiring-type */
-void gfsm_indexed_automaton_set_semiring_type(gfsmIndexedAutomaton *fsm, gfsmSRType srtype);
-
-/** True iff automaton is a transducer */
-#define gfsm_indexed_automaton_is_transducer(fsm) gfsm_automaton_is_transducer(fsm)
-
-/** True iff automaton is weighted */
-#define gfsm_indexed_automaton_is_weighted(fsm) gfsm_automaton_is_weighted(fsm)
+GFSM_INLINE
+void gfsm_indexed_automaton_set_semiring_type(gfsmIndexedAutomaton *xfsm, gfsmSRType srtype);
 
 /** Get number of states (constant time) */
-#define gfsm_indexed_automaton_n_states(fsm) ((fsm)->state_final_weight->len)
+GFSM_INLINE
+gfsmStateId gfsm_indexed_automaton_n_states(gfsmIndexedAutomaton *xfsm);
 
 /** Get total number of arcs (constant time) */
-#define gfsm_indexed_automaton_n_arcs(fsm) ((fsm)->arcs->len)
+GFSM_INLINE
+guint gfsm_indexed_automaton_n_arcs(gfsmIndexedAutomaton *xfsm);
 
 /** Get Id of root node, or gfsmNoState if undefined */
-#define gfsm_indexed_automaton_get_root(fsm) gfsm_automaton_get_root(fsm)
+GFSM_INLINE
+gfsmStateId gfsm_indexed_automaton_get_root(gfsmIndexedAutomaton *xfsm);
 
 /** Set Id of root node, creating state if necessary */
-#define gfsm_indexed_automaton_set_root(fsm,id) gfsm_automaton_set_root((fsm),(id))
-
-/** Alias for gfsm_indexed_automaton_reserve_states */
-#define gfsm_indexed_automaton_reserve(fsm,n_states) gfsm_indexed_automaton_reserve_states((fsm),(n_states))
+GFSM_INLINE
+void gfsm_indexed_automaton_set_root(gfsmIndexedAutomaton *xfsm, gfsmStateId qid);
 
 //@}
 
 /*======================================================================
  * Methods: Accessors: gfsmAutomaton API: States
  */
-/// \name Accessors: gfsmAutomaton API: States
+/// \name gfsmAutomaton API: States
 //@{
 
-/** Check whether state might possibly exist in automaton (low-level) */
-#define gfsm_indexed_automaton_check_state(fsm,qid) \
-    ((qid) < gfsm_indexed_automaton_n_states(fsm))
-
 /** Check whether automaton has a state with ID \a qid. */
-#define gfsm_indexed_automaton_has_state(fsm,qid) \
-    ((qid) < gfsm_indexed_automaton_n_states(fsm) \
-     && gfsm_bitvector_get((fsm)->state_is_valid, (qid)))
-
-//    gfsm_indexed_automaton_check_state((fsm),(id))
-//    && g_array_index((fsm)->state_first_arc,gfsmArcId,(id)) != gfsmNoArc)
-
+GFSM_INLINE
+gboolean gfsm_indexed_automaton_has_state(gfsmIndexedAutomaton *xfsm, gfsmStateId qid);
 
 /** Ensures that state \a id exists \returns \a qid */
+GFSM_INLINE
 gfsmStateId gfsm_indexed_automaton_ensure_state(gfsmIndexedAutomaton *xfsm, gfsmStateId qid);
 
-
 /* Remove the state with id \a qid, if any.
- * Currently, this just clears the bit for \a qid in \a fsm->state_is_valid.
+ * Currently does nothing.
  */
+GFSM_INLINE
 void gfsm_indexed_automaton_remove_state(gfsmIndexedAutomaton *fsm, gfsmStateId qid);
 
-
-/** Check whether a state is final.  \returns gboolean */
-#define gfsm_indexed_automaton_is_final_state(fsm,qid) \
-  (gfsm_indexed_automaton_has_state((fsm),(qid)) \
-   && g_array_index((fsm)->state_final_weight,gfsmWeight,(qid)) != (fsm)->sr->zero)
-
 /** Set boolean final-state flag. \returns (void) */
-#define gfsm_indexed_automaton_set_final_state(fsm,qid,is_final) \
-  gfsm_indexed_automaton_set_final_state_full(fsm,qid,is_final,fsm->sr->one)
+#define gfsm_indexed_automaton_set_final_state(xfsm,qid,is_final) \
+  gfsm_indexed_automaton_set_final_state_full((xfsm),(qid),(is_final),(xfsm)->sr->one)
 
 /** Set final weight. \returns (void) */
+GFSM_INLINE
 void gfsm_indexed_automaton_set_final_state_full(gfsmIndexedAutomaton *fsm,
 						 gfsmStateId    qid,
 						 gboolean       is_final,
 						 gfsmWeight     final_weight);
 
-/** Get final weight. \returns final weight if state \a qid is final, else \a fsm->sr->zero */
-#define gfsm_indexed_automaton_get_final_weight(fsm,qid) \
-  (gfsm_indexed_automaton_has_state((fsm),(qid)) \
-   ? g_array_index((fsm)->state_final_weight,gfsmWeight,(qid)) \
-   : (fsm)->sr->zero)
-
 /** Lookup final weight. \returns TRUE iff state \a id is final, and sets \a *wp to its final weight. */
+GFSM_INLINE
 gboolean gfsm_indexed_automaton_lookup_final(gfsmIndexedAutomaton *fsm, gfsmStateId id, gfsmWeight *wp);
 
+/** Is \a qid final in \a xfsm?  Really just wraps gfsm_indexed_automaton_lookup_final() */
+GFSM_INLINE
+gboolean gfsm_indexed_automaton_state_is_final(gfsmIndexedAutomaton *xfsm, gfsmStateId qid);
+
+/** Get final weight for \a qid final in \a xfsm?  Really just wraps gfsm_indexed_automaton_lookup_final() */
+GFSM_INLINE
+gfsmWeight gfsm_indexed_automaton_get_final_weight(gfsmIndexedAutomaton *xfsm, gfsmStateId qid);
+
 /** Get number of outgoing arcs. \returns guint */
+GFSM_INLINE
 guint gfsm_indexed_automaton_out_degree(gfsmIndexedAutomaton *fsm, gfsmStateId qid);
 
 //@}
 
+/*======================================================================
+ * ArcRange
+ */
+///\name gfsmArcRange interface
+//@{
+
+/** Open a ::gfsmArcRange for outgoing arcs from state \a qid in \a xfsm */
+GFSM_INLINE
+void gfsm_arcrange_open_indexed(gfsmArcRange *range, gfsmIndexedAutomaton *xfsm, gfsmStateId qid);
+
+//@}
+
+//-- inline definitions
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmIndexed.hi>
+#endif
 
 #endif /* _GFSM_INDEXED_H */

@@ -55,6 +55,8 @@ typedef union {
   gpointer   p; /**< Interpret underlying binary data as a gpointer   */
 } gfsmWeightOrPointer;
 
+/** \brief Type for a GArray of ::gfsmStateWeightPair */
+typedef GArray gfsmStateWeightPairArray;
 
 /*======================================================================
  * gfsmWeight <-> gpointer conversions
@@ -134,12 +136,21 @@ void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeig
 
 /** Traversal (see g_tree_foreach) */
 #define gfsm_weightmap_foreach(weightmap,func,data) g_tree_foreach((weightmap),(func),(data))
+
+/** Copy contents of a ::gfsmWeightMap into a ::gfsmStateWeightPairArray
+ *  \param weightmap weightmap to examine
+ *  \param array     array to be populated, or NULL to allocate a new array
+ *  \returns \a array, or a newly allocated ::gfsmStateWeightPairArray
+ *  \note Caller is responsible for freeing \a array when it is no longer needed.
+ */
+gfsmStateWeightPairArray *gfsm_weightmap_to_array(gfsmWeightMap *weightmap, gfsmStateWeightPairArray *array);
+
 //@}
 
 
 
 /*======================================================================
- * gfsmWeighHash: Constructors etc.
+ * gfsmWeightHash: Constructors etc.
  */
 ///\name gfsmWeightHash: Constructors etc.
 //@{

@@ -24,10 +24,10 @@
  * \file gfsmConfig.h
  * \brief safely include autoheader preprocessor defines
  *
- * \file gfsmNoConfig.h
+ * \file gfsmConfigNoAuto.h
  * \brief Undefine any autoheader preprocessor defines
  *
- * \file gfsmAutoConfig.h
+ * \file gfsmConfigAuto.h
  * \brief autoheader-generated preprocessor defines
  */
 
@@ -37,8 +37,8 @@
  * the autoheader-generated preprocessor symbols (e.g. after
  * (#include)ing in some config.h from another autoheader package
  */
-#include <gfsmNoConfig.h>
-#include <gfsmAutoConfig.h>
+#include <gfsmConfigNoAuto.h>
+#include <gfsmConfigAuto.h>
 
 /* 
  * Define a sentinel preprocessor symbol _GFSM_CONFIG_H, just

@@ -69,9 +69,11 @@ libgfsm_la_SOURCES = \
 	gfsmScanner.c \
 	gfsmRegex.lex.l \
 	gfsmRegex.tab.y \
-	gfsmRegexCompiler.c
+	gfsmRegexCompiler.c \
+	gfsmIndexed.c \
+	gfsmIndexedIO.c
 
-sources_old = \
+sources_argh = \
 	gfsmIndexed.c \
 	gfsmIndexed2.c \
 	gfsmIndexedIO.c
@@ -85,7 +87,7 @@ sources_old = \
 ##----------------------------------------------------
 ## Additional rules
 
-gfsmNoConfig.h: gfsmAutoConfig.h.in
+gfsmConfigNoAuto.h: gfsmConfigAuto.h.in
 	rm -f "$@"
 	cp "$<" "$@"
 
@@ -96,9 +98,10 @@ gfsmNoConfig.h: gfsmAutoConfig.h.in
 ## --- installable headers: @includedir@/@pkgname@
 #pkginclude_HEADERS = ${hfile_1} ... ${hfile_N}
 pkginclude_HEADERS = \
+	gfsmAssert.h \
 	gfsmConfig.h \
-	gfsmNoConfig.h \
-	gfsmAutoConfig.h \
+	gfsmConfigNoAuto.h \
+	gfsmConfigAuto.h \
 	gfsmCommon.h \
 	gfsmCompound.h \
 	gfsmCompound.hi \
@@ -127,6 +130,7 @@ pkginclude_HEADERS = \
 	gfsmArcIter.h \
 	gfsmArcIter.hi \
 	gfsmArcIndex.h \
+	gfsmArcIndex.hi \
 	gfsmState.h \
 	gfsmState.hi \
 	gfsmStateSet.h \
@@ -142,9 +146,12 @@ pkginclude_HEADERS = \
 	gfsmTrie.h \
 	gfsmScanner.h \
 	gfsmRegexCompiler.h \
+	gfsmIndexed.h \
+	gfsmIndexed.hi \
+	gfsmIndexedIO.h \
 	gfsm.h
 
-headers_old = \
+headers_argh = \
 	gfsmIndexed.h \
 	gfsmIndexed2.h \
 	gfsmIndexedIO.h
@@ -251,7 +258,7 @@ MAINTAINERCLEANFILES = \
 ## --- extra distribution files
 EXTRA_DIST = \
 	config.h \
-	gfsmNoConfig.h \
+	gfsmConfigNoAuto.h \
 	gfsmRegex.lex.c \
 	gfsmRegex.lex.h \
 	gfsmRegex.tab.c \

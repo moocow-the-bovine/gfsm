@@ -45,9 +45,9 @@
 typedef struct {
   guint32 is_transducer     : 1;       /**< whether this automaton is a transducer */
   guint32 is_weighted       : 1;       /**< whether this automaton is weighted */
-  guint32 sort_mode         : 4;       /**< sort-mode (cast to gfsmArcSortMode) */
   guint32 is_deterministic  : 1;       /**< whether fsm is known to be deterministic */
-  guint32 unused            : 25;      /**< reserved */
+  guint32 sort_mode         : 24;      /**< new-style sort mode (a ::gfsmArcCompMask) */
+  guint32 unused            : 5;       /**< reserved */
 } gfsmAutomatonFlags;
 
 /** \brief "Heavy" automaton type
@@ -239,9 +239,20 @@ gboolean my_final_func(gpointer id_p, gpointer fw_p, gpointer data) {
   return FALSE;                                       //-- continue traversal
 }
 \endcode
+*   \see gfsm_automaton_finals_to_array()
  */
 GFSM_INLINE
 void gfsm_automaton_finals_foreach(gfsmAutomaton *fsm, GTraverseFunc func, gpointer data);
+
+/** Get a GArray of ::gfsmStateWeightPair values for final states of \a fsm.
+ *  \param fsm   automaton from which to extract final states
+ *  \param array array to be populated, or NULL to allocate a new array
+ *  \returns new \a array, or a newly allocated ::gfsmStateWeightPairArray
+ *  \note
+ *    Caller is responsible for freeing the array returned when it is no longer needed.
+ */
+GFSM_INLINE
+gfsmStateWeightPairArray* gfsm_automaton_finals_to_array(gfsmAutomaton *fsm, gfsmStateWeightPairArray *array);
 
 //@}
 
@@ -257,8 +268,11 @@ void gfsm_automaton_finals_foreach(gfsmAutomaton *fsm, GTraverseFunc func, gpoin
 /** True iff automaton is weighted */
 #define gfsm_automaton_is_weighted(fsm) ((fsm)->flags.is_weighted)
 
-/** Get current automaton arc-sort mode */
-#define gfsm_automaton_sortmode(fsm) ((gfsmArcSortMode)((fsm)->flags.sort_mode))
+/** Get current automaton arc-sort mode (primary sort) */
+#define gfsm_automaton_sortmode(fsm) \
+    ((gfsmArcSortMode)(gfsm_acmask_nth((fsm)->flags.sort_mode,0)))
+
+//  ((gfsmArcSortMode)((fsm)->flags.sort_mode))
 
 /** Get verbose summary arc information (linear time w/ number of arcs)
  *  \param[in]  fsm automaton to examine
@@ -508,14 +522,14 @@ void gfsm_automaton_add_arc_node(gfsmAutomaton *fsm,
 
 /** Sort all arcs in an automaton by one of the built-in comparison functions.
  *  \param fsm  Automaton to modify
- *  \param mode Specifies built-in arc comparison function
+ *  \param mode Specifies built-in arc comparison priorities
  *  \returns modified \a fsm
  *  \note
  *    \li Does nothing if \code (mode==gfsmASMNone || mode==fsm->flags.sort_mode) \endcode
  *    \li Really just a wrapper for gfsm_automaton_arcsort_full()
  */
 GFSM_INLINE
-gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode);
+gfsmAutomaton *gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcCompMask mode);
 
 /** Sort all arcs in an automaton by a user-specified comparison function.
  *  \param fsm

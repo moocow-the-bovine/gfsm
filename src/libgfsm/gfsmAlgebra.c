@@ -23,6 +23,7 @@
 
 #include <glib.h>
 #include <gfsmAlgebra.h>
+#include <gfsmAssert.h>
 #include <gfsmArcIter.h>
 #include <gfsmStateSet.h>
 #include <gfsmEnum.h>
@@ -56,7 +57,7 @@ gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus)
   if (!fsm || fsm->root_id == gfsmNoState) return fsm;
 
   //-- add epsilon arcs from old final states to translated new root
-  g_tree_foreach(fsm->finals, (GTraverseFunc)gfsm_automaton_closure_final_func_, fsm);
+  gfsm_automaton_finals_foreach(fsm, (GTraverseFunc)gfsm_automaton_closure_final_func_, fsm);
 
   //-- reflexive+transitive or reflexive?
   if (!is_plus) gfsm_automaton_optional(fsm);
@@ -123,8 +124,11 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton *fsm, gfsmAlphabet *alph, g
   GPtrArray    *alabels;
 
   if (!fsm->flags.is_deterministic) fsm = gfsm_automaton_determinize(fsm);
-  gfsm_automaton_arcsort(fsm,gfsmASMLower);
-  fsm->flags.sort_mode = gfsmASMNone; //-- avoid "smart" arc insertion
+  if (gfsm_acmask_nth(fsm->flags.sort_mode,0) != gfsmACLower) {
+    gfsm_automaton_arcsort(fsm,gfsmACLower);
+  }
+  //-- avoid "smart" arc insertion
+  fsm->flags.sort_mode = gfsmASMNone;
 
   //-- add sink-id
   sinkid = gfsm_automaton_add_state(fsm);
@@ -199,14 +203,14 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 					  gfsmAutomaton     *fsm1,
 					  gfsmAutomaton     *fsm2,
 					  gfsmAutomaton     *fsm,
-					  gfsmComposeStateEnum *spenum)
+					  gfsmComposeStateEnum *spenum,
+					  gfsmComposeFlags   flags)
 {
   gfsmState   *q1, *q2;
   gfsmStateId qid = gfsm_enum_lookup(spenum,&sp);
   gfsmStateId qid2;
   gfsmArcList *al1, *al2, *ai1, *ai2;
   gfsmArcList *ai1_noneps, *ai2_noneps, *ai2_continue;
-  gboolean     al1_temp=FALSE, al2_temp=FALSE;
   gfsmArc     *a1,*a2;
 
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
@@ -251,21 +255,19 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
   //--------------------------------
   // recurse: arcs: sort
 
-  //-- arcs: sort arclists: fsm12
-  if (gfsm_automaton_sortmode(fsm1)==gfsmASMUpper) al1 = q1->arcs;
-  else {
-    gfsmArcSortData sortdata = {gfsmASMUpper,NULL};
+  //-- arcs: sort arclists: fsm1
+  if (flags&gfsmCFEfsm1NeedsArcSort) {
+    gfsmArcCompData sortdata = { gfsmACUpper,NULL,NULL,NULL };
     al1 = gfsm_arclist_sort(gfsm_arclist_clone(q1->arcs), &sortdata);
-    al1_temp = TRUE;
   }
+  else { al1 = q1->arcs; }
 
   //-- arcs: sort arclists: fsm2
-  if (gfsm_automaton_sortmode(fsm2)==gfsmASMLower) al2 = q2->arcs;
-  else {
-    gfsmArcSortData sortdata = {gfsmASMLower,NULL};
+  if (flags&gfsmCFEfsm2NeedsArcSort) {
+    gfsmArcCompData sortdata = { gfsmACLower,NULL,NULL,NULL };
     al2 = gfsm_arclist_sort(gfsm_arclist_clone(q2->arcs), &sortdata);
-    al2_temp = TRUE;
   }
+  else { al2 = q2->arcs; }
 
   //--------------------------------
   // recusrse: arcs: handle epsilons
@@ -282,7 +284,7 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 	      sp.id1, a1->lower, a1->target,
 	      sp.id2, sp.id2);
 #endif
-      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target, sp.id2, 2}, fsm1, fsm2, fsm, spenum);
+      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target, sp.id2, 2}, fsm1,fsm2,fsm, spenum,flags);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, gfsmEpsilon, a1->weight);
     }
@@ -297,7 +299,7 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 	      sp.id1, sp.id1,
 	      sp.id2, a2->upper, a2->target);
 #endif
-      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){sp.id1, a2->target, 1}, fsm1, fsm2, fsm, spenum);
+      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){sp.id1, a2->target, 1}, fsm1,fsm2,fsm, spenum,flags);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, a2->upper, a2->weight);
     }
@@ -314,7 +316,8 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 		sp.id1, a1->lower, a1->target,
 		sp.id2, a2->upper, a2->target);
 #endif
-	qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target, a2->target, 0}, fsm1, fsm2, fsm, spenum);
+	qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target, a2->target, 0},
+					     fsm1,fsm2,fsm, spenum,flags);
 	if (qid2 != gfsmNoState)
 	  gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a2->upper,
 				 gfsm_sr_times(fsm->sr, a1->weight, a2->weight));
@@ -349,7 +352,7 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 
       //-- non-eps: case fsm1:(q1 --a:b--> q1'), fsm2:(q2 --b:c-->  q2')
       qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target,a2->target,0},
-					   fsm1, fsm2, fsm, spenum);
+					   fsm1,fsm2,fsm, spenum,flags);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a2->upper,
 			       gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
@@ -357,8 +360,8 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
   }
 
   //-- maybe cleanup temporary arc-lists
-  if (al1_temp) gfsm_arclist_free(al1);
-  if (al2_temp) gfsm_arclist_free(al2);
+  if (flags&gfsmCFEfsm1NeedsArcSort) gfsm_arclist_free(al1);
+  if (flags&gfsmCFEfsm2NeedsArcSort) gfsm_arclist_free(al2);
 
   return qid;
 }
@@ -379,6 +382,7 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
   gboolean          spenum_is_temp;
   gfsmComposeState  rootpair;
   gfsmStateId       rootid;
+  gfsmComposeFlags  flags = 0;
 #ifdef GFSM_DEBUG_COMPOSE
   gfsmError *err =NULL;
 #endif
@@ -402,11 +406,15 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
     gfsm_enum_clear(spenum);
   }
 
+  //-- setup: flags
+  if (gfsm_acmask_nth(fsm1->flags.sort_mode,0) != gfsmACUpper) flags |= gfsmCFEfsm1NeedsArcSort;
+  if (gfsm_acmask_nth(fsm2->flags.sort_mode,0) != gfsmACLower) flags |= gfsmCFEfsm2NeedsArcSort;
+
   //-- guts: recursively visit states depth-first from root
   rootpair.id1 = fsm1->root_id;
   rootpair.id2 = fsm2->root_id;
   rootpair.idf = 0;
-  rootid = gfsm_automaton_compose_visit_(rootpair, fsm1, fsm2, composition, spenum);
+  rootid = gfsm_automaton_compose_visit_(rootpair, fsm1, fsm2, composition, spenum, flags);
 
   //-- finalize: set new root state
   if (rootid != gfsmNoState) {
@@ -489,7 +497,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
     gfsmStateId root_tmp = fsm1->root_id;
     rootx                = fsm2->root_id+offset;
     fsm1->root_id        = rootx;
-    g_tree_foreach(fsm1->finals, (GTraverseFunc)gfsm_automaton_concat_final_func_, fsm1);
+    gfsm_automaton_finals_foreach(fsm1, (GTraverseFunc)gfsm_automaton_concat_final_func_, fsm1);
     fsm1->root_id        = root_tmp;
   } else /*if (fsm2->root_id != gfsmNoState)*/ {
     fsm1->root_id = rootx = fsm2->root_id + offset;
@@ -531,7 +539,8 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
       }
   }
 
-  fsm1->flags.sort_mode = gfsmASMNone; //-- mark as unsorted
+  //-- mark as unsorted
+  fsm1->flags.sort_mode = gfsmASMNone;
 
   //-- cleanup
   if (finals2) gfsm_weightmap_free(finals2);
@@ -695,7 +704,7 @@ gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
   }
 
   //-- traverse
-  g_tree_foreach(fsm->finals, (GTraverseFunc)gfsm_connect_bw_visit_state,  &data);
+  gfsm_automaton_finals_foreach(fsm, (GTraverseFunc)gfsm_connect_bw_visit_state,  &data);
   gfsm_automaton_prune_states(fsm, finalizable);
 
   //-- cleanup
@@ -919,7 +928,8 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
     gfsm_automaton_clear(dfa);
     gfsm_automaton_copy_shallow(dfa,nfa);
   }
-  dfa->flags.sort_mode = gfsmASMNone; //-- avoid "smart" arc-insertion
+  //-- avoid "smart" arc-insertion
+  dfa->flags.sort_mode = gfsmASMNone;
 
   //-- initialization: ec2id
   ec2id = gfsm_enum_new_full(NULL /*(gfsmDupFunc)gfsm_stateset_clone*/ ,
@@ -1006,6 +1016,7 @@ gfsmAutomaton *gfsm_automaton_intersect_full(gfsmAutomaton *fsm1,
   gboolean      spenum_is_temp;
   gfsmStatePair rootpair;
   gfsmStateId   rootid;
+  gfsmComposeFlags flags = 0;
 
   //-- setup: output fsm
   if (!intersect) {
@@ -1014,6 +1025,7 @@ gfsmAutomaton *gfsm_automaton_intersect_full(gfsmAutomaton *fsm1,
     gfsm_automaton_clear(intersect);
     gfsm_automaton_copy_shallow(intersect,fsm1);
   }
+  //-- avoid "smart" arc-insertion
   intersect->flags.sort_mode     = gfsmASMNone;
   intersect->flags.is_transducer = 0;
 
@@ -1026,10 +1038,14 @@ gfsmAutomaton *gfsm_automaton_intersect_full(gfsmAutomaton *fsm1,
     gfsm_enum_clear(spenum);
   }
 
+  //-- setup: flags
+  if (gfsm_acmask_nth(fsm1->flags.sort_mode,0) != gfsmACLower) flags |= gfsmCFEfsm1NeedsArcSort;
+  if (gfsm_acmask_nth(fsm2->flags.sort_mode,0) != gfsmACLower) flags |= gfsmCFEfsm2NeedsArcSort;
+
   //-- guts
   rootpair.id1 = fsm1->root_id;
   rootpair.id2 = fsm2->root_id;
-  rootid = gfsm_automaton_intersect_visit_(rootpair, fsm1, fsm2, intersect, spenum);
+  rootid = gfsm_automaton_intersect_visit_(rootpair, fsm1, fsm2, intersect, spenum,flags);
 
   //-- finalize: set root state
   if (rootid != gfsmNoState) {
@@ -1051,14 +1067,13 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair sp,
 					    gfsmAutomaton *fsm1,
 					    gfsmAutomaton *fsm2,
 					    gfsmAutomaton *fsm,
-					    gfsmStatePairEnum *spenum)
+					    gfsmStatePairEnum *spenum,
+					    gfsmComposeFlags flags)
 {
   gfsmState   *q1, *q2;
   gfsmStateId qid = gfsm_enum_lookup(spenum,&sp);
   gfsmStateId qid2;
   gfsmArcList *al1, *al2, *ai1, *ai2, *ai2eps;
-  gboolean     al1_temp=FALSE, al2_temp=FALSE;
-  gfsmArcSortData sortdata = {gfsmASMLower,NULL};
   gfsmArc     *a1,*a2;
 
   //-- ignore already-visited states
@@ -1090,19 +1105,19 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair sp,
   //--------------------------------
   // recurse: arcs: sort
 
-  //-- arcs: sort arclists: fsm12
-  if (gfsm_automaton_sortmode(fsm1)==gfsmASMLower) al1 = q1->arcs;
-  else {
+  //-- arcs: sort arclists: fsm1
+  if (flags&gfsmCFEfsm1NeedsArcSort) {
+    gfsmArcCompData sortdata = { (gfsmACLower|(gfsmACUpper<<gfsmACShift)),NULL,NULL,NULL };
     al1 = gfsm_arclist_sort(gfsm_arclist_clone(q1->arcs), &sortdata);
-    al1_temp = TRUE;
   }
+  else { al1 = q1->arcs; }
 
   //-- arcs: sort arclists: fsm2
-  if (gfsm_automaton_sortmode(fsm2)==gfsmASMLower) al2 = q2->arcs;
-  else {
+  if (flags&gfsmCFEfsm2NeedsArcSort) {
+    gfsmArcCompData sortdata = { (gfsmACLower|(gfsmACUpper<<gfsmACShift)),NULL,NULL,NULL };
     al2 = gfsm_arclist_sort(gfsm_arclist_clone(q2->arcs), &sortdata);
-    al2_temp = TRUE;
   }
+  else { al2 = q2->arcs; }
 
   //--------------------------------
   // recurse: arcs: iterate
@@ -1113,7 +1128,7 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair sp,
 
       //-- eps: case fsm1:(q1 --eps-->  q1'), fsm2:(q2)
       qid2 = gfsm_automaton_intersect_visit_((gfsmStatePair){a1->target,sp.id2},
-						fsm1, fsm2, fsm, spenum);
+						fsm1, fsm2, fsm, spenum, flags);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon, a1->weight);
 
@@ -1123,7 +1138,7 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair sp,
 	if (a2->lower != gfsmEpsilon) break;
 
 	qid2 = gfsm_automaton_intersect_visit_((gfsmStatePair){a1->target,a2->target},
-						  fsm1, fsm2, fsm, spenum);
+						  fsm1, fsm2, fsm, spenum, flags);
 	if (qid2 != gfsmNoState)
 	  gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon,
 				 gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
@@ -1138,7 +1153,7 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair sp,
 	else if (a2->lower > a1->lower) break;
 
 	qid2 = gfsm_automaton_intersect_visit_((gfsmStatePair){a1->target,a2->target},
-						  fsm1, fsm2, fsm, spenum);
+						  fsm1, fsm2, fsm, spenum, flags);
 	if (qid2 != gfsmNoState)
 	  gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a1->lower,
 				 gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
@@ -1153,14 +1168,14 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair sp,
 
     //-- eps: case fsm1:(q1), fsm2:(q2 --eps-->  q2')
     qid2 = gfsm_automaton_intersect_visit_((gfsmStatePair){sp.id1,a2->target},
-					 fsm1, fsm2, fsm, spenum);
+					   fsm1, fsm2, fsm, spenum, flags);
     if (qid2 != gfsmNoState)
       gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, gfsmEpsilon, a2->weight);
   }
 
   //-- cleanup
-  if (al1_temp) gfsm_arclist_free(al1);
-  if (al2_temp) gfsm_arclist_free(al2);
+  if (flags&gfsmCFEfsm1NeedsArcSort) gfsm_arclist_free(al1);
+  if (flags&gfsmCFEfsm2NeedsArcSort) gfsm_arclist_free(al2);
 
   return qid;
 }
@@ -1312,7 +1327,8 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
   size2  = fsm2->states->len;
   gfsm_automaton_reserve(fsm1, offset + size2);
 
-  fsm1->flags.sort_mode = gfsmASMNone; //-- avoid "smart" arc-insertion
+  //-- avoid "smart" arc-insertion
+  fsm1->flags.sort_mode = gfsmASMNone;
 
   //-- adopt states from fsm2 into fsm1
   for (id2 = 0; id2 < size2; id2++) {
@@ -1611,7 +1627,7 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
   gfsmStateId offset;
   gfsmStateId id2;
   gfsmStateId oldroot1;
-  gfsmArcSortData sortdata;
+  gfsmArcCompData sortdata = {0,0,0,0};
 
   //-- sanity check
   if (!fsm2 || fsm2->root_id==gfsmNoState) return fsm1;
@@ -1628,7 +1644,7 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
   }
 
   //-- avoid "smart" arc-insertion (temporary)
-  sortdata.mode = gfsm_automaton_sortmode(fsm1);
+  sortdata.mask = fsm1->flags.sort_mode;
   sortdata.sr   = fsm1->sr;
   fsm1->flags.sort_mode = gfsmASMNone;
 
@@ -1647,16 +1663,16 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
       gfsm_automaton_set_final_state_full(fsm1, id2+offset, TRUE, gfsm_automaton_get_final_weight(fsm2, id2));
     }
     //-- maybe sort new arcs
-    if (sortdata.mode != gfsmASMNone
-	&& (fsm2->flags.sort_mode != sortdata.mode
-	    || (sortdata.mode == gfsmASMWeight && fsm2->sr->type != fsm1->sr->type)))
+    if (sortdata.mask != gfsmASMNone
+	&& (fsm2->flags.sort_mode != sortdata.mask
+	    || (sortdata.mask == gfsmASMWeight && fsm2->sr->type != fsm1->sr->type)))
       {
 	s1->arcs = gfsm_arclist_sort(s1->arcs, &sortdata);
       }
   }
 
   //-- re-instate "smart" arc-insertion
-  fsm1->flags.sort_mode = sortdata.mode;
+  fsm1->flags.sort_mode = sortdata.mask;
 
   //-- add epsilon arc to translated root(fsm2) in fsm1
   gfsm_automaton_add_arc(fsm1,
@@ -1675,6 +1691,6 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
  */
 gfsmAutomaton *gfsm_automaton_dummy(gfsmAutomaton *fsm)
 {
-  g_assert_not_reached();
+  g_assert_not_reached(); /*-- NOT gfsm_assert_not_reached() ! */
   return fsm;
 }

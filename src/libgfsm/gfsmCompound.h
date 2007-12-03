@@ -68,7 +68,6 @@ typedef struct {
   gfsmWeight   w; /**< weight */
 } gfsmStateWeightPair;
 
-
 /// Typedef for mapping (::gfsmStatePair)s to single (::gfsmStateId)s,
 /// used by gfsm_automaton_intersection()
 typedef gfsmEnum gfsmStatePairEnum;
