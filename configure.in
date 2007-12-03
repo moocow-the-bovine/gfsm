@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.9-pre9-head])
+define([THE_PACKAGE_VERSION], [0.0.10-pre1])
 define([THE_PACKAGE_MAINTAINER],  [moocow@ling.uni-potsdam.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -19,7 +19,7 @@ dnl use automake
 AM_INIT_AUTOMAKE(THE_PACKAGE_NAME, THE_PACKAGE_VERSION)
 
 dnl use autoheader
-AM_CONFIG_HEADER([src/libgfsm/gfsmAutoConfig.h])
+AM_CONFIG_HEADER([src/libgfsm/gfsmConfigAuto.h])
 
 dnl default prefix
 AC_PREFIX_DEFAULT(/usr/local)
@@ -276,11 +276,8 @@ else
       ;;
     *)
      AC_MSG_NOTICE([GNU C compiler detected: setting appropriate optimization flags])
-     #gfsm_OFLAGS="-O2"
-     #gfsm_OFLAGS="-O3 -fomit-frame-pointer -funroll-loops -finline-limit-100000"
-     #gfsm_OFLAGS="-O3 -fomit-frame-pointer -funroll-loops"
-     #gfsm_OFLAGS="-O2"
-     gfsm_OFLAGS="-O3"
+     #gfsm_OFLAGS="-O3 -finline-limit-10000 --param inline-unit-growth=1000"
+     gfsm_OFLAGS="-O2"
      ;;
    esac
   else
@@ -622,8 +619,9 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmstrings.gog \
 	gfsmunion.gog \
 	gfsmviterbi.gog \
+	gfsmindex.gog \
 	"
- DOC_MAN1_GOGS="$DOC_MAN1_GOGS gfsmindex.gog"
+ DOC_MAN1_GOGS="$DOC_MAN1_GOGS"
   for g in $DOC_MAN1_GOGS ; do
     AC_CONFIG_LINKS(doc/programs/${g}:src/programs/${g})  
   done
@@ -809,7 +807,6 @@ AC_SUBST(gfsm_WFLAGS)
 AC_CONFIG_TESTDIR(tests,tests)
 ## /autotest
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## configuration options
