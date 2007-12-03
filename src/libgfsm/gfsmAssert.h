@@ -31,9 +31,9 @@
 #include <glib.h>
 
 /**
- *  \def    gfsm_assert_not_reached()
- *  \detail If ever actually evaluated, aborts with an error message.
- *          Only available if libgfsm was configured with debugging enabled.
+ * \def    gfsm_assert_not_reached()
+ * \detail If ever actually evaluated, aborts with an error message.
+ *         Only available if libgfsm was configured with debugging enabled.
  *
  * \def     gfsm_assert(expr)
  * \detail  If \a expr does not evaluate to a true value, aborts with an error message.
