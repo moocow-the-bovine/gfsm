@@ -24,6 +24,7 @@ gfsmarcsort [OPTIONS] BINFILE
     -o                         Alias for '-u'
     -w       --weight          Sort by weight (ascending).
     -C       --cost            Alias for '-w'
+    -mMODE   --mode=MODE       Sort by mode-string overrides --lower, --upper, and --weight
     -zLEVEL  --compress=LEVEL  Specify compression level of output file.
     -FFILE   --output=FILE     Specifiy output file (default=stdout).
 
@@ -154,6 +155,40 @@ Default: '0'
 Alias for '-w'
 
 Default: '0'
+
+
+
+
+=item C<--mode=MODE> , C<-mMODE>
+
+Sort by mode-string overrides --lower, --upper, and --weight
+
+Default: ''
+
+
+Sort by a mode string over the characters "luwstLUWST_", as accepted
+by gfsm_acmask_from_chars().  Each character in the string represents
+a single elementary arc field comparison, and the comparison with the
+highest priority should occur leftmost in the string.  Correspondence
+between characters in MODE and arc comparisons is:
+
+  CHAR : COMPARISON
+     l : sort by lower labels in ascending order
+     u : sort by upper labels in ascending order
+     w : sort by arc weight in semiring-ascending order
+     s : sort by source state in ascending order (useless here)
+     t : sort by target state in ascending order
+
+     L : sort by lower labels in descending order
+     U : sort by upper labels in descending order
+     W : sort by arc weight in semiring-descending order
+     S : sort by source state in descending order (useless here)
+     T : sort by target state in descending order
+
+     _ : no comparison at the corresponding priority level
+     x : user-specified comparison (useless here)
+
+
 
 
 
