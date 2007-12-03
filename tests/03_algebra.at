@@ -121,11 +121,20 @@ AT_SETUP([intersect])
 AT_KEYWORDS([algebra intersect])
 opname="intersect"
 opfile="$opname"
+
 AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-1.tfst -F ${opfile}-in-1.gfst]])
 AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-2.tfst -F ${opfile}-in-2.gfst]])
 AT_CHECK([[$progdir/gfsmintersect ${opfile}-in-1.gfst ${opfile}-in-2.gfst -F ${opfile}-got.gfst]]) ## <----
 rm -f expout; ln $tdata/${opfile}-want.tfst expout
 AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
+
+opfile="intersect2" ##-- intersection as called by gfsm_automaton_difference()
+AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-1.tfst -F ${opfile}-in-1.gfst]])
+AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-2.tfst -F ${opfile}-in-2.gfst]])
+AT_CHECK([[$progdir/gfsmintersect ${opfile}-in-1.gfst ${opfile}-in-2.gfst -F ${opfile}-got.gfst]]) ## <----
+rm -f expout; ln $tdata/${opfile}-want.tfst expout
+AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
+
 AT_CLEANUP
 
 ##--------------------------------------------------------------
