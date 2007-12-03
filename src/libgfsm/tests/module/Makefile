@@ -9,7 +9,8 @@ CPPFLAGS = $(shell pkg-config --cflags-only-I gmodule-2.0)
 #CFLAGS   ?= -O2 -pipe
 #CFLAGS   ?= -Wall -g
 #CFLAGS   += -Wall -g
-CFLAGS     = -Wall -g -fPIC -DPIC
+CFLAGS    ?= -g
+CFLAGS    += -Wall -fPIC -DPIC
 
 LDFLAGS  = $(shell pkg-config --libs-only-L gmodule-2.0)
 LIBS     = $(shell pkg-config --libs-only-l gmodule-2.0)  -lm

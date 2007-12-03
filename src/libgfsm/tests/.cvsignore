@@ -12,7 +12,12 @@
 tagh*
 *.dat
 negra*
+lts-grimm.*
 
+offsettest
+priotest
+seek2test
+seek3test
 seektest
 gfsmlabdump
 iotest

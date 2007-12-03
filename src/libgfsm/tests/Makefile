@@ -1,6 +1,12 @@
-TARGETS = seektest
+TARGETS = priotest
 
 KNOWN_TARGETS = \
+	priotest \
+	seek3test \
+	seek2test \
+	offsettest \
+	arctab-1test \
+	seektest \
 	gfsmlabdump \
 	iotest \
 	structtest \
@@ -15,8 +21,7 @@ KNOWN_TARGETS = \
 	flex3test \
 	compretest \
 	comprelex \
-	compre2test \
-	seektest
+	compre2test
 
 
 CC = gcc
@@ -28,6 +33,7 @@ CFLAGS    ?= -O2 -pipe
 #CFLAGS   ?= -Wall -g
 #CFLAGS   += -Wall -g
 #CFLAGS    = -Wall -g
+CFLAGS   += -Wall -Winline
 
 LDFLAGS  = -L../libgfsm/.libs -L/usr/local/lib -L/usr/lib
 LIBS     =  -lz -lglib-2.0 -lm
