@@ -115,6 +115,9 @@ DISTHOOK_FILES = \
 	data/intersect-in-1.tfst \
 	data/intersect-in-2.tfst \
 	data/intersect-want.tfst \
+	data/intersect2-in-1.tfst \
+	data/intersect2-in-2.tfst \
+	data/intersect2-want.tfst \
 	data/invert-in.tfst \
 	data/invert-want.tfst \
 	data/lookup-123-want.tfst \

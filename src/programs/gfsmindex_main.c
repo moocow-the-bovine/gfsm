@@ -105,7 +105,7 @@ int main (int argc, char **argv)
 
     //-- index & sort
     xfsm = gfsm_automaton_to_indexed(fsm,NULL);
-    gfsm_indexed_automaton_sort(xfsm, gfsm_acmask_from_args(gfsmACLower,gfsmACWeight)); //-- TODO: make these options!
+    //gfsm_indexed_automaton_sort(xfsm, gfsm_acmask_from_args(gfsmACLower,gfsmACWeight)); //-- TODO: make these options!
 
     //-- store indexed
     if (!gfsm_indexed_automaton_save_bin_filename(xfsm,outfilename,args.compress_arg,&err)) {

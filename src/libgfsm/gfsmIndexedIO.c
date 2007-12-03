@@ -43,14 +43,14 @@ const gfsmVersionInfo gfsm_indexed_version_bincompat_min_store =
   {
     0, // major
     0, // minor
-    9  // micro
+    10 // micro
   };
 
 const gfsmVersionInfo gfsm_indexed_version_bincompat_min_check =
   {
-    0, // major
-    0, // minor
-    9  // micro
+    0,  // major
+    0,  // minor
+    10  // micro
   };
 
 const gchar gfsm_indexed_header_magic[16] = "gfsm_indexed\0";

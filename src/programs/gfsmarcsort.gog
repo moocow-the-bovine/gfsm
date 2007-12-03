@@ -69,6 +69,7 @@ between characters in MODE and arc comparisons is:
      x : user-specified comparison (useless here)
 
 "
+
 int "compress" z "Specify compression level of output file." \
     arg="LEVEL" \
     default="-1" \
