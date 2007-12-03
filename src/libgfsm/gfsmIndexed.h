@@ -45,9 +45,6 @@ typedef struct {
   //gfsmBitVector      *state_is_valid;     /* per-state validity flags */
   gfsmWeightVector   *state_final_weight; /**< State final weight, or sr->zero */
   gfsmArcTableIndex  *arcs;               /**< Arc storage (sorted primarily by source state) */
-  //
-  //-- Sort priority data
-  gfsmArcCompMask       sort_mask;        /**< arc-sort priority mask */
 } gfsmIndexedAutomaton;
 
 /*======================================================================
@@ -61,8 +58,7 @@ GFSM_INLINE
 gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
 						      gfsmSRType         srtype,
 						      gfsmStateId        n_states,
-						      guint              n_arcs,
-						      gfsmArcCompMask    sort_mask);
+						      guint              n_arcs);
 
 /** Create a new indexed automaton, using some default values */
 GFSM_INLINE

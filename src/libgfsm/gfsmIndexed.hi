@@ -29,8 +29,7 @@
 gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
 						      gfsmSRType         srtype,
 						      gfsmStateId        n_states,
-						      guint              n_arcs,
-						      gfsmArcCompMask    sort_mask)
+						      guint              n_arcs)
 						      
 {
   gfsmIndexedAutomaton *xfsm = g_new0(gfsmIndexedAutomaton,1);
@@ -46,7 +45,6 @@ gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
   //xfsm->state_is_valid     = gfsm_bitvector_sized_new(n_states);
   xfsm->state_final_weight = gfsm_weight_vector_sized_new(n_states);
   xfsm->arcs               = gfsm_arc_table_index_sized_new(n_states, n_arcs);
-  xfsm->sort_mask          = sort_mask;
 
 #if 0
   //-- initialize: states
@@ -65,8 +63,7 @@ gfsmIndexedAutomaton *gfsm_indexed_automaton_new(void)
   return gfsm_indexed_automaton_new_full(gfsmAutomatonDefaultFlags,
 					 gfsmAutomatonDefaultSRType,
 					 gfsmAutomatonDefaultSize,
-					 gfsmAutomatonDefaultSize,
-					 gfsmASMLower
+					 gfsmAutomatonDefaultSize
 					 );
 }
 
@@ -138,7 +135,7 @@ void gfsm_indexed_automaton_reserve_arcs(gfsmIndexedAutomaton *xfsm, guint n_arc
 GFSM_INLINE
 void gfsm_indexed_automaton_sort(gfsmIndexedAutomaton *xfsm, gfsmArcCompMask sort_mask)
 {
-  xfsm->sort_mask = sort_mask;
+  xfsm->flags.sort_mode = sort_mask;
   gfsm_arc_table_index_sort_bymask(xfsm->arcs, sort_mask, xfsm->sr);
 }
 

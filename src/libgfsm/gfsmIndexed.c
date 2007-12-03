@@ -46,8 +46,8 @@ gfsmIndexedAutomaton *gfsm_automaton_to_indexed(gfsmAutomaton *fsm, gfsmIndexedA
     xfsm = gfsm_indexed_automaton_new_full(fsm->flags,
 					   fsm->sr->type,
 					   gfsm_automaton_n_states(fsm),
-					   gfsm_automaton_n_arcs(fsm),
-					   gfsmASMNone);
+					   gfsm_automaton_n_arcs(fsm)
+					   );
   } else {
     gfsm_indexed_automaton_clear(xfsm);
     xfsm->flags = fsm->flags;
@@ -62,7 +62,10 @@ gfsmIndexedAutomaton *gfsm_automaton_to_indexed(gfsmAutomaton *fsm, gfsmIndexedA
   //-- index final weights
   gfsm_automaton_to_final_weight_vector(fsm, xfsm->state_final_weight);
   gfsm_automaton_to_arc_table_index(fsm, xfsm->arcs);
-  gfsm_indexed_automaton_sort(xfsm, xfsm->sort_mask);
+
+  //-- sort arcs (no!)
+  //gfsm_indexed_automaton_sort(xfsm, xfsm->flags.sort_mode);
+
 
   return xfsm;
 }

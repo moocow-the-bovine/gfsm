@@ -128,7 +128,6 @@ gboolean gfsm_indexed_automaton_load_bin_handle_0_0_9(gfsmIndexedAutomatonHeader
   xfsm->flags      = hdr->flags;
   gfsm_indexed_automaton_set_semiring_type(xfsm, hdr->srtype);
   xfsm->root_id    = hdr->root_id;
-  xfsm->sort_mask  = hdr->sort_mask;
 
   //------ load: state_final_weight
   if (!gfsm_weight_vector_read_bin_handle(xfsm->state_final_weight, ioh, errp)) { return FALSE; }
@@ -221,7 +220,6 @@ gboolean gfsm_indexed_automaton_save_bin_handle(gfsmIndexedAutomaton *xfsm, gfsm
   hdr.n_states    = gfsm_indexed_automaton_n_states(xfsm);
   hdr.n_arcs      = gfsm_indexed_automaton_n_arcs(xfsm);
   hdr.srtype      = gfsm_indexed_automaton_get_semiring(xfsm)->type;
-  hdr.sort_mask   = xfsm->sort_mask;
 
   //-- write header
   if (!gfsmio_write(ioh, &hdr, sizeof(gfsmIndexedAutomatonHeader))) {
