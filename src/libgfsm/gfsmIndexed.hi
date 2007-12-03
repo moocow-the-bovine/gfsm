@@ -135,8 +135,10 @@ void gfsm_indexed_automaton_reserve_arcs(gfsmIndexedAutomaton *xfsm, guint n_arc
 GFSM_INLINE
 void gfsm_indexed_automaton_sort(gfsmIndexedAutomaton *xfsm, gfsmArcCompMask sort_mask)
 {
+  if (xfsm->flags.sort_mode != sort_mask && sort_mask != gfsmASMNone) {
+    gfsm_arc_table_index_sort_bymask(xfsm->arcs, sort_mask, xfsm->sr);
+  }
   xfsm->flags.sort_mode = sort_mask;
-  gfsm_arc_table_index_sort_bymask(xfsm->arcs, sort_mask, xfsm->sr);
 }
 
 
