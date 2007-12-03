@@ -129,7 +129,7 @@ gboolean gfsm_automaton_load_bin_header(gfsmAutomatonHeader *hdr, gfsmIOHandle *
   if (gfsm_version_less(hdr->version, ((gfsmVersionInfo){0,0,10}))) {
     //-- flags compatibility hack
     gfsmAutomatonFlags_009 flags_009;
-    flags_009  = *((gfsmAutomatonFlags_009*)(&(hdr->flags)));
+    flags_009 = *( (gfsmAutomatonFlags_009*)((gpointer)&(hdr->flags)) );
     hdr->flags.is_transducer    = flags_009.is_transducer;
     hdr->flags.is_weighted      = flags_009.is_weighted;
     hdr->flags.is_deterministic = flags_009.is_deterministic_009;

@@ -334,4 +334,5 @@ void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, g
     if (!qp || !qp->is_valid) continue;
     qp->arcs = gfsm_arclist_sort_full(qp->arcs, cmpfunc, data);
   }
+  fsm->flags.sort_mode = gfsmACUser;
 }

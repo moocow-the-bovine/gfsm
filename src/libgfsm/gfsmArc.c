@@ -70,7 +70,7 @@ gfsmArcCompMask gfsm_acmask_from_chars(const char *maskchars)
   gfsmArcCompMask m = 0;
   gint  i;
   gint  nth=0;
-  for (i=0; maskchars && maskchars[i] && nth < gfsmMaxArcCompsPerMask; i++) {
+  for (i=0; maskchars && maskchars[i] && nth < gfsmACMaxN; i++) {
     switch (maskchars[i]) {
     case 'l' : m |= gfsm_acmask_new(gfsmACLower, nth++); break;
     case 'L' : m |= gfsm_acmask_new(gfsmACLowerR,nth++); break;
@@ -119,7 +119,7 @@ gfsmArcCompMask gfsm_acmask_from_args(gfsmArcComp cmp0, ...)
   va_list ap;
 
   va_start(ap,cmp0);
-  for (cmp=cmp0; cmp!=0 && nth < gfsmMaxArcCompsPerMask; nth++, cmp=va_arg(ap,gfsmArcComp)) {
+  for (cmp=cmp0; cmp!=0 && nth < gfsmACMaxN; nth++, cmp=va_arg(ap,gfsmArcComp)) {
     m |= gfsm_acmask_new(cmp,nth);
   }
   va_end(ap);
@@ -140,11 +140,11 @@ gint gfsm_arc_compare_bymask(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *acdata)
 gchar *gfsm_acmask_to_chars(gfsmArcCompMask m, gchar *chars)
 {
   gint nth;
-  if (!chars) { chars = g_new0(gchar,gfsmMaxArcCompsPerMask+1); }
-  for (nth=0; nth < gfsmMaxArcCompsPerMask; nth++) {
+  if (!chars) { chars = g_new0(gchar,gfsmACMaxN+1); }
+  for (nth=0; nth < gfsmACMaxN; nth++) {
     chars[nth] = gfsm_acmask_nth_char(m,nth);
   }
-  chars[gfsmMaxArcCompsPerMask] = '\0';
+  chars[gfsmACMaxN] = '\0';
   return chars;
 }
 
@@ -183,7 +183,7 @@ GString *gfsm_acmask_to_gstring(gfsmArcCompMask m, GString *gstr)
   gint nth;
   if (!gstr) { gstr = g_string_sized_new(96); }
   else { g_string_truncate(gstr,0); }
-  for (nth=0; nth < gfsmMaxArcCompsPerMask; nth++) {
+  for (nth=0; nth < gfsmACMaxN; nth++) {
     if (nth) { g_string_append(gstr, ", "); }
     g_string_append(gstr, gfsm_acmask_nth_string(m,nth));
   }

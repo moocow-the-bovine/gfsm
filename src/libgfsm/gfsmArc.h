@@ -88,7 +88,7 @@ typedef guint32 gfsmArcCompMask;
 #define gfsmACShift 4
 
 /** Maximum number of ::gfsmArcComp fields supported by ::gfsmArcCompMask (pragmatic definition) */
-#define gfsmMaxArcCompsPerMask 6
+#define gfsmACMaxN 6
 
 /** Useful aliases for builtin arcsort modes, including backwards-compatible ::gfsmASMLower etc. */
 typedef enum {
@@ -267,7 +267,7 @@ const gchar *gfsm_acmask_nth_string(gfsmArcCompMask m, gint nth);
  *  \param mask[in]   mask to convert to a string
  *  \param chars[out] character string representing \a mask, in the format acepted by gfsm_acmask_from_chars(),
  *                    or NULL to allocate a new string.  If specified and non-NULL, \a chars should be
- *                    long enough to hold ::gfsmMaxArcCompsPerMask+1 characters, since a terminating NUL
+ *                    long enough to hold ::gfsmACMaxN+1 characters, since a terminating NUL
  *                    is implicitly added as the final character.
  *  \returns \a chars if specified, otherwise a newly allocated string.
  *  \note User is responsible for freeing the returned string with g_free() when it is no longer needed.
