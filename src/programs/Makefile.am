@@ -51,7 +51,7 @@ bin_PROGRAMS = \
 	gfsmviterbi
 
 EXTRA_PROGRAMS = gfsmindex
-#bin_PROGRAMS += gfsmindex
+bin_PROGRAMS += gfsmindex
 
 EXTRA_DIST =
 

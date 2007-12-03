@@ -67,6 +67,7 @@ SFST*
 
 argh
 save
+tdata
 
 stamp-h*
 aclocal.m4

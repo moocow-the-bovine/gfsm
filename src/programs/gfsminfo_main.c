@@ -73,6 +73,7 @@ void get_my_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
   gfsmError *err = NULL;
+  GString   *modestr = NULL;
 
   GFSM_INIT
 
@@ -91,7 +92,13 @@ int main (int argc, char **argv)
   printf("%-24s: %c\n", "Transducer?", bool2char(gfsm_automaton_is_transducer(fsm)));
   printf("%-24s: %c\n", "Weighted?", bool2char(gfsm_automaton_is_weighted(fsm)));
   printf("%-24s: %c\n", "Deterministic?", bool2char(fsm->flags.is_deterministic));
+#if 0
   printf("%-24s: %s\n", "Sort Mode", gfsm_arc_sortmode_to_name(gfsm_automaton_sortmode(fsm)));
+#else
+  modestr = gfsm_acmask_to_gstring(fsm->flags.sort_mode, modestr);
+  printf("%-24s: %s\n", "Sort Mode", modestr->str);
+  g_string_free(modestr,TRUE);
+#endif
   if (fsm->root_id != gfsmNoState) {
     printf("%-24s: %u\n", "Initial state", fsm->root_id);
   } else {

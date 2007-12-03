@@ -44,7 +44,7 @@ const char *outfilename = "-";
 //-- global structs
 gfsmAutomaton         *fsm=NULL;
 gfsmIndexedAutomaton *xfsm=NULL;
-gfsmError     *err = NULL;
+gfsmError             *err=NULL;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -77,7 +77,8 @@ int main (int argc, char **argv)
     //-- load index
     xfsm = gfsm_indexed_automaton_new();
     if (!gfsm_indexed_automaton_load_bin_filename(xfsm,infilename,&err)) {
-      g_printerr("%s: load failed for indexed automaton from '%s': %s\n", progname, infilename, err->message);
+      g_printerr("%s: load failed for indexed automaton from '%s': %s\n", progname, infilename,
+		 (err ? err->message : "?"));
       exit(3);
     }
 
@@ -86,7 +87,8 @@ int main (int argc, char **argv)
 
     //-- store vanilla
     if (!gfsm_automaton_save_bin_filename(fsm,outfilename,args.compress_arg,&err)) {
-      g_printerr("%s: store failed for vanilla automaton to '%s': %s\n", progname, outfilename, err->message);
+      g_printerr("%s: store failed for vanilla automaton to '%s': %s\n", progname, outfilename,
+		 (err ? err->message : "?"));
       exit(4);
     }
   }
@@ -96,16 +98,19 @@ int main (int argc, char **argv)
     //-- load vanilla
     fsm = gfsm_automaton_new();
     if (!gfsm_automaton_load_bin_filename(fsm,infilename,&err)) {
-      g_printerr("%s: load failed for vanilla automaton from '%s': %s\n", progname, infilename, err->message);
+      g_printerr("%s: load failed for vanilla automaton from '%s': %s\n", progname, infilename,
+		 (err ? err->message : "?"));
       exit(3);
     }
 
-    //-- index
+    //-- index & sort
     xfsm = gfsm_automaton_to_indexed(fsm,NULL);
+    gfsm_indexed_automaton_sort(xfsm, gfsm_acmask_from_args(gfsmACLower,gfsmACWeight)); //-- TODO: make these options!
 
     //-- store indexed
     if (!gfsm_indexed_automaton_save_bin_filename(xfsm,outfilename,args.compress_arg,&err)) {
-      g_printerr("%s: store failed for indexed automaton to '%s': %s\n", progname, outfilename, err->message);
+      g_printerr("%s: store failed for indexed automaton to '%s': %s\n", progname, outfilename,
+		 (err ? err->message : "?"));
       exit(4);
     }
   }

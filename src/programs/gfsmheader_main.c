@@ -74,6 +74,7 @@ int main (int argc, char **argv)
 {
   gfsmError *err = NULL;
   gfsmIOHandle *ioh = NULL;
+  GString   *modestr = NULL;
 
   GFSM_INIT
 
@@ -102,8 +103,14 @@ int main (int argc, char **argv)
 
   printf("%-24s: %d\n", "flags.is_transducer", hdr.flags.is_transducer);
   printf("%-24s: %d\n", "flags.is_weighted", hdr.flags.is_transducer);
+#if 0
   printf("%-24s: %d (%s)\n", "flags.sort_mode",
 	 hdr.flags.sort_mode, gfsm_arc_sortmode_to_name(hdr.flags.sort_mode));
+#else
+  modestr = gfsm_acmask_to_gstring(hdr.flags.sort_mode, modestr);
+  printf("%-24s: %d (%s)\n", "flags.sort_mode", hdr.flags.sort_mode, modestr->str);
+  g_string_free(modestr,TRUE);
+#endif
   printf("%-24s: %d\n", "flags.is_deterministic", hdr.flags.is_deterministic);
   printf("%-24s: %d\n", "flags.unused", hdr.flags.unused);
 
