@@ -66,7 +66,7 @@ const gchar gfsm_header_magic[16] = "gfsm_automaton\0";
 typedef struct {
   guint32 is_transducer         : 1;       /**< whether this automaton is a transducer */
   guint32 is_weighted           : 1;       /**< whether this automaton is weighted */
-  guint32 sort_mode_009         : 4;       /* old-style sort-mode (cast to ::gfsmArcSortMode_009) */
+  guint32 sort_mode_009         : 4;       /**< old-style sort-mode (cast to ::gfsmArcSortMode_009) */
   guint32 is_deterministic_009  : 1;       /**< whether fsm is known to be deterministic */
   guint32 unused_009            : 25;      /**< reserved */
 } gfsmAutomatonFlags_009;

@@ -252,9 +252,8 @@ gboolean gfsm_indexed_automaton_state_is_final(gfsmIndexedAutomaton *xfsm, gfsmS
 GFSM_INLINE
 gfsmWeight gfsm_indexed_automaton_get_final_weight(gfsmIndexedAutomaton *xfsm, gfsmStateId qid)
 {
-  gfsmWeight fw;
-  gfsm_indexed_automaton_lookup_final(xfsm,qid,&fw);
-  return fw;
+  if (!gfsm_indexed_automaton_has_state(xfsm,qid)) return xfsm->sr->zero;
+  return g_array_index(xfsm->state_final_weight,gfsmWeight,qid);
 }
 
 
