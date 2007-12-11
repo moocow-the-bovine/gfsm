@@ -228,3 +228,8 @@ gchar gfsm_acmask_nth_char(gfsmArcCompMask m, gint nth)
   }
   return '?';
 }
+
+//--------------------------------------------------------------
+GFSM_INLINE
+const gchar *gfsm_arc_sortmode_to_name(gfsmArcCompMask m)
+{ return gfsm_acmask_nth_string(m,0); }

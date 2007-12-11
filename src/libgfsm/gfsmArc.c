@@ -46,6 +46,7 @@
 /*--------------------------------------------------------------
  * sortmode_to_name()
  */
+#if 0
 const gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode)
 {
   switch (mode) {
@@ -56,6 +57,7 @@ const gchar *gfsm_arc_sortmode_to_name(gfsmArcSortMode mode)
   default:            return "unknown";
   }
 }
+#endif
 
 
 /*======================================================================

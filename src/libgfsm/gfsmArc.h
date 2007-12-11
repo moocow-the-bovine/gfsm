@@ -283,6 +283,12 @@ gchar *gfsm_acmask_to_chars(gfsmArcCompMask m, gchar *chars);
  */
 GString *gfsm_acmask_to_gstring(gfsmArcCompMask m, GString *gstr);
 
+/** Backwards-compatible arc sort mode name resolution function
+ *  \deprecated in favor of gfsm_acmask_nth_string(), gfsm_acmask_to_gstring(), gfsm_acmask_to_chars()
+ */
+GFSM_INLINE
+const gchar *gfsm_arc_sortmode_to_name(gfsmArcCompMask m);
+
 //@}
 
 //-- inline definitions
