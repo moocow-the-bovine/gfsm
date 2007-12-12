@@ -49,8 +49,13 @@
 #define _GFSM_CONFIG_H
 
 #ifdef GFSM_INLINE_ENABLED
-/** Macro for declaring small functions inline (inlining enabled) */
-# define GFSM_INLINE static inline
+# ifdef __cplusplus
+/** Macro for declaring small functions inline (inlining enabled, C++-style) */
+#  define GFSM_INLINE inline
+# else
+/** Macro for declaring small functions inline (inlining enabled, C98-style) */
+#  define GFSM_INLINE static inline
+# endif /* __cplusplus */
 #else
 /** Macro for declaring small functions inline (inlining disabled) */
 # define GFSM_INLINE

@@ -63,7 +63,7 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 GFSM_INLINE
 gfsmArc *gfsm_arc_new_full(gfsmStateId src, gfsmStateId dst, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight wt)
 {
-  return gfsm_arc_init(g_malloc(sizeof(gfsmArc)),src,dst,lo,hi,wt);
+  return gfsm_arc_init(g_new(gfsmArc,1),src,dst,lo,hi,wt);
 }
 
 /*--------------------------------------------------------------
@@ -97,17 +97,44 @@ void gfsm_arc_free(gfsmArc *a)
 //--------------------------------------------------------------
 GFSM_INLINE
 gfsmArcCompMask gfsm_acmask_new(gfsmArcComp cmp, gint nth)
-{ return (cmp&gfsmACAll)<<(nth*gfsmACShift); }
+{
+  return
+#ifdef __cplusplus
+    //-- this kind of crap is the reason i hate c++ --moo
+    static_cast<gfsmArcCompMask>
+#endif
+    ( (cmp&gfsmACAll)<<(nth*gfsmACShift) );
+}
 
 //--------------------------------------------------------------
 GFSM_INLINE
 gfsmArcComp gfsm_acmask_nth(gfsmArcCompMask m, gint nth)
-{ return (m>>(nth*gfsmACShift))&gfsmACAll; }
+{
+  return
+#ifdef __cplusplus
+    //-- this kind of crap is the reason i hate c++ --moo
+    static_cast<gfsmArcComp>
+#endif
+    ( (m>>(nth*gfsmACShift))&gfsmACAll );
+}
 
 //--------------------------------------------------------------
 GFSM_INLINE
 gfsmArcComp gfsm_acmask_nth_comp(gfsmArcCompMask m, gint nth)
-{ return gfsm_acmask_nth(m,nth)&(~gfsmACReverse); }
+{
+  return
+#ifdef __cplusplus
+    //-- this kind of crap is the reason i hate c++ --moo
+    static_cast<gfsmArcComp>(
+			     static_cast<gfsmArcCompMask>(gfsm_acmask_nth(m,nth))
+			     &
+			     ~static_cast<gfsmArcCompMask>(gfsmACReverse)
+			     )
+#else
+    gfsm_acmask_nth(m,nth) & (~gfsmACReverse)
+#endif
+    ;
+}
 
 //--------------------------------------------------------------
 GFSM_INLINE

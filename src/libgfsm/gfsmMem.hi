@@ -87,7 +87,13 @@ void gfsm_allocators_free(void)
  */
 GFSM_INLINE
 gpointer gfsm_string_dup_n(gconstpointer src, gsize size)
-{ return g_strndup(src,size); };
+{
+#ifndef __cplusplus
+  return g_strndup(src,size);
+#else
+  return g_strndup(static_cast<const gchar *>(src), size);
+#endif
+}
 
 /*----------------------------------------------------------------------
  * mem_dup_n()

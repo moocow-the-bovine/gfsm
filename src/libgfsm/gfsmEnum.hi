@@ -101,12 +101,11 @@ guint gfsm_enum_lookup(gfsmEnum *en, gconstpointer key)
 GFSM_INLINE
 guint gfsm_enum_insert_full(gfsmEnum *en, gpointer key, guint val)
 {
-  gpointer s_key;
-  guint    s_val;
-  if (g_hash_table_lookup_extended(en->table, key, &s_key, ((gpointer)(&s_val)))) {
+  gpointer s_key, s_val;
+  if (g_hash_table_lookup_extended(en->table, key, &s_key, &s_val)) {
     //-- already present: steal it & replace
     if (val == gfsmEnumNone) {
-      val = s_val;
+      val = GPOINTER_TO_UINT(s_val);
     } else {
       g_hash_table_steal(en->table, s_key);
       g_hash_table_insert(en->table, s_key, GUINT_TO_POINTER(val));

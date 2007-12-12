@@ -219,8 +219,8 @@ void gfsm_arcrange_open_table_index(gfsmArcRange *range, gfsmArcTableIndex *tabx
 {
   gfsm_assert(range!=NULL);
   gfsm_assert(qid < tabx->first->len-1);
-  range->min = g_ptr_array_index(tabx->first, qid  );
-  range->max = g_ptr_array_index(tabx->first, qid+1);
+  range->min = (gfsmArc*)g_ptr_array_index(tabx->first, qid  );
+  range->max = (gfsmArc*)g_ptr_array_index(tabx->first, qid+1);
 }
 
 //--------------------------------------------------------------
