@@ -127,7 +127,6 @@ void gfsm_semiring_free(gfsmSemiring *sr);
 GFSM_INLINE
 gfsmWeight gfsm_sr_zero(gfsmSemiring *sr);
 
-
 /** Get 'one' element of the ::gfsmSemiring* \a sr */
 GFSM_INLINE
 gfsmWeight gfsm_sr_one(gfsmSemiring *sr);
