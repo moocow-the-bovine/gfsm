@@ -155,8 +155,12 @@ void gfsm_weighthash_free(gfsmWeightHash *wh)
 GFSM_INLINE
 gboolean gfsm_weighthash_lookup(gfsmWeightHash *wh, gconstpointer key, gfsmWeight *wp)
 {
-  gpointer s_key;
-  return g_hash_table_lookup_extended(wh->table, key, &s_key, (gpointer*)wp);
+  gpointer s_key, s_val;
+  if (g_hash_table_lookup_extended(wh->table, key, &s_key, &s_val)) {
+    *wp = gfsm_ptr2weight(s_val);
+    return TRUE;
+  }
+  return FALSE;
 }
 
 //--------------------------------------------------------------

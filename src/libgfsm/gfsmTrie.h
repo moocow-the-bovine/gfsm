@@ -53,7 +53,7 @@ extern const gfsmSRType gfsmTrieDefaultSRType;
 //@{
 
 //------------------------------
-/** Create a new Trie automaton */
+/** Create a new ::gfsmTrie automaton */
 #define gfsm_trie_new() \
   gfsm_automaton_new_full(gfsmTrieDefaultFlags, gfsmTrieDefaultSRType, gfsmAutomatonDefaultSize)
 
