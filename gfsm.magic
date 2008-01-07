@@ -2,10 +2,24 @@
 ## Add the contents of this file to /etc/magic or equivalent.
 
 ##--BEGIN gfsm.magic
-## stored binary gfsm automata
 ## - Bryan Jurish <moocow@ling.uni-potsdam.de>
+
+## stored binary gfsm automata
 0       string  gfsm_automaton\0        gfsm stored automaton data
 >16     ulong   x                       (libgfsm v%u
 >20     ulong   x                       \b.%u
 >24     ulong   x                       \b.%u)
+
+## indexed gfsm automata
+0	string	gfsm_indexed\0		gfsm indexed automaton data
+>16     ulong   x                       (libgfsm v%u
+>20     ulong   x                       \b.%u
+>24     ulong   x                       \b.%u)
+
+## cascaded gfsm automata
+0	string	gfsm_cascade\0		gfsm cascade data
+>16     ulong   x                       (libgfsm v%u
+>20     ulong   x                       \b.%u
+>24     ulong   x                       \b.%u)
+
 ##--END gfsm.magic
