@@ -1,7 +1,7 @@
 ## File: doc/programs/Makefile.am
-## Package: mootm
+## Package: *
 ## Description:
-##   + program-doc-level automake file for moocow's PoS tagger programs
+##   + program-doc-level automake file
 ##
 ## Process this file with Automake to create Makefile.in.
 ##-----------------------------------------------------------------------

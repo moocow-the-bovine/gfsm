@@ -1,7 +1,7 @@
 # File: ./src/Makefile.am
-# Package: moot
+# Package: *
 # Description:
-#   + source-level automake file for DWDS tagger
+#   + source-level automake file
 #
 # Process this file with Automake to create Makefile.in.
 #-----------------------------------------------------------------------
