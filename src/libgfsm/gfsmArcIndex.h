@@ -33,7 +33,6 @@
 /*======================================================================
  * Types
  */
-
 /// Reverse arc-index type
 /**  \a element at \a qto is a gfsmArcList*
  *    which contains an element \a gfsmArc* \a {qfrom,qto,lo,hi,w}
@@ -46,31 +45,21 @@
 typedef GPtrArray gfsmReverseArcIndex;
 
 
-/// Final-weight index type
-/** GArray of ::gfsmWeight, indexed by ::gfsmStateId : final weight or sr->zero if state is non-final */
-typedef GArray gfsmFinalWeightIndex;
-
-/// Generic arc-label index type
-typedef struct {
-  GPtrArray *arcs;      /**< arc-pointers sorted by state id, label, weight */
-  GPtrArray *first;     /**< first[q] is address of first element of  \a arcs->pdata for state \a q (a :gfsmArc **) */
-} gfsmArcLabelIndex;
-
-
 /*======================================================================
  * Methods: ReverseArcIndex
  */
-///\name gfsmReverseArcIndex Utilities
-//@{
 
+//------------------------------
 /** Create a new reversed arc index */
 #define gfsm_reverse_arc_index_new() g_ptr_array_new()
 
+//------------------------------
 /** Create a new reversed arc index, given size */
 #define gfsm_reverse_arc_index_sized_new(nelts) g_ptr_array_sized_new(nelts)
 
+//------------------------------
 /** Populate a reversed arc index for \a fsm.
- * \param fsm source automaton
+ * \param fsm Automaton
  * \param rarcs
  *   Reverse arc index.
  *   May be passed as NULL to create a new arc index.
@@ -78,78 +67,14 @@ typedef struct {
  */
 gfsmReverseArcIndex *gfsm_automaton_reverse_arc_index(gfsmAutomaton *fsm, gfsmReverseArcIndex *rarcs);
 
+//------------------------------
 /** Free a reverse arc index.
  *  \param rarcs
- *    reverse arc-index to be freed
+ *    Reverse arc index to be freed.
  *  \param free_lists
  *    If true, associated arc-lists will be freed.
  */
 void gfsm_reverse_arc_index_free(gfsmReverseArcIndex *rarcs, gboolean free_lists);
 
-//@}
 
-/*======================================================================
- * Methods: gfsmFinalWeightIndex
- */
-///\name gfsmFinalWeightIndex Utilities
-//@{
-
-/** Create a new (empty) ::gfsmFinalWeightIndex */
-#define gfsm_final_weight_index_new() \
-  g_array_new(FALSE,FALSE,sizeof(gfsmWeight))
-
-/** Create a new (empty) ::gfsmFinalWeightIndex, specifying initial size */
-#define gfsm_final_weight_index_sized_new(size) \
-  g_array_sized_new(FALSE,FALSE,sizeof(gfsmWeight),(size))
-
-/** Populate a ::gfsmFinalWeightIndex from a ::gfsmAutomaton
- * \param fsm source automaton
- * \param ix
- *   Final weight index
- *   May be passed as NULL to create a new index.
- * \returns \a ix if non-NULL, otherwise a new final weight index for \a fsm.
- */
-gfsmFinalWeightIndex *gfsm_automaton_final_weight_index(gfsmAutomaton *fsm, gfsmFinalWeightIndex *ix);
-
-/** Free a ::gfsmFinalWeightIndex */
-#define gfsm_final_weight_index_free(ix) \
-  g_array_free((ix),TRUE)
-
-//@}
-
-/*======================================================================
- * Methods: gfsmArcLabelIndex
- */
-///\name gfsmArcLabelIndex Utilities
-//@{
-
-/** Create and return a new (empty) ::gfsmArcLabelIndex */
-gfsmArcLabelIndex *gfsm_arc_label_index_new(void);
-
-/** Create and return a new (empty) ::gfsmArcLabelIndex, specifying sizes */
-gfsmArcLabelIndex *gfsm_arc_label_index_new_full(gfsmStateId n_states, guint n_arcs);
-
-/** Populate a ::gfsmArcLabelIndex over lower labels from a ::gfsmAutomaton
- * \param fsm source automaton
- * \param ix
- *   Arc-label index for lower labels.
- *   May be passed as NULL to create a new index.
- * \returns \a ix if non-NULL, otherwise a new lower-label index for \a fsm.
- */
-gfsmArcLabelIndex *gfsm_automaton_lower_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix);
-
-/** Populate a ::gfsmArcLabelIndex over upper labels from a ::gfsmAutomaton
- * \param fsm source automaton
- * \param ix
- *   Arc-label index for upper labels.
- *   May be passed as NULL to create a new index.
- * \returns \a ix if non-NULL, otherwise a new upper-label index for \a fsm.
- */
-gfsmArcLabelIndex *gfsm_automaton_upper_label_index(gfsmAutomaton *fsm, gfsmArcLabelIndex *ix);
-
-//@}
-
-/*======================================================================
- * END
- */
 #endif /* _GFSM_ARCINDEX_H */

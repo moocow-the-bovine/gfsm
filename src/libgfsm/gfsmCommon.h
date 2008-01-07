@@ -28,7 +28,6 @@
 #ifndef _GFSM_COMMON_H
 #define _GFSM_COMMON_H
 
-#include <gfsmConfig.h>
 #include <glib.h>
 
 /*======================================================================

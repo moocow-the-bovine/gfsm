@@ -15,7 +15,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 ## --- recursion subdirectories
-SUBDIRS = config src doc tests
+SUBDIRS = config src doc
 
 ## --- pseudo-deps for '.SUFFIXES'
 SUFFIXES = .pc .pod .txt .html

@@ -78,10 +78,20 @@ as:
 
 =head1 SEE ALSO
 
+=over 4
+
 [@
- join(",\n", (map { $_->{USER}{program}."(1)" } @subogs));
-@],
-fsm(1), fsm(5)
+ join("\n\n",
+      "=item gfsm Project Page:",
+      "L<http://www.ling.uni-potsdam.de/~moocow/projects/gfsm>",
+      "=item gfsm Utility Manuals:",
+      join(', ', map { $_->{USER}{program}."(1)" } @subogs),
+      "=item Other Manuals:",
+      ("fsm(1), fsm(5)"),
+      );
+@]
+
+=back
 
 =head1 AUTHOR
 

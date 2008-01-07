@@ -29,7 +29,6 @@
 #define _GFSM_MEM_H
 
 #include <glib.h>
-#include <gfsmConfig.h>
 
 /*----------------------------------------------------------------------
  * Allocators: variables
@@ -54,19 +53,15 @@ extern gboolean gfsm_allocators_enabled;
  */
 
 /** Ensure that gfsm allocators are defined and non-NULL */
-GFSM_INLINE
 void gfsm_allocators_init(void);
 
 /** Push gfsm allocators to the stack */
-GFSM_INLINE
 void gfsm_allocators_enable(void);
 
 /** Pop gfsm allocators from the stack */
-GFSM_INLINE
 void gfsm_allocators_disable(void);
 
 /** Free all memory allocated by the gfsm allocators */
-GFSM_INLINE
 void gfsm_allocators_free(void);
 
 
@@ -80,31 +75,22 @@ typedef gpointer    (*gfsmDupNFunc)    (gconstpointer src, gsize size);
 typedef gpointer    (*gfsmDupFunc)     (gconstpointer src);
 
 /** String copy function for NUL-terminated strings */
-GFSM_INLINE
 gpointer gfsm_string_dup_n (gconstpointer src, gsize size);
 
 /** size-based copy function */
-GFSM_INLINE
 gpointer gfsm_mem_dup_n (gconstpointer src, gsize size);
 
 /** String duplication function for NUL-terminated strings */
 #define gfsm_string_dup g_strdup
 
 /** String duplication function for GString*s */
-GFSM_INLINE
 GString *gfsm_gstring_dup (GString *gstr);
 
 /** Byte-assignment for GString*s */
-GFSM_INLINE
 void gfsm_gstring_assign_bytes (GString *gstr, const gchar *src, gsize len);
 
 /** Byte-vector creation for GString*s */
-GFSM_INLINE
 GString *gfsm_gstring_new_bytes (const gchar *src, gsize len);
 
-//-- inline definitions
-#ifdef GFSM_INLINE_ENABLED
-# include <gfsmMem.hi>
-#endif
 
 #endif /* _GFSM_MEM_H */

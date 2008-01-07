@@ -28,7 +28,7 @@
 #ifndef _GFSM_STATE_H
 #define _GFSM_STATE_H
 
-#include <gfsmArcList.h>
+#include <gfsmArc.h>
 
 /*======================================================================
  * Types
@@ -36,13 +36,10 @@
 
 /// Automaton state structure
 typedef struct {
-  guint32       is_valid      : 1;  /**< whether this is a valid state */
-  guint32       is_final      : 1;  /**< whether this is a final state */
-  guint32       is_temp       : 1;  /**< whether this state should be freed on gfsm_state_close() */
-  guint32       arc_list_temp : 1;  /**< whether arc list should be freed on gfsm_state_close() */
-  guint32       arc_data_temp : 1;  /**< whether arc data should be freed on gfsm_state_close(): implies arc_list_temp=1 */
-  guint32       unused        : 27; /**< reserved */
-  gfsmArcList  *arcs;             /**< list of outgoing arcs */
+  guint32       is_valid : 1;  /**< whether this is a valid state */
+  guint32       is_final : 1;  /**< whether this is a final state */
+  guint32       unused   : 30; /**< reserved */
+  gfsmArcList  *arcs;          /**< list of outgoing arcs */
 } gfsmState;
 
 
@@ -52,29 +49,19 @@ typedef struct {
 /// \name gfsmState: Constructors etc.
 //@{
 /** Create a new state (generic) */
-GFSM_INLINE
 gfsmState *gfsm_state_new_full(gboolean is_final, gfsmArcList *arcs);
 
 /** Create a new state (empty) */
-GFSM_INLINE
-gfsmState *gfsm_state_new(void);
+#define gfsm_state_new() gfsm_state_new_full(FALSE, NULL)
 
 /** Copy an existing state */
-GFSM_INLINE
 gfsmState *gfsm_state_copy(gfsmState *dst, const gfsmState *src);
 
 /** Clear an existing state */
-GFSM_INLINE
 void gfsm_state_clear(gfsmState *s);
 
 /** Destroy a state */
-GFSM_INLINE
 void gfsm_state_free(gfsmState *s, gboolean free_arcs);
-
-/** Close a state (generic) */
-GFSM_INLINE
-void gfsm_state_close(gfsmState *s);
-
 //@}
 
 /*======================================================================
@@ -82,28 +69,20 @@ void gfsm_state_close(gfsmState *s);
  */
 ///\name gfsmState: Accessors
 //@{
-
 /** Check if state is valid */
-GFSM_INLINE
-gboolean gfsm_state_is_ok(const gfsmState *s);
+#define gfsm_state_is_ok(s) (s && s->is_valid)
 
 /** Check for final state */
-GFSM_INLINE
-gboolean gfsm_state_is_final(const gfsmState *s);
+#define gfsm_state_is_final(s) (s && s->is_final)
 
 /** Set final state flag */
-GFSM_INLINE
-void gfsm_state_set_final(gfsmState *s, gboolean is_final);
+#define gfsm_state_set_final(s,b) (s->is_final = b)
 
 /** Get number of outgoing arcs */
-GFSM_INLINE
-guint gfsm_state_out_degree(const gfsmState *s);
+//#define gfsm_state_out_degree(s) g_slist_length(s->arcs)
+#define gfsm_state_out_degree(s) gfsm_arclist_length(s->arcs)
 
 //@}
 
-//-- inline definitions
-#ifdef GFSM_INLINE_ENABLED
-# include <gfsmState.hi>
-#endif
 
 #endif /* _GFSM_STATE_H */

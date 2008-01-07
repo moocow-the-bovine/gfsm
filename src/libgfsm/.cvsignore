@@ -11,7 +11,8 @@
 *.tfst
 *.lab
 *.loT
-gfsmAutoConfig.*
+gfsmConfig.h
+gfsmConfig.h.in
 gmon.out
 *.output
 stamp-h*
@@ -39,4 +40,3 @@ SFST.moocow
 fsa6-src
 pd-fst
 save
-libgfsm.*

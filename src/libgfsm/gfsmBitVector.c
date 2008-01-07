@@ -1,8 +1,8 @@
 
 /*=============================================================================*\
- * File: gfsmBitVector.c
+ * File: gfsmBitVector.h
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
- * Description: finite state machine library: bit vectors: extern functions
+ * Description: finite state machine library
  *
  * Copyright (c) 2004-2007 Bryan Jurish.
  *
@@ -24,10 +24,59 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
-#include <gfsmConfig.h>
+#include <glib.h>
+#include <gfsmBitVector.h>
 
-//-- no-inline definitions
-#ifndef GFSM_INLINE_ENABLED
-# include <gfsmBitVector.h>
-# include <gfsmBitVector.hi>
-#endif
+/*======================================================================
+ * Constructors etc.
+ */
+
+/*--------------------------------------------------------------
+ * new()
+ */
+//gfsmBitVector *gfsm_bitvector_new(void) { return g_byte_array_new(); }
+
+/*--------------------------------------------------------------
+ * sized_new()
+ */
+gfsmBitVector *gfsm_bitvector_sized_new(guint nbits)
+{
+  gfsmBitVector *bv = g_array_sized_new(FALSE,TRUE,1,_gfsm_bitvector_bits2bytes(nbits)+1);
+  gfsm_bitvector_set(bv, nbits-1, 0);
+  return bv;
+}
+
+/*--------------------------------------------------------------
+ * zero()
+ */
+gfsmBitVector *gfsm_bitvector_zero(gfsmBitVector *bv)
+{
+  guint i;
+  for (i=0; i < bv->len; i++) { g_array_index(bv,guint8,i) = 0; }
+  return bv;
+}
+
+/*--------------------------------------------------------------
+ * one()
+ */
+gfsmBitVector *gfsm_bitvector_one(gfsmBitVector *bv)
+{
+  guint i;
+  for (i=0; i < bv->len; i++) { g_array_index(bv,guint8,i) = 0xff; }
+  return bv;
+}
+
+
+/*======================================================================
+ * Accessors
+ */
+
+/*--------------------------------------------------------------
+ * set()
+ */
+void gfsm_bitvector_set(gfsmBitVector *bv, guint i, gboolean v)
+{
+  if (i >= gfsm_bitvector_size(bv)) { gfsm_bitvector_resize(bv,i); }
+  if (v) { g_array_index(bv, guint8, _gfsm_bitvector_bits2bytes(i)) |=  (1<<(i%8)); }
+  else   { g_array_index(bv, guint8, _gfsm_bitvector_bits2bytes(i)) &= ~(1<<(i%8)); }
+}

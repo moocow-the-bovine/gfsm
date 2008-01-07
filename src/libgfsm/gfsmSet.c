@@ -22,14 +22,21 @@
 
 #include <gfsmSet.h>
 
-//-- no-inline definitions
-#ifndef GFSM_INLINE_ENABLED
-# include <gfsmSet.hi>
-#endif
+
 
 /*======================================================================
  * Constructors etc.
  */
+
+/*--------------------------------------------------------------
+ * copy()
+ */
+gfsmSet *gfsm_set_copy(gfsmSet *dst, gfsmSet *src)
+{
+  gfsm_set_clear(dst);
+  g_tree_foreach(src, (GTraverseFunc)gfsm_set_copy_foreach_func, dst);
+  return dst;
+}
 
 /*--------------------------------------------------------------
  * copy_foreach_func()
@@ -39,6 +46,7 @@ gboolean gfsm_set_copy_foreach_func(gpointer key, gpointer value, gfsmSet *data)
   if (data) g_tree_insert(data,key,value);
   return FALSE; // don't stop iterating
 }
+
 
 /*--------------------------------------------------------------
  * clear()
@@ -54,10 +62,17 @@ void gfsm_set_clear(gfsmSet *set)
   g_ptr_array_free(keys,TRUE);
 }
 
-
 /*======================================================================
  * Algebra
  */
+
+/*--------------------------------------------------------------
+ * union(): data
+ */
+typedef struct {
+  gfsmSet      *dst;
+  gfsmDupFunc   dupfunc;
+} gfsmSetUnionData;
 
 /*--------------------------------------------------------------
  * union_func()
@@ -75,12 +90,31 @@ gboolean gfsm_set_union_func(gpointer key, gpointer value, gfsmSetUnionData *dat
 }
 
 /*--------------------------------------------------------------
+ * union()
+ */
+gfsmSet *gfsm_set_union(gfsmSet *set1, gfsmSet *set2, gfsmDupFunc dupfunc)
+{
+  gfsmSetUnionData data = { set1, dupfunc };
+  g_tree_foreach(set2, (GTraverseFunc)gfsm_set_union_func, &data);
+  return set1;
+}
+
+/*--------------------------------------------------------------
  * difference_func()
  */
 gboolean gfsm_set_difference_func(gpointer key, gpointer value, gfsmSet *set1)
 {
   gfsm_set_remove(set1,key);
   return FALSE;
+}
+
+/*--------------------------------------------------------------
+ * difference()
+ */
+gfsmSet *gfsm_set_difference(gfsmSet *set1, gfsmSet *set2)
+{
+  g_tree_foreach(set2, (GTraverseFunc)gfsm_set_difference_func, set1);
+  return set1;
 }
 
 /*--------------------------------------------------------------
@@ -105,12 +139,30 @@ gfsmSet *gfsm_set_intersection(gfsmSet *set1, gfsmSet *set2)
  */
 
 /*--------------------------------------------------------------
+ * to_slist()
+ */
+GSList *gfsm_set_to_slist(gfsmSet *set)
+{
+  GSList *l = NULL;
+  gfsm_set_foreach(set,(GTraverseFunc)gfsm_set_to_slist_foreach_func, &l);
+  return l;
+}
+
+/*--------------------------------------------------------------
  * to_slist_foreach_func()
  */
 gboolean gfsm_set_to_slist_foreach_func(gpointer key, gpointer value, GSList **dst)
 {
   *dst = g_slist_prepend(*dst, key);
   return FALSE; //-- don't stop iterating
+}
+
+/*--------------------------------------------------------------
+ * to_ptr_array()
+ */
+void gfsm_set_to_ptr_array(gfsmSet *set, GPtrArray *array)
+{
+  gfsm_set_foreach(set,(GTraverseFunc)gfsm_set_to_ptr_array_foreach_func, array);
 }
 
 /*--------------------------------------------------------------
@@ -126,18 +178,15 @@ gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrAr
  * Debugging
  */
 #ifdef GFSM_DEBUG_ENABLED
-
 gboolean gfsm_set_print_foreach_func(gpointer key, gpointer data, FILE *f)
 {
   fprintf(f, " %u", GPOINTER_TO_UINT(key));
   return FALSE;
 }
-
 void gfsm_set_print_uint(gfsmSet *set, FILE *f)
 {
   fputc('{',f);
   g_tree_foreach(set, (GTraverseFunc)gfsm_set_print_foreach_func, f);
   fputs(" }", f);
 }
-
 #endif /*GFSM_DEBUG_ENABLED*/

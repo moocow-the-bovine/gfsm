@@ -36,7 +36,7 @@
  * Alphabet: Flags
  */
 /** Enumeration of builtin alphabet types */
-typedef enum {
+typedef enum _gfsmAlphabetType {
   gfsmATUnknown  = 0,   ///< unknown alphabet type
   gfsmATRange    = 1,   ///< alphabet type for label ranges
   gfsmATIdentity = 2,   ///< alphabet type for sparse identity alphabets
@@ -65,10 +65,10 @@ typedef struct {
 } gfsmIdentityAlphabet;
 
 // Pointer-hashing alphabet structure (forward decl)
-struct gfsmPointerAlphabet_;
+struct _gfsmPointerAlphabet;
 
 // User-extendable alphabet structure (forward decl)
-struct gfsmUserAlphabet_;
+struct _gfsmUserAlphabet;
 
 //@}
 
@@ -78,31 +78,31 @@ struct gfsmUserAlphabet_;
 ///\name Alphabet: Function Types
 //@{
 /** Type for key-duplication functions */
-typedef gpointer (*gfsmAlphabetKeyDupFunc) (struct gfsmPointerAlphabet_ *a, gpointer key);
+typedef gpointer (*gfsmAlphabetKeyDupFunc) (struct _gfsmPointerAlphabet *a, gpointer key);
 
 /** Type for alphabet (key->label) lookup functions */
-typedef gfsmLabelVal (*gfsmAlphabetKeyLookupFunc) (struct gfsmUserAlphabet_ *a, gconstpointer key);
+typedef gfsmLabelVal (*gfsmAlphabetKeyLookupFunc) (struct _gfsmUserAlphabet *a, gconstpointer key);
 
 /** Type for alphabet (label->key) lookup functions */
-typedef gpointer (*gfsmAlphabetLabLookupFunc) (struct gfsmUserAlphabet_ *a, gfsmLabelVal lab);
+typedef gpointer (*gfsmAlphabetLabLookupFunc) (struct _gfsmUserAlphabet *a, gfsmLabelVal lab);
 
 /** Type for alphabet insertion functions */
-typedef gfsmLabelVal (*gfsmAlphabetInsertFunc) (struct gfsmUserAlphabet_ *a, gpointer key, gfsmLabelVal lab);
+typedef gfsmLabelVal (*gfsmAlphabetInsertFunc) (struct _gfsmUserAlphabet *a, gpointer key, gfsmLabelVal lab);
 
 /** Type for alphabet key removal functions (unused) */
-typedef void (*gfsmAlphabetKeyRemoveFunc) (struct gfsmUserAlphabet_ *a, gpointer key);
+typedef void (*gfsmAlphabetKeyRemoveFunc) (struct _gfsmUserAlphabet *a, gpointer key);
 
 /** Type for alphabet label removal functions */
-typedef void (*gfsmAlphabetLabRemoveFunc) (struct gfsmUserAlphabet_ *a, gfsmLabelVal lab);
+typedef void (*gfsmAlphabetLabRemoveFunc) (struct _gfsmUserAlphabet *a, gfsmLabelVal lab);
 
 /** Type for alphabet string input functions (should return a static key) */
-typedef gpointer (*gfsmAlphabetKeyReadFunc) (struct gfsmUserAlphabet_ *a, GString *gstr);
+typedef gpointer (*gfsmAlphabetKeyReadFunc) (struct _gfsmUserAlphabet *a, GString *gstr);
 
 /** Type for alphabet string output functions (should write to @str) */
-typedef void (*gfsmAlphabetKeyWriteFunc) (struct gfsmUserAlphabet_ *a, gconstpointer key, GString *str);
+typedef void (*gfsmAlphabetKeyWriteFunc) (struct _gfsmUserAlphabet *a, gconstpointer key, GString *str);
 
 /// method table for user-defined alphabets
-typedef struct {
+typedef struct _gfsmUserAlpabetMethods {
   gfsmAlphabetKeyLookupFunc key_lookup;  /**< key->label lookup function */
   gfsmAlphabetLabLookupFunc lab_lookup;  /**< label->key lookup function */
   gfsmAlphabetInsertFunc    insert;      /**< insertion function: receives a newly copied key! */
@@ -121,7 +121,7 @@ extern gfsmUserAlphabetMethods gfsmUserAlphabetDefaultMethods;
 ///\name Alphabet: Extendible Types
 //@{
 /// Pointer-hashing alphabet structure
-typedef struct gfsmPointerAlphabet_ {
+typedef struct _gfsmPointerAlphabet {
   gfsmAlphabet           a;             /**< inheritance magic */
   GPtrArray             *labels2keys;   /**< label->key lookup table */
   GHashTable            *keys2labels;   /**< key->label lookup table */
@@ -132,7 +132,7 @@ typedef struct gfsmPointerAlphabet_ {
 typedef gfsmPointerAlphabet gfsmStringAlphabet;
 
 /// User-extendable alphabet structure
-typedef struct gfsmUserAlphabet_
+typedef struct _gfsmUserAlphabet
 {
   gfsmPointerAlphabet      aa;          /**< inheritance magic */
   gpointer                 data;        /**< user data */

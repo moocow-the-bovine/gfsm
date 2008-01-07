@@ -44,18 +44,18 @@ typedef GTree gfsmSet;
  */
 ///\name gfsmSet: Constructors etc.
 //@{
-/** Create and return a new set */
-GFSM_INLINE
-gfsmSet *gfsm_set_new_full(GCompareDataFunc key_cmp_func, gpointer key_cmp_data, GDestroyNotify key_free_func);
+/** gfsm_set_new(key_compare_func,key_compare_data,key_destroy_func):
+ * create and return a new set
+ */
+#define gfsm_set_new_full(key_cmp_f,key_cmp_d,key_free_f) \
+   g_tree_new_full(key_cmp_f,key_cmp_d,key_free_f,NULL)
 
 /** gfsm_set_new(key_compare_func): create and return a new set
  *  (returned set will not free elements)
  */
-GFSM_INLINE
-gfsmSet *gfsm_set_new(GCompareFunc key_cmp_func);
+#define gfsm_set_new(key_cmp_f) g_tree_new(key_cmp_f)
 
 /** Copy set \a src to \a dst. \returns \a dst */
-GFSM_INLINE
 gfsmSet *gfsm_set_copy(gfsmSet *dst, gfsmSet *src);
 
 /** Utilitiy for gfsm_set_copy() */
@@ -64,11 +64,8 @@ gboolean gfsm_set_copy_foreach_func(gpointer key, gpointer value, gfsmSet *dst);
 /** clear a set */
 void gfsm_set_clear(gfsmSet *set);
 
-/** Destroy a set
- *  \code void gfsm_set_free(gfsmSet *set); \endcode
- */
-#define gfsm_set_free g_tree_destroy
-
+/** destroy a set */
+#define gfsm_set_free(set) g_tree_destroy(set)
 //@}
 
 
@@ -104,12 +101,10 @@ void gfsm_set_clear(gfsmSet *set);
  *  otherwise elements will be copied as literal gpointer values.
  * \returns altered \a set1
  */
-GFSM_INLINE
 gfsmSet *gfsm_set_union(gfsmSet *set1, gfsmSet *set2, gfsmDupFunc dupfunc);
 
 /** Remove all elements in \a set2 from \a set1.
  * \returns altered \a set1 */
-GFSM_INLINE
 gfsmSet *gfsm_set_difference(gfsmSet *set1, gfsmSet *set2);
 
 /** Remove all elements from \a set1 which are not also in \a set2.
@@ -126,17 +121,15 @@ gfsmSet *gfsm_set_intersection(gfsmSet *set1, gfsmSet *set2);
 //@{
 
 /** Get a GSList of a set's elements */
-GFSM_INLINE
 GSList *gfsm_set_to_slist(gfsmSet *set);
 
-/** Low-level utilitity for gfsm_set_to_slist() */
+/** Foreach utilitity for set_to_slist() */
 gboolean gfsm_set_to_slist_foreach_func(gpointer key, gpointer value, GSList **dst);
 
 /** Append a set's elements to a GPtrArray */
-GFSM_INLINE
 void gfsm_set_to_ptr_array(gfsmSet *set, GPtrArray *array);
 
-/** Low-level foreach utilitity for gfsm_set_to_array() */
+/** Foreach utilitity for set_to_array() */
 gboolean gfsm_set_to_ptr_array_foreach_func(gpointer key, gpointer value, GPtrArray *dst);
 //@}
 
@@ -154,10 +147,5 @@ void gfsm_set_print_uint(gfsmSet *set, FILE *f);
 
 //@}
 #endif /* GFSM_DEBUG_ENABLED */
-
-//-- inline definitions
-#ifdef GFSM_INLINE_ENABLED
-# include <gfsmSet.hi>
-#endif
 
 #endif /* _GFSM_SET_H */

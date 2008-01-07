@@ -59,7 +59,6 @@ extern const guint gfsmEnumNone;
 //@{
 
 /** create a new gfsmEnum (full version) */
-GFSM_INLINE
 gfsmEnum *gfsm_enum_new_full(gfsmDupFunc key_dup_func,
 			     GHashFunc   key_hash_func,
 			     GEqualFunc  key_equal_func,
@@ -72,11 +71,9 @@ gfsmEnum *gfsm_enum_new_full(gfsmDupFunc key_dup_func,
 #define gfsm_direct_enum_new() gfsm_enum_new(g_direct_hash)
 
 /** Clear a gfsmEnum */
-GFSM_INLINE
 void gfsm_enum_clear(gfsmEnum *en);
 
 /** Free a gfsmEnum */
-GFSM_INLINE
 void gfsm_enum_free(gfsmEnum *en);
 //@}
 
@@ -94,7 +91,6 @@ void gfsm_enum_free(gfsmEnum *en);
  *  and *\a stored_value points to the stored value.
  *  \returns true iff a value for \a key was already stored
  */
-GFSM_INLINE
 gboolean gfsm_enum_lookup_extended(gfsmEnum      *en,
 				   gconstpointer  lookup_key,
 				   gpointer      *stored_key,
@@ -104,7 +100,6 @@ gboolean gfsm_enum_lookup_extended(gfsmEnum      *en,
  *  \returns the value associated with \a key, or gfsmEnumNone
  *  if no such value was found
  */
-GFSM_INLINE
 guint gfsm_enum_lookup(gfsmEnum *en, gconstpointer key);
 
 
@@ -112,7 +107,6 @@ guint gfsm_enum_lookup(gfsmEnum *en, gconstpointer key);
  *  If \a val is gfsmEnumNone, the next available value will be used.
  *  \returns new value for \a key
  */
-GFSM_INLINE
 guint gfsm_enum_insert_full(gfsmEnum *en, gpointer key, guint val);
 
 /** Insert a (possibly new) value \a val for \a key */
@@ -120,10 +114,5 @@ guint gfsm_enum_insert_full(gfsmEnum *en, gpointer key, guint val);
 
 /** Really just an alias for gfsm_enum_insert(en,key) */
 #define gfsm_enum_get(en,key) gfsm_enum_insert(en,key)
-
-//-- inline definitions
-#ifdef GFSM_INLINE_ENABLED
-# include <gfsmEnum.hi>
-#endif
 
 #endif /* _GFSM_ENUM_H */

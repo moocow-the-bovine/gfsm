@@ -12,7 +12,6 @@
 
 ##-- moo: cpp flags
 AM_CPPFLAGS = -I. -I.. -I@srcdir@ -I@srcdir@/..
-AM_CFLAGS   = @gfsm_OFLAGS@ @gfsm_WFLAGS@
 
 AUTOMAKE_OPTIONS = 1.5 gnits no-dependencies
 

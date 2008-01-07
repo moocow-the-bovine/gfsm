@@ -9,7 +9,6 @@
  */
 #include <gfsmRegexCompiler.h>
 #include <gfsmAutomatonIO.h>
-#include <string.h>
 
 #include "gfsmRegex.tab.h"
 #include "gfsmRegex.lex.h"

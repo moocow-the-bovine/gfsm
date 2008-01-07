@@ -438,13 +438,13 @@ gboolean _gfsm_automaton_concat_final_func(gfsmStateId id, gpointer pw, gfsmAuto
  *  + called for singleton final @id of @fsm during concat(@fsm,@fsm2)
  *  + BAD if singleton final of @fsm has outgoing arcs!
  */
-struct gfsm_automaton_concat_1_final_data_ {
+struct _gfsm_automaton_concat_1_final_data {
   gfsmStateId *rootxp;
   gfsmWeight  *weightp;
 };
 gboolean _gfsm_automaton_concat_final_func_1(gfsmStateId id,
 					     gpointer pw,
-					     struct gfsm_automaton_concat_1_final_data_ *data)
+					     struct _gfsm_automaton_concat_1_final_data *data)
 {
   *(data->rootxp) = id;
   *(data->weightp) = gfsm_ptr2weight(pw);
@@ -521,7 +521,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2)
 	 (!finals2 && gfsm_weightmap_lookup(fsm2->finals, GUINT_TO_POINTER(id2), &s2fw)) )
       {
 	s1->is_final = TRUE;
-	gfsm_weightmap_insert(fsm1->finals, GUINT_TO_POINTER(id1), s2fw);
+	_gfsm_weightmap_insert(fsm1->finals, GUINT_TO_POINTER(id1), s2fw);
       }
   }
 
@@ -632,7 +632,7 @@ gfsmAutomaton *gfsm_automaton_connect_fw(gfsmAutomaton *fsm, gfsmBitVector *visi
 /*--------------------------------------------------------------
  * connect_bw(): final_foreach()
  */
-struct gfsm_connect_bw_data_ {
+struct _gfsm_connect_bw_data {
   gfsmAutomaton *fsm;
   GPtrArray     *rarcs;
   gfsmBitVector *finalizable;
@@ -640,7 +640,7 @@ struct gfsm_connect_bw_data_ {
 
 gboolean gfsm_connect_bw_visit_state(gfsmStateId id,
 				     gpointer    pw,
-				     struct      gfsm_connect_bw_data_ *data)
+				     struct      _gfsm_connect_bw_data *data)
 {
   gfsmArcList *al;
 
@@ -670,7 +670,7 @@ gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
 {
   gboolean rarcs_is_temp = FALSE;
   gboolean finalizable_is_temp = FALSE;
-  struct gfsm_connect_bw_data_ data = {fsm,rarcs,finalizable};
+  struct _gfsm_connect_bw_data data = {fsm,rarcs,finalizable};
 
   //-- sanity check(s)
   if (!fsm || gfsm_automaton_n_final_states(fsm)==0)

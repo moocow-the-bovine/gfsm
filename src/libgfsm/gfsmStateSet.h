@@ -62,27 +62,24 @@ extern const guint gfsmStateSetDefaultSize;
 //@{
 
 /** Create and return a new state-set, giving initial reserved size */
-GFSM_INLINE
-gfsmStateSet *gfsm_stateset_sized_new(guint isize);
+#define gfsm_stateset_sized_new(isize) \
+  g_array_sized_new(FALSE,TRUE,sizeof(gfsmStateId),isize)
 
 /** Create and return a new state-set */
-GFSM_INLINE
-gfsmStateSet *gfsm_stateset_new(void);
+#define gfsm_stateset_new() \
+  gfsm_stateset_sized_new(gfsmStateSetDefaultSize)
 
 /** Create and return a new singleton state-set */
-GFSM_INLINE
 gfsmStateSet *gfsm_stateset_new_singleton(gfsmStateId id);
 
 /** clear a state-set */
-GFSM_INLINE
-void gfsm_stateset_clear(gfsmStateSet *sset);
+#define gfsm_stateset_clear(sset) \
+  g_array_set_size(sset,0)
 
-/** Create and return an exact copy of a state-set */
-GFSM_INLINE
+/** create a copy of a state-set */
 gfsmStateSet *gfsm_stateset_clone(gfsmStateSet *src);
 
 /** destroy a state-set */
-GFSM_INLINE
 void gfsm_stateset_free(gfsmStateSet *sset);
 
 //@}
@@ -94,15 +91,13 @@ void gfsm_stateset_free(gfsmStateSet *sset);
 //@{
 
 /** Get minimum element of a state-set */
-GFSM_INLINE
-gfsmStateId gfsm_stateset_min(gfsmStateSet *sset);
+#define gfsm_stateset_min(sset) \
+  ((sset)->len > 0 ? (*((gfsmStateId*)(sset->data))) : gfsmNoState)
 
 /** Get number of elements in a state-set */
-GFSM_INLINE
-guint gfsm_stateset_size(gfsmStateSet *sset);
+#define gfsm_stateset_size(sset) ((sset)->len)
 
 /** Check whether a state-id is contained in a state-set */
-GFSM_INLINE
 gboolean gfsm_stateset_contains(gfsmStateSet *sset, gfsmStateId id);
 
 /** Insert a single state-id into a state-set.
@@ -211,9 +206,4 @@ gboolean gfsm_stateset_lookup_final_weight(gfsmStateSet *sset, gfsmAutomaton *fs
 
 //@}
 
-//-- inline definitions
-#ifdef GFSM_INLINE_ENABLED
-# include <gfsmStateSet.hi>
-#endif
-
-#endif /* _GFSM_STATESET_H */
+#endif /* _GFSM_STATE_H */

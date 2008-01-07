@@ -1,6 +1,5 @@
 #include <gfsm.h>
 
-guint32 grand_seed = 42;
 const char *probfile = "tagh-probs.bin";
 
 extern gulong count_test;
@@ -40,7 +39,7 @@ void load_label_probs(void) {
 
   }
   fclose(f);
-  fprintf(stderr, "[info]: read probability distribution over %d labels from '%s'\n",
+  fprintf(stderr, "error: read probability distribution over %d labels from '%s'\n",
 	  labp->len, probfile);
 }
 
@@ -50,7 +49,7 @@ void load_label_probs(void) {
 gfsmLabelId random_label(void) {
   double w;
   int i;
-  if (!grand) { grand = g_rand_new_with_seed(grand_seed); }
+  if (!grand) { grand = g_rand_new(); }
   w = g_rand_double(grand);
   for (i=0; i < labp->len && w > g_array_index(labp,seekProb,i).prob; i++) { ; }
   if (i==labp->len) { --i; }
