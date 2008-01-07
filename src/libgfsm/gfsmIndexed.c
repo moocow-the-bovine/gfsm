@@ -33,6 +33,32 @@
  * Constructors etc.
  */
 
+//----------------------------------------
+gfsmIndexedAutomaton *gfsm_indexed_automaton_copy(gfsmIndexedAutomaton *dst, gfsmIndexedAutomaton *src)
+{
+  if (!dst) {
+    dst = gfsm_indexed_automaton_new_full(src->flags,
+					  src->sr->type,
+					  gfsm_indexed_automaton_n_states(src),
+					  gfsm_indexed_automaton_n_arcs(src));
+  }
+  else {
+    gfsm_indexed_automaton_clear(dst);
+    gfsm_indexed_automaton_reserve_states(dst, gfsm_indexed_automaton_n_states(src));
+    gfsm_indexed_automaton_reserve_arcs  (dst, gfsm_indexed_automaton_n_arcs(src)  );
+  }
+
+  //-- copy: flags, semiring, root
+  dst->flags = src->flags;
+  gfsm_indexed_automaton_set_semiring(dst, src->sr);
+  dst->root_id = src->root_id;
+
+  //-- copy: tables
+  gfsm_weight_vector_copy  (dst->state_final_weight, src->state_final_weight);
+  gfsm_arc_table_index_copy(dst->arcs, src->arcs);
+
+  return dst;
+}
 
 /*======================================================================
  * Methods: Import & Export

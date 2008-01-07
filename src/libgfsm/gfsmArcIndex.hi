@@ -66,6 +66,26 @@ gfsmWeightVector *gfsm_weight_vector_sized_new(gfsmStateId n_states)
 { return g_array_sized_new(FALSE,FALSE,sizeof(gfsmWeight),n_states); }
 
 //--------------------------------------------------------------
+// weight_vector_copy()
+GFSM_INLINE
+gfsmWeightVector *gfsm_weight_vector_copy(gfsmWeightVector *dst, gfsmWeightVector *src)
+{
+  g_array_set_size(dst, src->len);
+  dst->len = 0;
+  g_array_append_vals(dst, src->data, src->len);
+  return dst;
+}
+
+//--------------------------------------------------------------
+// weight_vector_clone()
+GFSM_INLINE
+gfsmWeightVector *gfsm_weight_vector_clone(gfsmWeightVector *src)
+{
+  return gfsm_weight_vector_copy(gfsm_weight_vector_sized_new(src->len), src);
+}
+
+
+//--------------------------------------------------------------
 // weight_vector_resize()
 GFSM_INLINE
 void gfsm_weight_vector_resize(gfsmWeightVector *wv, gfsmStateId n_states)
@@ -108,6 +128,25 @@ void gfsm_arc_table_resize(gfsmArcTable *tab, guint n_arcs)
 {
   g_array_set_size(tab,n_arcs);
   tab->len = n_arcs;
+}
+
+//--------------------------------------------------------------
+// arc_table_copy()
+GFSM_INLINE
+gfsmArcTable *gfsm_arc_table_copy(gfsmArcTable *dst, gfsmArcTable *src)
+{
+  g_array_set_size(dst, src->len);
+  dst->len = 0;
+  g_array_append_vals(dst, src->data, src->len);
+  return dst;
+}
+
+//--------------------------------------------------------------
+// arc_table_clone()
+GFSM_INLINE
+gfsmArcTable *gfsm_arc_table_clone(gfsmArcTable *src)
+{
+  return gfsm_arc_table_copy(gfsm_arc_table_sized_new(src->len), src);
 }
 
 //--------------------------------------------------------------
@@ -175,6 +214,28 @@ void gfsm_arc_table_index_resize(gfsmArcTableIndex *tabx, gfsmStateId n_states, 
   g_ptr_array_set_size(tabx->first, n_states+1);
   tabx->first->len = n_states+1;
 }
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmStateId gfsm_arc_table_index_n_states(gfsmArcTableIndex *tabx)
+{ return tabx->first->len - 1; }
+
+//--------------------------------------------------------------
+GFSM_INLINE
+guint gfsm_arc_table_index_n_arcs(gfsmArcTableIndex *tabx)
+{ return tabx->tab->len; }
+
+
+//--------------------------------------------------------------
+// arc_table_index_clone()
+GFSM_INLINE
+gfsmArcTableIndex *gfsm_arc_table_index_clone(gfsmArcTableIndex *src)
+{
+  return gfsm_arc_table_index_copy(gfsm_arc_table_index_sized_new(gfsm_arc_table_index_n_states(src),
+								  gfsm_arc_table_index_n_arcs(src)),
+				   src);
+}
+
 
 //--------------------------------------------------------------
 // arc_table_index_free()

@@ -64,6 +64,13 @@ gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
 GFSM_INLINE
 gfsmIndexedAutomaton *gfsm_indexed_automaton_new(void);
 
+/** Copy a ::gfsmIndexedAutomaton \a src to \a dst.  \returns \a dst */
+gfsmIndexedAutomaton *gfsm_indexed_automaton_copy(gfsmIndexedAutomaton *dst, gfsmIndexedAutomaton *src);
+
+/** Create and return an exact clone of a ::gfsmIndexedAutomaton */
+GFSM_INLINE
+gfsmIndexedAutomaton *gfsm_indexed_automaton_clone(gfsmIndexedAutomaton *xfsm);
+
 /** Clear a ::gfsmIndexedAutomaton */
 GFSM_INLINE
 void gfsm_indexed_automaton_clear(gfsmIndexedAutomaton *xfsm);

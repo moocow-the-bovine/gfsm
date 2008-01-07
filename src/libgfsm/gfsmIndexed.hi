@@ -67,6 +67,18 @@ gfsmIndexedAutomaton *gfsm_indexed_automaton_new(void)
 					 );
 }
 
+
+//----------------------------------------
+GFSM_INLINE
+gfsmIndexedAutomaton *gfsm_indexed_automaton_clone(gfsmIndexedAutomaton *src)
+{
+  return gfsm_indexed_automaton_copy(gfsm_indexed_automaton_new_full(src->flags,
+								     src->sr->type,
+								     gfsm_indexed_automaton_n_states(src),
+								     gfsm_indexed_automaton_n_arcs(src)),
+				     src);
+}
+
 //----------------------------------------
 GFSM_INLINE
 void gfsm_indexed_automaton_clear(gfsmIndexedAutomaton *xfsm)

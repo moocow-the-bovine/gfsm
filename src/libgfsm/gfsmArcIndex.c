@@ -238,6 +238,23 @@ gboolean gfsm_arc_table_read_bin_handle(gfsmArcTable *tab, gfsmIOHandle *ioh, gf
  * gfsmArcTableIndex
  */
 
+/*--------------------------------------------------------------
+ * arc_table_index_copy()
+ */
+gfsmArcTableIndex *gfsm_arc_table_index_copy(gfsmArcTableIndex *dst, gfsmArcTableIndex *src)
+{
+  gfsmStateId i;
+  gfsm_arc_table_copy (dst->tab, src->tab);
+  g_ptr_array_set_size(dst->first, src->first->len);
+
+  for (i=0; i < src->first->len; i++) {
+    gint offset = (gfsmArc*)g_ptr_array_index(src->first,i) - (gfsmArc*)src->tab->data;
+    g_ptr_array_index(dst->first,i) = (gfsmArc*)dst->tab->data + offset;
+  }
+
+  return dst;
+}
+
 
 /*--------------------------------------------------------------
  * automaton_to_arc_table_index()

@@ -112,6 +112,15 @@ gfsmWeightVector *gfsm_weight_vector_new(void);
 GFSM_INLINE
 gfsmWeightVector *gfsm_weight_vector_sized_new(guint size);
 
+/** Copy a ::gfsmWeightVector \a src to \a dst. \returns \a dst */
+GFSM_INLINE
+gfsmWeightVector *gfsm_weight_vector_copy(gfsmWeightVector *dst, gfsmWeightVector *src);
+
+/** Create and return an exact clone of a ::gfsmWeightVector */
+GFSM_INLINE
+gfsmWeightVector *gfsm_weight_vector_clone(gfsmWeightVector *src);
+
+
 /** Set size of a ::gfsmWeightVector */
 GFSM_INLINE
 void gfsm_weight_vector_resize(gfsmWeightVector *wv, guint size);
@@ -167,6 +176,14 @@ gfsmArcTable *gfsm_arc_table_sized_new(guint n_arcs);
 /** Resize a ::gfsmArcTable */
 GFSM_INLINE
 void gfsm_arc_table_resize(gfsmArcTable *tab, guint n_arcs);
+
+/** Copy a ::gfsmArcTable \a src to \a dst.  \returns \a dst. */
+GFSM_INLINE
+gfsmArcTable *gfsm_arc_table_copy(gfsmArcTable *dst, gfsmArcTable *src);
+
+/** Create and return an exact copy of a ::gfsmArcTable \a src */
+GFSM_INLINE
+gfsmArcTable *gfsm_arc_table_clone(gfsmArcTable *src);
 
 /** Free a ::gfsmArcTable */
 GFSM_INLINE
@@ -233,6 +250,21 @@ gfsmArcTableIndex *gfsm_arc_table_index_sized_new(gfsmStateId n_states, guint n_
 /** Resize a ::gfsmArcTableIndex */
 GFSM_INLINE
 void gfsm_arc_table_index_resize(gfsmArcTableIndex *tab, gfsmStateId n_states, guint n_arcs);
+
+/** Get number of states allocated for a ::gfsmArcTableIndex */
+GFSM_INLINE
+gfsmStateId gfsm_arc_table_index_n_states(gfsmArcTableIndex *tabx);
+
+/** Get number of arcs allocated for a ::gfsmArcTableIndex */
+GFSM_INLINE
+guint gfsm_arc_table_index_n_arcs(gfsmArcTableIndex *tabx);
+
+/** Copy a ::gfsmArcTableIndex \a src to \a dst.  \returns \a dst. */
+gfsmArcTableIndex *gfsm_arc_table_index_copy(gfsmArcTableIndex *dst, gfsmArcTableIndex *src);
+
+/** Create and return an exact copy of a ::gfsmArcTableIndex \a src */
+GFSM_INLINE
+gfsmArcTableIndex *gfsm_arc_table_index_clone(gfsmArcTableIndex *src);
 
 /** Free a ::gfsmArcTableIndex */
 GFSM_INLINE
