@@ -1,8 +1,7 @@
-## File: doc/libmootm/Makefile.am
-## Package: mootm
+## File: doc/libX/Makefile.am
+## Package: *
 ## Description:
-##   + automake file for documentation subdir for
-##     libgfsm library
+##   + automake file for library documentation subdir
 ##
 ## Process this file with Automake to create Makefile.in.
 ##-----------------------------------------------------------------------
