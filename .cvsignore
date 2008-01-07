@@ -21,8 +21,6 @@ aclocal.m4
 autom4te.cache
 Makefile
 Makefile.in
-README.txt
-README.html
 *.tmp
 configure
 config.log
