@@ -809,6 +809,12 @@ AC_CONFIG_TESTDIR(tests,tests)
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+## no-autoheader
+AC_CONFIG_LINKS(src/libgfsm/gfsmConfigNoAuto.h:src/libgfsm/gfsmConfigAuto.h.in)
+## /no-autoheader
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## configuration options
 AC_SUBST(CONFIG_OPTIONS)
 AC_SUBST(gfsm_LIBS)
