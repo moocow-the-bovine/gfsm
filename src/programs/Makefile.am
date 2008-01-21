@@ -578,10 +578,11 @@ fsmclean:
 ## -- maintainerclean: built by maintainer / by hand
 MAINTAINERCLEANFILES = \
 	*~ .*~ Makefile Makefile.in \
-	*_cmdparser.cc *_cmdparser.h \
 	*.man *.1 *.html *.txt *.tex \
 	*.afsa *.afst *.gfsa *.gfst *.thfst \
 	*.dot *.ps *.vcg
+
+#	*_cmdparser.c *_cmdparser.h
 
 ##-----------------------------------------------------------------------
 ## Variables: distribution
