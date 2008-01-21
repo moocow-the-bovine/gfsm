@@ -87,9 +87,9 @@ sources_argh = \
 ##----------------------------------------------------
 ## Additional rules
 
-gfsmConfigNoAuto.h: gfsmConfigAuto.h.in
-	rm -f "$@"
-	cp "$<" "$@"
+#gfsmConfigNoAuto.h: gfsmConfigAuto.h.in
+#	rm -f "$@"
+#	cp "$<" "$@"
 
 ##-----------------------------------------------------------------------
 ## headers
