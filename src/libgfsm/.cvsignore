@@ -12,6 +12,7 @@
 *.lab
 *.loT
 gfsmConfigAuto.*
+gfsmConfigNoAuto.h
 gmon.out
 *.output
 stamp-h*
