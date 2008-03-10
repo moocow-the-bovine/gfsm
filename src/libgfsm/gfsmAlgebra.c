@@ -1203,12 +1203,12 @@ gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm)
 
   //-- adjust sort mask (translate "lower"<->"upper")
   for (aci=0; aci < gfsmACMaxN; aci++) {
-    gfsmArcCompMask cmp = gfsm_acmask_nth(acmask_old);
+    gfsmArcCompMask cmp = gfsm_acmask_nth(acmask_old,aci);
     switch (cmp) {
     case gfsmACLower:  cmp=gfsmACUpper; break;
     case gfsmACUpper:  cmp=gfsmACLower; break;
-    case gfsmACRLower: cmp=gfsmACRUpper; break;
-    case gfsmACRUpper: cmp=gfsmACRLower; break;
+    case gfsmACLowerR: cmp=gfsmACUpperR; break;
+    case gfsmACUpperR: cmp=gfsmACLowerR; break;
     default: break;
     }
     acmask_new |= gfsm_acmask_new(cmp,aci);
