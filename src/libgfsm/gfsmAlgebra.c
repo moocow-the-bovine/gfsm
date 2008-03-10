@@ -1187,7 +1187,11 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair sp,
 gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm)
 {
   gfsmStateId id;
-  gfsmArcIter  ai;
+  gfsmArcIter ai;
+  gfsmArcCompMask acmask_old=fsm->flags.sort_mode, acmask_new=gfsmACNone;;
+  gint aci;
+
+  //-- invert arcs
   for (id=0; id < fsm->states->len; id++) {
     for (gfsm_arciter_open(&ai,fsm,id); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
       gfsmArc *a = gfsm_arciter_arc(&ai);
@@ -1196,6 +1200,21 @@ gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm)
       a->upper        = tmp;
     }
   }
+
+  //-- adjust sort mask (translate "lower"<->"upper")
+  for (aci=0; aci < gfsmACMaxN; aci++) {
+    gfsmArcCompMask cmp = gfsm_acmask_nth(acmask_old);
+    switch (cmp) {
+    case gfsmACLower:  cmp=gfsmACUpper; break;
+    case gfsmACUpper:  cmp=gfsmACLower; break;
+    case gfsmACRLower: cmp=gfsmACRUpper; break;
+    case gfsmACRUpper: cmp=gfsmACRLower; break;
+    default: break;
+    }
+    acmask_new |= gfsm_acmask_new(cmp,aci);
+  }
+  fsm->flags.sort_mode = acmask_new;
+  
   return fsm;
 }
 
