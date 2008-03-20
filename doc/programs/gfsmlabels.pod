@@ -19,6 +19,9 @@ gfsmlabels [OPTIONS] TXTFILE
     -V        --version        Print version and exit.
     -cFILE    --rcfile=FILE    Read an alternate configuration file.
     -lLABELS  --labels=LABELS  Specify input alphabet (labels) file.
+    -a        --att-mode       Parse string(s) in AT&T-compatible mode.
+    -m        --map-mode       Output original strings in addition to label vectors.
+    -q        --quiet          Suppress warnings about undefined symbols.
     -oFILE    --output=FILE    Specifiy output file (default=stdout).
 
 =cut
@@ -103,6 +106,33 @@ See also: L<CONFIGURATION FILES>.
 Specify input alphabet (labels) file.
 
 Default: 'NULL'
+
+
+
+
+=item C<--att-mode> , C<-a>
+
+Parse string(s) in AT&T-compatible mode.
+
+Default: '0'
+
+
+
+
+=item C<--map-mode> , C<-m>
+
+Output original strings in addition to label vectors.
+
+Default: '0'
+
+
+
+
+=item C<--quiet> , C<-q>
+
+Suppress warnings about undefined symbols.
+
+Default: '0'
 
 
 
