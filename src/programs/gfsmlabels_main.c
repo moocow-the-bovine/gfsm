@@ -95,6 +95,9 @@ void get_my_options(int argc, char **argv)
 		 progname, args.labels_arg, err->message);
       exit(3);
     }
+  } else {
+    g_printerr("%s: no labels file specified!\n", progname);
+    exit(3);
   }
 
   //-- mode flags

@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: I/O
  *
- * Copyright (c) 2006-2007 Bryan Jurish.
+ * Copyright (c) 2006-2008 Bryan Jurish.
  *
  * For information on usage and redistribution, and for a DISCLAIMER
  * OF ALL WARRANTIES, see the file "COPYING" in this distribution.

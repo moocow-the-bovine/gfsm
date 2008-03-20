@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: I/O
  *
- * Copyright (c) 2006 Bryan Jurish.
+ * Copyright (c) 2006-2008 Bryan Jurish.
  *
  * For information on usage and redistribution, and for a DISCLAIMER
  * OF ALL WARRANTIES, see the file "COPYING" in this distribution.
@@ -354,7 +354,7 @@ ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
     }
 
     //-- oops: buffer overflow
-    gs = g_string_new(i>0 ? *lineptr : "");
+    gs = g_string_new_len((i>0 ? *lineptr : ""), i);
     while ( (c=gfsmio_getc(ioh)) != GFSMIO_EOF ) {
       g_string_append_c(gs,c);
       i++;
