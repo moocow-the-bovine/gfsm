@@ -96,7 +96,7 @@ void get_my_options(int argc, char **argv)
       exit(3);
     }
   } else {
-    g_printerr("%s: no labels file specified!", progname);
+    g_printerr("%s: no labels file specified!\n", progname);
     exit(3);
   }
 
