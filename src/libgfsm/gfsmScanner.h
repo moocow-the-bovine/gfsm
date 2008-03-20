@@ -134,7 +134,7 @@ extern const char *gfsmScannerDefaultFilename;
 //@{
 
 
-/** Initialize and return a gfsmScanner given the a flex prefix.
+/** Initialize and return a gfsmScanner given the flex prefix.
  *  Scanner is initialized for a reentrant flex scanner with prefix PREFIX.
  */
 #define gfsm_scanner_init(scanner,name,PREFIX) \

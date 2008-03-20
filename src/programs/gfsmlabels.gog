@@ -41,6 +41,15 @@ If unspecified, standard input will be read.
 string "labels" l "Specify input alphabet (labels) file." \
    arg="LABELS"
 
+flag "att-mode" a "Parse string(s) in AT&T-compatible mode." \
+   default="0"
+
+flag "map-mode" m "Output original strings in addition to label vectors." \
+   default="0"
+
+flag "quiet" q "Suppress warnings about undefined symbols." \
+   default="0"
+
 string "output" o "Specifiy output file (default=stdout)." \
     arg="FILE" \
     default="-"
