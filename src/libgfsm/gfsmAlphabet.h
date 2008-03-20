@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: alphabet
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2008 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -402,6 +402,28 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 #define gfsm_alphabet_gstring_to_labels(abet,gstr,vec,warn) \
         gfsm_alphabet_string_to_labels((abet),(gstr)->str,(vec),(warn))
 
+
+/** Convert an ASCII string in AT&T syntax to a vector of (gfsmLabel)s.
+ *  \a vec is not cleared -- use g_ptr_array_set_size() for that.
+ *  \returns \a vec if non-\a NULL, otherwise a new gfsmLabelVector.
+ *  \a abet should be a gfsmStringAlphabet.
+ */
+gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
+						    const gchar *str,
+						    gfsmLabelVector *vec,
+						    gboolean warn_on_undefined);
+
+/** Convert an ASCII string to a vector of (gfsmLabel)s,
+ *  using either ::gfsm_alphabet_string_to_labels() or ::gfsm_alphabet_att_string_to_labels().
+ *  \param abet,str,vec,warn_undef as for ::gfsm_alphabet_string_to_labels().
+ *  \param att_mode if true, \c str is parsed as att-syntax, otherwise character-wise
+ *  \returns as for ::gfsm_alphabet_string_to_labels()
+ */
+gfsmLabelVector *gfsm_alphabet_generic_string_to_labels(gfsmAlphabet *abet,
+							const gchar *str,
+							gfsmLabelVector *vec,
+							gboolean warn_on_undefined,
+							gboolean att_mode);
 
 /** Convert a gfsmLabelVector to a GString.
  *  \a gstr is not cleared.

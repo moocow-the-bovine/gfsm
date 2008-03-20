@@ -1,6 +1,10 @@
 Change log for gfsm
 
 v0.0.10 Mon, 07 Jan 2008 12:52:04 +0100
+   + added at&t-style escaped-string paring function: gfsm_alphabet_att_string_to_labels()
+     - wrapper:gfsm_alphabet_generic_string_to_labels()
+       ~ choose character-wise or att-style parsing via 'att_mode' flag
+     - added '--att-mode', '--map-mode', '--quiet' options to gfsmlabels
    + moved gfsmArcList to a native linked-list type, rather than GSList
      - saves 1 pointer per arc
      - adapted some code from glib/gslist.c (sort, remove_link, etc)

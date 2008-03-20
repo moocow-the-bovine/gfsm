@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2005 by Bryan Jurish <moocow@ling.uni-potsdam.de>
+   Copyright (C) 2005-2008 by Bryan Jurish <moocow@ling.uni-potsdam.de>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -51,6 +51,9 @@ FILE  *outfile = NULL;
 //-- global structs
 gfsmAlphabet  *labels=NULL;
 gfsmError     *err = NULL;
+gboolean       att_mode = FALSE;
+gboolean       map_mode = FALSE;
+gboolean       warn_on_undef = TRUE;
 
 /* HACK */
 //extern ssize_t getline(char **LINEPTR, size_t *N, FILE *STREAM);
@@ -93,12 +96,52 @@ void get_my_options(int argc, char **argv)
       exit(3);
     }
   }
+
+  //-- mode flags
+  att_mode = args.att_mode_flag;
+  map_mode = args.map_mode_flag;
+  warn_on_undef = !args.quiet_flag;
 }
 
 /*--------------------------------------------------------------------------
  * apply_labels_file()
  */
 void apply_labels_file(gfsmAlphabet *labels, FILE *infile, FILE *outfile)
+{
+  char            *str = NULL;
+  size_t           buflen = 0;
+  ssize_t          linelen = 0;
+  ssize_t          i;
+  gfsmLabelVal     lab;
+  gfsmLabelVector  *vec = g_ptr_array_new();
+
+  while (!feof(infile)) {
+    linelen = getdelim(&str,&buflen,'\n',infile);
+    if (linelen<0) { break; } //-- EOF
+
+    //-- truncate terminating newline character
+    if (str[linelen-1] == '\n') { str[linelen-1] = 0; }
+
+    //-- map mode?
+    if (map_mode) { fprintf(outfile, "%s\t", str); }
+
+    //-- convert
+    vec = gfsm_alphabet_generic_string_to_labels(labels,str,vec,warn_on_undef,att_mode);
+
+    //-- dump labels
+    for (i=0; i<vec->len; i++) {
+      lab = GPOINTER_TO_UINT(vec->pdata[i]);
+      if (i>0) { fputc(' ',outfile); }
+      fprintf(outfile, "%d", lab);
+    }
+    fputc('\n', outfile);
+  }
+
+  if (str) free(str);
+  if (vec) g_ptr_array_free(vec,TRUE);
+}
+
+void apply_labels_file_0(gfsmAlphabet *labels, FILE *infile, FILE *outfile)
 {
   char            *str = NULL;
   size_t           buflen = 0;

@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: alphabet
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2008 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -838,6 +838,7 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 						gboolean warn_on_undefined)
 {
   gfsmLabelVal lab;
+  const gchar *s = str;
   gchar        cs[2] = {0,0};
 
   //-- setup vector
@@ -847,8 +848,8 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
     g_ptr_array_set_size(vec, 0);
   }
 
-  for (; *str; str++) {
-    cs[0] = *str;
+  for (; *s; s++) {
+    cs[0] = *s;
     lab   = gfsm_alphabet_find_label(abet, cs);
 
     //-- check for non-existant labels
@@ -857,7 +858,7 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
 			      g_quark_from_static_string("gfsm_alphabet_string_to_labels"), //-- code
 			      "Warning: unknown character '%c' in string '%s' -- skipping.",
-			      *str, str));
+			      *s, str));
       }
       continue;
     }
@@ -867,6 +868,94 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 
   return vec;
 }
+
+/*--------------------------------------------------------------
+ * gfsm_alphabet_att_string_to_labels()
+ */
+gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
+						    const gchar *str,
+						    gfsmLabelVector *vec,
+						    gboolean warn_on_undefined)
+{
+  gfsmLabelVal lab;
+  const gchar *s = str;
+  GString     *gs = g_string_sized_new(4);
+  gchar        mode = 0;
+
+  //-- setup vector
+  if (vec==NULL) {
+    vec = g_ptr_array_sized_new(strlen(str));
+  } else {
+    g_ptr_array_set_size(vec, 0);
+  }
+
+  //-- loop(str): beginning of next symbol
+  for (; *s; s++) {
+    switch (mode) {
+    case '[':
+      //-- bracket-escape mode
+      if (*s==']') { mode=0; }
+      else { g_string_append_c(gs,*s); continue; }
+      break;
+
+    case '\\':
+      //-- backslash-escape mode
+      g_string_append_c(gs,*s);
+      mode = 0;
+      break;
+
+    default:
+    case 0:
+      //-- outer (unescaped) mode
+      if      (*s == '[')   { mode='['; continue; }
+      else if (*s == '\\')  { mode='\\'; continue; }
+      else if (isspace(*s)) { continue; } //-- ignore spaces
+      //-- plain single-character symbol: set key-string
+      g_string_append_c(gs,*s);
+      break;
+    }
+
+    //-- lookup key
+    lab = gfsm_alphabet_find_label(abet, gs->str);
+
+    //-- check for non-existant labels
+    if (lab==gfsmNoLabel) {
+      if (warn_on_undefined) {
+	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
+			      g_quark_from_static_string("gfsm_alphabet_att_string_to_labels"), //-- code
+			      "Warning: unknown symbol [%s] in string '%s' -- skipping.",
+			      gs->str, str));
+      }
+      g_string_truncate(gs,0);
+      continue;
+    }
+
+    //-- add to vector
+    g_ptr_array_add(vec, GUINT_TO_POINTER(lab));
+    g_string_truncate(gs,0);
+  }
+
+  //-- cleanup
+  g_string_free(gs,TRUE);
+
+  return vec;
+}
+
+/*--------------------------------------------------------------
+ * gfsm_alphabet_generic_string_to_labels()
+ */
+gfsmLabelVector *gfsm_alphabet_generic_string_to_labels(gfsmAlphabet *abet,
+							const gchar *str,
+							gfsmLabelVector *vec,
+							gboolean warn_on_undefined,
+							gboolean att_mode)
+{
+  return (att_mode
+	  ? gfsm_alphabet_att_string_to_labels(abet,str,vec,warn_on_undefined)	
+	  : gfsm_alphabet_string_to_labels(abet,str,vec,warn_on_undefined));
+}
+
+
 
 /*--------------------------------------------------------------
  * gfsm_alphabet_labels_to_gstring()
