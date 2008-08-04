@@ -559,7 +559,7 @@ gboolean gfsm_automaton_compile_handle (gfsmAutomaton *fsm,
   gpointer    key;
   gboolean    rc = TRUE;
 
-  extern int getline(char **, size_t *, FILE *);
+  /*extern int getline(char **, size_t *, FILE *);*/
   for (lineno=1; rc && gfsmio_getline(ioh,&buf,&buflen) > 0; ++lineno) {
     b1 = b2 = b3 = b4 = b5 = end = NULL;
     short int nfields = 0;
