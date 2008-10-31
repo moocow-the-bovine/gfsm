@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library: arcs
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2008 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -207,6 +207,12 @@ gint gfsm_arc_compare_bymask_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *a
  *  Really just a wrapper for gfsm_arc_compare_mask_inline()
  */
 gint gfsm_arc_compare_bymask(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *acdata);
+
+/** Guts for gfsm_arc_compare_bymask_inline(): compare arcs w.r.t a single attribute \a cmp.
+ *  \note gcc deems these calls "unlikely" and refuses to inline...
+ */
+GFSM_INLINE
+gint gfsm_arc_compare_bymask_1_(gfsmArc *a1, gfsmArc *a2, gfsmArcComp cmp, gfsmArcCompData *acdata);
 
 /** Parse a NUL-terminated string into a ::gfsmArcCompMask
  *  \param maskchars

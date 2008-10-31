@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.10-pre6])
+define([THE_PACKAGE_VERSION], [0.0.10-pre7])
 define([THE_PACKAGE_MAINTAINER],  [moocow@ling.uni-potsdam.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -788,7 +788,7 @@ if test "$enable_warnings" != "no" ; then
    AC_MSG_RESULT(yes)
    if test "$GCC" == "yes"; then
      AC_MSG_NOTICE([GNU C compiler detected: setting appropriate warning flags])
-     gfsm_WFLAGS="-Wall -Winline"
+     gfsm_WFLAGS="-Wall" #-Winline
    else
      AC_MSG_NOTICE([GNU C compiler not detected: not setting warning flags])
      gfsm_WFLAGS=""
