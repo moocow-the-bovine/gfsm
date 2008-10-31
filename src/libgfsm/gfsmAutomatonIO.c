@@ -661,7 +661,7 @@ gboolean gfsm_automaton_compile_handle (gfsmAutomaton *fsm,
     gfsm_automaton_add_arc(fsm,q1,q2,lo,hi,w);
   }
 
-  free(buf);
+  if (buf) free(buf);
   g_string_free(gs,TRUE);
 
   return rc;
