@@ -1,6 +1,10 @@
 Change log for gfsm
 
-v0.0.10 Mon, 07 Jan 2008 12:52:04 +0100
+v0.0.10 Mon, Fri, 31 Oct 2008 14:29:52 +0100
+   + gfsmio_getdelim (local implementation): changed handling of GString data buffers
+     - formerly, GString data was literally returned as (*lineptr)
+     - old behavior breaks perl wrappers (e.g. _compile()) on OpenSuSE 11.0
+     - workaround: GString data is copied to a new (char*) locally allocated with malloc()
    + automaton I/O: changed header struct; added hacks for v0.0.9 header detection & parsing
    + fixed an overflow bug in default gfsmio_getdelim() func
    + added at&t-style escaped-string paring function: gfsm_alphabet_att_string_to_labels()

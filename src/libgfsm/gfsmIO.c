@@ -373,16 +373,23 @@ ssize_t gfsmio_getdelim(gfsmIOHandle *ioh, char **lineptr, size_t *n, int delim)
 
     //-- set up new buffer
     g_string_append_c(gs,0); //-- this shouldn't be necessary, but weird things happen otherwise (bug?)
-    *lineptr = gs->str;
-    *n       = gs->allocated_len;
-    g_string_free(gs,FALSE);
+
+    //-- the following code breaks in Perl on OpenSuSE 11.0 [maybe GString doesn't use malloc ?!], --moocow 2008-10-31
+    /*
+      *lineptr = gs->str;            //-- copy literal GString data buffer
+      *n       = gs->allocated_len;  //-- ... and its length
+      g_string_free(gs,FALSE);       //-- ... and only free GString wrapper struct; not the data buffer
+    */
+    //-- ...so we do this instead (ugly but functional):
+    *lineptr = (char *)malloc(gs->allocated_len);  //-- malloc a copy of GString data buffer
+    memcpy(*lineptr, gs->str, gs->allocated_len);  //-- ... and copy the data
+    *n = gs->allocated_len;                        //-- ... and its length
+    g_string_free(gs,TRUE);                        //-- ... and free the whole GString and its data buffer
 
     return i==0 && c==GFSMIO_EOF ? GFSMIO_EOF : i;
   }
   return GFSMIO_EOF;
 }
-
-
 
 /*======================================================================
  * I/O: Handles: Methods: Write
