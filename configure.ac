@@ -3,7 +3,7 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.10-pre7])
+define([THE_PACKAGE_VERSION], [0.0.10-pre8])
 define([THE_PACKAGE_MAINTAINER],  [moocow@ling.uni-potsdam.de])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
@@ -451,12 +451,12 @@ if test "$OPTGEN_PERL" = "no" ; then
 fi
 AM_CONDITIONAL(HAVE_OPTGEN, [test "$OPTGEN_PERL" != "no"])
 ##
-## /pptgen.perl
+## /optgen.perl
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-## documentation
+## Documentation
 ##
 AC_ARG_WITH(docdir,
 	AC_HELP_STRING([--with-docdir=DIR],
@@ -749,6 +749,36 @@ AM_CONDITIONAL(DOC_WANT_PDF,     [test -n "$CONFIG_DOC_WANT_PDF"   -a "$CONFIG_D
 ## /Documentation
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+## subdirs
+AC_ARG_ENABLE(programs,
+	AC_HELP_STRING([--disable-programs],[Disable building of command-line utility suite]),
+	[enable_programs="$enableval"],[enable_programs="yes"])
+
+GFSM_SUBDIRS=""
+GFSM_SRC_SUBDIRS=""
+
+AC_MSG_CHECKING([whether to build any documentation])
+if test "$enable_doc" = "yes"; then
+ AC_MSG_RESULT(yes)
+ GFSM_SUBDIRS="doc"
+else
+ AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING([whether to build command-line utility suite])
+if test "$enable_programs" = "yes"; then
+ AC_MSG_RESULT(yes)
+ GFSM_SUBDIRS="$GFSM_SUBDIRS tests"
+ GFSM_SRC_SUBDIRS="programs"
+else
+  AC_MSG_RESULT(no)
+fi
+
+AC_SUBST(GFSM_SUBDIRS)
+AC_SUBST(GFSM_SRC_SUBDIRS)
+## /subdirs
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 #---------------------------------------------------------------

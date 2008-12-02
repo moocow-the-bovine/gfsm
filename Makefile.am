@@ -15,7 +15,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 ## --- recursion subdirectories
-SUBDIRS = config src doc tests
+#SUBDIRS = config src doc tests
+SUBDIRS = config src $(GFSM_SUBDIRS)
 
 ## --- pseudo-deps for '.SUFFIXES'
 SUFFIXES = .pc .pod .txt .html
