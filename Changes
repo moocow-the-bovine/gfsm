@@ -1,7 +1,9 @@
 Change log for gfsm
 
-v0.0.10 Mon, Fri, 31 Oct 2008 14:29:52 +0100
-   + added configure flag --disable-programs for static builds
+v0.0.10 Thu, 04 Dec 2008 15:49:16 +0100
+   + added a slew of 'unused' variable attributes (#ifdef __GNUC__ ...), to shut gcc up a bit
+   + added configure flag --disable-programs for static builds (e.g. pd-gfsm)
+     - ... this can probably go away again
    + gfsmio_getdelim (local implementation): changed handling of GString data buffers
      - formerly, GString data was literally returned as (*lineptr)
      - old behavior breaks perl wrappers (e.g. _compile()) on OpenSuSE 11.0
