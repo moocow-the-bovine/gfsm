@@ -1,6 +1,8 @@
 Change log for gfsm
 
 v0.0.10 Thu, 04 Dec 2008 15:49:16 +0100
+   + fixed underflow bug in gfsm_connect() causing excessive memory allocation on 0-state fsm argument
+     - the real problem is in gfsm_bitvector_sized_new(nbits=0), which sets bv[nbits-1]=0
    + added a slew of 'unused' variable attributes (#ifdef __GNUC__ ...), to shut gcc up a bit
    + added configure flag --disable-programs for static builds (e.g. pd-gfsm)
      - ... this can probably go away again
