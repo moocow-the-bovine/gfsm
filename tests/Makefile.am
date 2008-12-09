@@ -28,14 +28,18 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 	} >$(srcdir)/package.m4
 
 TESTSUITE = $(srcdir)/testsuite
-check-local: atconfig atlocal $(TESTSUITE)
+check-local: atconfig atlocal $(TESTSUITE).stamp $(TESTSUITE)
 	sh $(TESTSUITE)
+
+$(TESTSUITE).stamp: $(top_srcdir)/configure.ac
+	touch $@
 
 AUTOTEST = autom4te --language=autotest
 $(TESTSUITE):   $(srcdir)/testsuite.at \
 		$(srcdir)/01_basic.at \
 		$(srcdir)/02_arith.at \
-		$(srcdir)/03_algebra.at
+		$(srcdir)/03_algebra.at \
+		$(TESTSUITE).stamp
 	$(AUTOTEST) -I $(srcdir) $^ -o $@.tmp
 	mv $@.tmp $@
 
@@ -79,7 +83,9 @@ EXTRA_DIST = \
 	01_basic.at \
 	02_arith.at \
 	testsuite.at \
+	testsuite.stamp \
 	testsuite
+
 
 ## --- recursion subdirectories for 'make dist'
 DIST_SUBDIRS = $(SUBDIRS)

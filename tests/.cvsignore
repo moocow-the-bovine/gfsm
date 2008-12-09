@@ -9,3 +9,4 @@ Makefile.in
 testsuite
 testsuite.dir
 testsuite.log
+testsuite.stamp
