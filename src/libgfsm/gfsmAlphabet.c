@@ -994,7 +994,28 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
     //-- append the symbol to the output string
     if (att_style) {
       if (strlen(sym)==1) {
-	g_string_append_c(gstr,sym[0]);
+	//-- check for symbols needing escapes
+	switch (sym[0]) {
+	case '\\':
+	case '[':
+	case ']':
+	case '*':
+	case '+':
+	case '^':
+	case '?':
+	case '!':
+	case '|':
+	case '&':
+	case ':':
+	case '@':
+	case '-':
+	  g_string_append_c(gstr,'\\');
+	  g_string_append_c(gstr,sym[0]);
+	  break;
+	default:
+	  g_string_append_c(gstr,sym[0]);
+	  break;
+	}
       }
       else {
 	g_string_append_c(gstr,'[');
