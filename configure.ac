@@ -127,6 +127,17 @@ YACC="$BISON"
 ## /flex+bison: automake woes
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+## basic datatype sizes
+AC_CHECK_SIZEOF([void*], [], [])
+AC_CHECK_SIZEOF([int], [], [])
+AC_CHECK_SIZEOF([long int], [], [])
+AC_CHECK_SIZEOF([long long int], [], [])
+AC_CHECK_SIZEOF([short int], [], [])
+AC_CHECK_SIZEOF([float], [], [])
+AC_CHECK_SIZEOF([double], [], [])
+## /basic datatype sizes
+##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
