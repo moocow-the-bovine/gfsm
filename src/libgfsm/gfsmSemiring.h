@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2009 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -44,6 +44,18 @@ typedef enum {
   gfsmSRTTrivial  = 4,  ///< trivial semiring <set:{0}, plus:+, times:+, less:!=, zero:0, one:0>
   gfsmSRTTropical = 5,  ///< tropical semiring: <set:[-inf,inf], plus:min, times:+, less:<, zero:inf, one:0>
   gfsmSRTPLog     = 6,  ///< positive log semiring <set:[-inf,inf], plus:log(e^x+e^y), times:+, less:>, zero:-inf, one:0>
+  gfsmSRTArctic   = 7,  ///< arctic semiring: <set:[-inf,inf], plus:max, times:+, less:>, zero:-inf, one:0>
+  gfsmSRTFuzzy    = 8,  ///< "fuzzy" semiring: <set:[0,1], plus:max, times:min, less:>, zero:0, one:1>
+  gfsmSRTProb     = 9,  ///< probabilistic sr: <set:[0,1], plus:+, times:*, less:>(?), zero:0, one:1>
+  //gfsmSRTViterbi  = 10, ///< Viterbi semiring: <set:[0,1], plus:max, times:*, less:>, zero:0, one:1>
+  // -log(gfsmSRTViterbi) === gfsmSRTTropical === -gfsmSRTArctic
+  //gfsmSRTLogViterbi,  ///< log-Viterbi semiring: <set:[-inf,0], plus:max, times:+, less:??, zero:-inf, one:0> 
+  // SRTLogViterbi === gfsmSRTArctic over set [-inf,0]
+  // TODO: concatenation sr: <set:2^(\Sigma^*), plus:\union, times:\concat, less:??, zero:\emptyset, one:{\epsilon}>
+  // TODO: string sr: <set:\sigma^* \union {s_\infty}, plus:LCP, times:\concat, less:??, zero:s_\infty, one:\epsilon>
+  // TODO: set sr: <set:2^M, plus:\union, times:\intersect, less:??, zero:\emptyset, one:M>, M an arbitrary set
+  // TODO: unification sr: <set:2^F, plus:\union, times:\unify, less:??, zero:\emptyset, one:{\bottom}>, F set of FSs
+  
   gfsmSRTUser     = 256 ///< user-defined semiring
 } gfsmSRType;
 

@@ -62,6 +62,9 @@ Specify one of the following:
  real
  trivial
  tropical
+ arctic
+ fuzzy
+ prob
 
 "
 

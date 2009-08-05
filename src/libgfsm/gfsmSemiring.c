@@ -43,23 +43,28 @@
 gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
   switch (sr->type) {
-  case gfsmSRTLog:
-  case gfsmSRTTropical: return (x < y ? -1 : (x > y ? 1 : 0));
-  case gfsmSRTTrivial:  return 0;
+  case gfsmSRTTrivial:    return 0;
 
-  case gfsmSRTPLog: return (x < y ? 1 : (x > y ? -1 : 0));
+  case gfsmSRTLog:
+  case gfsmSRTTropical:
+  case gfsmSRTReal:       return (x < y ? -1 : (x > y ? 1 : 0));
+
+  case gfsmSRTBoolean:
+  case gfsmSRTPLog: 
+  case gfsmSRTArctic:
+  case gfsmSRTFuzzy:
+  case gfsmSRTProb:       return (x > y ? -1 : (x < y ? 1 : 0));
 
   case gfsmSRTUser:
-    return (gfsm_sr_compare(sr,x,y) ? -1 : (gfsm_sr_compare(sr,y,x) ? 1 : 0));
+    //return (gfsm_sr_less(sr,x,y) ? -1 : (gfsm_sr_less(sr,y,x) ? 1 : 0));
     if (((gfsmUserSemiring*)sr)->less_func) {
       if ((*((gfsmUserSemiring*)sr)->less_func)(sr,x,y)) return -1;
       if ((*((gfsmUserSemiring*)sr)->less_func)(sr,y,x)) return  1;
       return 0;
     }
 
-  case gfsmSRTBoolean:
-  case gfsmSRTReal:
-  default:             return (x > y ? -1 : (x < y ? 1 : 0));
+  default:
+    return (x < y ? -1 : (x > y ? 1 : 0));
   }
   return 0; //-- should never happen
 }
@@ -79,6 +84,9 @@ gfsmSRType gfsm_sr_name_to_type(const char *name)
   else if (strcmp(name,"real")     ==0) return gfsmSRTReal;
   else if (strcmp(name,"trivial")  ==0) return gfsmSRTTrivial;
   else if (strcmp(name,"tropical") ==0) return gfsmSRTTropical;
+  else if (strcmp(name,"arctic")   ==0) return gfsmSRTArctic;
+  else if (strcmp(name,"fuzzy")    ==0) return gfsmSRTFuzzy;
+  else if (strcmp(name,"prob")     ==0) return gfsmSRTProb;
   else if (strcmp(name,"user")     ==0) return gfsmSRTUser;
   return gfsmSRTUnknown;
 }
@@ -95,6 +103,9 @@ gchar *gfsm_sr_type_to_name(gfsmSRType type)
   case gfsmSRTTrivial:  return "trivial";
   case gfsmSRTTropical: return "tropical";
   case gfsmSRTReal:     return "real";
+  case gfsmSRTArctic:   return "arctic";
+  case gfsmSRTFuzzy:    return "fuzzy";
+  case gfsmSRTProb:     return "prob";
   default:              return "unknown";
   }
 }
