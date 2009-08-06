@@ -839,7 +839,8 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 {
   gfsmLabelVal lab;
   const gchar *s = str;
-  gchar        cs[2] = {0,0};
+  GString     *gsym = g_string_sized_new(2);
+  gpointer     key;
 
   //-- setup vector
   if (vec==NULL) {
@@ -849,8 +850,10 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
   }
 
   for (; *s; s++) {
-    cs[0] = *s;
-    lab   = gfsm_alphabet_find_label(abet, cs);
+    g_string_truncate(gsym, 0);
+    g_string_append_c(gsym, *s);
+    key = gfsm_alphabet_string2key(abet, gsym);
+    lab = gfsm_alphabet_find_label(abet, key);
 
     //-- check for non-existant labels
     if (lab==gfsmNoLabel) {
@@ -866,6 +869,9 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
     g_ptr_array_add(vec, GUINT_TO_POINTER(lab));
   }
 
+  //-- cleanup
+  if (gsym) g_string_free(gsym,TRUE);
+
   return vec;
 }
 
@@ -879,8 +885,9 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
 {
   gfsmLabelVal lab;
   const gchar *s = str;
-  GString     *gs = g_string_sized_new(4);
-  gchar        mode = 0;
+  GString     *gsym = g_string_sized_new(4);  //-- single-label string buffer
+  gpointer     key;
+  gchar        mode = 0;                      //-- parsing mode
 
   //-- setup vector
   if (vec==NULL) {
@@ -895,12 +902,12 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
     case '[':
       //-- bracket-escape mode
       if (*s==']') { mode=0; }
-      else { g_string_append_c(gs,*s); continue; }
+      else { g_string_append_c(gsym,*s); continue; }
       break;
 
     case '\\':
       //-- backslash-escape mode
-      g_string_append_c(gs,*s);
+      g_string_append_c(gsym,*s);
       mode = 0;
       break;
 
@@ -911,12 +918,13 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
       else if (*s == '\\')  { mode='\\'; continue; }
       else if (isspace(*s)) { continue; } //-- ignore spaces
       //-- plain single-character symbol: set key-string
-      g_string_append_c(gs,*s);
+      g_string_append_c(gsym,*s);
       break;
     }
 
-    //-- lookup key
-    lab = gfsm_alphabet_find_label(abet, gs->str);
+    //-- lookup key, label
+    key = gfsm_alphabet_string2key(abet, gsym);
+    lab = gfsm_alphabet_find_label(abet, key);
 
     //-- check for non-existant labels
     if (lab==gfsmNoLabel) {
@@ -924,19 +932,19 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
 	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
 			      g_quark_from_static_string("gfsm_alphabet_att_string_to_labels"), //-- code
 			      "Warning: unknown symbol [%s] in string '%s' -- skipping.",
-			      gs->str, str));
+			      gsym->str, str));
       }
-      g_string_truncate(gs,0);
+      g_string_truncate(gsym,0);
       continue;
     }
 
     //-- add to vector
     g_ptr_array_add(vec, GUINT_TO_POINTER(lab));
-    g_string_truncate(gs,0);
+    g_string_truncate(gsym,0);
   }
 
   //-- cleanup
-  g_string_free(gs,TRUE);
+  if (gsym) g_string_free(gsym,TRUE);
 
   return vec;
 }
@@ -966,8 +974,10 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
 					 gboolean warn_on_undefined,
 					 gboolean att_style)
 {
-  gfsmLabelVal lab;
-  const gchar  *sym;
+  gfsmLabelVal   lab;
+  gpointer       key;
+  GString        *gsym = g_string_new("");
+  const gchar    *sym  = NULL;
   guint i;
 
   //-- setup GString
@@ -978,10 +988,10 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
   //-- lookup & append symbols
   for (i=0; i < vec->len; i++) {
     lab = (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(vec,i));
-    sym = (const gchar*)gfsm_alphabet_find_key(abet,lab);
+    key = gfsm_alphabet_find_key(abet,lab);
 
     //-- check for unknown labels
-    if (sym==NULL) {
+    if (key==NULL) {
       if (warn_on_undefined) {
 	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
 			      g_quark_from_static_string("gfsm_alphabet_labels_to_gstring"), //-- code
@@ -990,6 +1000,11 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
       }
       continue;
     }
+
+    //-- convert symbol to string (e.g. for perl scalar & other user alphabets)
+    g_string_truncate(gsym, 0);
+    gfsm_alphabet_key2string(abet, key, gsym);
+    sym = gsym->str;
 
     //-- append the symbol to the output string
     if (att_style) {
@@ -1027,6 +1042,9 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
       g_string_append(gstr, sym);
     }
   }
+
+  //-- cleanup
+  if (gsym) g_string_free(gsym,TRUE);
 
   return gstr;
 }
