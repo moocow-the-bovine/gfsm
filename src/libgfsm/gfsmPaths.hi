@@ -1,0 +1,102 @@
+
+/*=============================================================================*\
+ * File: gfsmPaths.hi
+ * Author: Bryan Jurish <jurish@uni-potsdam.de>
+ * Description: finite state machine library: paths: inline definitions
+ *
+ * Copyright (c) 2011 Bryan Jurish.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *=============================================================================*/
+
+/*======================================================================
+ * Methods: gfsmPath
+ */
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w)
+{
+  gfsmPath *p = g_new(gfsmPath,1);
+  p->lo = lo ? lo : g_ptr_array_new();
+  p->hi = hi ? hi : g_ptr_array_new();
+  p->w  = w;
+  return p;
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr)
+{
+  if (lo != gfsmEpsilon) g_ptr_array_add(p->lo, GUINT_TO_POINTER(lo));
+  if (hi != gfsmEpsilon) g_ptr_array_add(p->hi, GUINT_TO_POINTER(hi));
+  p->w = gfsm_sr_times(sr, p->w, w);
+}
+
+
+//--------------------------------------------------------------
+GFSM_INLINE
+void gfsm_path_pop(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi)
+{
+  if (lo != gfsmEpsilon) g_ptr_array_remove_index_fast(p->lo, p->lo->len-1);
+  if (hi != gfsmEpsilon) g_ptr_array_remove_index_fast(p->hi, p->hi->len-1);
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmPath *gfsm_path_reverse(gfsmPath *p)
+{
+  if (p->lo) gfsm_label_vector_reverse(p->lo);
+  if (p->hi) gfsm_label_vector_reverse(p->hi);
+  return p;
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+void gfsm_path_free(gfsmPath *p)
+{
+  if (!p) return;
+  if (p->lo) g_ptr_array_free(p->lo,TRUE);
+  if (p->hi) g_ptr_array_free(p->hi,TRUE);
+  g_free(p);
+}
+
+/*======================================================================
+ * Methods: gfsmArcPath
+ */
+
+//--------------------------------------------------------------
+GFSM_INLINE
+void gfsm_arcpath_new(void)
+{
+  return g_ptr_array_new();
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmArcPath *gfsm_arcpath_new_append(gfsmArcPath *p1, gfsmArc *a)
+{
+  gfsmArcPath *p2 = g_ptr_array_sized_new(p1->len+1);
+  gfsm_arcpath_copy(p2,p1);
+  g_ptr_array_add(p2, a);
+  return p2;
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+void gfsm_arcpath_free(gfsmArcPath *p)
+{
+  g_ptr_array_free(p,TRUE);
+}

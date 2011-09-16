@@ -964,6 +964,74 @@ gfsmLabelVector *gfsm_alphabet_generic_string_to_labels(gfsmAlphabet *abet,
 }
 
 
+/*--------------------------------------------------------------
+ * gfsm_alphabet_label_to_gstring()
+ */
+void gfsm_alphabet_label_to_gstring(gfsmAlphabet *abet,
+				    gfsmLabelVal  lab,
+				    GString      *gstr,
+				    gboolean      warn_on_undefined,
+				    gboolean      att_style,
+				    GString      *gsym)
+{
+  gpointer       key;
+  const gchar    *sym = NULL;
+
+  key = gfsm_alphabet_find_key(abet,lab);
+
+  //-- check for unknown labels
+  if (key==NULL) {
+    if (warn_on_undefined) {
+      gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
+			    g_quark_from_static_string("gfsm_alphabet_label_to_gstring"), //-- code
+			    "Warning: unknown label '%d' -- skipping.",
+			    lab));
+    }
+    return;
+  }
+
+  //-- convert symbol to string (e.g. for perl scalar & other user alphabets)
+  g_string_truncate(gsym, 0);
+  gfsm_alphabet_key2string(abet, key, gsym);
+  sym = gsym->str;
+
+  //-- append the symbol to the output string
+  if (att_style) {
+    if (strlen(sym)==1) {
+      //-- check for symbols needing escapes
+      switch (sym[0]) {
+      case '\\':
+      case '[':
+      case ']':
+      case '*':
+      case '+':
+      case '^':
+      case '?':
+      case '!':
+      case '|':
+      case '&':
+      case ':':
+      case '@':
+      case '-':
+	g_string_append_c(gstr,'\\');
+	g_string_append_c(gstr,sym[0]);
+	break;
+      default:
+	g_string_append_c(gstr,sym[0]);
+	break;
+      }
+    }
+    else {
+      g_string_append_c(gstr,'[');
+      g_string_append(gstr,sym);
+      g_string_append_c(gstr,']');
+    } 
+  } else { //-- !att_style
+    if (i != 0) g_string_append_c(gstr,' ');
+    g_string_append(gstr, sym);
+  }
+}
+
 
 /*--------------------------------------------------------------
  * gfsm_alphabet_labels_to_gstring()
@@ -974,10 +1042,8 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
 					 gboolean warn_on_undefined,
 					 gboolean att_style)
 {
-  gfsmLabelVal   lab;
-  gpointer       key;
-  GString        *gsym = g_string_new("");
-  const gchar    *sym  = NULL;
+  GString      *gsym = g_string_new("");
+  gfsmLabelVal  lab;
   guint i;
 
   //-- setup GString
@@ -988,59 +1054,7 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
   //-- lookup & append symbols
   for (i=0; i < vec->len; i++) {
     lab = (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(vec,i));
-    key = gfsm_alphabet_find_key(abet,lab);
-
-    //-- check for unknown labels
-    if (key==NULL) {
-      if (warn_on_undefined) {
-	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
-			      g_quark_from_static_string("gfsm_alphabet_labels_to_gstring"), //-- code
-			      "Warning: unknown label '%d' -- skipping.",
-			      lab));
-      }
-      continue;
-    }
-
-    //-- convert symbol to string (e.g. for perl scalar & other user alphabets)
-    g_string_truncate(gsym, 0);
-    gfsm_alphabet_key2string(abet, key, gsym);
-    sym = gsym->str;
-
-    //-- append the symbol to the output string
-    if (att_style) {
-      if (strlen(sym)==1) {
-	//-- check for symbols needing escapes
-	switch (sym[0]) {
-	case '\\':
-	case '[':
-	case ']':
-	case '*':
-	case '+':
-	case '^':
-	case '?':
-	case '!':
-	case '|':
-	case '&':
-	case ':':
-	case '@':
-	case '-':
-	  g_string_append_c(gstr,'\\');
-	  g_string_append_c(gstr,sym[0]);
-	  break;
-	default:
-	  g_string_append_c(gstr,sym[0]);
-	  break;
-	}
-      }
-      else {
-	g_string_append_c(gstr,'[');
-	g_string_append(gstr,sym);
-	g_string_append_c(gstr,']');
-      } 
-    } else { //-- !att_style
-      if (i != 0) g_string_append_c(gstr,' ');
-      g_string_append(gstr, sym);
-    }
+    gfsm_alphabet_label_to_string(abet,lab,gstr,warn_on_undefined,att_style,gsym);
   }
 
   //-- cleanup

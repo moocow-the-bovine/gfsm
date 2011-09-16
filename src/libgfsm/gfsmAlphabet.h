@@ -185,7 +185,7 @@ gfsmAlphabet *gfsm_alphabet_new(gfsmAType type);
 
 
 /** Initialize a builtin alphabet (depending on \a a->type)
- *  This really only works well identity, range, and string alphabets,
+ *  This really only works well for identity, range, and string alphabets,
  *  as well as for literal pointer alphabets (without copy and/or free)
  *  and for user alphabets using literal pointers.
  */
@@ -445,6 +445,19 @@ char *gfsm_alphabet_labels_to_string(gfsmAlphabet *abet,
 				     gfsmLabelVector *vec,
 				     gboolean warn_on_undefined,
 				     gboolean att_style);
+
+/** Append a single gfsmLabelVal to a GString*.
+ *  \li \a gstr is not cleared.
+ *  \li \a gsym is a temporary which may be overwritten by this function
+ *  \returns \a gstr if non-\a NULL, otherwise a new GString*.
+ *  \note \a abet should really be a gfsmStringAlphabet.
+ */
+void gfsm_alphabet_label_to_gstring(gfsmAlphabet *abet,
+				    gfsmLabelVal  lab,
+				    GString      *gstr,
+				    gboolean      warn_on_undefined,
+				    gboolean      att_style,
+				    GString      *gsym);
 //@}
 
 #endif /*_GFSM_ALPHABET_H */

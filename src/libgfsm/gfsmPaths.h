@@ -1,9 +1,9 @@
 /*=============================================================================*\
  * File: gfsmPaths.h
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <jurish@uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2007 Bryan Jurish.
+ * Copyright (c) 2005-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,23 +33,24 @@
  * Types: paths
  */
 
-/// Type for an automaton path
+/// Type for an automaton path (labels only, no alignment)
 typedef struct {
   gfsmLabelVector *lo;  /**< lower label sequence */
   gfsmLabelVector *hi;  /**< upper label sequence */
   gfsmWeight       w;   /**< weight attached to this path */
 } gfsmPath;
 
+/// Type for an automaton arc path (full alignment: GPtrArray of gfsmArc*); final weights are not included
+typedef GPtrArray gfsmArcPath;
 
 
 /*======================================================================
  * Methods: Path Utilities
  */
 
-///\name Path Utilities
-//@{
-
 //------------------------------
+///\name gfsmLabelVector Utilities
+//@{
 /** Copy gfsmLabelVector. \returns \a dst */
 gfsmLabelVector *gfsm_label_vector_copy(gfsmLabelVector *dst, gfsmLabelVector *src);
 
@@ -59,11 +60,15 @@ gfsmLabelVector *gfsm_label_vector_copy(gfsmLabelVector *dst, gfsmLabelVector *s
 
 /** Reverse a gfsmLabelVector. \returns \a v */
 gfsmLabelVector *gfsm_label_vector_reverse(gfsmLabelVector *v);
+//@}
 
 //------------------------------
+///\name gfsmPath Utilities
+//@{
 /** Create and return a new gfsmPath, specifying components
  *  If either of \a lo or \a hi are NULL, a new vector will be created.
  */
+GFSM_INLINE
 gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w);
 
 /** Create and return a new empty gfsmPath, specifying semiring. */
@@ -80,9 +85,11 @@ gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, g
 gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr);
 
 /** Append an arc to a gfsmPath */
+GFSM_INLINE
 void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr);
 
 /** Pop an arc from a gfsmPath */
+GFSM_INLINE
 void gfsm_path_pop(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi);
 
 /** 3-way path comparison function. */
@@ -95,14 +102,10 @@ gfsmPath *gfsm_path_reverse(gfsmPath *p);
 void gfsm_path_free(gfsmPath *p);
 //@}
 
-/*======================================================================
- * Methods: Automaton Serialization
- */
-
-///\name Automaton Serialization
+//======================================================================
+///\name Automaton Serialization: gfsmPath
 //@{
 
-//------------------------------
 /** Serialize a gfsmAutomaton to a set of (gfsmPath*)s.
  *  Really just a wrapper for gfsm_automaton_paths_full()
  *
@@ -190,9 +193,82 @@ char *gfsm_path_to_string(gfsmPath     *path,
 			  gfsmSemiring *sr,
 			  gboolean      warn_on_undefined,
 			  gboolean      att_style);
-
+//@}
 
 //------------------------------
+// \name gfsmArcPath Utilities
+//@{
+/** Create and return a new gfsmArcPath* */
+gfsmArcPath *gfsm_arcpath_new(void);
+
+/** Create and return a new gfsmArcPath* by appending \a a to an existing path \a p1 */
+gfsmArcPath *gfsm_arcpath_new_append(gfsmArcPath *p1, gfsmArc *a);
+
+/** Copy a gfsmArcPath* \a src to \a dst \returns \a dst */
+gfsmArcPath *gfsm_arcpath_new_append(gfsmArcPath *dst, gfsmArcPath *src);
+
+/** Destroy a gfsmArcPath */
+void gfsm_arcpath_free(gfsmArcPath *p);
+//@}
+
+//======================================================================
+///\name Automaton Serialization: gfsmArcPath
+//@{
+
+/** Serialize a gfsmAutomaton to a list of (gfsmArcPath*)s.
+ *  Causes deep recursion for cyclic automata.
+ *  Returns a GSList whose element \a data are (gfsmArcPath*)s.
+ *  It is the caller's responsibility to free the returned objects.
+ *  The (gfsmArc*)s themselves are pointers into \a fsm, and will
+ *  be freed with that automaton.
+ *
+ *  \param fsm   Acyclic automaton to be serializd
+ *
+ *  \returns a new GSList of (gfsmArcPath*)s
+ */
+GSList *gfsm_automaton_arcpaths(gfsmAutomaton *fsm);
+
+/** Recursive guts for gfsm_automaton_paths() */
+GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
+				   gfsmPath      *path
+				   gfsmStateId    qid,
+				   gfsmSet       *paths);
+
+/** Append string for a single gfsmArcPath* to a GString,
+ *  which may be NULL to allocate a new string.
+ *  \returns \a gs if non-NULL, otherwise a new GString*.
+ *  \warning it is the caller's responsibility to free the returned GString*.
+ */
+char *gfsm_arcpath_to_gstring(gfsmArcPath  *path,
+			      GString      *gs,
+			      gfsmAlphabet *abet_q,
+			      gfsmAlphabet *abet_lo,
+			      gfsmAlphabet *abet_hi,
+			      gfsmSemiring *sr,
+			      gboolean      warn_on_undefined,
+			      gboolean      att_style,
+			      gboolean      compress_id,
+			      gboolean      show_states);
+
+/** Allocate and return a new string (char*) for a single gfsmArcPath*.
+ *  \returns new (char*) representing \a path.
+ *  \warning it is the callers responsibility to free the returned \a char*.
+ */
+char *gfsm_arcpath_to_string(gfsmArcPath  *path,
+			     gfsmAlphabet *abet_q,
+			     gfsmAlphabet *abet_lo,
+			     gfsmAlphabet *abet_hi,
+			     gfsmSemiring *sr,
+			     gboolean      warn_on_undefined,
+			     gboolean      att_style,
+			     gboolean      compress_id,
+			     gboolean      show_states);
+
+//@}
+
+//======================================================================
+///\name Automaton Serialization: Viterbi
+//@{
 
 /** Extract upper side of all paths from a Viterbi trellis.
  *
@@ -236,5 +312,9 @@ void _gfsm_viterbi_trellis_bestpath_r(gfsmAutomaton *trellis,
 
 //@}
 
+//-- inline definitions
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmPaths.hi>
+#endif
 
 #endif /* _GFSM_PATHS_H */

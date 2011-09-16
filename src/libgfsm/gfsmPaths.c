@@ -1,10 +1,10 @@
 
 /*=============================================================================*\
  * File: gfsmPaths.c
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <jurish@uni-potsdam.de>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2008 Bryan Jurish.
+ * Copyright (c) 2005-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,10 @@
 #include <gfsmArc.h>
 #include <gfsmArcIter.h>
 
+//-- inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmPaths.hi>
+#endif
 
 /*======================================================================
  * Methods: Path Utilities: gfsmLabelVector
@@ -59,15 +63,6 @@ gfsmLabelVector *gfsm_label_vector_reverse(gfsmLabelVector *v)
  * Methods: Path Utilities: gfsmPath
  */
 
-//--------------------------------------------------------------
-gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w)
-{
-  gfsmPath *p = g_new(gfsmPath,1);
-  p->lo = lo ? lo : g_ptr_array_new();
-  p->hi = hi ? hi : g_ptr_array_new();
-  p->w  = w;
-  return p;
-}
 
 //--------------------------------------------------------------
 gfsmPath *gfsm_path_new_copy(gfsmPath *p1)
@@ -129,21 +124,6 @@ gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr)
   return p;
 }
 
-//--------------------------------------------------------------
-void gfsm_path_push(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr)
-{
-  if (lo != gfsmEpsilon) g_ptr_array_add(p->lo, GUINT_TO_POINTER(lo));
-  if (hi != gfsmEpsilon) g_ptr_array_add(p->hi, GUINT_TO_POINTER(hi));
-  p->w = gfsm_sr_times(sr, p->w, w);
-}
-
-
-//--------------------------------------------------------------
-void gfsm_path_pop(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi)
-{
-  if (lo != gfsmEpsilon) g_ptr_array_remove_index_fast(p->lo, p->lo->len-1);
-  if (hi != gfsmEpsilon) g_ptr_array_remove_index_fast(p->hi, p->hi->len-1);
-}
 
 //--------------------------------------------------------------
 int gfsm_label_vector_compare(const gfsmLabelVector *v1, const gfsmLabelVector *v2)
@@ -174,22 +154,6 @@ int gfsm_path_compare_data(const gfsmPath *p1, const gfsmPath *p2, gfsmSemiring 
   return 0;
 }
 
-//--------------------------------------------------------------
-gfsmPath *gfsm_path_reverse(gfsmPath *p)
-{
-  if (p->lo) gfsm_label_vector_reverse(p->lo);
-  if (p->hi) gfsm_label_vector_reverse(p->hi);
-  return p;
-}
-
-//--------------------------------------------------------------
-void gfsm_path_free(gfsmPath *p)
-{
-  if (!p) return;
-  if (p->lo) g_ptr_array_free(p->lo,TRUE);
-  if (p->hi) g_ptr_array_free(p->hi,TRUE);
-  g_free(p);
-}
 
 /*======================================================================
  * Methods: Automaton Serialization: paths()
@@ -342,6 +306,120 @@ char *gfsm_path_to_string(gfsmPath     *path,
   g_string_free(gs,FALSE);
   return s;
 }
+
+/*======================================================================
+ * Methods: Automaton Serialization: arcpaths()
+ */
+
+//--------------------------------------------------------------
+gfsmArcPath *gfsm_arcpath_copy(gfsmArcPath *dst, gfsmArcPath *src)
+{
+  guint i;
+  g_ptr_array_set_size(dst, src->len);
+  for (i=0; i < src->len; i++) {
+    g_ptr_array_index(dst,i) = g_ptr_array_index(src,i);
+  }
+  return dst;
+}
+
+//--------------------------------------------------------------
+GSList *gfsm_automaton_arcpaths(gfsmAutomaton *fsm)
+{
+  gfsmArcPath  *p = g_ptr_array_sized_new(0);
+  GSList   *paths = _gfsm_automaton_arcpaths_r(fsm,p,gfsm_automaton_get_root(fsm),NULL);
+  gfsm_arcpath_free(p);
+  return paths;
+}
+
+//--------------------------------------------------------------
+GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
+				   gfsmPath      *path,
+				   gfsmStateId    qid,
+				   GSList        *paths)
+{
+  gfsmArcIter ai;
+
+  //-- investigate all outgoing arcs
+  for (gfsm_arciter_open(&ai, fsm, qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+    gfsmArc       *arc = gfsm_arciter_arc(&ai);
+    gfsmArcPath    *qp = gfsm_arcpath_new_append(path,arc);
+    paths = _gfsm_automaton_arcpaths_r(fsm,qp,arc->target,paths);
+    gfsm_arcpath_free(qp);
+  }
+
+  //-- check for final state
+  if (gfsm_automaton_state_is_final(fsm,qid)) {
+    paths = g_slist_prepend(paths, path);
+  }
+
+  return paths;
+}
+
+/*======================================================================
+ * Methods: Stringification: arcpaths()
+ */
+
+//--------------------------------------------------------------
+char *gfsm_arcpath_to_gstring(gfsmArcPath  *path,
+			      GString      *gs,
+			      gfsmAlphabet *abet_q,
+			      gfsmAlphabet *abet_lo,
+			      gfsmAlphabet *abet_hi,
+			      gfsmSemiring *sr,
+			      gboolean      warn_on_undefined,
+			      gboolean      att_style,
+			      gboolean      compress_id,
+			      gboolean      show_states)
+{
+  guint i;
+  GString *gsym = g_string_new(""); //-- temporary for gfsm_alphabet_label_to_gstring()
+  if (!gs) gs = g_string_new("");
+  
+  //-- source state (root only)
+  if (show_states && path->len>0) {
+    gfsmStateId q = ((gfsmArc*)g_ptr_array_index(path,i))->source;
+    if (abet_q) {
+      g_string_append_c(gs,'@');
+      gfsm_alphabet_label_to_gstring(abet_q,q,gstr,warn_on_undefined,att_style);
+      g_string_append_c(gs,' ');
+    } else {
+      g_string_append_printf(gs,"@%u ",q);
+    }
+  }
+
+  //-- guts
+  for (i=0; i < path->len; i++) {
+    gfsmArc *a = (gfsmArc*)g_ptr_array_index(path,i);
+
+    //-- arc labels
+    //-- CONTINUE HERE: compress_id flag
+
+    //-- arc weight
+    
+    //-- target state
+  }
+
+  //-- final weight
+}
+
+
+//--------------------------------------------------------------
+char *gfsm_arcpath_to_string(gfsmArcPath  *path,
+			     gfsmAlphabet *abet_q,
+			     gfsmAlphabet *abet_lo,
+			     gfsmAlphabet *abet_hi,
+			     gfsmSemiring *sr,
+			     gboolean      warn_on_undefined,
+			     gboolean      att_style,
+			     gboolean      compress_id,
+			     gboolean      show_states)
+{
+  GString *gs = gfsm_arcpath_to_gstring(path,NULL,abet_q,abet_lo,abet_hi,sr,warn_on_undefined,att_style,compress_id,show_states);
+  char    *s  = gs->str;
+  g_string_free(gs,FALSE);
+  return s;
+}
+
 
 
 /*======================================================================

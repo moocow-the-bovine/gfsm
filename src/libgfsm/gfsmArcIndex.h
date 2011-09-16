@@ -75,7 +75,7 @@ gfsmReverseArcIndex *gfsm_reverse_arc_index_sized_new(gfsmStateId n_states);
  */
 gfsmReverseArcIndex *gfsm_automaton_to_reverse_arc_index(gfsmAutomaton *fsm, gfsmReverseArcIndex *rarcs);
 
-/** Backwards-compatible alias for gfsm_automaton_to_reverse_arc_inde() */
+/** Backwards-compatible alias for gfsm_automaton_to_reverse_arc_index() */
 #define gfsm_automaton_reverse_arc_index gfsm_automaton_to_reverse_arc_index
 
 /** Free a ::gfsmReverseArcIndex

@@ -142,7 +142,7 @@ pkginclude_HEADERS = \
 	gfsmAlgebra.h \
 	gfsmArith.h \
 	gfsmLookup.h \
-	gfsmPaths.h \
+	gfsmPaths.h gfsmPaths.hi \
 	gfsmTrie.h \
 	gfsmScanner.h \
 	gfsmRegexCompiler.h \
