@@ -3,11 +3,11 @@ AC_PREREQ(2.5)
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.10-pre12])
-define([THE_PACKAGE_MAINTAINER],  [moocow@ling.uni-potsdam.de])
+define([THE_PACKAGE_VERSION], [0.0.10])
+define([THE_PACKAGE_MAINTAINER],  [moocow.bovine@gmail.com])
 
 AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
-dnl AC_INIT(gfsm, 0.01, moocow@ling.uni-potsdam.de)
+dnl AC_INIT(gfsm, 0.01, moocow.bovine@gmail.com)
 
 dnl source && aux dir
 AC_CONFIG_AUX_DIR(config)

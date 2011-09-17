@@ -1,6 +1,6 @@
 /*=============================================================================*\
  * File: gfsmPaths.h
- * Author: Bryan Jurish <jurish@uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
  * Copyright (c) 2005-2011 Bryan Jurish.
@@ -96,9 +96,11 @@ void gfsm_path_pop(gfsmPath *p, gfsmLabelVal lo, gfsmLabelVal hi);
 gint gfsm_path_compare_data(const gfsmPath *p1, const gfsmPath *p2, gfsmSemiring *sr);
 
 /** Reverse a gfsmPath */
+GFSM_INLINE
 gfsmPath *gfsm_path_reverse(gfsmPath *p);
 
 /** Destroy a gfsmPath */
+GFSM_INLINE
 void gfsm_path_free(gfsmPath *p);
 //@}
 
@@ -199,15 +201,22 @@ char *gfsm_path_to_string(gfsmPath     *path,
 // \name gfsmArcPath Utilities
 //@{
 /** Create and return a new gfsmArcPath* */
+GFSM_INLINE
 gfsmArcPath *gfsm_arcpath_new(void);
 
 /** Create and return a new gfsmArcPath* by appending \a a to an existing path \a p1 */
+GFSM_INLINE
 gfsmArcPath *gfsm_arcpath_new_append(gfsmArcPath *p1, gfsmArc *a);
 
 /** Copy a gfsmArcPath* \a src to \a dst \returns \a dst */
-gfsmArcPath *gfsm_arcpath_new_append(gfsmArcPath *dst, gfsmArcPath *src);
+gfsmArcPath *gfsm_arcpath_copy(gfsmArcPath *dst, gfsmArcPath *src);
+
+/** Create and return a new gfsmArcPath* by duplicating an old one */
+GFSM_INLINE
+gfsmArcPath *gfsm_arcpath_dup(gfsmArcPath *p1);
 
 /** Destroy a gfsmArcPath */
+GFSM_INLINE
 void gfsm_arcpath_free(gfsmArcPath *p);
 //@}
 
@@ -230,39 +239,40 @@ GSList *gfsm_automaton_arcpaths(gfsmAutomaton *fsm);
 
 /** Recursive guts for gfsm_automaton_paths() */
 GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
-				   gfsmPath      *path
+				   gfsmArcPath   *path,
 				   gfsmStateId    qid,
-				   gfsmSet       *paths);
+				   GSList        *paths);
+
+/** \brief Utility struct for gfsm_arcpath_to_gstring() and friends */
+typedef struct gfsmArcPathToStringOptions_ {
+  gfsmAlphabet *abet_q;        ///< should be a gfsmStringAlphabet* or NULL
+  gfsmAlphabet *abet_lo;       ///< should be a gfsmStringAlphabet* or NULL
+  gfsmAlphabet *abet_hi;       ///< should be a gfsmStringAlphabet* or NULL
+  gboolean warn_on_undefined;  ///< warn on undefined symbols?
+  gboolean att_style;          ///< use ATT-style output?
+  gboolean compress_id;        ///< compress identity arcs?
+  gboolean show_states;        ///< include states in output?
+} gfsmArcPathToStringOptions;
+
 
 /** Append string for a single gfsmArcPath* to a GString,
  *  which may be NULL to allocate a new string.
  *  \returns \a gs if non-NULL, otherwise a new GString*.
  *  \warning it is the caller's responsibility to free the returned GString*.
  */
-char *gfsm_arcpath_to_gstring(gfsmArcPath  *path,
-			      GString      *gs,
-			      gfsmAlphabet *abet_q,
-			      gfsmAlphabet *abet_lo,
-			      gfsmAlphabet *abet_hi,
-			      gfsmSemiring *sr,
-			      gboolean      warn_on_undefined,
-			      gboolean      att_style,
-			      gboolean      compress_id,
-			      gboolean      show_states);
+GString *gfsm_arcpath_to_gstring(gfsmArcPath   *path,
+				 GString       *gs,
+				 gfsmAutomaton *fsm,
+				 gfsmArcPathToStringOptions *opts);
 
 /** Allocate and return a new string (char*) for a single gfsmArcPath*.
  *  \returns new (char*) representing \a path.
  *  \warning it is the callers responsibility to free the returned \a char*.
  */
-char *gfsm_arcpath_to_string(gfsmArcPath  *path,
-			     gfsmAlphabet *abet_q,
-			     gfsmAlphabet *abet_lo,
-			     gfsmAlphabet *abet_hi,
-			     gfsmSemiring *sr,
-			     gboolean      warn_on_undefined,
-			     gboolean      att_style,
-			     gboolean      compress_id,
-			     gboolean      show_states);
+char *gfsm_arcpath_to_string(gfsmArcPath *path, gfsmAutomaton *fsm, gfsmArcPathToStringOptions *opts);
+
+/** Stringifily a whole GSList of (gfsmArcPath*)s. \returns GSList of char* */
+GSList *gfsm_arcpaths_to_strings(GSList *paths, gfsmAutomaton *fsm, gfsmArcPathToStringOptions *opts);
 
 //@}
 

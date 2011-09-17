@@ -6,7 +6,7 @@ program "gfsmlabels"
 #program_version "0.01"
 
 purpose	"Map input text characters to gfsm labels"
-author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
+author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------

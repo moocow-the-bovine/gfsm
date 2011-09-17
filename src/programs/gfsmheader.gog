@@ -6,7 +6,7 @@ program "gfsmheader"
 #program_version "0.01"
 
 purpose	"Show header information from stored gfsm files"
-author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
+author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------

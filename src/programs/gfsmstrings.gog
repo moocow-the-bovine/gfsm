@@ -6,7 +6,7 @@ program "gfsmstrings"
 #program_version "0.01"
 
 purpose	"Serialize binary acyclic gfsm files to lists of strings"
-author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
+author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------
@@ -39,7 +39,16 @@ string "ilabels" i "Specify input (lower) labels file." \
 string "olabels" o "Specify output (upper) labels file." \
    arg="LABELS"
 
+string "qlabels" q "Specify state labels file (for -align mode)." \
+   arg="LABELS"
+
+flag "show-states" Q "Show numeric states in -align mode output" \
+   default=0
+
 flag "att" a "Output in AT&T regex format." \
+   default=0
+
+flag "align" A "Output aligned arc paths." \
    default=0
 
 flag "viterbi" v "Treat input automaton as a Viterbi trellis." \

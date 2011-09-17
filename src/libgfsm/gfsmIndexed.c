@@ -1,7 +1,7 @@
 
 /*=============================================================================*\
  * File: gfsmIndexed.c
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: arc indices
  *
  * Copyright (c) 2007 Bryan Jurish.

@@ -1,9 +1,9 @@
 /*=============================================================================*\
  * File: gfsmAlphabet.c
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: alphabet
  *
- * Copyright (c) 2004-2008 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -977,6 +977,12 @@ void gfsm_alphabet_label_to_gstring(gfsmAlphabet *abet,
   gpointer       key;
   const gchar    *sym = NULL;
 
+  //-- sanity check: use numeric value (decimal) for NULL alphabet
+  if (abet==NULL) {
+    g_string_append_printf(gstr,"%u",lab);
+    return;
+  }
+
   key = gfsm_alphabet_find_key(abet,lab);
 
   //-- check for unknown labels
@@ -1027,7 +1033,6 @@ void gfsm_alphabet_label_to_gstring(gfsmAlphabet *abet,
       g_string_append_c(gstr,']');
     } 
   } else { //-- !att_style
-    if (i != 0) g_string_append_c(gstr,' ');
     g_string_append(gstr, sym);
   }
 }
@@ -1053,8 +1058,9 @@ GString *gfsm_alphabet_labels_to_gstring(gfsmAlphabet *abet,
 
   //-- lookup & append symbols
   for (i=0; i < vec->len; i++) {
+    if (!att_style && i > 0) g_string_append_c(gstr,' ');
     lab = (gfsmLabelVal)GPOINTER_TO_UINT(g_ptr_array_index(vec,i));
-    gfsm_alphabet_label_to_string(abet,lab,gstr,warn_on_undefined,att_style,gsym);
+    gfsm_alphabet_label_to_gstring(abet,lab,gstr,warn_on_undefined,att_style,gsym);
   }
 
   //-- cleanup

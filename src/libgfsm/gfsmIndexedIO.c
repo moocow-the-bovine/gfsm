@@ -1,7 +1,7 @@
 
 /*=============================================================================*\
  * File: gfsmIndexedIO.c
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: indexed automata: I/O
  *
  * Copyright (c) 2007-2008 Bryan Jurish.

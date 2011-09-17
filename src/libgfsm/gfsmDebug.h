@@ -1,7 +1,7 @@
 
 /*=============================================================================*\
  * File: gfsmDebug.h
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: debugging
  *
  * Copyright (c) 2004-2007 Bryan Jurish.

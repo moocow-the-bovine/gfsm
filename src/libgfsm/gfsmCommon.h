@@ -1,7 +1,7 @@
 
 /*=============================================================================*\
  * File: gfsmCommon.h
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: common definitions
  *
  * Copyright (c) 2004-2008 Bryan Jurish.

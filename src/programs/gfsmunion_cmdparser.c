@@ -67,7 +67,7 @@
 void
 cmdline_parser_print_version (void)
 {
-  printf("gfsmunion (%s %s) by Bryan Jurish <moocow@ling.uni-potsdam.de>\n", PACKAGE, VERSION);
+  printf("gfsmunion (%s %s) by Bryan Jurish <moocow.bovine@gmail.com>\n", PACKAGE, VERSION);
 }
 
 void

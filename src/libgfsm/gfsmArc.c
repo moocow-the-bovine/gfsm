@@ -1,6 +1,6 @@
 /*=============================================================================*\
  * File: gfsmArc.c
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: arcs
  *
  * Copyright (c) 2004-2008 Bryan Jurish.

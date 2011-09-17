@@ -6,7 +6,7 @@ program "gfsmarith"
 #program_version "0.01"
 
 purpose	"Perform an elementary arithmetic operation on automaton weights"
-author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
+author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------

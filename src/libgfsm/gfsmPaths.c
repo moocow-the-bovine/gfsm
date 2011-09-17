@@ -1,7 +1,7 @@
 
 /*=============================================================================*\
  * File: gfsmPaths.c
- * Author: Bryan Jurish <jurish@uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
  * Copyright (c) 2005-2011 Bryan Jurish.
@@ -24,6 +24,7 @@
 #include <gfsmPaths.h>
 #include <gfsmArc.h>
 #include <gfsmArcIter.h>
+#include <stdlib.h>
 
 //-- inline definitions
 #ifndef GFSM_INLINE_ENABLED
@@ -189,6 +190,8 @@ gfsmSet *_gfsm_automaton_paths_r(gfsmAutomaton *fsm,
   gfsmArcIter ai;
   gfsmWeight  fw;
 
+  //-- sanity check
+
   //-- if final state, add to set of full paths
   if (gfsm_automaton_lookup_final(fsm,q,&fw)) {
     gfsmWeight path_w = path->w;
@@ -333,11 +336,17 @@ GSList *gfsm_automaton_arcpaths(gfsmAutomaton *fsm)
 
 //--------------------------------------------------------------
 GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
-				   gfsmPath      *path,
+				   gfsmArcPath   *path,
 				   gfsmStateId    qid,
 				   GSList        *paths)
 {
   gfsmArcIter ai;
+
+  //-- sanity check
+  if (path->len > gfsm_automaton_n_states(fsm)) {
+    g_printerr("_gfsm_automaton_arcpaths_r(): cyclic automaton detected!\n");
+    exit(1);
+  }
 
   //-- investigate all outgoing arcs
   for (gfsm_arciter_open(&ai, fsm, qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
@@ -349,7 +358,8 @@ GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
 
   //-- check for final state
   if (gfsm_automaton_state_is_final(fsm,qid)) {
-    paths = g_slist_prepend(paths, path);
+    gfsmArcPath *fp = gfsm_arcpath_dup(path);
+    paths = g_slist_prepend(paths, fp);
   }
 
   return paths;
@@ -360,31 +370,22 @@ GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
  */
 
 //--------------------------------------------------------------
-char *gfsm_arcpath_to_gstring(gfsmArcPath  *path,
-			      GString      *gs,
-			      gfsmAlphabet *abet_q,
-			      gfsmAlphabet *abet_lo,
-			      gfsmAlphabet *abet_hi,
-			      gfsmSemiring *sr,
-			      gboolean      warn_on_undefined,
-			      gboolean      att_style,
-			      gboolean      compress_id,
-			      gboolean      show_states)
+GString *gfsm_arcpath_to_gstring(gfsmArcPath   *path,
+				 GString       *gs,
+				 gfsmAutomaton *fsm,
+				 gfsmArcPathToStringOptions *opts)
 {
   guint i;
   GString *gsym = g_string_new(""); //-- temporary for gfsm_alphabet_label_to_gstring()
+  gboolean last_was_id = TRUE;
   if (!gs) gs = g_string_new("");
   
-  //-- source state (root only)
-  if (show_states && path->len>0) {
-    gfsmStateId q = ((gfsmArc*)g_ptr_array_index(path,i))->source;
-    if (abet_q) {
-      g_string_append_c(gs,'@');
-      gfsm_alphabet_label_to_gstring(abet_q,q,gstr,warn_on_undefined,att_style);
-      g_string_append_c(gs,' ');
-    } else {
-      g_string_append_printf(gs,"@%u ",q);
-    }
+  //-- source state (root)
+  if (opts->show_states) {
+    gfsmStateId q = path->len==0 ? fsm->root_id : ((gfsmArc*)g_ptr_array_index(path,0))->source;
+    g_string_append_c(gs,'@');
+    gfsm_alphabet_label_to_gstring(opts->abet_q, q, gs, opts->warn_on_undefined, opts->att_style, gsym);
+    g_string_append(gs,"@ ");
   }
 
   //-- guts
@@ -392,32 +393,65 @@ char *gfsm_arcpath_to_gstring(gfsmArcPath  *path,
     gfsmArc *a = (gfsmArc*)g_ptr_array_index(path,i);
 
     //-- arc labels
-    //-- CONTINUE HERE: compress_id flag
+    if (opts->compress_id && a->lower==a->upper) {
+      //if (!last_was_id) g_string_append_c(gs,' ');
+      gfsm_alphabet_label_to_gstring(opts->abet_lo,a->lower,gs,opts->warn_on_undefined,opts->att_style,gsym);
+      last_was_id = TRUE;
+    } else {
+      g_string_append_c(gs,'(');
+      gfsm_alphabet_label_to_gstring(opts->abet_lo,a->lower,gs,opts->warn_on_undefined,opts->att_style,gsym);
+      g_string_append_c(gs,':');
+      gfsm_alphabet_label_to_gstring(opts->abet_hi,a->upper,gs,opts->warn_on_undefined,opts->att_style,gsym);
+      g_string_append_c(gs,')');
+      last_was_id = FALSE;
+    }
 
     //-- arc weight
+    if (fsm ? (a->weight != gfsm_sr_one(fsm->sr)) : (a->weight != 0)) {
+      g_string_append_printf(gs, "<%g>", a->weight);
+    }
     
     //-- target state
+    if (opts->show_states) {
+      g_string_append(gs," @");
+      gfsm_alphabet_label_to_gstring(opts->abet_q,a->target,gs,opts->warn_on_undefined,opts->att_style,gsym);
+      g_string_append(gs,"@ ");
+    }
   }
 
   //-- final weight
+  if (fsm) {
+    gfsmStateId  q = (path->len>0 ? ((gfsmArc*)g_ptr_array_index(path,path->len-1))->target : fsm->root_id);
+    gfsmWeight  fw = 0; //-- dummy initialization to shutup gcc
+    gfsm_automaton_lookup_final(fsm,q,&fw);
+    if (fw != gfsm_sr_one(fsm->sr)) {
+      g_string_append_printf(gs,"<%g>",fw);
+    }
+  }
+
+  //-- return
+  return gs;
 }
 
 
 //--------------------------------------------------------------
-char *gfsm_arcpath_to_string(gfsmArcPath  *path,
-			     gfsmAlphabet *abet_q,
-			     gfsmAlphabet *abet_lo,
-			     gfsmAlphabet *abet_hi,
-			     gfsmSemiring *sr,
-			     gboolean      warn_on_undefined,
-			     gboolean      att_style,
-			     gboolean      compress_id,
-			     gboolean      show_states)
+char *gfsm_arcpath_to_string(gfsmArcPath *path, gfsmAutomaton *fsm, gfsmArcPathToStringOptions *opts)
 {
-  GString *gs = gfsm_arcpath_to_gstring(path,NULL,abet_q,abet_lo,abet_hi,sr,warn_on_undefined,att_style,compress_id,show_states);
+  GString *gs = gfsm_arcpath_to_gstring(path,NULL,fsm,opts);
   char    *s  = gs->str;
   g_string_free(gs,FALSE);
   return s;
+}
+
+//--------------------------------------------------------------
+GSList *gfsm_arcpaths_to_strings(GSList *paths, gfsmAutomaton *fsm, gfsmArcPathToStringOptions *opts)
+{
+  GSList *pi, *strings=NULL;
+  for (pi=paths; pi != NULL; pi=pi->next) {
+    char *s = gfsm_arcpath_to_string((gfsmArcPath*)pi->data, fsm, opts);
+    strings = g_slist_prepend(strings, s);
+  }
+  return strings;
 }
 
 

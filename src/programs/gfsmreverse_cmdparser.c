@@ -67,7 +67,7 @@
 void
 cmdline_parser_print_version (void)
 {
-  printf("gfsmreverse (%s %s) by Bryan Jurish <moocow@ling.uni-potsdam.de>\n", PACKAGE, VERSION);
+  printf("gfsmreverse (%s %s) by Bryan Jurish <moocow.bovine@gmail.com>\n", PACKAGE, VERSION);
 }
 
 void

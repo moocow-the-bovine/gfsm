@@ -6,7 +6,7 @@ program "gfsmviterbi"
 #program_version "0.01"
 
 purpose	"EXPERIMENTAL: Compute Viterbi trellis for a linear label sequence in a transducer"
-author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
+author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------

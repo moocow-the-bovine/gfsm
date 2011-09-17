@@ -6,7 +6,7 @@ program "gfsmunion"
 #program_version "0.01"
 
 purpose	"Compute union of finite state machines"
-author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
+author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------

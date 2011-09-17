@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow@ling.uni-potsdam.de>
+   Copyright (C) 2004-2011 by Bryan Jurish <moocow.bovine@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <gfsm.h>
 
@@ -43,7 +44,7 @@ FILE *outfile = NULL;
 
 //-- global structs
 gfsmAutomaton *fsm;
-gfsmAlphabet  *ilabels=NULL, *olabels=NULL;
+gfsmAlphabet  *ilabels=NULL, *olabels=NULL, *qlabels=NULL;
 gfsmError *err = NULL;
 
 /*--------------------------------------------------------------------------
@@ -79,6 +80,15 @@ void get_my_options(int argc, char **argv)
       exit(2);
     }
   }
+  //-- labels: states
+  if (args.qlabels_given) {
+    qlabels = gfsm_string_alphabet_new();
+    if (!gfsm_alphabet_load_filename(qlabels,args.qlabels_arg,&err)) {
+      g_printerr("%s: load failed for state-labels file '%s': %s\n",
+		 progname, args.qlabels_arg, (err ? err->message : "?"));
+      exit(2);
+    }
+  }
 
   //-- initialize fsm
   fsm = gfsm_automaton_new();
@@ -90,6 +100,7 @@ void get_my_options(int argc, char **argv)
 int main (int argc, char **argv)
 {
   gfsmSet *paths = NULL;
+  GSList  *arcpaths = NULL;
   GSList  *strings = NULL;
   get_my_options(argc,argv);
 
@@ -114,21 +125,40 @@ int main (int argc, char **argv)
   
 
   //-- get & stringify full paths
-  if (args.viterbi_flag) {
-    //-- serialize Viterbi trellis automaton
-    paths   = gfsm_viterbi_trellis_paths_full(fsm, NULL, gfsmLSBoth);
+  if (args.align_flag) {
+    //-- aligned paths
+    gfsmArcPathToStringOptions opts;
+    memset(&opts,0,sizeof(opts));
+    opts.abet_q  = qlabels;
+    opts.abet_lo = ilabels;
+    opts.abet_hi = olabels;
+    opts.warn_on_undefined = TRUE;
+    opts.att_style   = args.att_flag;
+    opts.compress_id = TRUE;
+    opts.show_states = args.show_states_given ? args.show_states_flag : (qlabels!=NULL);
+
+    arcpaths = gfsm_automaton_arcpaths(fsm);
+    strings  = gfsm_arcpaths_to_strings(arcpaths, fsm, &opts);
   }
   else {
-    //-- serialize "normal" automaton
-    paths   = gfsm_automaton_paths_full(fsm, NULL, gfsmLSBoth);
+    //-- non-aligned paths
+    if (args.viterbi_flag) {
+      //-- serialize Viterbi trellis automaton
+      paths   = gfsm_viterbi_trellis_paths_full(fsm, NULL, gfsmLSBoth);
+    }
+    else {
+      //-- serialize "normal" automaton
+      paths   = gfsm_automaton_paths_full(fsm, NULL, gfsmLSBoth);
+    }
+    strings = gfsm_paths_to_strings(paths,
+				    ilabels,
+				    olabels,
+				    fsm->sr,
+				    TRUE,
+				    args.att_given,
+				    NULL);
   }
-  strings = gfsm_paths_to_strings(paths,
-				  ilabels,
-				  olabels,
-				  fsm->sr,
-				  TRUE,
-				  args.att_given,
-				  NULL);
+
   while (strings) {
     //-- pop first datum
     char *s = (char *)strings->data;
@@ -142,10 +172,11 @@ int main (int argc, char **argv)
   }
 
   //-- cleanup
-  if (paths)   gfsm_set_free(paths);
-  if (ilabels) gfsm_alphabet_free(ilabels);
-  if (olabels) gfsm_alphabet_free(olabels);
-  if (fsm)     gfsm_automaton_free(fsm);
+  if (paths)    gfsm_set_free(paths);
+  if (arcpaths) g_slist_free(arcpaths);
+  if (ilabels)  gfsm_alphabet_free(ilabels);
+  if (olabels)  gfsm_alphabet_free(olabels);
+  if (fsm)      gfsm_automaton_free(fsm);
 
   if (outfile != stdout) fclose(outfile);
 

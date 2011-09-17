@@ -103,40 +103,26 @@ pkginclude_HEADERS = \
 	gfsmConfigNoAuto.h \
 	gfsmConfigAuto.h \
 	gfsmCommon.h \
-	gfsmCompound.h \
-	gfsmCompound.hi \
+	gfsmCompound.h gfsmCompound.hi \
 	gfsmDebug.h \
 	gfsmError.h \
 	gfsmIO.h \
-	gfsmMem.h \
-	gfsmMem.hi \
+	gfsmMem.h gfsmMem.hi \
 	gfsmVersion.h \
 	gfsmUtils.h \
-	gfsmEnum.h \
-	gfsmEnum.hi \
-	gfsmSet.h \
-	gfsmSet.hi \
-	gfsmWeightMap.h \
-	gfsmWeightMap.hi \
-	gfsmBitVector.h \
-	gfsmBitVector.hi \
+	gfsmEnum.h gfsmEnum.hi \
+	gfsmSet.h gfsmSet.hi \
+	gfsmWeightMap.h gfsmWeightMap.hi \
+	gfsmBitVector.h gfsmBitVector.hi \
 	gfsmAlphabet.h \
-	gfsmSemiring.h \
-	gfsmSemiring.hi \
-	gfsmArc.h \
-	gfsmArc.hi \
-	gfsmArcList.h \
-	gfsmArcList.hi \
-	gfsmArcIter.h \
-	gfsmArcIter.hi \
-	gfsmArcIndex.h \
-	gfsmArcIndex.hi \
-	gfsmState.h \
-	gfsmState.hi \
-	gfsmStateSet.h \
-	gfsmStateSet.hi \
-	gfsmAutomaton.h \
-	gfsmAutomaton.hi \
+	gfsmSemiring.h gfsmSemiring.hi \
+	gfsmArc.h gfsmArc.hi \
+	gfsmArcList.h gfsmArcList.hi \
+	gfsmArcIter.h gfsmArcIter.hi \
+	gfsmArcIndex.h gfsmArcIndex.hi \
+	gfsmState.h gfsmState.hi \
+	gfsmStateSet.h gfsmStateSet.hi \
+	gfsmAutomaton.h gfsmAutomaton.hi \
 	gfsmAutomatonIO.h \
 	gfsmDraw.h \
 	gfsmAlgebra.h \
@@ -146,8 +132,7 @@ pkginclude_HEADERS = \
 	gfsmTrie.h \
 	gfsmScanner.h \
 	gfsmRegexCompiler.h \
-	gfsmIndexed.h \
-	gfsmIndexed.hi \
+	gfsmIndexed.h gfsmIndexed.hi \
 	gfsmIndexedIO.h \
 	gfsm.h
 

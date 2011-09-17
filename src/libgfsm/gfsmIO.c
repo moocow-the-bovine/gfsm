@@ -1,6 +1,6 @@
 /*=============================================================================*\
  * File: gfsmIO.c
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: I/O
  *
  * Copyright (c) 2006-2008 Bryan Jurish.

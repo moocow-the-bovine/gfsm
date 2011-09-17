@@ -1,7 +1,7 @@
 
 /*=============================================================================*\
  * File: gfsmPaths.hi
- * Author: Bryan Jurish <jurish@uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: paths: inline definitions
  *
  * Copyright (c) 2011 Bryan Jurish.
@@ -79,7 +79,7 @@ void gfsm_path_free(gfsmPath *p)
 
 //--------------------------------------------------------------
 GFSM_INLINE
-void gfsm_arcpath_new(void)
+gfsmArcPath *gfsm_arcpath_new(void)
 {
   return g_ptr_array_new();
 }
@@ -91,6 +91,15 @@ gfsmArcPath *gfsm_arcpath_new_append(gfsmArcPath *p1, gfsmArc *a)
   gfsmArcPath *p2 = g_ptr_array_sized_new(p1->len+1);
   gfsm_arcpath_copy(p2,p1);
   g_ptr_array_add(p2, a);
+  return p2;
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmArcPath *gfsm_arcpath_dup(gfsmArcPath *p1)
+{
+  gfsmArcPath *p2 = g_ptr_array_sized_new(p1->len);
+  gfsm_arcpath_copy(p2,p1);
   return p2;
 }
 

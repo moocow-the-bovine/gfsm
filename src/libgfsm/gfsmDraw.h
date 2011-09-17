@@ -1,7 +1,7 @@
 
 /*=============================================================================*\
  * File: gfsmDraw.h
- * Author: Bryan Jurish <moocow@ling.uni-potsdam.de>
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: automata: visualization
  *
  * Copyright (c) 2004-2007 Bryan Jurish.

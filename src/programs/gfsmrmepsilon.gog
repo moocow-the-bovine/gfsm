@@ -6,7 +6,7 @@ program "gfsmrmepsilon"
 #program_version "0.01"
 
 purpose	"Remove epsilon arcs from finite state machines"
-author  "Bryan Jurish <moocow@ling.uni-potsdam.de>"
+author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------
