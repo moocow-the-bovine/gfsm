@@ -21,7 +21,8 @@ KNOWN_TARGETS = \
 	flex3test \
 	compretest \
 	comprelex \
-	compre2test
+	compre2test \
+	arcpaths
 
 
 CC = gcc
@@ -64,6 +65,10 @@ calc2test.lex.o: calc2test.tab.h ../gfsmRegexCompiler.h
 compretest.lex.o: compretest.tab.h ../gfsmRegexCompiler.h
 
 comprelex.lex.o: compretest.lex.c compretest.lex.h ../gfsmRegexCompiler.h
+
+##-- arcpaths
+arcpaths: arcpaths.o ../.libs/libgfsm.a
+	$(LD) $(LDFLAGS) -o $@ $< $(GFSMLIBS) $(LIBS)
 
 ##-- gfsmlabdump
 gfsmlabdump: gfsmlabdump.o ../.libs/libgfsm.a

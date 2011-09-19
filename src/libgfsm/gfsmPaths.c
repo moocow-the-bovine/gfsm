@@ -326,43 +326,78 @@ gfsmArcPath *gfsm_arcpath_copy(gfsmArcPath *dst, gfsmArcPath *src)
 }
 
 //--------------------------------------------------------------
+void gfsm_arcpath_list_free(GSList *arcpaths)
+{
+  GSList *pi;
+  for (pi=arcpaths; pi != NULL; pi = pi->next) {
+    gfsm_arcpath_free((gfsmArcPath*)pi->data);
+  }
+  g_slist_free(arcpaths);
+}
+
+
+//--------------------------------------------------------------
 GSList *gfsm_automaton_arcpaths(gfsmAutomaton *fsm)
 {
-  gfsmArcPath  *p = g_ptr_array_sized_new(0);
-  GSList   *paths = _gfsm_automaton_arcpaths_r(fsm,p,gfsm_automaton_get_root(fsm),NULL);
-  gfsm_arcpath_free(p);
+  GSList *r_paths = NULL, *r_nodes  = NULL, *paths = NULL, *rpi;
+  _gfsm_automaton_arcpaths_r(fsm, gfsm_automaton_get_root(fsm), NULL, 0, &r_paths, &r_nodes);
+
+  //-- convert reversed GSList paths to forward gfsmArcPath*
+  for (rpi=r_paths; rpi != NULL; rpi=rpi->next) {
+    GSList       *rpl = (GSList*)rpi->data;
+    guint         len = g_slist_length(rpl);
+    gfsmArcPath   *ap = g_ptr_array_sized_new(len);
+    ap->len           = len;
+    for (; rpl != NULL; rpl=rpl->next) {
+      --len;
+      g_ptr_array_index(ap,len) = rpl->data;
+    }
+    paths = g_slist_prepend(paths, ap);
+  }
+
+  //-- free all temporary nodes
+  for (rpi=r_nodes; rpi != NULL; rpi=rpi->next) {
+    GSList *rpl = (GSList*)rpi->data;
+    g_slist_free_1(rpl);
+  }
+  g_slist_free(r_nodes);
+
   return paths;
 }
 
 //--------------------------------------------------------------
-GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
-				   gfsmArcPath   *path,
-				   gfsmStateId    qid,
-				   GSList        *paths)
+void _gfsm_automaton_arcpaths_r(gfsmAutomaton  *fsm,
+				gfsmStateId     qid,
+				GSList         *path,     //-- current path to qid
+				guint           path_len, //-- current path length (for cheap cyclicity check)
+				GSList        **paths,    //-- GSList of *(GSList of gfsmArc*): all complete paths, reversed
+				GSList        **nodes     //-- GSList of *(GSList of gfsmArc*): all allocated nodes
+				)
+				    
 {
   gfsmArcIter ai;
+  gfsmWeight  fw;
 
   //-- sanity check
-  if (path->len > gfsm_automaton_n_states(fsm)) {
+  if (path_len > gfsm_automaton_n_states(fsm)) {
     g_printerr("_gfsm_automaton_arcpaths_r(): cyclic automaton detected!\n");
     exit(1);
+  }
+
+  //-- check for final state
+  if (gfsm_automaton_lookup_final(fsm,qid,&fw)) {
+    GSList *fp = g_slist_prepend(path, gfsm_weight2ptr(fw)); //-- add pseudo-arc for final weight
+    *nodes     = g_slist_prepend(*nodes, fp);
+    *paths     = g_slist_prepend(*paths, fp);
   }
 
   //-- investigate all outgoing arcs
   for (gfsm_arciter_open(&ai, fsm, qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
     gfsmArc       *arc = gfsm_arciter_arc(&ai);
-    gfsmArcPath    *qp = gfsm_arcpath_new_append(path,arc);
-    paths = _gfsm_automaton_arcpaths_r(fsm,qp,arc->target,paths);
-    gfsm_arcpath_free(qp);
+    GSList         *qp = g_slist_prepend(  path, arc);
+    *nodes             = g_slist_prepend(*nodes,  qp);
+    _gfsm_automaton_arcpaths_r(fsm, arc->target, qp, path_len+1, paths, nodes);
   }
-
-  //-- check for final state
-  if (gfsm_automaton_state_is_final(fsm,qid)) {
-    gfsmArcPath *fp = gfsm_arcpath_dup(path);
-    paths = g_slist_prepend(paths, fp);
-  }
-
-  return paths;
 }
 
 /*======================================================================
@@ -370,44 +405,37 @@ GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
  */
 
 //--------------------------------------------------------------
-GString *gfsm_arcpath_to_gstring(gfsmArcPath   *path,
-				 GString       *gs,
-				 gfsmAutomaton *fsm,
-				 gfsmArcPathToStringOptions *opts)
+GString *gfsm_arcpath_to_gstring(gfsmArcPath *path, GString *gs, gfsmArcPathToStringOptions *opts)
 {
   guint i;
   GString *gsym = g_string_new(""); //-- temporary for gfsm_alphabet_label_to_gstring()
-  gboolean last_was_id = TRUE;
   if (!gs) gs = g_string_new("");
   
   //-- source state (root)
   if (opts->show_states) {
-    gfsmStateId q = path->len==0 ? fsm->root_id : ((gfsmArc*)g_ptr_array_index(path,0))->source;
+    gfsmStateId q = path->len<=1 ? opts->q0 : ((gfsmArc*)g_ptr_array_index(path,0))->source;
     g_string_append_c(gs,'@');
     gfsm_alphabet_label_to_gstring(opts->abet_q, q, gs, opts->warn_on_undefined, opts->att_style, gsym);
     g_string_append(gs,"@ ");
   }
 
   //-- guts
-  for (i=0; i < path->len; i++) {
+  for (i=0; i+1 < path->len; i++) {
     gfsmArc *a = (gfsmArc*)g_ptr_array_index(path,i);
 
     //-- arc labels
     if (opts->compress_id && a->lower==a->upper) {
-      //if (!last_was_id) g_string_append_c(gs,' ');
       gfsm_alphabet_label_to_gstring(opts->abet_lo,a->lower,gs,opts->warn_on_undefined,opts->att_style,gsym);
-      last_was_id = TRUE;
     } else {
       g_string_append_c(gs,'(');
       gfsm_alphabet_label_to_gstring(opts->abet_lo,a->lower,gs,opts->warn_on_undefined,opts->att_style,gsym);
       g_string_append_c(gs,':');
       gfsm_alphabet_label_to_gstring(opts->abet_hi,a->upper,gs,opts->warn_on_undefined,opts->att_style,gsym);
       g_string_append_c(gs,')');
-      last_was_id = FALSE;
     }
 
     //-- arc weight
-    if (fsm ? (a->weight != gfsm_sr_one(fsm->sr)) : (a->weight != 0)) {
+    if (!opts->sr || (a->weight != gfsm_sr_one(opts->sr))) {
       g_string_append_printf(gs, "<%g>", a->weight);
     }
     
@@ -420,11 +448,9 @@ GString *gfsm_arcpath_to_gstring(gfsmArcPath   *path,
   }
 
   //-- final weight
-  if (fsm) {
-    gfsmStateId  q = (path->len>0 ? ((gfsmArc*)g_ptr_array_index(path,path->len-1))->target : fsm->root_id);
-    gfsmWeight  fw = 0; //-- dummy initialization to shutup gcc
-    gfsm_automaton_lookup_final(fsm,q,&fw);
-    if (fw != gfsm_sr_one(fsm->sr)) {
+  if (path->len>0) {
+    gfsmWeight  fw = gfsm_ptr2weight(g_ptr_array_index(path,path->len-1));
+    if (!opts->sr || (fw != gfsm_sr_one(opts->sr))) {
       g_string_append_printf(gs,"<%g>",fw);
     }
   }
@@ -435,20 +461,20 @@ GString *gfsm_arcpath_to_gstring(gfsmArcPath   *path,
 
 
 //--------------------------------------------------------------
-char *gfsm_arcpath_to_string(gfsmArcPath *path, gfsmAutomaton *fsm, gfsmArcPathToStringOptions *opts)
+char *gfsm_arcpath_to_string(gfsmArcPath *path, gfsmArcPathToStringOptions *opts)
 {
-  GString *gs = gfsm_arcpath_to_gstring(path,NULL,fsm,opts);
+  GString *gs = gfsm_arcpath_to_gstring(path,NULL,opts);
   char    *s  = gs->str;
   g_string_free(gs,FALSE);
   return s;
 }
 
 //--------------------------------------------------------------
-GSList *gfsm_arcpaths_to_strings(GSList *paths, gfsmAutomaton *fsm, gfsmArcPathToStringOptions *opts)
+GSList *gfsm_arcpaths_to_strings(GSList *paths, gfsmArcPathToStringOptions *opts)
 {
   GSList *pi, *strings=NULL;
   for (pi=paths; pi != NULL; pi=pi->next) {
-    char *s = gfsm_arcpath_to_string((gfsmArcPath*)pi->data, fsm, opts);
+    char *s = gfsm_arcpath_to_string((gfsmArcPath*)pi->data, opts);
     strings = g_slist_prepend(strings, s);
   }
   return strings;

@@ -39,6 +39,9 @@ string "ilabels" i "Specify input (lower) labels file." \
 string "olabels" o "Specify output (upper) labels file." \
    arg="LABELS"
 
+string "labels" l "Set -i and -o labels simultaneously." \
+   arg="LABELS"
+
 string "qlabels" q "Specify state labels file (for -align mode)." \
    arg="LABELS"
 

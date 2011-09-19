@@ -22,7 +22,11 @@ gfsmstrings [OPTIONS] BINFILE
  Common Options
     -iLABELS   --ilabels=LABELS  Specify input (lower) labels file.
     -oLABELS   --olabels=LABELS  Specify output (upper) labels file.
+    -lLABELS   --labels=LABELS   Set -i and -o labels simultaneously.
+    -qLABELS   --qlabels=LABELS  Specify state labels file (for -align mode).
+    -Q         --show-states     Show numeric states in -align mode output
     -a         --att             Output in AT&T regex format.
+    -A         --align           Output aligned arc paths.
     -v         --viterbi         Treat input automaton as a Viterbi trellis.
     -FTXTFILE  --output=TXTFILE  Output file.
 
@@ -134,9 +138,45 @@ Default: 'NULL'
 
 
 
+=item C<--labels=LABELS> , C<-lLABELS>
+
+Set -i and -o labels simultaneously.
+
+Default: 'NULL'
+
+
+
+
+=item C<--qlabels=LABELS> , C<-qLABELS>
+
+Specify state labels file (for -align mode).
+
+Default: 'NULL'
+
+
+
+
+=item C<--show-states> , C<-Q>
+
+Show numeric states in -align mode output
+
+Default: '0'
+
+
+
+
 =item C<--att> , C<-a>
 
 Output in AT&T regex format.
+
+Default: '0'
+
+
+
+
+=item C<--align> , C<-A>
+
+Output aligned arc paths.
 
 Default: '0'
 
@@ -244,7 +284,7 @@ Getopt::Gen by Bryan Jurish.
 
 =head1 AUTHOR
 
-Bryan Jurish E<lt>moocow@ling.uni-potsdam.deE<gt>
+Bryan Jurish E<lt>moocow.bovine@gmail.comE<gt>
 
 =head1 SEE ALSO
 

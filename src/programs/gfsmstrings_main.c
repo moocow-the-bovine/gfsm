@@ -62,6 +62,18 @@ void get_my_options(int argc, char **argv)
   if (args.inputs_num > 0) infilename = args.inputs[0];
   if (args.output_given)  outfilename = args.output_arg;
 
+  //-- labels: input + output
+  if (args.labels_given) {
+    if (!args.ilabels_given) {
+      args.ilabels_given = 1;
+      args.ilabels_arg   = args.labels_arg;
+    }
+    if (!args.olabels_given) {
+      args.olabels_given = 1;
+      args.olabels_arg   = args.labels_arg;
+    }
+  }
+
   //-- labels: input
   if (args.ilabels_given) {
     ilabels = gfsm_string_alphabet_new();
@@ -129,16 +141,18 @@ int main (int argc, char **argv)
     //-- aligned paths
     gfsmArcPathToStringOptions opts;
     memset(&opts,0,sizeof(opts));
+    opts.q0      = gfsm_automaton_get_root(fsm);
     opts.abet_q  = qlabels;
     opts.abet_lo = ilabels;
     opts.abet_hi = olabels;
+    opts.sr      = gfsm_automaton_get_semiring(fsm);
     opts.warn_on_undefined = TRUE;
     opts.att_style   = args.att_flag;
     opts.compress_id = TRUE;
     opts.show_states = args.show_states_given ? args.show_states_flag : (qlabels!=NULL);
 
     arcpaths = gfsm_automaton_arcpaths(fsm);
-    strings  = gfsm_arcpaths_to_strings(arcpaths, fsm, &opts);
+    strings  = gfsm_arcpaths_to_strings(arcpaths, &opts);
   }
   else {
     //-- non-aligned paths
@@ -173,7 +187,7 @@ int main (int argc, char **argv)
 
   //-- cleanup
   if (paths)    gfsm_set_free(paths);
-  if (arcpaths) g_slist_free(arcpaths);
+  if (arcpaths) gfsm_arcpath_list_free(arcpaths);
   if (ilabels)  gfsm_alphabet_free(ilabels);
   if (olabels)  gfsm_alphabet_free(olabels);
   if (fsm)      gfsm_automaton_free(fsm);

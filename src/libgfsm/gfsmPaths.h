@@ -40,7 +40,14 @@ typedef struct {
   gfsmWeight       w;   /**< weight attached to this path */
 } gfsmPath;
 
-/// Type for an automaton arc path (full alignment: GPtrArray of gfsmArc*); final weights are not included
+/// Type for an automaton arc path (full alignment: GPtrArray of gfsmArc*)
+/*  The pointer data in the \a data field are (gfsmArc*)s
+ *  (usually pointing into an existing gfsmAutomaton) for all but the final
+ *  pointer element of the gfsmArcPath, and the
+ *  final element is a gpointer-encoded gfsmWeight representing
+ *  the final weight associated with the arc path; extract it
+ *  e.g. with gfsm_ptr2weight(arcpath->data[arcpath->len-1]).
+ */
 typedef GPtrArray gfsmArcPath;
 
 
@@ -218,6 +225,9 @@ gfsmArcPath *gfsm_arcpath_dup(gfsmArcPath *p1);
 /** Destroy a gfsmArcPath */
 GFSM_INLINE
 void gfsm_arcpath_free(gfsmArcPath *p);
+
+/** Destroy a GSList of gfsmArcPath* */
+void gfsm_arcpath_list_free(GSList *arcpaths);
 //@}
 
 //======================================================================
@@ -228,8 +238,12 @@ void gfsm_arcpath_free(gfsmArcPath *p);
  *  Causes deep recursion for cyclic automata.
  *  Returns a GSList whose element \a data are (gfsmArcPath*)s.
  *  It is the caller's responsibility to free the returned objects.
- *  The (gfsmArc*)s themselves are pointers into \a fsm, and will
- *  be freed with that automaton.
+ *  The pointer data in the returned (gfsmArcPath*)s
+ *  are (gfsmArc*)s into \a fsm, and will be freed with that automaton
+ *  for all but the final pointer of each gfsmArcPath, and the
+ *  final element is a gpointer-encoded gfsmWeight representing
+ *  the final weight associated with the arc path; extract it
+ *  e.g. with gfsm_ptr2weight(arcpath->data[arcpath->len-1]).
  *
  *  \param fsm   Acyclic automaton to be serializd
  *
@@ -237,17 +251,30 @@ void gfsm_arcpath_free(gfsmArcPath *p);
  */
 GSList *gfsm_automaton_arcpaths(gfsmAutomaton *fsm);
 
-/** Recursive guts for gfsm_automaton_paths() */
-GSList *_gfsm_automaton_arcpaths_r(gfsmAutomaton *fsm,
-				   gfsmArcPath   *path,
-				   gfsmStateId    qid,
-				   GSList        *paths);
+
+/** Recursive guts for gfsm_automaton_arcpaths().
+ *  \param fsm  automaton being serialized
+ *  \param qid  current state in automaton search
+ *  \param path path to current state (GSList of gfsmArc*), reversed
+ *  \param path_len length of current path (for cyclicity check)
+ *  \param paths GSList of *(GSList of gfsmArc*): all complete paths, reversed
+ *  \param nodes GSList of *(GSList of gfsmArc*): all allocated nodes
+ */
+void _gfsm_automaton_arcpaths_r(gfsmAutomaton  *fsm,
+				gfsmStateId     qid,
+				GSList         *path,
+				guint           path_len,
+				GSList        **paths,
+				GSList        **nodes
+				);
 
 /** \brief Utility struct for gfsm_arcpath_to_gstring() and friends */
 typedef struct gfsmArcPathToStringOptions_ {
+  gfsmStateId   q0;            ///< initial state for this path (only used if show_states is true)
   gfsmAlphabet *abet_q;        ///< should be a gfsmStringAlphabet* or NULL
   gfsmAlphabet *abet_lo;       ///< should be a gfsmStringAlphabet* or NULL
   gfsmAlphabet *abet_hi;       ///< should be a gfsmStringAlphabet* or NULL
+  gfsmSemiring *sr;            ///< semiring to use for weights (sr->one is ignored)
   gboolean warn_on_undefined;  ///< warn on undefined symbols?
   gboolean att_style;          ///< use ATT-style output?
   gboolean compress_id;        ///< compress identity arcs?
@@ -260,19 +287,16 @@ typedef struct gfsmArcPathToStringOptions_ {
  *  \returns \a gs if non-NULL, otherwise a new GString*.
  *  \warning it is the caller's responsibility to free the returned GString*.
  */
-GString *gfsm_arcpath_to_gstring(gfsmArcPath   *path,
-				 GString       *gs,
-				 gfsmAutomaton *fsm,
-				 gfsmArcPathToStringOptions *opts);
+GString *gfsm_arcpath_to_gstring(gfsmArcPath *path, GString *gs, gfsmArcPathToStringOptions *opts);
 
 /** Allocate and return a new string (char*) for a single gfsmArcPath*.
  *  \returns new (char*) representing \a path.
  *  \warning it is the callers responsibility to free the returned \a char*.
  */
-char *gfsm_arcpath_to_string(gfsmArcPath *path, gfsmAutomaton *fsm, gfsmArcPathToStringOptions *opts);
+char *gfsm_arcpath_to_string(gfsmArcPath *path, gfsmArcPathToStringOptions *opts);
 
 /** Stringifily a whole GSList of (gfsmArcPath*)s. \returns GSList of char* */
-GSList *gfsm_arcpaths_to_strings(GSList *paths, gfsmAutomaton *fsm, gfsmArcPathToStringOptions *opts);
+GSList *gfsm_arcpaths_to_strings(GSList *paths, gfsmArcPathToStringOptions *opts);
 
 //@}
 
