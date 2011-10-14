@@ -1,6 +1,9 @@
 Bryan Jurish <moocow.bovine@gmail.com> wrote and maintains the 'gfsm'
 package.
 
+Priority queue code in src/libgfsm/gfsmPQueue.* based on code by
+Maik Zumstrull from http://bugzilla.gnome.org/attachment.cgi?id=161932 .
+
 Code from the gnulib project is included.
 See the files in src/libgfsm/gnulib for details.
 
