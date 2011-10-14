@@ -40,6 +40,7 @@ libgfsm_la_SOURCES = \
 	config.h \
 	gfsmCommon.c \
 	gfsmCompound.c \
+	gfsmPQueue.c \
 	gfsmDebug.c \
 	gfsmError.c \
 	gfsmIO.c \
@@ -98,6 +99,7 @@ sources_argh = \
 ## --- installable headers: @includedir@/@pkgname@
 #pkginclude_HEADERS = ${hfile_1} ... ${hfile_N}
 pkginclude_HEADERS = \
+	gfsmPQueue.h \
 	gfsmAssert.h \
 	gfsmConfig.h \
 	gfsmConfigNoAuto.h \

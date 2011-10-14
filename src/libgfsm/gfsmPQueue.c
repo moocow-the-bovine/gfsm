@@ -1,10 +1,10 @@
 #include <glib.h>
 
-#include "pqueue.h"
+#include "gfsmPQueue.h"
 
 static const gsize INITIAL_SIZE = 100;
 
-struct s_PriorityQueue {
+struct s_gfsmPriorityQueue {
   gpointer *heap;
   GHashTable *map;
   gsize size;
@@ -13,10 +13,10 @@ struct s_PriorityQueue {
   gpointer cmp_data;
 };
 
-PriorityQueue*
-pqueue_new (GCompareDataFunc cmp, gpointer cmp_data)
+gfsmPriorityQueue*
+gfsm_pqueue_new (GCompareDataFunc cmp, gpointer cmp_data)
 {
-  PriorityQueue *q = g_slice_new(PriorityQueue);
+  gfsmPriorityQueue *q = g_slice_new(gfsmPriorityQueue);
   q->heap = g_new(gpointer, INITIAL_SIZE);
   q->map = g_hash_table_new(NULL, NULL);
   q->size = 0;
@@ -27,28 +27,28 @@ pqueue_new (GCompareDataFunc cmp, gpointer cmp_data)
 }
 
 void
-pqueue_clear (PriorityQueue *q)
+gfsm_pqueue_clear (gfsmPriorityQueue *q)
 {
   q->size = 0;
   g_hash_table_remove_all(q->map);
 }
 
 void
-pqueue_free (PriorityQueue *q)
+gfsm_pqueue_free (gfsmPriorityQueue *q)
 {
   g_hash_table_destroy(q->map);
   g_free(q->heap);
-  g_slice_free(PriorityQueue, q);
+  g_slice_free(gfsmPriorityQueue, q);
 }
 
 gboolean
-pqueue_isempty (PriorityQueue *q)
+gfsm_pqueue_isempty (gfsmPriorityQueue *q)
 {
   return q->size == 0;
 }
 
 static void
-refresh_map (PriorityQueue *q)
+refresh_map (gfsmPriorityQueue *q)
 {
   guint i;
   g_hash_table_remove_all(q->map);
@@ -58,7 +58,7 @@ refresh_map (PriorityQueue *q)
 }
 
 static void
-swap_entries (PriorityQueue *q, guint i, guint j)
+swap_entries (gfsmPriorityQueue *q, guint i, guint j)
 {
   gpointer pi = q->heap[i];
   gpointer pj = q->heap[j];
@@ -69,13 +69,13 @@ swap_entries (PriorityQueue *q, guint i, guint j)
 }
 
 static gboolean
-entry_smaller (PriorityQueue *q, guint i, guint j)
+entry_smaller (gfsmPriorityQueue *q, guint i, guint j)
 {
   return q->cmp(q->heap[i], q->heap[j], q->cmp_data) < 0;
 }
 
 static guint
-heapify_up (PriorityQueue *q, guint index)
+heapify_up (gfsmPriorityQueue *q, guint index)
 {
   while ( (index > 0)
           && entry_smaller(q, index, (index - 1) / 2)
@@ -87,7 +87,7 @@ heapify_up (PriorityQueue *q, guint index)
 }
 
 static guint
-heapify_down (PriorityQueue *q, guint index)
+heapify_down (gfsmPriorityQueue *q, guint index)
 {
   guint child;
   while ( (child = 2 * index + 1) < q->size ) {
@@ -107,7 +107,7 @@ heapify_down (PriorityQueue *q, guint index)
 }
 
 gboolean
-pqueue_push (PriorityQueue *q, gpointer data)
+gfsm_pqueue_push (gfsmPriorityQueue *q, gpointer data)
 {
   if (q->size >= q->heapsize) {
     q->heapsize *= 2;
@@ -135,7 +135,7 @@ pqueue_push (PriorityQueue *q, gpointer data)
 }
 
 gpointer
-pqueue_peek (PriorityQueue *q)
+gfsm_pqueue_peek (gfsmPriorityQueue *q)
 {
   if (q->size > 0) {
     return q->heap[0];
@@ -144,14 +144,14 @@ pqueue_peek (PriorityQueue *q)
 }
 
 gpointer
-pqueue_find (PriorityQueue *q, gpointer data)
+gfsm_pqueue_find (gfsmPriorityQueue *q, gpointer data)
 {
   gpointer *entry = g_hash_table_lookup(q->map, data);
   return (entry == NULL) ? NULL : *entry;
 }
 
 gpointer
-pqueue_pop (PriorityQueue *q)
+gfsm_pqueue_pop (gfsmPriorityQueue *q)
 {
   if (q->size > 0) {
     gpointer data = q->heap[0];
