@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: arc iterators
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -62,6 +62,16 @@ void gfsm_arciter_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi)
   for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
     gfsmArc *a = gfsm_arciter_arc(aip);
     if ((lo==gfsmNoLabel || a->lower==lo) && (hi==gfsmNoLabel || a->upper==hi)) break;
+  }
+}
+
+//--------------------------------------------------------------
+// seek_all()
+void gfsm_arciter_seek_all(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi, gfsmStateId dst)
+{
+  for ( ; gfsm_arciter_ok(aip); gfsm_arciter_next(aip)) {
+    gfsmArc *a = gfsm_arciter_arc(aip);
+    if ((lo==gfsmNoLabel || a->lower==lo) && (hi==gfsmNoLabel || a->upper==hi) && (dst==gfsmNoState || a->target==dst)) break;
   }
 }
 

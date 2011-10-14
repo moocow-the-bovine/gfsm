@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@
 
 
 /*======================================================================
- * Semiring: methods: general accessors
+ * Semiring: methods: general accessors & operations
  */
 
 /*--------------------------------------------------------------
@@ -67,6 +67,27 @@ gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
     return (x < y ? -1 : (x > y ? 1 : 0));
   }
   return 0; //-- should never happen
+}
+
+//--------------------------------------------------------------
+gfsmWeight gfsm_sr_pow_n(gfsmSemiring *sr, gfsmWeight x, guint n)
+{
+  gfsmWeight xn = sr->one;
+  for ( ; n > 0; n--) {
+    xn = gfsm_sr_times(sr, xn, x);
+  }
+  return xn;
+}
+
+//--------------------------------------------------------------
+gfsmWeight gfsm_sr_star_n(gfsmSemiring *sr, gfsmWeight x, guint n)
+{
+  gfsmWeight xn=sr->one, xstar=xn;
+  for ( ; n > 0; n--) {
+    xn    = gfsm_sr_times(sr, xn, x);
+    xstar = gfsm_sr_plus(sr, xstar, xn);
+  }
+  return xstar;
 }
 
 /*======================================================================

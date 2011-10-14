@@ -38,7 +38,7 @@
  */
 
 //------------------------------
-///\name Closure (self-concatenation)
+///\name gfsmClosure.c: closure (self-concatenation)
 //@{
 /** Compute transitive or reflexive-\&-transitive
  *  closure of \a fsm. 
@@ -63,23 +63,29 @@ gfsmAutomaton *gfsm_automaton_closure(gfsmAutomaton *fsm, gboolean is_plus);
  *  \returns modified \a fsm
  */
 gfsmAutomaton *gfsm_automaton_n_closure(gfsmAutomaton *fsm, guint n);
+
+/** Make \a fsm optional.
+ *  \note Destructively alters \a fsm
+ *
+ *  \param fsm Automaton
+ *  \returns \a modified fsm
+ */
+gfsmAutomaton *gfsm_automaton_optional(gfsmAutomaton *fsm);
 //@}
 
 
 //------------------------------
-///\name Complementation and Completion
+///\name gfsmComplement.c: Complementation and Completion
 //@{
-/**
- * Compute the lower-side complement of \a fsm with respect to its own lower alphabet.
+/** Compute the lower-side complement of \a fsm with respect to its own lower alphabet.
  * \note Destructively alters \a fsm
  *
  * \param fsm Acceptor
- * \returns \a fsm.
+ * \returns \a fsm
  */
 gfsmAutomaton *gfsm_automaton_complement(gfsmAutomaton *fsm);
 
-/**
- * Compute the lower-side complement of \a fsm with respect to the alphabet \a alph,
+/** Compute the lower-side complement of \a fsm with respect to the alphabet \a alph,
  * which should contain all of the lower-labels from \a fsm.
  * \note Destructively alters \a fsm.
  *
@@ -89,8 +95,7 @@ gfsmAutomaton *gfsm_automaton_complement(gfsmAutomaton *fsm);
  */
 gfsmAutomaton *gfsm_automaton_complement_full(gfsmAutomaton *fsm, gfsmAlphabet *alph);
 
-/**
- * Complete the lower side of automaton \a fsm with respect to the alphabet \a alph
+/** Complete the lower side of automaton \a fsm with respect to the alphabet \a alph
  * by directing "missing" arcs to the (new) state with id \a *sink.
  * \note Destructively alters \a fsm.
  *
@@ -105,7 +110,7 @@ gfsmAutomaton *gfsm_automaton_complete(gfsmAutomaton    *fsm,
 //@}
 
 //------------------------------
-///\name Composition
+///\name gfsmCompose.c: Composition
 //@{
 
 /** Compute the composition of \a fsm1 with \a fsm2
@@ -164,7 +169,8 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState  sp,
 //@}
 
 //------------------------------
-///\name Concatenation
+///\name gfsmConcat.c: Concatenation
+//@{
 
 /** Append \a fsm2 onto the end of \a fsm1 \a n times.
  *  \note Destructively alters \a fsm1.
@@ -198,11 +204,10 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2);
 //@}
 
 //------------------------------
-///\name Co-Accessibility & Pruning
+///\name gfsmConnect.c: Co-Accessibility & Pruning
 //@{
 
-/**
- * Remove non-coaccessible states from \a fsm.
+/** Remove non-coaccessible states from \a fsm.
  * Calls gfsm_automaton_connect_fw() and gfsm_automaton_connect_bw()
  * \note Destructively alters \a fsm
  *
@@ -211,9 +216,7 @@ gfsmAutomaton *gfsm_automaton_concat(gfsmAutomaton *fsm1, gfsmAutomaton *_fsm2);
  */
 gfsmAutomaton *gfsm_automaton_connect(gfsmAutomaton *fsm);
 
-//------------------------------
-/**
- * Remove non root-accessible states from \a fsm.
+/** Remove non root-accessible states from \a fsm.
  * Called by gfsm_automaton_connect()
  *
  * \note Destructively alters \a fsm
@@ -226,10 +229,8 @@ gfsmAutomaton *gfsm_automaton_connect(gfsmAutomaton *fsm);
  */
 gfsmAutomaton *gfsm_automaton_connect_fw(gfsmAutomaton *fsm, gfsmBitVector *visited);
 
-//------------------------------
-/**
- * Remove non-finalizable states from \a fsm.
- * Called by connect().
+/** Remove non-finalizable states from \a fsm.
+ * Called by gfsm_automaton_connect().
  * \note Destructively alters \a fsm
  *
  * \param fsm Automaton
@@ -246,9 +247,7 @@ gfsmAutomaton *gfsm_automaton_connect_bw(gfsmAutomaton       *fsm,
 					 gfsmReverseArcIndex *rarcs,
 					 gfsmBitVector       *finalizable);
 
-//------------------------------
-/**
- * Utility for gfsm_automaton_connect_fw() and gfsm_automaton_connect_bw().
+/** Utility for gfsm_automaton_connect_fw() and gfsm_automaton_connect_bw().
  * Prunes states from \a fsm whose id bit is not set in \a want
  *
  * \param fsm    Automaton
@@ -262,7 +261,7 @@ gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wa
 //@}
 
 //------------------------------
-///\name Determinization
+///\name gfsmDeterminize.c: Determinization
 //@{
 
 /** Utility for \a gfsm_automaton_determinize(). */
@@ -306,7 +305,7 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
 //@}
 
 //------------------------------
-///\name Difference
+///\name gfsmDifference.c: Difference
 //@{
 
 /** Remove language of acceptor \a fsm2 from acceptor \a fsm1.
@@ -339,8 +338,9 @@ gfsmAutomaton *gfsm_automaton_difference_full(gfsmAutomaton *fsm1,
 //@}
 
 //------------------------------
-///\name Intersection
+///\name gfsmIntersect.c: Intersection
 //@{
+
 /** Compute the intersection of two acceptors \a fsm1 and \a fsm2 (lower-side intersection).
  *  \note Pseudo-destructive on \a fsm1.
  *
@@ -378,8 +378,9 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair  sp,
 
 
 //------------------------------
-///\name Inversion & Projection
+///\name gfsmProject.c: Projection & Inversion
 //@{
+
 /** Invert upper and lower labels of an automaton.
  *  \note Destructively alters \a fsm.
  *
@@ -388,7 +389,6 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair  sp,
  */
 gfsmAutomaton *gfsm_automaton_invert(gfsmAutomaton *fsm);
 
-//------------------------------
 /** Project one "side" (lower or upper) of \a fsm
  *  \note Destructively alters \a fsm
  *
@@ -403,20 +403,7 @@ gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which);
 //@}
 
 //------------------------------
-///\name Optionality
-//@{
-/** Make \a fsm optional.
- *  \note Destructively alters \a fsm
- *
- *  \param fsm Automaton
- *  \returns \a modified fsm
- */
-gfsmAutomaton *gfsm_automaton_optional(gfsmAutomaton *fsm);
-
-//@}
-
-//------------------------------
-///\name Cartesian Product
+///\name gfsmProduct.c: Cartesian Product
 //@{
 /** Compute Cartesian product of acceptors \a fsm1 and \a fsm2.
  *  \note Destructively alters \a fsm1.
@@ -445,7 +432,7 @@ gfsmAutomaton *gfsm_automaton_product2(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 
 
 //------------------------------
-///\name Replacement
+///\name gfsmReplace.c: Replacement
 //@{
 /** Replace label-pair \a (lo,hi) with \a fsm2 in \a fsm1 .
  *  \note Destructively alters \a fsm.
@@ -477,7 +464,7 @@ gfsmAutomaton *gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1,
 
 
 //------------------------------
-///\name Reversal
+///\name gfsmReverse.c: Reversal
 //@{
 /** Reverse an automaton \a fsm.
  *  \note Destructively alters \a fsm.
@@ -490,7 +477,7 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm);
 //@}
 
 //------------------------------
-///\name Epsilon Removal
+///\name gfsmRmEpsilon.c: Epsilon Removal
 //@{
 /**
  * Remove epsilon arcs from \a fsm.
@@ -505,23 +492,26 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm);
  */
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm);
 
-/** Pass-1 guts for gfsm_automaton_rmepsilon(): populates the mapping \a sp2wh
+/* Pass-1 guts for gfsm_automaton_rmepsilon(): populates the mapping \a sp2wh
  *  with state-pairs (qid_noeps,qid_eps)=>weight for all
  *  \a qid_eps epsilon-reachable from \a qid_noeps in \a fsm
  */
+/*
 void gfsm_automaton_rmeps_visit_state_(gfsmAutomaton *fsm,
 				       gfsmStateId qid_noeps,
 				       gfsmStateId qid_eps,
 				       gfsmWeight weight_eps,
 				       gfsmStatePair2WeightHash *sp2wh
 				       );
+*/
+
 
 /* Pass-2 for gfsm_automaton_rmepsilon(): arc-adoption iterator */
 //void gfsm_automaton_rmeps_pass2_foreach_func_(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm);
 //@}
 
 //------------------------------
-///\name Alphabet Recognizer
+///\name gfsmSigma.c: Alphabet Recognizer
 //@{
 /**
  * Make \a fsm an identity-transducer for alphabet \a abet
@@ -534,7 +524,7 @@ gfsmAutomaton *gfsm_automaton_sigma(gfsmAutomaton *fsm, gfsmAlphabet *abet);
 //@}
 
 //------------------------------
-///\name Union
+///\name gfsmUnion.c: Union
 //@{
 /** Add the language or relation of \a fsm2 to \a fsm1.
  *  \note Destructively alters \a fsm1
@@ -547,13 +537,12 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 //@}
 
 /** \file gfsmAlgebra.h
- *  \todo sigma()
- *  \todo bestpath()
+ *  \todo improve rmepsilon, determinize
+ *  \todo bestpath() ?
  *  \todo encode() ?
  *  \todo equiv() ?
  *  \todo minimize() ?
- *  \todo Regex compiler
- *  \todo deterministic union, tries
+ *  \todo deterministic union ?
  */
 
 #endif /* _GFSM_ALGEBRA_H */

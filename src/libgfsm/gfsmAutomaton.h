@@ -519,6 +519,13 @@ void gfsm_automaton_add_arc_node(gfsmAutomaton *fsm,
 				 gfsmState     *sp,
 				 gfsmArcList   *node);
 
+/** Remove an arc (pointer), without freeing it */
+GFSM_INLINE
+void gfsm_automaton_remove_arc_ptr(gfsmAutomaton *fsm, gfsmArc *a);
+
+/** Remove an arc node (without freeing it) */
+GFSM_INLINE
+void gfsm_automaton_remove_arc_node(gfsmAutomaton *fsm, gfsmState *sp, gfsmArcList *node);
 
 /** Sort all arcs in an automaton by one of the built-in comparison functions.
  *  \param fsm  Automaton to modify

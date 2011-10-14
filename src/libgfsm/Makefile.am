@@ -62,7 +62,23 @@ libgfsm_la_SOURCES = \
 	gfsmAutomaton.c \
 	gfsmAutomatonIO.c \
 	gfsmDraw.c \
-	gfsmAlgebra.c \
+	\
+	gfsmClosure.c \
+	gfsmComplement.c \
+	gfsmCompose.c \
+	gfsmConcat.c \
+	gfsmConnect.c \
+	gfsmDeterminize.c \
+	gfsmDifference.c \
+	gfsmIntersect.c \
+	gfsmProject.c \
+	gfsmProduct.c \
+	gfsmReplace.c \
+	gfsmReverse.c \
+	gfsmRmEpsilon.c \
+	gfsmSigma.c \
+	gfsmUnion.c \
+	\
 	gfsmArith.c \
 	gfsmLookup.c \
 	gfsmPaths.c \

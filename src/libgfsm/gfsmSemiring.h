@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
- * Copyright (c) 2004-2009 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -97,6 +97,8 @@ typedef struct {
   gfsmSRBinaryPredicate less_func;  /**< order predicate */
   gfsmSRBinaryOp        plus_func;  /**< addition operation */
   gfsmSRBinaryOp        times_func; /**< multiplication operation */
+  gfsmSRBinaryOp        pow_func;   /**< power operation */
+  gfsmSRUnaryOp         star_func;  /**< star operation */
 } gfsmUserSemiring;
 
 /*======================================================================
@@ -130,9 +132,9 @@ void gfsm_semiring_free(gfsmSemiring *sr);
 //@}
 
 /*======================================================================
- * Semiring: general accessors
+ * Semiring: general accessors & operations
  */
-///\name General Accessors
+///\name General Accessors & Operations
 //@{
 
 /** Get 'zero' element of the ::gfsmSemiring* \a sr */
@@ -161,6 +163,22 @@ gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 /** Semiring multiplication */
 GFSM_INLINE
 gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
+
+/** Semiring power operation: x^0=1; x^(n+1)=(x^n)*x */
+GFSM_INLINE
+gfsmWeight gfsm_sr_pow(gfsmSemiring *sr, gfsmWeight x, gfsmWeight n);
+
+/** power operation: n-approximation  */
+gfsmWeight gfsm_sr_pow_n(gfsmSemiring *sr, gfsmWeight x, guint n);
+
+/** Semiring star-closure: x* = 1 + x + (x*x) + (x*x*x) + (x*x*x*x) + ... */
+GFSM_INLINE
+gfsmWeight gfsm_sr_star(gfsmSemiring *sr, gfsmWeight x);
+
+/** star-closure: n-approximation  */
+#define GFSM_SR_STAR_N_DEFAULT 8
+gfsmWeight gfsm_sr_star_n(gfsmSemiring *sr, gfsmWeight x, guint n);
+
 //@}
 
 /*======================================================================

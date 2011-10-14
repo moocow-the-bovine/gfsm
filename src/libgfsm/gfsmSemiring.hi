@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: semirings: inline definitions
  *
- * Copyright (c) 2004-2009 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -131,11 +131,15 @@ gfsmUserSemiring *gfsm_user_semiring_new(gfsmSRBinaryPredicate equal_func,
 GFSM_INLINE
 gfsmSemiring *gfsm_semiring_copy(gfsmSemiring *sr)
 {
-  if (sr->type==gfsmSRTUser)
-    return (gfsmSemiring*)gfsm_user_semiring_new(((gfsmUserSemiring*)sr)->equal_func,
-						 ((gfsmUserSemiring*)sr)->less_func,
-						 ((gfsmUserSemiring*)sr)->plus_func,
-						 ((gfsmUserSemiring*)sr)->times_func);
+  if (sr->type==gfsmSRTUser) {
+    gfsmUserSemiring *sr1 = gfsm_user_semiring_new(((gfsmUserSemiring*)sr)->equal_func,
+						   ((gfsmUserSemiring*)sr)->less_func,
+						   ((gfsmUserSemiring*)sr)->plus_func,
+						   ((gfsmUserSemiring*)sr)->times_func);
+    sr1->pow_func  = ((gfsmUserSemiring*)sr)->pow_func;
+    sr1->star_func = ((gfsmUserSemiring*)sr)->star_func;
+    return (gfsmSemiring*)sr1;
+  }
   return gfsm_semiring_new(sr->type);
 }
 
@@ -256,6 +260,83 @@ gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
   case gfsmSRTReal:
   case gfsmSRTProb:
   default:             return x * y;
+  }
+  return sr->zero; //-- should never happen
+}
+
+/*--------------------------------------------------------------
+ * pow()
+ */
+GFSM_INLINE
+gfsmWeight gfsm_sr_pow(gfsmSemiring *sr, gfsmWeight x, gfsmWeight n)
+{
+  switch (sr->type) {
+  case gfsmSRTBoolean:
+  case gfsmSRTFuzzy:
+    return x;
+
+  case gfsmSRTLog:      
+  case gfsmSRTPLog:
+  case gfsmSRTTropical: 
+  case gfsmSRTArctic:
+    return x * n;
+
+  case gfsmSRTTrivial:
+    return 0;
+
+  case gfsmSRTReal:
+  case gfsmSRTProb:
+    return pow(x,n);
+
+  case gfsmSRTUser:
+    if (((gfsmUserSemiring*)sr)->pow_func)
+      return (*((gfsmUserSemiring*)sr)->pow_func)(sr,x,n);
+
+  default:
+    return gfsm_sr_pow_n(sr,x,n);
+  }
+  return sr->zero; //-- should never happen
+}
+
+/*--------------------------------------------------------------
+ * star()
+ */
+GFSM_INLINE
+gfsmWeight gfsm_sr_star(gfsmSemiring *sr, gfsmWeight x)
+{
+  switch (sr->type) {
+  case gfsmSRTBoolean:
+  case gfsmSRTTrivial:
+  case gfsmSRTFuzzy:
+    return x;
+
+  case gfsmSRTTropical: 
+    if (x >= 0.0) return 0;
+    return -FLT_MAX;
+
+  case gfsmSRTArctic:
+    if (x <= 0.0) return 0;
+    return FLT_MAX;
+
+  case gfsmSRTReal:
+  case gfsmSRTProb:
+    if (0.0 <= x && x < 1.0) return 1.0/(1.0-x);
+    else if (x >= 1.0) return FLT_MAX;
+
+  case gfsmSRTLog:
+    if (x > 0.0) return log(1 - exp(-x));
+    return -FLT_MAX;
+
+  case gfsmSRTPLog:
+    if (x < 0.0) return log(1 - exp(x));
+    return FLT_MAX;
+
+  case gfsmSRTUser:
+    if (((gfsmUserSemiring*)sr)->star_func)
+      return (*((gfsmUserSemiring*)sr)->star_func)(sr,x);
+
+  default:
+    return gfsm_sr_star_n(sr, x, GFSM_SR_STAR_N_DEFAULT);
   }
   return sr->zero; //-- should never happen
 }

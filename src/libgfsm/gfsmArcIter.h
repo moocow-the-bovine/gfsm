@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: arc iterators
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -177,6 +177,18 @@ void gfsm_arciter_seek_upper(gfsmArcIter *aip, gfsmLabelVal hi);
  *    in a linear search from the current position.
  */
 void gfsm_arciter_seek_both(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi);
+
+/** Position an arc-iterator to the current or next arc with lower label \a lo, upper label \a hi, and sink-state \a dst.
+ *  If either \a lo or \a hi is ::gfsmNoLabel, no matching will be performed on the corresponding arc label(s).
+ *  \param aip The ::gfsmArcIter to reposition
+ *  \param lo  Lower arc label to seek, or ::gfsmNoLabel to ignore lower labels
+ *  \param hi  Upper arc label to seek, or ::gfsmNoLabel to ignore upper labels
+ *  \param dst Sink state to seek, or ::gfsmNoState to ignore states
+ *  \note
+ *    Default implementation wraps gfsm_arciter_ok(), gfsm_arciter_next() and gfsm_arciter_arc()
+ *    in a linear search from the current position.
+ */
+void gfsm_arciter_seek_all(gfsmArcIter *aip, gfsmLabelVal lo, gfsmLabelVal hi, gfsmStateId dst);
 
 /// Typedef for user-seek functions
 typedef gboolean (*gfsmArcIterSeekFunc) (gfsmArcIter *aip, gpointer data);

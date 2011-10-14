@@ -509,6 +509,23 @@ void gfsm_automaton_add_arc(gfsmAutomaton *fsm,
 			      gfsm_arclist_new_full(qid1,qid2,lo,hi,w,NULL));
 }
 
+//--------------------------------------------------------------
+void gfsm_automaton_remove_arc_node(gfsmAutomaton *fsm, gfsmState *sp, gfsmArcList *node)
+{
+  g_assert(sp != NULL);
+  sp->arcs = gfsm_arclist_remove_node(sp->arcs, node);
+}
+
+//--------------------------------------------------------------
+void gfsm_automaton_remove_arc_ptr(gfsmAutomaton *fsm, gfsmArc *a)
+{
+  gfsmState *qp;
+  if (a==NULL) return;
+  qp = gfsm_automaton_find_state(fsm, a->source);
+  if (qp==NULL) return;
+  qp->arcs = gfsm_arclist_remove_node(qp->arcs, (gfsmArcList*)a);
+}
+
 
 /*--------------------------------------------------------------
  * arcsort_full()
