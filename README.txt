@@ -112,5 +112,5 @@ KNOWN BUGS
     Many.
 
 AUTHOR
-    Bryan Jurish <moocow@ling.uni-potsdam.de>
+    Bryan Jurish <moocow.bovine@gmail.com>
 
