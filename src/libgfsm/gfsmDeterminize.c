@@ -26,8 +26,8 @@
 #include <gfsmArcIter.h>
 #include <gfsmUtils.h>
 #include <gfsmCompound.h>
-//#include <gfsmEnum.h>
-#include <gfsmAlphabet.h>
+#include <gfsmEnum.h>
+//#include <gfsmAlphabet.h>
 
 /*======================================================================
  * UTILS
@@ -90,7 +90,8 @@ gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *nfa)
  */
 gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton *dfa)
 {
-  gfsmAlphabet   *ec2id; //-- (global) maps literal(equiv-class@nfa) <=> state-id@dfa
+  //gfsmAlphabet   *ec2id; //-- (global) maps literal(equiv-class@nfa) <=> state-id@dfa
+  gfsnEnum       *ec2id; //-- (global) maps literal(equiv-class@nfa) <=> state-id@dfa
   gfsmStateId    dfa_id; //-- (temp) id @ dfa
   gfsmStateWeightPairArray *nfa_ec;  //-- (temp) equiv-class@nfa: array
   gfsmStateWeightPair *wq; //-- (temp): state+weight pair in nfa_ec
@@ -116,10 +117,10 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
   dfa->flags.sort_mode = gfsmASMNone;
 
   //-- initialization: ec2id
-  ec2id = gfsm_pointer_alphabet_new(NULL /*(gfsmDupFunc)gfsm_wqarray_clone*/ ,
-				    (GHashFunc)gfsm_wqarray_hash,
-				    (GEqualFunc)gfsm_wqarray_equal,
-				    (GDestroyNotify)gfsm_wqarray_free);
+  ec2id = gfsm_enum_new_full(NULL /*(gfsmDupFunc)gfsm_wqarray_clone*/ ,
+			     (GHashFunc)gfsm_wqarray_hash,
+			     (GEqualFunc)gfsm_wqarray_equal,
+			     (GDestroyNotify)gfsm_wqarray_free);
 
   //-- initialization: root
   nfa_ec = g_array_sized_new(32);
@@ -127,21 +128,22 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
   wq = &g_array_index(nfa_ec, gfsmStateWeightPair, 1);
   wq->id = nfa->root_id;
   wq->w  = fsm->sr->one;
-  dfa_id = gfsm_automaton_ensure_state(dfa, gfsm_alphabet_insert(ec2id, nfa_ec, gfsmNoLabel));
+  dfa_id = gfsm_automaton_ensure_state(dfa, gfsm_enum_insert(ec2id, nfa_ec));
   gfsm_automaton_set_root(dfa, dfa_id);
 
   //-- guts: queue processing
-  queue = g_slist_prepend(queue, GUINT_TO_POINTER(dfa_id));
+  queue = g_slist_prepend(queue, nfa_ec);
   while (queue != NULL) {
     GSList *head = queue;
-    GSList *arcl = NULL; //-- arc-list
+    GSList *arcl = NULL; //-- (temp) arc-list: collected arcs from nfa
+    GSLIst *ali0,*ali1;  //-- (temp) arc-list: iterators
     gfsmState *qptr;
     guint eci;
 
     //-- pop the queue
     queue  = queue->next;
-    dfa_id = GPOINTER_TO_UINT(head->data);
-    nfa_ec = gfsm_alphabet_find_label(ec2id, head->data);
+    nfa_ec = (gfsmStateWeightPairArray*)head->data;
+    dfa_id = gfsm_enum_lookup(ec2id, nfa_ec);
     g_slist_free_1(head);
 
     //-- generate & sort list of all outgoing arcs
@@ -155,7 +157,18 @@ gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton
     }
     arcl = g_slist_sort(arcl, (GCompareFunc)gfsm_arc_compare_bymask, &acdata);
 
-    //-- CONTINUE HERE: extract & process (lo,hi)-runs, (lo,hi,qto)-runs; implement Morhi (2009) lines 7-16
+    //-- extract & process (lo,hi)-runs --> collect by state into (lo,hi,qto)-runs; implement Morhi (2009) lines 7-16
+    for (ali0=arcl; ali0 != NULL; ali0=ali1) {
+      gfsmArc *a0 = (gfsmArc*)ali0->data;
+      gfsmLabelId lo=a0->lower, hi=a0->upper;
+      for (ali1=ali0->next; ali1 != NULL; ali1=ali1->next) {
+	gfsmArc *a1 = (gfsmArc*)ali1->data;
+	if (a1->lower != lo || a1->upper != hi) break;
+      }
+
+      //-- we have a (lo,hi) run in (ali0..(ali1-1))
+      
+    }
   }
 
   //-- cleanup
