@@ -1,13 +1,13 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.5)
+AC_PREREQ([2.67])
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
 define([THE_PACKAGE_VERSION], [0.0.10])
 define([THE_PACKAGE_MAINTAINER],  [moocow.bovine@gmail.com])
 
-AC_INIT(THE_PACKAGE_NAME, THE_PACKAGE_VERSION, THE_PACKAGE_MAINTAINER)
-dnl AC_INIT(gfsm, 0.01, moocow.bovine@gmail.com)
+AC_INIT([THE_PACKAGE_NAME],[THE_PACKAGE_VERSION],[THE_PACKAGE_MAINTAINER])
+dnl AC_INIT([gfsm],[0.01],[moocow.bovine@gmail.com])
 
 dnl source && aux dir
 AC_CONFIG_AUX_DIR(config)
@@ -19,7 +19,7 @@ dnl use automake
 AM_INIT_AUTOMAKE(THE_PACKAGE_NAME, THE_PACKAGE_VERSION)
 
 dnl use autoheader
-AM_CONFIG_HEADER([src/libgfsm/gfsmConfigAuto.h])
+AC_CONFIG_HEADERS([src/libgfsm/gfsmConfigAuto.h])
 
 dnl default prefix
 AC_PREFIX_DEFAULT(/usr/local)
@@ -144,8 +144,7 @@ AC_CHECK_SIZEOF([double], [], [])
 ## zlib
 ##
 AC_ARG_ENABLE(zlib,
-	AC_HELP_STRING([--disable-zlib],
-	               [Disable zlib compression support]),
+	AS_HELP_STRING([--disable-zlib],[Disable zlib compression support]),
 	[ac_cv_enable_zlib="$enableval"],
 	[ac_cv_enable_zlib="yes"])
 
@@ -202,7 +201,7 @@ AC_CHECK_FUNCS([vfprintf],[],[])
 
 
 dnl v--- needed if Makefile.am uses _LTLIBRARIES targets
-AC_PROG_LIBTOOL
+LT_INIT
 
 dnl v--- for static-only libraries (non-libtool)
 dnl AC_PROG_RANLIB
@@ -229,7 +228,7 @@ CONFIG_OPTIONS=""
 ##
 AC_MSG_CHECKING([whether to enable inline functions])
 AC_ARG_ENABLE(inline,
-	AC_HELP_STRING([--disable-inline], [disable function inlining (default=enabled)]))
+	AS_HELP_STRING([--disable-inline],[disable function inlining (default=enabled)]))
 
 if test "$enable_inline" != "no" ; then
   AC_MSG_RESULT(yes)
@@ -252,7 +251,7 @@ CONFIG_OPTIONS="$CONFIG_OPTIONS INLINE=$CONFIG_INLINE_ENABLED"
 ##
 AC_MSG_CHECKING([whether to build debug version])
 AC_ARG_ENABLE(debug,
-	AC_HELP_STRING([--enable-debug], [build debug version (default=no)]))
+	AS_HELP_STRING([--enable-debug],[build debug version (default=no)]))
 
 if test "$enable_debug" == "yes" ; then
    AC_MSG_RESULT(yes)
@@ -339,8 +338,7 @@ if test -z "$PKG_CONFIG" ; then
 fi
 dnl pkg-config: destination directory
 AC_ARG_WITH(pkgconfig-dir,
-	AC_HELP_STRING([--with-pkgconfig-dir=DIR],
-		[install pkg-config metafile(s) in DIR (default=LIBDIR/pkgconfig)]),
+	AS_HELP_STRING([--with-pkgconfig-dir=DIR],[install pkg-config metafile(s) in DIR (default=LIBDIR/pkgconfig)]),
 	[ac_cv_pkgconfigdir="$withval"])
 if test -z "$ac_cv_pkgconfigdir" ; then
   ac_cv_pkgconfigdir="\$(libdir)/pkgconfig"
@@ -470,8 +468,7 @@ AM_CONDITIONAL(HAVE_OPTGEN, [test "$OPTGEN_PERL" != "no"])
 ## Documentation
 ##
 AC_ARG_WITH(docdir,
-	AC_HELP_STRING([--with-docdir=DIR],
-		[install documentation in DIR/AC_PACKAGE_NAME (default=DATADIR/doc)]),
+	AS_HELP_STRING([--with-docdir=DIR],[install documentation in DIR/AC_PACKAGE_NAME (default=DATADIR/doc)]),
 	[docdir="$withval"],
 	[docdir="\${datadir}/doc"])
 pkgdocdir="\${docdir}/\${PACKAGE}"
@@ -486,13 +483,12 @@ AC_SUBST(pkgdoctutdir)
 AC_SUBST(pkgdoclibdir)
 
 AC_ARG_WITH(doc-formats,
-	AC_HELP_STRING([--with-doc-formats=LIST],
-		       [Build documentation formats in LIST. \
+	AS_HELP_STRING([--with-doc-formats=LIST],[Build documentation formats in LIST. \
                         Available formats: txt, man, html, dvi, ps, pdf, none.
 	                Default='man html'. Requires Perl, pod2xxx.]),
 	[ac_cv_doc_formats="$withval"])
 AC_ARG_ENABLE(doc,
-	AC_HELP_STRING([--disable-doc],[Synonym for --with-doc-formats="none"]),
+	AS_HELP_STRING([--disable-doc],[Synonym for --with-doc-formats="none"]),
 	[enable_doc="$enableval"],[enable_doc="yes"])
 
 AC_MSG_CHECKING([which documentation formats to build])
@@ -763,7 +759,7 @@ AM_CONDITIONAL(DOC_WANT_PDF,     [test -n "$CONFIG_DOC_WANT_PDF"   -a "$CONFIG_D
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## subdirs
 AC_ARG_ENABLE(programs,
-	AC_HELP_STRING([--disable-programs],[Disable building of command-line utility suite]),
+	AS_HELP_STRING([--disable-programs],[Disable building of command-line utility suite]),
 	[enable_programs="$enableval"],[enable_programs="yes"])
 
 GFSM_SUBDIRS=""
@@ -823,7 +819,7 @@ AC_SUBST(BINDIST_OS)
 ##
 AC_MSG_CHECKING([whether to display compiler warnings])
 AC_ARG_ENABLE(warnings,
-	AC_HELP_STRING([--disable-warnings],[disable compiler warnings (default=no)]))
+	AS_HELP_STRING([--disable-warnings],[disable compiler warnings (default=no)]))
 
 if test "$enable_warnings" != "no" ; then
    AC_MSG_RESULT(yes)
