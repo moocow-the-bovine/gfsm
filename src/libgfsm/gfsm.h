@@ -55,7 +55,7 @@ extern "C" {
 #include <gfsmAutomaton.h>
 #include <gfsmArcIter.h>
 #include <gfsmArcIndex.h>
-#include <gfsmStateSet.h>
+#include <gfsmWStateSet.h>
 #include <gfsmIO.h>
 #include <gfsmAutomatonIO.h>
 #include <gfsmDraw.h>

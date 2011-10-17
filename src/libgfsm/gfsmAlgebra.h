@@ -28,7 +28,6 @@
 #ifndef _GFSM_ALGEBRA_H
 #define _GFSM_ALGEBRA_H
 
-#include <gfsmStateSet.h>
 #include <gfsmCompound.h>
 #include <gfsmArcIter.h>
 #include <gfsmArcIndex.h>
@@ -264,11 +263,6 @@ gfsmAutomaton *gfsm_automaton_prune_states(gfsmAutomaton *fsm, gfsmBitVector *wa
 ///\name gfsmDeterminize.c: Determinization
 //@{
 
-/** Utility for \a gfsm_automaton_determinize(). */
-void gfsm_determinize_visit_state_(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
-				   gfsmStateSet  *nfa_ec, gfsmStateId    dfa_id,
-				   gfsmEnum      *ec2id);
-
 /** Determinize acceptor \a fsm
  *
  *  - Pseudo-destructive on \a fsm
@@ -284,13 +278,7 @@ void gfsm_determinize_visit_state_(gfsmAutomaton *nfa,    gfsmAutomaton *dfa,
  */
 gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *fsm);
 
-/** Alias for gfsm_automaton_determinize() */
-#define gfsm_automaton_determinise(fsm) gfsm_automaton_determinize(fsm)
-
-/** Alias for gfsm_automaton_determinize_full() */
-#define gfsm_automaton_determinise_full(nfa,dfa) gfsm_automaton_determinize_full((nfa),(dfa))
-
-/** Determinize automaton \a nfa to \a dfa.
+/** Determinize automaton \a nfa to \a dfa
  *  - Epsilon is treated like any other symbol.
  *  - Arc labels are treated as (input,output) pairs.
  *  .
@@ -301,6 +289,12 @@ gfsmAutomaton *gfsm_automaton_determinize(gfsmAutomaton *fsm);
  *  \returns \a dfa
  */
 gfsmAutomaton *gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton *dfa);
+
+/** Alias for gfsm_automaton_determinize() */
+#define gfsm_automaton_determinise(fsm) gfsm_automaton_determinize(fsm)
+
+/** Alias for gfsm_automaton_determinize_full() */
+#define gfsm_automaton_determinise_full(nfa,dfa) gfsm_automaton_determinize_full((nfa),(dfa))
 
 //@}
 

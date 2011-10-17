@@ -70,7 +70,7 @@ gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 }
 
 //--------------------------------------------------------------
-gfsmWeight gfsm_sr_pow_n(gfsmSemiring *sr, gfsmWeight x, guint n)
+gfsmWeight gfsm_sr_pow_n(gfsmSemiring *sr, gfsmWeight x, gint n)
 {
   gfsmWeight xn = sr->one;
   for ( ; n > 0; n--) {

@@ -58,7 +58,6 @@ libgfsm_la_SOURCES = \
 	gfsmArcIter.c \
 	gfsmArcIndex.c \
 	gfsmState.c \
-	gfsmStateSet.c \
 	gfsmAutomaton.c \
 	gfsmAutomatonIO.c \
 	gfsmDraw.c \
@@ -139,7 +138,6 @@ pkginclude_HEADERS = \
 	gfsmArcIter.h gfsmArcIter.hi \
 	gfsmArcIndex.h gfsmArcIndex.hi \
 	gfsmState.h gfsmState.hi \
-	gfsmStateSet.h gfsmStateSet.hi \
 	gfsmAutomaton.h gfsmAutomaton.hi \
 	gfsmAutomatonIO.h \
 	gfsmDraw.h \

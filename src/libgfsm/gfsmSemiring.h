@@ -97,6 +97,7 @@ typedef struct {
   gfsmSRBinaryPredicate less_func;  /**< order predicate */
   gfsmSRBinaryOp        plus_func;  /**< addition operation */
   gfsmSRBinaryOp        times_func; /**< multiplication operation */
+  gfsmSRUnaryOp         inv_l_func; /**< left-multiplication inverse */
   gfsmSRBinaryOp        pow_func;   /**< power operation */
   gfsmSRUnaryOp         star_func;  /**< star operation */
 } gfsmUserSemiring;
@@ -164,12 +165,16 @@ gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 GFSM_INLINE
 gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y);
 
-/** Semiring power operation: x^0=1; x^(n+1)=(x^n)*x */
+/** Left-multiplication inverse: inv_l(x) s.t. inv_l(x)*x = x (not for all semirings) */
+GFSM_INLINE
+gfsmWeight gfsm_sr_inv_l(gfsmSemiring *sr, gfsmWeight x);
+
+/** Semiring power operation: x^0=1; x^(n+1)=(x^n)*x, (n a natural number) */
 GFSM_INLINE
 gfsmWeight gfsm_sr_pow(gfsmSemiring *sr, gfsmWeight x, gfsmWeight n);
 
-/** power operation: n-approximation  */
-gfsmWeight gfsm_sr_pow_n(gfsmSemiring *sr, gfsmWeight x, guint n);
+/** power operation: n-approximation */
+gfsmWeight gfsm_sr_pow_n(gfsmSemiring *sr, gfsmWeight x, gint n);
 
 /** Semiring star-closure: x* = 1 + x + (x*x) + (x*x*x) + (x*x*x*x) + ... */
 GFSM_INLINE

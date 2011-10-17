@@ -89,7 +89,7 @@ gfsmWeightMap *gfsm_weightmap_new_full(GCompareDataFunc key_cmp_func,
 				       gpointer         key_cmp_data,
 				       GDestroyNotify   key_free_func);
 
-/** Create and return a new weightmap which does not stored keys. */
+/** Create and return a new weightmap which does not copy stored keys. */
 GFSM_INLINE
 gfsmWeightMap *gfsm_weightmap_new(GCompareFunc key_cmp_func);
 
@@ -124,9 +124,15 @@ gboolean gfsm_weightmap_lookup(gfsmWeightMap *weightmap, gconstpointer key, gfsm
 /** insert a new key->weight mapping into the weightmap */
 //#define _gfsm_weightmap_insert(weightmap,key,w) g_tree_insert((weightmap),((gpointer)(key)),gfsm_weight2ptr(w))
 
-/** insert a new key->weight mapping into the weightmap */
+/** insert a new key->weight mapping into the weightmap or overwrite old mapping */
 GFSM_INLINE
 void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w);
+
+/** insert a new key->weight mapping into the weightmap, semiring-adding with old weight if present
+ * \returns new weight associated with \a key.
+ */
+GFSM_INLINE
+gfsmWeight gfsm_weightmap_insert_sum(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w, gfsmSemiring *sr);
 
 /** Get size of weightmap */
 #define gfsm_weightmap_size(weightmap) g_tree_nnodes(weightmap)

@@ -24,7 +24,6 @@
 #include <gfsmAlgebra.h>
 #include <gfsmAssert.h>
 #include <gfsmArcIter.h>
-#include <gfsmStateSet.h>
 #include <gfsmEnum.h>
 #include <gfsmUtils.h>
 #include <gfsmCompound.h>

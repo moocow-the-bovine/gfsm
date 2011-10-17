@@ -114,6 +114,18 @@ void gfsm_weightmap_insert(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeig
    g_tree_insert(weightmap, (gpointer)key, gfsm_weight2ptr(w));
 }
 
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmWeight gfsm_weightmap_insert_sum(gfsmWeightMap *weightmap, gconstpointer key, gfsmWeight w, gfsmSemiring *sr)
+{
+  gfsmWeight w0;
+  if (sr!=NULL && gfsm_weightmap_lookup(weightmap, key, &w0)) {
+    w = gfsm_sr_plus(sr, w0, w);
+  }
+  g_tree_insert(weightmap, key, gfsm_weight2ptr(w));
+  return w;
+}
+
 /*======================================================================
  * gfsmWeighHash: Constructors etc.
  */

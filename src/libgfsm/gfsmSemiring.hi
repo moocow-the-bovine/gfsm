@@ -136,6 +136,7 @@ gfsmSemiring *gfsm_semiring_copy(gfsmSemiring *sr)
 						   ((gfsmUserSemiring*)sr)->less_func,
 						   ((gfsmUserSemiring*)sr)->plus_func,
 						   ((gfsmUserSemiring*)sr)->times_func);
+    sr1->inv_l_func = ((gfsmUserSemiring*)sr)->inv_l_func;
     sr1->pow_func  = ((gfsmUserSemiring*)sr)->pow_func;
     sr1->star_func = ((gfsmUserSemiring*)sr)->star_func;
     return (gfsmSemiring*)sr1;
@@ -260,6 +261,39 @@ gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
   case gfsmSRTReal:
   case gfsmSRTProb:
   default:             return x * y;
+  }
+  return sr->zero; //-- should never happen
+}
+
+/*--------------------------------------------------------------
+ * linv()
+ */
+GFSM_INLINE
+gfsmWeight gfsm_sr_inv_l(gfsmSemiring *sr, gfsmWeight x)
+{
+  switch (sr->type) {
+  case gfsmSRTBoolean: 
+  case gfsmSRTFuzzy: return 1;
+
+  case gfsmSRTLog:      
+  case gfsmSRTPLog:
+  case gfsmSRTTropical: 
+  case gfsmSRTArctic:
+    return -x;
+
+  case gfsmSRTTrivial:
+    return 0;
+
+  case gfsmSRTReal:
+  case gfsmSRTProb:
+    return pow(x,-1.0);
+
+  case gfsmSRTUser:
+    if (((gfsmUserSemiring*)sr)->inv_l_func)
+      return (*((gfsmUserSemiring*)sr)->inv_l_func)(sr,x);
+
+  default:
+    break; //g_printerr("gfsm_sr_inv_l(%g): not defined\n", x); exit(1);
   }
   return sr->zero; //-- should never happen
 }
