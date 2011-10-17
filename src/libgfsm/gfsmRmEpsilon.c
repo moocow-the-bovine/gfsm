@@ -61,44 +61,50 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
   gfsmPriorityQueue *pqueue;
   gfsmStateId qid;
   gfsmArcIter ai, aai;
-  gfsmWeight  wf;
+  gfsmWeight westar, fw_p=0, fw_q=0;
 
   //-- setup priority queue (hh2010:1-2)
   pqueue = gfsm_pqueue_new((GCompareDataFunc)gfsm_rmeps_arc_compare, NULL);
   for (qid=0; qid < fsm->states->len; qid++) {
-    for (gfsm_arciter_open(&ai, fsm, qid);
+    for (gfsm_arciter_open(&ai, fsm, qid), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon);
 	 gfsm_arciter_ok(&ai);
 	 gfsm_arciter_next(&ai), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon))
       {
 	gfsmArc *a = gfsm_arciter_arc(&ai);
 	gfsm_pqueue_push(pqueue, a);
+	//fprintf(stderr, "rmeps[init]: push(%d --%d:%d--> %d / %g)\n", a->source, a->lower,a->upper,a->target,a->weight); //--DEBUG
       }
   }
 
   //-- queue-processing loop (hh2010:3-24)
   while (!gfsm_pqueue_isempty(pqueue)) {
     //-- dequeue next arc to process, and remove it from the fsm (hh2010:4-5)
-    gfsmArc *pwq = (gfsmArc*)gfsm_pqueue_pop(pqueue);
+    gfsmArc    *pwq = (gfsmArc*)gfsm_pqueue_pop(pqueue);
+    gfsmState *pptr = gfsm_automaton_open_state(fsm,pwq->source);
+    gfsmState *qptr = gfsm_automaton_open_state(fsm,pwq->target);
     gfsm_automaton_remove_arc_ptr(fsm,pwq);
+
+    //-- prelim: get final weight for pptr
+    if (pptr->is_final)
+      gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(pwq->source), &fw_p);
 
     //-- check for eps-loops (hh2010:6-10)
     if (pwq->source==pwq->target) {
-      gfsmWeight westar = gfsm_sr_star(fsm->sr, pwq->weight);
-      for (gfsm_arciter_open(&ai, fsm, pwq->source); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      westar = gfsm_sr_star(fsm->sr, pwq->weight);
+      for (gfsm_arciter_open_ptr(&ai, fsm, pptr); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
 	gfsmArc *a = gfsm_arciter_arc(&ai);
 	a->weight  = gfsm_sr_times(fsm->sr, westar, a->weight);
       }
-      if (gfsm_automaton_lookup_final(fsm,pwq->source,&wf)) {
-	gfsm_automaton_set_final_state_full(fsm, pwq->source, TRUE, gfsm_sr_times(fsm->sr, westar, wf));
+      if (pptr->is_final) {
+	gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(pwq->source), gfsm_sr_times(fsm->sr, westar, fw_p));
       }
     }
     else {
       //-- no eps-loops (hh2010:12-24)
-      gfsmState *pptr = gfsm_automaton_get_state(fsm,pwq->source);
       gfsm_arciter_open_ptr(&aai, fsm, pptr); //-- source arc iterator (to find matches)
 
       //-- adopt outgoing arcs from eps-reachable state (hh2010:12-18)
-      for (gfsm_arciter_open(&ai, fsm, pwq->target); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      for (gfsm_arciter_open_ptr(&ai, fsm, qptr); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
 	gfsmArc *aa, *a = gfsm_arciter_arc(&ai);
 
 	//-- try to find a matching arc from pwq->source we can modify
@@ -115,19 +121,20 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 	  if (paa->lower==gfsmEpsilon && paa->upper==gfsmEpsilon) {
 	    //-- ... and maybe enqueue it (hh2010:17-18)
 	    gfsm_pqueue_push(pqueue, paa);
+	    //fprintf(stderr, "rmeps[main]: push(%d --%d:%d--> %d / %g)\n", paa->source,paa->lower,paa->upper,paa->target,paa->weight); //--DEBUG
 	  }
 	}
       }
 
       //-- adopt final weight of eps-reachable state (hh2010:19-24)
-      if (gfsm_automaton_lookup_final(fsm, pwq->target, &wf)) {
-	gfsmWeight wfp;
-	if (gfsm_automaton_lookup_final(fsm, pwq->source, &wfp)) {
+      if (qptr->is_final) {
+	gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(pwq->target), &fw_q);
+	if (pptr->is_final) {
 	  gfsm_automaton_set_final_state_full(fsm, pwq->source, TRUE,
-					      gfsm_sr_plus(fsm->sr, wfp, gfsm_sr_times(fsm->sr, pwq->weight, wf)));
+					      gfsm_sr_plus(fsm->sr, fw_p, gfsm_sr_times(fsm->sr, pwq->weight, fw_q)));
 	} else {
 	  gfsm_automaton_set_final_state_full(fsm, pwq->source, TRUE,
-					      gfsm_sr_times(fsm->sr, pwq->weight, wf));
+					      gfsm_sr_times(fsm->sr, pwq->weight, fw_q));
 	}
       }
     }

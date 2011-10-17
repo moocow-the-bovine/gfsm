@@ -85,6 +85,7 @@ cmdline_parser_print_help (void)
   printf(" Options:\n");
   printf("   -h       --help            Print help and exit.\n");
   printf("   -V       --version         Print version and exit.\n");
+  printf("   -C       --connect         Connect output automaton?\n");
   printf("   -zLEVEL  --compress=LEVEL  Specify compression level of output file.\n");
   printf("   -FFILE   --output=FILE     Specifiy output file (default=stdout).\n");
 }
@@ -109,6 +110,7 @@ gog_strdup (const char *s)
 static void
 clear_args(struct gengetopt_args_info *args_info)
 {
+  args_info->connect_flag = 0; 
   args_info->compress_arg = -1; 
   args_info->output_arg = gog_strdup("-"); 
 }
@@ -122,6 +124,7 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
 
   args_info->help_given = 0;
   args_info->version_given = 0;
+  args_info->connect_given = 0;
   args_info->compress_given = 0;
   args_info->output_given = 0;
 
@@ -142,6 +145,7 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
       static struct option long_options[] = {
 	{ "help", 0, NULL, 'h' },
 	{ "version", 0, NULL, 'V' },
+	{ "connect", 0, NULL, 'C' },
 	{ "compress", 1, NULL, 'z' },
 	{ "output", 1, NULL, 'F' },
         { NULL,	0, NULL, 0 }
@@ -149,6 +153,7 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
       static char short_options[] = {
 	'h',
 	'V',
+	'C',
 	'z', ':',
 	'F', ':',
 	'\0'
@@ -214,6 +219,15 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
         
           break;
         
+        case 'C':	 /* Connect output automaton? */
+          if (args_info->connect_given) {
+            fprintf(stderr, "%s: `--connect' (`-C') option given more than once\n", PROGRAM);
+          }
+          args_info->connect_given++;
+         if (args_info->connect_given <= 1)
+           args_info->connect_flag = !(args_info->connect_flag);
+          break;
+        
         case 'z':	 /* Specify compression level of output file. */
           if (args_info->compress_given) {
             fprintf(stderr, "%s: `--compress' (`-z') option given more than once\n", PROGRAM);
@@ -252,6 +266,16 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
             cmdline_parser_print_version();
             exit(EXIT_SUCCESS);
           
+          }
+          
+          /* Connect output automaton? */
+          else if (strcmp(olong, "connect") == 0) {
+            if (args_info->connect_given) {
+              fprintf(stderr, "%s: `--connect' (`-C') option given more than once\n", PROGRAM);
+            }
+            args_info->connect_given++;
+           if (args_info->connect_given <= 1)
+             args_info->connect_flag = !(args_info->connect_flag);
           }
           
           /* Specify compression level of output file. */

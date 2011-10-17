@@ -281,7 +281,7 @@ else
   AC_MSG_RESULT(no)
   if test "$GCC" == "yes"; then
    case "$CFLAGS" in
-    *-O*)
+    *-O*|*-g*)
       AC_MSG_NOTICE([CFLAGS appears already to contain optimization flags - skipping])
       gfsm_OFLAGS=""
       ;;

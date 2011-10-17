@@ -2,7 +2,7 @@
 ## Add the contents of this file to /etc/magic or equivalent.
 
 ##--BEGIN gfsm.magic
-## - Bryan Jurish <moocow@ling.uni-potsdam.de>
+## - Bryan Jurish <moocow.bovine@gmail.com>
 
 ## stored binary gfsm automata
 0       string  gfsm_			gfsm

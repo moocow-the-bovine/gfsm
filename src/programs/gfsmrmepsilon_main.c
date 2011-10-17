@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow.bovine@gmail.com>
+   Copyright (C) 2004-2011 by Bryan Jurish <moocow.bovine@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -81,6 +81,9 @@ int main (int argc, char **argv)
 
   //-- rmepsilon
   gfsm_automaton_rmepsilon(fsm);
+
+  //-- connect?
+  if (args.connect_flag) gfsm_automaton_connect(fsm);
 
   //-- spew automaton
   if (!gfsm_automaton_save_bin_filename(fsm,outfilename,args.compress_arg,&err)) {

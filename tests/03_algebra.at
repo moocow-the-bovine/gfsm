@@ -8,216 +8,83 @@
 AT_BANNER([algebraic operations])
 
 ##--------------------------------------------------------------
-## Test: unary: closure.plus
-AT_SETUP([closure.plus])
-AT_KEYWORDS([algebra closure])
-opname="closure-plus"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmclosure --plus ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+## definitions
+
+## gfsm_at_binop(1:opname, 2:opsuffix, 3:keywords, 4:compile_args, 5:op_cmd_and_opts)
+m4_define([gfsm_at_unop],
+ [
+  AT_SETUP([$1][$2])
+  AT_KEYWORDS([$3])
+  opname="[$1]"
+  AT_CHECK([$][progdir/gfsmcompile $4 $[]tdata/$1-in.tfst -F $1-in.gfst])
+  AT_CHECK([$][progdir/$5 $1-in.gfst -F $1-got.gfst])
+  rm -f $1-want.tfst; ln $][tdata/$1-want.tfst expout
+  AT_CHECK([$][progdir/gfsmprint $1-got.gfst],0,expout)
+  AT_CLEANUP
+ ])
+
+## gfsm_at_binop(1:opname, 2:opsuffix, 3:keywords, 4:compile_args, 5:op_cmd_and_opts)
+m4_define([gfsm_at_binop],
+ [
+  AT_SETUP([$1][$2])
+  AT_KEYWORDS([$3])
+  opname="[$1]"
+  AT_CHECK([$][progdir/gfsmcompile $4 $[]tdata/$1-in-1.tfst -F $1-in-1.gfst])
+  AT_CHECK([$][progdir/gfsmcompile $4 $[]tdata/$1-in-2.tfst -F $1-in-2.gfst])
+  AT_CHECK([$][progdir/$5 $1-in-1.gfst $1-in-2.gfst -F $1-got.gfst])
+  rm -f $1-want.tfst; ln $][tdata/$1-want.tfst expout
+  AT_CHECK([$][progdir/gfsmprint $1-got.gfst],0,expout)
+  AT_CLEANUP
+ ])
 
 ##--------------------------------------------------------------
-## Test: unary: closure.star
-AT_SETUP([closure.star])
-AT_KEYWORDS([algebra closure])
-opname="closure-star"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmclosure ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+## Tests
 
-##--------------------------------------------------------------
-## Test: unary: complement
-AT_SETUP([complement])
-AT_KEYWORDS([algebra complement])
-opname="complement"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmcomplement ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-##
-##-- complement(b): given alphabet
-opname="complement-b"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmcomplement -i $tdata/test.lab ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+##-- closure
+gfsm_at_unop([closure-plus],[],[algebra closure],[],[gfsmclosure --plus])
+gfsm_at_unop([closure-star],[],[algebra closure],[],[gfsmclosure])
 
-##--------------------------------------------------------------
-## Test: binary: compose
-AT_SETUP([compose])
-AT_KEYWORDS([algebra compose])
-opname="compose"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-1.tfst -F ${opfile}-in-1.gfst]])
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-2.tfst -F ${opfile}-in-2.gfst]])
-AT_CHECK([[$progdir/gfsmcompose ${opfile}-in-1.gfst ${opfile}-in-2.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+#-- complement
+gfsm_at_unop([complement],[],[algebra complement],[],[gfsmcomplement])  ##-- using automaton alphabet
+gfsm_at_unop([complement-b],[],[algebra complement],[],[gfsmcomplement -i $][tdata/test.lab])  ##-- given alphabet
 
-##--------------------------------------------------------------
-## Test: binary: concat
-AT_SETUP([concat])
-AT_KEYWORDS([algebra concat])
-opname="concat"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-1.tfst -F ${opfile}-in-1.gfst]])
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-2.tfst -F ${opfile}-in-2.gfst]])
-AT_CHECK([[$progdir/gfsmconcat ${opfile}-in-1.gfst ${opfile}-in-2.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+##-- compose
+gfsm_at_binop([compose],[],[algebra compose],[],[gfsmcompose])
 
-##--------------------------------------------------------------
-## Test: unary: connect
-AT_SETUP([connect])
-AT_KEYWORDS([algebra connect])
-opname="connect"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmconnect ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+##-- concat
+gfsm_at_binop([concat],[],[algebra concat],[],[gfsmconcat])
 
-##--------------------------------------------------------------
-## Test: unary: determinize
-AT_SETUP([determinize])
-AT_KEYWORDS([algebra determinize])
-opname="determinize"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmdeterminize ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+##-- connect
+gfsm_at_unop([connect],[],[algebra connect],[],[gfsmconnect])
 
-##--------------------------------------------------------------
-## Test: binary: difference
+##-- determinize
+gfsm_at_unop([determinize],[],[algebra determinize],[],[gfsmdeterminize])
+
+##-- difference
 ##  + found bug: clone() wasn't setting root_id (assumed to have been done in copy_shallow())
-AT_SETUP([difference])
-AT_KEYWORDS([algebra difference])
-opname="difference"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-1.tfst -F ${opfile}-in-1.gfst]])
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-2.tfst -F ${opfile}-in-2.gfst]])
-AT_CHECK([[$progdir/gfsmdifference ${opfile}-in-1.gfst ${opfile}-in-2.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+gfsm_at_binop([difference],[],[algebra difference],[],[gfsmdifference])
 
-##--------------------------------------------------------------
-## Test: binary: intersect
-AT_SETUP([intersect])
-AT_KEYWORDS([algebra intersect])
-opname="intersect"
-opfile="$opname"
+##-- intersect
+gfsm_at_binop([intersect], [],[algebra intersect],[],[gfsmintersect])
+gfsm_at_binop([intersect2],[],[algebra intersect],[],[gfsmintersect])
 
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-1.tfst -F ${opfile}-in-1.gfst]])
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-2.tfst -F ${opfile}-in-2.gfst]])
-AT_CHECK([[$progdir/gfsmintersect ${opfile}-in-1.gfst ${opfile}-in-2.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
+##-- invert
+gfsm_at_unop([invert],[],[algebra invert],[],[gfsminvert])
 
-opfile="intersect2" ##-- intersection as called by gfsm_automaton_difference()
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-1.tfst -F ${opfile}-in-1.gfst]])
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-2.tfst -F ${opfile}-in-2.gfst]])
-AT_CHECK([[$progdir/gfsmintersect ${opfile}-in-1.gfst ${opfile}-in-2.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
+##-- optional
+gfsm_at_unop([optional],[],[algebra optional],[],[gfsmoptional])
 
-AT_CLEANUP
+##-- project
+gfsm_at_unop([project-lo],[],[algebra project],[],[gfsmproject -1])
+gfsm_at_unop([project-hi],[],[algebra project],[],[gfsmproject -2])
 
-##--------------------------------------------------------------
-## Test: unary: invert
-AT_SETUP([invert])
-AT_KEYWORDS([algebra invert])
-opname="invert"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsminvert ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <---
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+##-- renumber
+gfsm_at_unop([renumber],[],[algebra renumber],[],[gfsmrenumber])
 
-##--------------------------------------------------------------
-## Test: unary: optional
-AT_SETUP([optional])
-AT_KEYWORDS([algebra optional])
-opname="optional"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmoptional ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <---
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+##-- rmepsilon
+gfsm_at_unop([rmepsilon-1],[],[algebra rmepsilon],[],[gfsmrmepsilon -C])
+gfsm_at_unop([rmepsilon-2],[],[algebra rmepsilon],[-s real],[gfsmrmepsilon -C]) ##-- example from Hanneforth & de la Higuera, 2010
+gfsm_at_unop([rmepsilon-3],[],[algebra rmepsilon],[-s real],[gfsmrmepsilon -C]) ##-- example from Mohri, 2009
 
-##--------------------------------------------------------------
-## Test: unary: project.lo
-AT_SETUP([project.lo])
-AT_KEYWORDS([algebra project])
-opname="project-lo"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmproject -1 ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <---
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
-
-##--------------------------------------------------------------
-## Test: unary: project.hi
-AT_SETUP([project.hi])
-AT_KEYWORDS([algebra project])
-opname="project-hi"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmproject -2 ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <---
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
-
-##--------------------------------------------------------------
-## Test: unary: renumber
-AT_SETUP([renumber])
-AT_KEYWORDS([algebra renumber])
-opname="renumber"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmrenumber ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <---
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
-
-##--------------------------------------------------------------
-## Test: unary: rmepsilon
-AT_SETUP([rmepsilon])
-AT_KEYWORDS([algebra rmepsilon])
-opname="rmepsilon"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in.tfst -F ${opfile}-in.gfst]])
-AT_CHECK([[$progdir/gfsmrmepsilon ${opfile}-in.gfst -F ${opfile}-got.gfst]]) ## <---
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
-
-##--------------------------------------------------------------
-## Test: binary: union
-AT_SETUP([union])
-AT_KEYWORDS([algebra union])
-opname="union"
-opfile="$opname"
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-1.tfst -F ${opfile}-in-1.gfst]])
-AT_CHECK([[$progdir/gfsmcompile $tdata/${opfile}-in-2.tfst -F ${opfile}-in-2.gfst]])
-AT_CHECK([[$progdir/gfsmunion ${opfile}-in-1.gfst ${opfile}-in-2.gfst -F ${opfile}-got.gfst]]) ## <----
-rm -f expout; ln $tdata/${opfile}-want.tfst expout
-AT_CHECK([[$progdir/gfsmprint ${opfile}-got.gfst]],0,expout)
-AT_CLEANUP
+##-- union
+gfsm_at_binop([union],[],[algebra union],[],[gfsmunion])

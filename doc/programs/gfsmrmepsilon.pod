@@ -18,6 +18,7 @@ gfsmrmepsilon [OPTIONS] BINFILE
     -h       --help            Print help and exit.
     -V       --version         Print version and exit.
     -cFILE   --rcfile=FILE     Read an alternate configuration file.
+    -C       --connect         Connect output automaton?
     -zLEVEL  --compress=LEVEL  Specify compression level of output file.
     -FFILE   --output=FILE     Specifiy output file (default=stdout).
 
@@ -94,6 +95,19 @@ Read an alternate configuration file.
 Default: 'NULL'
 
 See also: L<CONFIGURATION FILES>.
+
+
+
+
+=item C<--connect> , C<-C>
+
+Connect output automaton?
+
+Default: '0'
+
+
+If specified, output automaton will be connected.
+
 
 
 

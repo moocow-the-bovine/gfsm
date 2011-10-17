@@ -33,6 +33,12 @@ If unspecified, standard input will be read
 #-----------------------------------------------------------------------------
 #group "Basic Options"
 
+flag "connect" C "Connect output automaton?" \
+  default="0" \
+  details="
+If specified, output automaton will be connected.
+"
+
 int "compress" z "Specify compression level of output file." \
     arg="LEVEL" \
     default="-1" \

@@ -19,11 +19,13 @@ extern "C" {
  */
 
 struct gengetopt_args_info {
+  int connect_flag;	 /* Connect output automaton? (default=0). */
   int compress_arg;	 /* Specify compression level of output file. (default=-1). */
   char * output_arg;	 /* Specifiy output file (default=stdout). (default=-). */
 
   int help_given;	 /* Whether help was given */
   int version_given;	 /* Whether version was given */
+  int connect_given;	 /* Whether connect was given */
   int compress_given;	 /* Whether compress was given */
   int output_given;	 /* Whether output was given */
   

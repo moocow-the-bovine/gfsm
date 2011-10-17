@@ -1,0 +1,11 @@
+0	1	a	b	.1
+1	2	<eps>	<eps>	.2
+1	4	b	a	.2
+2	0	b	a	.1
+2	1	a	b	.4
+2	3	<eps>	<eps>	.5
+2	4	<eps>	<eps>	.25
+2	4	a	b	.4
+3	0	<eps>	<eps>	.4
+3	4	<eps>	<eps>	1.
+4	.2
