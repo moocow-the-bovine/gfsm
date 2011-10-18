@@ -619,6 +619,7 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsminvert.gog \
 	gfsmlabels.gog \
 	gfsmlookup.gog \
+	gfsmminimize.gog \
 	gfsmoptional.gog \
 	gfsmprint.gog \
 	gfsmproduct.gog \

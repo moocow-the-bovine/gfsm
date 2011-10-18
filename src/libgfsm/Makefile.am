@@ -71,6 +71,7 @@ libgfsm_la_SOURCES = \
 	gfsmDeterminize.c \
 	gfsmDifference.c \
 	gfsmIntersect.c \
+	gfsmMinimize.c \
 	gfsmProject.c \
 	gfsmProduct.c \
 	gfsmReplace.c \

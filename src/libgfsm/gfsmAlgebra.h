@@ -370,6 +370,31 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair  sp,
 					    gfsmComposeFlags   flags);
 //@}
 
+//------------------------------
+///\name gfsmMinimize.c: Minimization
+//@{
+
+/** Minimize an automaton, treating transducers as pair-acceptors.
+ *  Simple implementation of Brzozowski (1963) algorithm.
+ *  \note pseudo-destructive on \a fsm
+ *
+ *  \param fsm Automaton to minimize.
+ *  \returns minimized \a fsm
+ */
+gfsmAutomaton *gfsm_automaton_minimize(gfsmAutomaton *fsm);
+
+/** Quasi-minimization using Brzozowski (1963) algorithm,
+ *  with optional epsilon-removal. 
+ *  \note pseudo-destructive on \a fsm
+ *
+ *  \param fsm Automaton to minimize.
+ *  \param rmeps Whether to include epsilon-removal (true minimization) or not (quasi-minimization)
+ *  \returns (quasi-)minimized \a fsm
+ */
+gfsmAutomaton *gfsm_automaton_minimize_full(gfsmAutomaton *fsm, gboolean rmeps);
+
+//@}
+
 
 //------------------------------
 ///\name gfsmProject.c: Projection & Inversion
@@ -531,7 +556,6 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
 //@}
 
 /** \file gfsmAlgebra.h
- *  \todo improve rmepsilon, determinize
  *  \todo bestpath() ?
  *  \todo encode() ?
  *  \todo equiv() ?

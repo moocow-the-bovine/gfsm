@@ -37,6 +37,7 @@ bin_PROGRAMS = \
 	gfsminvert \
 	gfsmlabels \
 	gfsmlookup \
+	gfsmminimize \
 	gfsmoptional \
 	gfsmprint \
 	gfsmproduct \
@@ -364,6 +365,18 @@ gfsmlookup_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmlookup_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmlookup.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmminimize_SOURCES = \
+	gfsmminimize_main.c \
+	gfsmminimize_cmdparser.c gfsmminimize_cmdparser.h
+
+gfsmminimize_main.o: gfsmminimize_cmdparser.h
+
+gfsmminimize_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmminimize_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmminimize.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmoptional_SOURCES = \
