@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2007 Bryan Jurish.
+ * Copyright (c) 2005-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 					  gfsmStateIdVector *statemap)
 {
   GSList           *stack = NULL;
-  gfsmLookupConfig *cfg   = (gfsmLookupConfig*)g_new(gfsmLookupConfig,1);
+  gfsmLookupConfig *cfg   = (gfsmLookupConfig*)gfsm_slice_new(gfsmLookupConfig);
   gfsmLookupConfig *cfg_new;
   const gfsmState  *qt;
   gfsmState        *qr;
@@ -102,7 +102,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 
 	//-- epsilon arcs
 	if (arc->lower == gfsmEpsilon) {
-	  cfg_new = (gfsmLookupConfig*)g_new(gfsmLookupConfig,1);
+	  cfg_new = (gfsmLookupConfig*)gfsm_slice_new(gfsmLookupConfig);
 	  cfg_new->qt = arc->target;
 	  cfg_new->qr = gfsm_automaton_add_state(result);
 	  cfg_new->i  = cfg->i;
@@ -111,7 +111,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 	}
 	//-- input-matching arcs
 	else if (a != gfsmNoLabel && arc->lower == a) {
-	  cfg_new = (gfsmLookupConfig*)g_new(gfsmLookupConfig,1);
+	  cfg_new = (gfsmLookupConfig*)gfsm_slice_new(gfsmLookupConfig);
 	  cfg_new->qt = arc->target;
 	  cfg_new->qr = gfsm_automaton_add_state(result);
 	  cfg_new->i  = cfg->i+1;
@@ -121,7 +121,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
       }
 
     //-- we're done with this config
-    g_free(cfg);
+    gfsm_slice_free(gfsmLookupConfig,cfg);
   }
 
   //-- set final size of the state-map
@@ -469,7 +469,7 @@ gfsmViterbiNodeValue *gfsm_viterbi_column_map_insert_if_less(gfsmViterbiMap     
     s_val->w = w;
   } else {
     //-- not already present: copy & insert
-    s_val  = g_new(gfsmViterbiNodeValue,1);
+    s_val  = gfsm_slice_new(gfsmViterbiNodeValue);
     s_val->qtrellis = gfsmNoState;
     a_val->pqtrellis = gfsmNoState;
     s_val->w        = w;

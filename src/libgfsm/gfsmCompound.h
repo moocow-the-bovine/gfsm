@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: basic compound types
  *
- * Copyright (c) 2004-2008 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -129,7 +129,8 @@ gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp);
 /** Free a ::gfsmStatePair:
  *  \code void gfsm_statepair_free(gfsmStatePair *sp); \endcode
  */
-#define gfsm_statepair_free g_free
+GFSM_INLINE
+void gfsm_statepair_free(gfsmStatePair *sp);
 
 /** Get a more or less sensible hash value from a state pair */
 guint gfsm_statepair_hash(gfsmStatePair *sp);
@@ -159,7 +160,8 @@ gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp);
 /** Free a ::gfsmComposeState:
  *  \code void gfsm_compose_state_free(gfsmComposeState *csp); \endcode
 */
-#define gfsm_compose_state_free g_free
+GFSM_INLINE
+void gfsm_compose_state_free(gfsmComposeState *csp);
 
 /** Get a (more or less sensible) hash value from a ::gfsmComposeState */
 guint gfsm_compose_state_hash(gfsmComposeState *sp);
@@ -190,13 +192,17 @@ gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp
 /** Free a ::gfsmStateWeightPair 
  *  \code void gfsm_state_weight_pair_free(gfsmStateWeightPair *swp); \endcode
  */
-#define gfsm_state_weight_pair_free g_free
+GFSM_INLINE
+void gfsm_state_weight_pair_free(gfsmStateWeightPair *swp);
 
 /** Get a (more or less sensible) hash value from a ::gfsmStateWeightPair (really just hashes id) */
 guint gfsm_state_weight_pair_hash(gfsmStateWeightPair *sp);
 
 /** Comparison function for ::gfsmStateWeightPair (id << w) */
 gint gfsm_state_weight_pair_compare(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2, gfsmSemiring *sr);
+
+/** State-only comparison function for ::gfsmStateWeightPair (id) */
+gint gfsm_state_weight_pair_compare_q(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2, gpointer data);
 
 /** Equality predicate for ::gfsmStateWeightPair */
 gboolean gfsm_state_weight_pair_equal(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2);

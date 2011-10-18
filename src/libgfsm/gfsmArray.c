@@ -1,0 +1,58 @@
+/*=============================================================================*\
+ * File: gfsmArray.c
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
+ * Description: finite state machine library
+ *
+ * Copyright (c) 2011 Bryan Jurish.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *=============================================================================*/
+
+#include <gfsmArray.h>
+
+/*======================================================================
+ * Methods: GArray
+ */
+gpointer gfsm_array_lower_bound(GArray *array, gconstpointer key, GCompareDataFunc compare_func, gpointer data)
+{
+  guint element_size = g_array_get_element_size(array);
+  gchar *min  = array->data;
+  gchar *max  = array->data + array->len*element_size;
+  while (min && min < max) {
+    gchar   *mid = min + ((max-min)/2)*element_size;
+    gint     cmp = (*compare_func)(mid, key, data);
+    if (cmp < 0) { min=mid+element_size; }
+    else         { max=mid; }
+  }
+  return max==array->data || min >= (array->data + array->len*element_size) ? NULL : min;
+}
+
+/*======================================================================
+ * Methods: GPtrArray
+ */
+gpointer* gfsm_ptr_array_lower_bound(GPtrArray *parray, gconstpointer key, GCompareDataFunc compare_func, gpointer data)
+{
+  gpointer *min = parray->pdata;
+  gpointer *max = parray->pdata + parray->len;
+  while (min && min < max) {
+    gpointer *mid = min + (max-min)/2;
+    gint      cmp = (*compare_func)(*mid, key, data);
+    if (cmp < 0) { min=mid+1; }
+    else         { max=mid; }
+  }
+  return max==parray->pdata || min >= parray->pdata+parray->len ? NULL : min;
+}
+
+

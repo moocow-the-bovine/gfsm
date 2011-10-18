@@ -129,7 +129,7 @@ gfsmSet *gfsm_automaton_paths(gfsmAutomaton *fsm, gfsmSet *paths);
  *
  *  Causes deep recursion for cyclic automata.
  *  Returns a gfsmSet whose elements are (gfsmPath*)s.
- *  allocated with g_new().  It is the caller's responsibility to free the
+ *  allocated with gfsm_slice_new().  It is the caller's responsibility to free the
  *  returned objects.
  *
  *  \param fsm   Acyclic automaton to be serializd
@@ -307,7 +307,7 @@ GSList *gfsm_arcpaths_to_strings(GSList *paths, gfsmArcPathToStringOptions *opts
 /** Extract upper side of all paths from a Viterbi trellis.
  *
  *  Returns a gfsmSet whose elements are (gfsmPath*)s.
- *  allocated with g_new().  It is the caller's responsibility to free the
+ *  allocated with gfsm_slice_new().  It is the caller's responsibility to free the
  *  returned objects.
  *
  *  \returns \a paths if non-NULL, otherwise a new gfsmSet*.
@@ -319,7 +319,7 @@ GSList *gfsm_arcpaths_to_strings(GSList *paths, gfsmArcPathToStringOptions *opts
 /** Extract all paths from a Viterbi trellis.
  *
  *  Returns a gfsmSet whose elements are (gfsmPath*)s.
- *  allocated with g_new().  It is the caller's responsibility to free the
+ *  allocated with gfsm_slice_new().  It is the caller's responsibility to free the
  *  returned objects.
  *
  *  \returns \a paths if non-NULL, otherwise a new gfsmSet*.

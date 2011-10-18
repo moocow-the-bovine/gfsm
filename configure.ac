@@ -352,16 +352,16 @@ dnl ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## glib (pkg-config)
-PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.0.0,
+PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.10,
 	[PC_HAVE_GLIB="yes"],
 	[PC_HAVE_GLIB=""])
 
 if test "$PC_HAVE_GLIB" != "yes" ; then
-    AC_MSG_WARN([glib-2.0 not found via pkg-config])
+    AC_MSG_WARN([glib-2.0 >= v2.10 not found via pkg-config])
     AC_MSG_WARN([- Is the directory containing glib-2.0.pc in your])
     AC_MSG_WARN([  'PKG_CONFIG_PATH' environment variable?])
     AC_MSG_WARN([- I'll assume that you have set the variables CFLAGS, LDFLAGS,])
-    AC_MSG_WARN([   and LIBS for compling and linking with glib-2.0])
+    AC_MSG_WARN([   and LIBS for compling and linking with glib-2.0 >= v2.10])
     ac_cv_enable_glib="no"
 else
     ac_cv_enable_glib="yes"
@@ -372,6 +372,11 @@ if test "$ac_cv_enable_glib" != "no" ; then
   CFLAGS="$CFLAGS $GLIB_CFLAGS"
   LDFLAGS="$LDFLAGS `$PKG_CONFIG --libs-only-L glib-2.0`"
   gfsm_LIBS="$gfsm_LIBS `$PKG_CONFIG --libs-only-l glib-2.0`"
+fi
+
+##-- use deprecated GAllocator funcs?
+if false ; then
+  AC_DEFINE([GFSM_USE_GALLOCATOR],1,[Define this to enable deprecated pre-glib-2.10 GAllocator API])
 fi
 ##
 ## /glib

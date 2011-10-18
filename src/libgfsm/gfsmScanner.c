@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2008 Bryan Jurish.
+ * Copyright (c) 2005-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+#include <gfsmMem.h>
 #include <gfsmScanner.h>
 #include <gfsmUtils.h>
 #include <gfsmCommon.h>
@@ -49,7 +50,7 @@ gfsmScanner *gfsm_scanner_new_full(const char                  *name,
 				   gfsmFlexScannerSetPosFunc    yyset_lineno_func,
 				   gfsmFlexScannerSetExtraFunc  yyset_extra_func)
 {
-  return gfsm_scanner_init_full(g_new0(gfsmScanner,1),
+  return gfsm_scanner_init_full(gfsm_slice_new0(gfsmScanner),
 				name,
 				yyinit_func,
 				yyfree_func,
@@ -111,7 +112,7 @@ void gfsm_scanner_free(gfsmScanner *scanner)
   gfsm_scanner_close(scanner);
   if (scanner->yyfree_func) (*(scanner->yyfree_func))(scanner->yyscanner);
   g_clear_error(&(scanner->err));
-  g_free(scanner);
+  gfsm_slice_free(gfsmScanner,scanner);
 }
 
 

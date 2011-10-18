@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: arcs: inline definitions
  *
- * Copyright (c) 2004-2008 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@
 GFSM_INLINE
 gfsmArc *gfsm_arc_new(void)
 {
-  return g_new0(gfsmArc,1);
+  return gfsm_slice_new0(gfsmArc);
 }
 
 /*--------------------------------------------------------------
@@ -63,7 +63,7 @@ gfsmArc *gfsm_arc_init(gfsmArc *a,
 GFSM_INLINE
 gfsmArc *gfsm_arc_new_full(gfsmStateId src, gfsmStateId dst, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight wt)
 {
-  return gfsm_arc_init(g_new(gfsmArc,1),src,dst,lo,hi,wt);
+  return gfsm_arc_init(gfsm_slice_new(gfsmArc),src,dst,lo,hi,wt);
 }
 
 /*--------------------------------------------------------------
@@ -72,9 +72,7 @@ gfsmArc *gfsm_arc_new_full(gfsmStateId src, gfsmStateId dst, gfsmLabelVal lo, gf
 GFSM_INLINE
 gfsmArc *gfsm_arc_clone(gfsmArc *src)
 {
-  gfsmArc *dst = g_new(gfsmArc,1);
-  *dst = *src;
-  return dst;
+  return gfsm_slice_dup(gfsmArc,src);
 }
 
 /*--------------------------------------------------------------
@@ -82,7 +80,9 @@ gfsmArc *gfsm_arc_clone(gfsmArc *src)
  */
 GFSM_INLINE
 void gfsm_arc_free(gfsmArc *a)
-{ g_free(a); }
+{
+  gfsm_slice_free(gfsmArc,a);
+}
 
 
 /*======================================================================

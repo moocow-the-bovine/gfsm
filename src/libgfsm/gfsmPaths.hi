@@ -29,7 +29,7 @@
 GFSM_INLINE
 gfsmPath *gfsm_path_new_full(gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w)
 {
-  gfsmPath *p = g_new(gfsmPath,1);
+  gfsmPath *p = gfsm_slice_new(gfsmPath);
   p->lo = lo ? lo : g_ptr_array_new();
   p->hi = hi ? hi : g_ptr_array_new();
   p->w  = w;
@@ -70,7 +70,7 @@ void gfsm_path_free(gfsmPath *p)
   if (!p) return;
   if (p->lo) g_ptr_array_free(p->lo,TRUE);
   if (p->hi) g_ptr_array_free(p->hi,TRUE);
-  g_free(p);
+  gfsm_slice_free(gfsmPath,p);
 }
 
 /*======================================================================

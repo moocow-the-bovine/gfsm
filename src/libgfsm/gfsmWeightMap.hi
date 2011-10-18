@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: weight maps: inlined definitions
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -122,7 +122,7 @@ gfsmWeight gfsm_weightmap_insert_sum(gfsmWeightMap *weightmap, gconstpointer key
   if (sr!=NULL && gfsm_weightmap_lookup(weightmap, key, &w0)) {
     w = gfsm_sr_plus(sr, w0, w);
   }
-  g_tree_insert(weightmap, key, gfsm_weight2ptr(w));
+  g_tree_insert(weightmap, (gpointer)key, gfsm_weight2ptr(w));
   return w;
 }
 
@@ -136,7 +136,7 @@ gfsmWeightHash *gfsm_weighthash_new_full(gfsmDupFunc key_dup_func,
 					 GEqualFunc  key_equal_func,
 					 GDestroyNotify key_destroy_func)
 {
-  gfsmWeightHash *wh = g_new(gfsmWeightHash,1);
+  gfsmWeightHash *wh = gfsm_slice_new(gfsmWeightHash);
   wh->table   = g_hash_table_new_full(key_hash_func, key_equal_func, key_destroy_func, NULL);
   wh->key_dup = key_dup_func;
   return wh;
@@ -155,7 +155,7 @@ GFSM_INLINE
 void gfsm_weighthash_free(gfsmWeightHash *wh)
 {
   g_hash_table_destroy(wh->table);
-  g_free(wh);
+  gfsm_slice_free(gfsmWeightHash,wh);
 }
 
 

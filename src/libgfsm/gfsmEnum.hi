@@ -1,9 +1,9 @@
 /*=============================================================================*\
- * File: gfsmEnum.def
+ * File: gfsmEnum.hi
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: enumerations: inline definitions
  *
- * Copyright (c) 2004 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ gfsmEnum *gfsm_enum_new_full(gfsmDupFunc key_dup_func,
 			     GEqualFunc  key_equal_func,
 			     GDestroyNotify key_destroy_func)
 {
-  gfsmEnum *en = g_new(gfsmEnum,1);
+  gfsmEnum *en = gfsm_slice_new(gfsmEnum);
   en->table    = g_hash_table_new_full(key_hash_func,
 				       key_equal_func,
 				       key_destroy_func,
@@ -63,7 +63,7 @@ GFSM_INLINE
 void gfsm_enum_free(gfsmEnum *en)
 {
   g_hash_table_destroy(en->table);
-  g_free(en);
+  gfsm_slice_free(gfsmEnum,en);
 }
 
 

@@ -68,7 +68,7 @@ gfsmLabelVector *gfsm_label_vector_reverse(gfsmLabelVector *v)
 //--------------------------------------------------------------
 gfsmPath *gfsm_path_new_copy(gfsmPath *p1)
 {
-  gfsmPath *p = g_new(gfsmPath,1);
+  gfsmPath *p = gfsm_slice_new(gfsmPath);
 
   p->lo = g_ptr_array_sized_new(p1->lo->len);
   p->hi = g_ptr_array_sized_new(p1->hi->len);
@@ -84,7 +84,7 @@ gfsmPath *gfsm_path_new_copy(gfsmPath *p1)
 //--------------------------------------------------------------
 gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w, gfsmSemiring *sr)
 {
-  gfsmPath *p = g_new(gfsmPath,1);
+  gfsmPath *p = gfsm_slice_new(gfsmPath);
 
   if (lo != gfsmEpsilon) {
     p->lo = g_ptr_array_sized_new(p1->lo->len+1);
@@ -112,7 +112,7 @@ gfsmPath *gfsm_path_new_append(gfsmPath *p1, gfsmLabelVal lo, gfsmLabelVal hi, g
 //--------------------------------------------------------------
 gfsmPath *gfsm_path_new_times_w(gfsmPath *p1, gfsmWeight w, gfsmSemiring *sr)
 {
-  gfsmPath *p = g_new(gfsmPath,1);
+  gfsmPath *p = gfsm_slice_new(gfsmPath);
 
   p->lo = g_ptr_array_sized_new(p1->lo->len);
   gfsm_label_vector_copy(p->lo, p1->lo);

@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: I/O
  *
- * Copyright (c) 2006-2008 Bryan Jurish.
+ * Copyright (c) 2006-2011 Bryan Jurish.
  *
  * For information on usage and redistribution, and for a DISCLAIMER
  * OF ALL WARRANTIES, see the file "COPYING" in this distribution.
@@ -29,6 +29,7 @@
 #include <gfsmIO.h>
 //#include <gfsmCompat.h>
 #include <gfsmUtils.h>
+#include <gfsmMem.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -85,7 +86,7 @@ gboolean gfsmio_write_gstring(gfsmPosGString *pgs, const void *buf, size_t nbyte
 /*--------------------------------------------------------------*/
 gfsmIOHandle *gfsmio_handle_new(gfsmIOHandleType typ, void *handle_data)
 {
-  gfsmIOHandle *ioh = g_new0(gfsmIOHandle,1);
+  gfsmIOHandle *ioh = gfsm_slice_new0(gfsmIOHandle);
   ioh->iotype = typ;
   ioh->handle = handle_data;
 
@@ -148,7 +149,7 @@ gfsmIOHandle *gfsmio_handle_new(gfsmIOHandleType typ, void *handle_data)
 /*--------------------------------------------------------------*/
 void gfsmio_handle_free(gfsmIOHandle *ioh)
 {
-  g_free(ioh);
+  gfsm_slice_free(gfsmIOHandle,ioh);
 }
 
 /*--------------------------------------------------------------*/

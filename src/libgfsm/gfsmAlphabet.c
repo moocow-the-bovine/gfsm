@@ -56,21 +56,21 @@ gfsmAlphabet *gfsm_alphabet_new(gfsmAType type)
   gfsmAlphabet *a=NULL;
   switch (type) {
   case gfsmATIdentity:
-    a = (gfsmAlphabet*)g_new0(gfsmIdentityAlphabet,1);
+    a = (gfsmAlphabet*)gfsm_slice_new0(gfsmIdentityAlphabet);
     break;
   case gfsmATPointer:
-    a = (gfsmAlphabet*)g_new0(gfsmPointerAlphabet,1);
+    a = (gfsmAlphabet*)gfsm_slice_new0(gfsmPointerAlphabet);
     break;
   case gfsmATUser:
-    a = (gfsmAlphabet*)g_new0(gfsmUserAlphabet,1);
+    a = (gfsmAlphabet*)gfsm_slice_new0(gfsmUserAlphabet);
     break;
   case gfsmATString:
-    a = (gfsmAlphabet*)g_new0(gfsmStringAlphabet,1);
+    a = (gfsmAlphabet*)gfsm_slice_new0(gfsmStringAlphabet);
     break;
   case gfsmATUnknown:
   case gfsmATRange:
   default:
-    a = (gfsmAlphabet*)g_new0(gfsmRangeAlphabet,1);
+    a = (gfsmAlphabet*)gfsm_slice_new0(gfsmRangeAlphabet);
     break;
   }
   a->type = type;
@@ -84,7 +84,7 @@ gfsmAlphabet *gfsm_alphabet_new(gfsmAType type)
  */
 /*gfsmAlphabet *gfsm_string_alphabet_new(void)
 {
-  return gfsm_string_alphabet_init(g_new(gfsmStringAlphabet,1));
+  return gfsm_string_alphabet_init(gfsm_slice_new(gfsmStringAlphabet));
   }
 */
 
@@ -239,21 +239,21 @@ void gfsm_alphabet_free(gfsmAlphabet *a)
   switch (a->type) {
   case gfsmATIdentity:
     gfsm_set_free(((gfsmIdentityAlphabet*)a)->labels);
-    g_free((gfsmIdentityAlphabet*)a);
+    gfsm_slice_free(gfsmIdentityAlphabet,a);
     return;
   case gfsmATUser:
   case gfsmATPointer:
   case gfsmATString:
     g_ptr_array_free(((gfsmPointerAlphabet*)a)->labels2keys,TRUE);
     g_hash_table_destroy(((gfsmPointerAlphabet*)a)->keys2labels);
-    g_free((gfsmPointerAlphabet*)a);
+    gfsm_slice_free(gfsmPointerAlphabet,a);
     return;
   case gfsmATUnknown:
   case gfsmATRange:
   default:
     break;
   }
-  g_free(a);
+  gfsm_slice_free(gfsmAlphabet,a);
 };
 
 /*======================================================================

@@ -48,7 +48,7 @@ gfsmArcList *gfsm_arclist_new_full(gfsmStateId  src,
 				   gfsmWeight   wt,
 				   gfsmArcList  *nxt)
 {
-  gfsmArcList *nod = g_new(gfsmArcList,1);
+  gfsmArcList *nod = gfsm_slice_new(gfsmArcList);
   nod->arc.source = src;
   nod->arc.target = dst;
   nod->arc.lower  = lo;
@@ -65,7 +65,7 @@ GFSM_INLINE
 gfsmArcList *gfsm_arclist_delete_node(gfsmArcList *al, gfsmArcList *nod)
 {
   al = gfsm_arclist_remove_node(al,nod);
-  g_free(nod);
+  gfsm_slice_free(gfsmArcList,nod);
   return al;
 }
 

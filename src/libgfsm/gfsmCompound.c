@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: compound states
  *
- * Copyright (c) 2004-2008 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -134,6 +134,14 @@ gint gfsm_state_weight_pair_compare(const gfsmStateWeightPair *swp1, const gfsmS
   return (swp1->id < swp2->id ? -1
 	  : (swp1->id > swp2->id ? 1
 	     : gfsm_sr_compare(sr,swp1->w,swp2->w)));
+}
+
+//--------------------------------------------------------------
+gint gfsm_state_weight_pair_compare_q(const gfsmStateWeightPair *swp1, const gfsmStateWeightPair *swp2, gpointer data)
+{
+  return (swp1->id < swp2->id ? -1
+	  : (swp1->id > swp2->id ? 1
+	     : 0));
 }
 
 //--------------------------------------------------------------

@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: automata: inline definitions
  *
- * Copyright (c) 2004-2008 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@
 GFSM_INLINE
 gfsmAutomaton *gfsm_automaton_new_full(gfsmAutomatonFlags flags, gfsmSRType srtype, gfsmStateId size)
 {
-  gfsmAutomaton *fsm = (gfsmAutomaton*)g_new0(gfsmAutomaton,1);
+  gfsmAutomaton *fsm = (gfsmAutomaton*)gfsm_slice_new0(gfsmAutomaton);
   fsm->flags         = flags;
   fsm->sr            = gfsm_semiring_new(srtype);
   fsm->states        = g_array_sized_new(FALSE, TRUE, sizeof(gfsmState), size);
@@ -106,11 +106,10 @@ GFSM_INLINE
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   if (fsm1 != fsm2) {
-    gfsmAutomaton *tmp = g_new0(gfsmAutomaton,1);
-    *tmp = *fsm2;
+    gfsmAutomaton *tmp = gfsm_slice_dup(gfsmAutomaton,fsm2);
     *fsm2 = *fsm1;
     *fsm1 = *tmp;
-    g_free(tmp);
+    gfsm_slice_free(gfsmAutomaton,tmp);
   }
 }
 
@@ -130,7 +129,7 @@ void gfsm_automaton_free(gfsmAutomaton *fsm)
   if (fsm->sr)     gfsm_semiring_free(fsm->sr);
   if (fsm->states) g_array_free(fsm->states,TRUE);
   if (fsm->finals) gfsm_weightmap_free(fsm->finals);
-  g_free(fsm);
+  gfsm_slice_free(gfsmAutomaton,fsm);
 }
 
 /*======================================================================

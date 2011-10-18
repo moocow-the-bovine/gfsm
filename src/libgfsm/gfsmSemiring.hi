@@ -21,6 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *=============================================================================*/
 
+#include <gfsmMem.h>
+
 #include <float.h>
 #include <math.h>
 #include <string.h>
@@ -102,7 +104,7 @@ void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type)
 GFSM_INLINE
 gfsmSemiring *gfsm_semiring_new(gfsmSRType type)
 {
-  gfsmSemiring *sr = (gfsmSemiring*)g_new(gfsmSemiring,1);
+  gfsmSemiring *sr = gfsm_slice_new(gfsmSemiring);
   gfsm_semiring_init(sr,type);
   return sr;
 }
@@ -116,7 +118,7 @@ gfsmUserSemiring *gfsm_user_semiring_new(gfsmSRBinaryPredicate equal_func,
 					 gfsmSRBinaryOp        plus_func,
 					 gfsmSRBinaryOp        times_func)
 {
-  gfsmUserSemiring *sr = g_new(gfsmUserSemiring, 1);
+  gfsmUserSemiring *sr = gfsm_slice_new(gfsmUserSemiring);
   gfsm_semiring_init((gfsmSemiring*)sr,gfsmSRTUser);
   sr->equal_func = equal_func;
   sr->less_func = less_func;
@@ -150,8 +152,8 @@ gfsmSemiring *gfsm_semiring_copy(gfsmSemiring *sr)
 GFSM_INLINE
 void gfsm_semiring_free(gfsmSemiring *sr)
 {
-  if (sr->type==gfsmSRTUser) g_free((gfsmUserSemiring*)sr);
-  else g_free(sr);
+  if (sr->type==gfsmSRTUser) gfsm_slice_free(gfsmUserSemiring,(gfsmUserSemiring*)sr);
+  else gfsm_slice_free(gfsmSemiring,sr);
 }
 
 

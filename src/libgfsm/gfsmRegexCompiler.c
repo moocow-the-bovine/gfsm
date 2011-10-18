@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
- * Copyright (c) 2005 Bryan Jurish.
+ * Copyright (c) 2005-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@ gfsmRegexCompiler *gfsm_regex_compiler_new_full(const gchar  *name,
 						gfsmSRType    srtype,
 						gboolean      emit_warnings)
 {
-  gfsmRegexCompiler *rec = g_new0(gfsmRegexCompiler,1);
+  gfsmRegexCompiler *rec = gfsm_slice_new0(gfsmRegexCompiler);
   char *myname = (name ? ((char*)name) : "gfsmRegexCompiler");
   gfsm_scanner_init(&(rec->scanner), myname, gfsmRegex_yy);
   rec->fsm   = NULL;

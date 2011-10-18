@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: indexed automaton: inline definitions
  *
- * Copyright (c) 2007-2008 Bryan Jurish.
+ * Copyright (c) 2007-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ gfsmIndexedAutomaton *gfsm_indexed_automaton_new_full(gfsmAutomatonFlags flags,
 						      guint              n_arcs)
 						      
 {
-  gfsmIndexedAutomaton *xfsm = g_new0(gfsmIndexedAutomaton,1);
+  gfsmIndexedAutomaton *xfsm = gfsm_slice_new0(gfsmIndexedAutomaton);
 #if 0
   gfsmStateId qid;
   gfsmWeight  srzero;
@@ -98,7 +98,7 @@ void gfsm_indexed_automaton_free(gfsmIndexedAutomaton *xfsm)
   //if (xfsm->state_is_valid)     gfsm_bitvector_free(xfsm->state_is_valid);
   if (xfsm->state_final_weight) gfsm_weight_vector_free(xfsm->state_final_weight);
   if (xfsm->arcs)               gfsm_arc_table_index_free(xfsm->arcs);
-  g_free(xfsm);
+  gfsm_slice_free(gfsmIndexedAutomaton,xfsm);
 }
 
 /*======================================================================

@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: memory utilities: inline definitions
  *
- * Copyright (c) 2004-2008 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,15 +23,22 @@
 
 #include <string.h>
 
+//======================================================================
+// Allocators
+#ifdef GFSM_USE_GALLOCATOR
+
 /*----------------------------------------------------------------------
  * init_allocators()
  */
 GFSM_INLINE
 void gfsm_allocators_init(void)
 {
+#ifdef GFSM_USE_GALLOCATOR
   if (!gfsm_node_allocator) gfsm_node_allocator = g_allocator_new("gfsm_node_allocator",128);
   if (!gfsm_slist_allocator) gfsm_slist_allocator = g_allocator_new("gfsm_slist_allocator",128);
   if (!gfsm_list_allocator) gfsm_list_allocator  = g_allocator_new("gfsm_list_allocator",128);
+#endif
+  return;
 }
 
 /*----------------------------------------------------------------------
@@ -40,6 +47,7 @@ void gfsm_allocators_init(void)
 GFSM_INLINE
 void gfsm_allocators_enable(void)
 {
+#ifdef GFSM_USE_GALLOCATOR
   if (!gfsm_allocators_enabled) {
     gfsm_allocators_init();
     g_node_push_allocator(gfsm_node_allocator);
@@ -47,6 +55,8 @@ void gfsm_allocators_enable(void)
     g_list_push_allocator(gfsm_list_allocator);
     gfsm_allocators_enabled = TRUE;
   }
+#endif
+  return;
 }
 
 /*----------------------------------------------------------------------
@@ -55,12 +65,15 @@ void gfsm_allocators_enable(void)
 GFSM_INLINE
 void gfsm_allocators_disable(void)
 {
+#ifdef GFSM_USE_GALLOCATOR
   if (gfsm_allocators_enabled) {
     g_node_pop_allocator();
     g_slist_pop_allocator();
     g_list_pop_allocator();
     gfsm_allocators_enabled = FALSE;
   }
+#endif
+  return;
 }
 
 
@@ -70,6 +83,7 @@ void gfsm_allocators_disable(void)
 GFSM_INLINE
 void gfsm_allocators_free(void)
 {
+#ifdef GFSM_USE_GALLOCATOR
   gfsm_allocators_disable();
 
   if (gfsm_node_allocator) g_allocator_free(gfsm_node_allocator);
@@ -79,8 +93,51 @@ void gfsm_allocators_free(void)
   gfsm_node_allocator=NULL;
   gfsm_slist_allocator=NULL;
   gfsm_list_allocator=NULL;
+#endif
+  return;
+}
+#endif /* GFSM_USE_GALLOCATOR */
+
+//======================================================================
+// Slice Allocators
+
+//----------------------------------------------------------------------
+GFSM_INLINE
+gpointer gfsm_slice_alloc(guint block_size)
+{
+  return g_slice_alloc(block_size);
 }
 
+//----------------------------------------------------------------------
+GFSM_INLINE
+gpointer gfsm_slice_alloc0(guint block_size)
+{
+  return g_slice_alloc0(block_size);
+}
+
+//----------------------------------------------------------------------
+GFSM_INLINE
+gpointer gfsm_slice_copy(guint block_size, gconstpointer src)
+{
+  return g_slice_copy(block_size,src);
+}
+
+//----------------------------------------------------------------------
+GFSM_INLINE
+void gfsm_slice_free1(gsize block_size, gpointer mem_block)
+{
+  return g_slice_free1(block_size,mem_block);
+}
+
+//======================================================================
+// Generic Allocation
+
+//----------------------------------------------------------------------
+GFSM_INLINE
+void gfsm_free(gpointer mem)
+{
+  g_free(mem);
+}
 
 /*----------------------------------------------------------------------
  * string_dup_n()

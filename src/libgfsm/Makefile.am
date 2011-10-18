@@ -38,6 +38,7 @@ lib_LTLIBRARIES = libgfsm.la
 #${lib_i}_la_SOURCES =
 libgfsm_la_SOURCES = \
 	config.h \
+	gfsmArray.c \
 	gfsmCommon.c \
 	gfsmCompound.c \
 	gfsmPQueue.c \
@@ -114,6 +115,7 @@ sources_argh = \
 ## --- installable headers: @includedir@/@pkgname@
 #pkginclude_HEADERS = ${hfile_1} ... ${hfile_N}
 pkginclude_HEADERS = \
+	gfsmArray.h \
 	gfsmPQueue.h \
 	gfsmAssert.h \
 	gfsmConfig.h \

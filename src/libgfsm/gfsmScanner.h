@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2007 Bryan Jurish.
+ * Copyright (c) 2005-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -154,7 +154,7 @@ extern const char *gfsmScannerDefaultFilename;
  *  Scanner is initialized for a reentrant flex scanner with prefix PREFIX.
  */
 #define gfsm_scanner_new(name,PREFIX) \
-  gfsm_scanner_init( g_new0(gfsmScanner,1), (name), PREFIX )
+  gfsm_scanner_init( gfsm_slice_new0(gfsmScanner), (name), PREFIX )
 
 
 /** Create, initialize, and return a new gfsmFlexScanner \a scanner.

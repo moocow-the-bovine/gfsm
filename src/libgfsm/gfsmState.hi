@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: states: inline definitions
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@
 GFSM_INLINE
 gfsmState *gfsm_state_new_full(gboolean is_final, gfsmArcList *arcs)
 {
-  gfsmState *s = g_new(gfsmState,1);
+  gfsmState *s = gfsm_slice_new(gfsmState);
   s->is_valid = TRUE;
   s->is_final = is_final;
   s->arcs     = arcs;
@@ -84,7 +84,7 @@ GFSM_INLINE
 void gfsm_state_free(gfsmState *s, gboolean free_arcs)
 {
   if (free_arcs && s->arcs) gfsm_arclist_free(s->arcs);
-  g_free(s);
+  gfsm_slice_free(gfsmState,s);
 }
 
 /*--------------------------------------------------------------
@@ -105,7 +105,7 @@ void gfsm_state_close(gfsmState *s)
     s->arcs = NULL;
   }
 #endif
-  if (s->is_temp) { g_free(s); }
+  if (s->is_temp) { gfsm_slice_free(gfsmState,s); }
 }
 
 /*======================================================================

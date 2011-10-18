@@ -38,6 +38,7 @@ extern "C" {
 */
 
 #include <glib.h>
+#include <gfsmArray.h>
 #include <gfsmAssert.h>
 #include <gfsmCommon.h>
 #include <gfsmCompound.h>
@@ -55,7 +56,7 @@ extern "C" {
 #include <gfsmAutomaton.h>
 #include <gfsmArcIter.h>
 #include <gfsmArcIndex.h>
-#include <gfsmWStateSet.h>
+//#include <gfsmWStateSet.h>
 #include <gfsmIO.h>
 #include <gfsmAutomatonIO.h>
 #include <gfsmDraw.h>

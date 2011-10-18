@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: memory utilities
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,9 @@
 /*----------------------------------------------------------------------
  * Allocators
  */
+#ifdef GFSM_USE_GALLOCATOR
 GAllocator *gfsm_node_allocator  = NULL;
 GAllocator *gfsm_slist_allocator = NULL;
 GAllocator *gfsm_list_allocator  = NULL;
 gboolean    gfsm_allocators_enabled = FALSE;
+#endif /* GFSM_USE_GALLOCATOR */

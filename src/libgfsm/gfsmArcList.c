@@ -104,7 +104,7 @@ void gfsm_arclist_free(gfsmArcList *al)
 {
   while (al != NULL) {
     gfsmArcList *nxt = al->next;
-    g_free(al);
+    gfsm_slice_free(gfsmArcList,al);
     al = nxt;
   }
 }
