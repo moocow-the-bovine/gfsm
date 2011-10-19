@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: arc indices
  *
- * Copyright (c) 2006-2007 Bryan Jurish.
+ * Copyright (c) 2006-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -186,6 +186,31 @@ gfsmArcTable *gfsm_automaton_to_arc_table(gfsmAutomaton *fsm, gfsmArcTable *tab)
 }
 
 /*--------------------------------------------------------------
+ * arc_table_append_arclist()
+ */
+gfsmArcTable *gfsm_arc_table_append_arclist(gfsmArcTable *tab, gfsmArcList *arcs)
+{
+  guint   n_arcs = gfsm_arclist_length(arcs);
+  gfsmArc  *arcp;
+
+  //-- maybe allocate
+  if (!tab) {
+    tab = gfsm_arc_table_sized_new(n_arcs);
+    tab->len = 0;
+  } else {
+    gfsm_arc_table_resize(tab, tab->len + n_arcs);
+  }
+
+  //-- append arcs by value
+  for (arcp=((gfsmArc*)tab->data)+tab->len-1; arcs != NULL; arcs = arcs->next) {
+    *(arcp++) = arcs->arc;
+  }
+
+  //-- return
+  return tab;
+}
+
+/*--------------------------------------------------------------
  * arc_table_write_bin_handle()
  */
 gboolean gfsm_arc_table_write_bin_handle(gfsmArcTable *tab, gfsmIOHandle *ioh, gfsmError **errp)
@@ -232,6 +257,34 @@ gboolean gfsm_arc_table_read_bin_handle(gfsmArcTable *tab, gfsmIOHandle *ioh, gf
   return TRUE;
 }
 
+
+/*======================================================================
+ * gfsmArcPtrTable
+ */
+
+//--------------------------------------------------------------
+gfsmArcPtrTable *gfsm_arc_ptr_table_append_arclist(gfsmArcPtrTable *tab, gfsmArcList *arcs)
+{
+  guint    start = 0;
+  guint   n_arcs = gfsm_arclist_length(arcs);
+  gfsmArc **arcpp;
+
+  //-- maybe allocate
+  if (!tab) {
+    tab = gfsm_arc_ptr_table_sized_new(n_arcs);
+  } else {
+    start = tab->len;
+    gfsm_arc_ptr_table_resize(tab, tab->len + n_arcs);
+  }
+
+  //-- append arcs by value
+  for (arcpp=(gfsmArc**)tab->pdata+; arcs != NULL; arcs=arcs->next, arcpp++) {
+    *arcpp = &(arcs->arc);
+  }
+
+  //-- return
+  return tab;
+}
 
 
 /*======================================================================

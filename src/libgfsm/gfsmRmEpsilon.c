@@ -24,6 +24,7 @@
 #include <gfsmAlgebra.h>
 #include <gfsmAssert.h>
 #include <gfsmArcIter.h>
+#include <gfsmArcIndex.h>
 #include <gfsmEnum.h>
 #include <gfsmUtils.h>
 #include <gfsmCompound.h>
@@ -49,9 +50,33 @@ int gfsm_rmeps_arc_compare(const gfsmArc *a, const gfsmArc *b, gpointer user_dat
       || (p==q && p1!=q1)         //-- hh2010 eq (5)
       )
     return -1;
+  else if (
+	   (   p1==q1 && p==q && q1>q) //-- hh2010 eq (3)
+	   || (p1!=q1 && p!=q && q1>q) //-- hh2010 eq (4)
+	   || (p1==q1 && p!=q)         //-- hh2010 eq (5)
+	   )
+    return 1;
+#if 0
+  return (p>p1 ? -1
+	  : (p==p1
+	     ? (q>q1 ? -1
+		: (q==q1 ? 0
+		   : 1))
+	     : 1));
+#else
   return 0;
+#endif
 }
 
+//#define RME_DEBUG 1
+
+#ifdef RME_DEBUG
+# define _debug(code) code
+# define _nodebug(code)
+#else
+# define _debug(code)
+# define _nodebug(code)
+#endif
 
 //--------------------------------------------------------------
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
@@ -59,23 +84,37 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
   //-- variables
   gfsmPriorityQueue *pqueue;
   gfsmStateId qid;
-  gfsmArcIter ai, aai;
+  gfsmArcIter ai;
   gfsmWeight westar, fw_p=0, fw_q=0;
+  gfsmArcTable *patab = gfsm_arc_table_sized_new(32);
+  gfsmArc *a, *aa;
 
-  //-- setup priority queue (hh2010:1-2)
-  pqueue = gfsm_pqueue_new((GCompareDataFunc)gfsm_rmeps_arc_compare, NULL);
-  for (qid=0; qid < fsm->states->len; qid++) {
-    for (gfsm_arciter_open(&ai, fsm, qid), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon);
-	 gfsm_arciter_ok(&ai);
-	 gfsm_arciter_next(&ai), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon))
-      {
-	gfsmArc *a = gfsm_arciter_arc(&ai);
-	gfsm_pqueue_push(pqueue, a);
-	//fprintf(stderr, "rmeps[init]: push(%d --%d:%d--> %d / %g)\n", a->source, a->lower,a->upper,a->target,a->weight); //--DEBUG
-      }
+  //-- pre-sort arcs
+  if (gfsm_acmask_nth(fsm->flags.sort_mode,0) != gfsmACLower || gfsm_acmask_nth(fsm->flags.sort_mode,1) != gfsmACUpper) {
+    _debug(fprintf(stderr, "rmeps[sort]\n"));
+    gfsm_automaton_arcsort(fsm, gfsmASMLower);
   }
 
+  //-- setup priority queue (hh2010:1-2)
+  _debug(fprintf(stderr, "rmeps[init]\n"));
+  pqueue = gfsm_pqueue_new((GCompareDataFunc)gfsm_rmeps_arc_compare, NULL);
+  for (qid=0; qid < fsm->states->len; qid++) {
+    for (gfsm_arciter_open(&ai, fsm, qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
+      a = gfsm_arciter_arc(&ai);
+      if (a->lower != gfsmEpsilon || a->upper != gfsmEpsilon) {
+	_debug(fprintf(stderr, "rmeps[init]: break: (%u --%u:%u--> %u / %g)\n", a->source, a->lower,a->upper,a->target,a->weight));
+	break;
+      }
+      gfsm_pqueue_push(pqueue, a);
+      _debug(fprintf(stderr, "rmeps[init]: push(%u --%u:%u--> %u / %g)\n", a->source, a->lower,a->upper,a->target,a->weight));
+    }
+  }
+
+  //-- disable "smart" arc-insertion
+  fsm->flags.sort_mode = gfsmASMNone;
+
   //-- queue-processing loop (hh2010:3-24)
+  _debug(fprintf(stderr, "rmeps[main]\n"));
   while (!gfsm_pqueue_isempty(pqueue)) {
     //-- dequeue next arc to process, and remove it from the fsm (hh2010:4-5)
     gfsmArc    *pwq = (gfsmArc*)gfsm_pqueue_pop(pqueue);
@@ -83,15 +122,18 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
     gfsmState *qptr = gfsm_automaton_open_state(fsm,pwq->target);
     gfsm_automaton_remove_arc_ptr(fsm,pwq);
 
+    _debug(fprintf(stderr,"rms[main]: pop(%u --%u:%u--> %u / %g)\n", pwq->source, pwq->lower, pwq->upper, pwq->target, pwq->weight));
+
     //-- prelim: get final weight for pptr
     if (pptr->is_final)
       gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(pwq->source), &fw_p);
 
     //-- check for eps-loops (hh2010:6-10)
     if (pwq->source==pwq->target) {
+      //_debug(fprintf(stderr,"rms[main]: loop!\n"));
       westar = gfsm_sr_star(fsm->sr, pwq->weight);
       for (gfsm_arciter_open_ptr(&ai, fsm, pptr); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-	gfsmArc *a = gfsm_arciter_arc(&ai);
+	a = gfsm_arciter_arc(&ai);
 	a->weight  = gfsm_sr_times(fsm->sr, westar, a->weight);
       }
       if (pptr->is_final) {
@@ -100,16 +142,21 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
     }
     else {
       //-- no eps-loops (hh2010:12-24)
-      gfsm_arciter_open_ptr(&aai, fsm, pptr); //-- source arc iterator (to find matches)
+
+      //-- : get arcs from eps-reachable state
+      patab->len = 0;
+      gfsm_arc_table_append_arclist(patab, pptr->arcs);
+      gfsm_arc_table_sort_bymask(patab, gfsmASMLower, fsm->sr);
 
       //-- adopt outgoing arcs from eps-reachable state (hh2010:12-18)
       for (gfsm_arciter_open_ptr(&ai, fsm, qptr); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-	gfsmArc *aa, *a = gfsm_arciter_arc(&ai);
+	a = gfsm_arciter_arc(&ai);
+	_debug(fprintf(stderr,"rms[main]: adopt(%u --%u:%u--> %u / %g) + (%u --%u:%u--> %u / %g)\n", \
+		       pwq->source, pwq->lower, pwq->upper, pwq->target, pwq->weight, \
+		       a->source, a->lower, a->upper, a->target, a->weight));
 
 	//-- try to find a matching arc from pwq->source we can modify
-	gfsm_arciter_reset(&aai);
-	gfsm_arciter_seek_all(&aai, a->lower, a->upper, a->target);
-	aa = gfsm_arciter_arc(&aai);
+	aa = gfsm_arc_table_seek_bymask(patab, a, gfsmASMLower, fsm->sr);
 	if (aa != NULL) {
 	  aa->weight = gfsm_sr_plus(fsm->sr, aa->weight, gfsm_sr_times(fsm->sr, pwq->weight, a->weight));
 	}
@@ -120,7 +167,7 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 	  if (paa->lower==gfsmEpsilon && paa->upper==gfsmEpsilon) {
 	    //-- ... and maybe enqueue it (hh2010:17-18)
 	    gfsm_pqueue_push(pqueue, paa);
-	    //fprintf(stderr, "rmeps[main]: push(%d --%d:%d--> %d / %g)\n", paa->source,paa->lower,paa->upper,paa->target,paa->weight); //--DEBUG
+	    _debug(fprintf(stderr, "rmeps[main]: push(%u --%u:%u--> %u / %g)\n", paa->source,paa->lower,paa->upper,paa->target,paa->weight));
 	  }
 	}
       }
@@ -139,7 +186,7 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
     }
 
     //-- local cleanup
-    gfsm_arc_free(pwq);
+    gfsm_arclist_free_1((gfsmArcList*)pwq);
   }
 
   //-- implicit connect (hh2010:25)
@@ -147,6 +194,7 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 
   //-- cleanup & return
   gfsm_pqueue_free(pqueue);
+  gfsm_arc_table_free(patab);
   return fsm;
 }
 

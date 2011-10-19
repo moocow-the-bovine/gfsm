@@ -22,6 +22,7 @@
  *=============================================================================*/
 
 #include <gfsmAssert.h>
+#include <gfsmArray.h>
 
 /*======================================================================
  * ReverseArcIndex
@@ -156,6 +157,26 @@ void gfsm_arc_table_free(gfsmArcTable *tab)
 { g_array_free(tab,TRUE); }
 
 //--------------------------------------------------------------
+// arc_table_append_arciter()
+GFSM_INLINE
+gfsmArcTable* gfsm_arc_table_append_arciter(gfsmArcTable *tab, gfsmArcIter *ai)
+{
+  return gfsm_arc_table_append_arclist(tab, ai->arcs);
+}
+
+//--------------------------------------------------------------
+// arc_table_append_state()
+GFSM_INLINE
+gfsmArcTable* gfsm_arc_table_append_state(gfsmArcTable *tab, gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  gfsmArcIter ai;
+  gfsm_arciter_open(&ai,fsm,qid);
+  tab = gfsm_arc_table_append_arciter(tab, &ai);
+  gfsm_arciter_close(&ai);
+  return tab;
+}
+
+//--------------------------------------------------------------
 // arc_table_sort_with_data()
 GFSM_INLINE
 void gfsm_arc_table_sort_with_data(gfsmArcTable *tab, GCompareDataFunc compare_func, gpointer data)
@@ -168,6 +189,126 @@ void gfsm_arc_table_sort_bymask(gfsmArcTable *tab, gfsmArcCompMask m, gfsmSemiri
 {
   gfsmArcCompData acdata = { m,sr,NULL,NULL };
   gfsm_arc_table_sort_with_data(tab, (GCompareDataFunc)gfsm_arc_compare_bymask, &acdata);
+}
+
+//--------------------------------------------------------------
+// arc_table_seek()
+GFSM_INLINE
+gfsmArc *gfsm_arc_table_seek(gfsmArcTable *tab, const gfsmArc *key, GCompareDataFunc compare_func, gpointer data)
+{
+  return (gfsmArc*)gfsm_array_lower_bound(tab, key, compare_func, data);
+}
+
+//--------------------------------------------------------------
+// arc_table_seek_bymask()
+GFSM_INLINE
+gfsmArc *gfsm_arc_table_seek_bymask(gfsmArcTable *tab, const gfsmArc *key, gfsmArcCompMask m, gfsmSemiring *sr)
+{
+  gfsmArcCompData acdata = { m,sr,NULL,NULL };
+  return gfsm_arc_table_seek(tab, key, (GCompareDataFunc)gfsm_arc_compare_bymask, &acdata);
+}
+
+
+/*======================================================================
+ * gfsmArcPtrTable
+ */
+
+//--------------------------------------------------------------
+// arc_ptr_table_new()
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_new(void)
+{ return g_ptr_array_new(); }
+
+//--------------------------------------------------------------
+// arc_ptr_table_sized_new()
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_sized_new(guint n_arcs)
+{ return g_ptr_array_sized_new(n_arcs); }
+
+//--------------------------------------------------------------
+// arc_ptr_table_resize()
+GFSM_INLINE
+void gfsm_arc_ptr_table_resize(gfsmArcPtrTable *tab, guint n_arcs)
+{
+  g_ptr_array_set_size(tab,n_arcs);
+  //tab->len = n_arcs;
+}
+
+//--------------------------------------------------------------
+// arc_ptr_table_copy()
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_copy(gfsmArcPtrTable *dst, gfsmArcPtrTable *src)
+{
+  g_ptr_array_set_size(dst, src->len);
+  dst->len = src->len;
+  memcpy(dst->data, src->data, src->len*sizeof(gpointer));
+  return dst;
+}
+
+//--------------------------------------------------------------
+// arc_ptr_table_clone()
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_clone(gfsmArcPtrTable *src)
+{
+  return gfsm_arc_ptr_table_copy(gfsm_arc_ptr_table_sized_new(src->len), src);
+}
+
+//--------------------------------------------------------------
+// arc_ptr_table_free()
+GFSM_INLINE
+void gfsm_arc_ptr_table_free(gfsmArcPtrTable *tab)
+{ g_ptr_array_free(tab,TRUE); }
+
+//--------------------------------------------------------------
+// arc_ptr_table_append_arciter()
+GFSM_INLINE
+gfsmArcPtrTable* gfsm_arc_ptr_table_append_arciter(gfsmArcPtrTable *tab, gfsmArcIter *ai)
+{
+  return gfsm_arc_ptr_table_append_arclist(tab, ai->arcs);
+}
+
+//--------------------------------------------------------------
+// arc_ptr_table_append_state()
+GFSM_INLINE
+gfsmArcPtrTable* gfsm_arc_ptr_table_append_state(gfsmArcPtrTable *tab, gfsmAutomaton *fsm, gfsmStateId qid)
+{
+  gfsmArcIter ai;
+  gfsm_arciter_open(&ai,fsm,qid);
+  tab = gfsm_arc_ptr_table_append_arciter(tab, &ai);
+  gfsm_arciter_close(&ai);
+  return tab;
+}
+
+//--------------------------------------------------------------
+// arc_ptr_table_sort_with_data()
+GFSM_INLINE
+void gfsm_arc_ptr_table_sort_with_data(gfsmArcPtrTable *tab, GCompareDataFunc compare_func, gpointer data)
+{ g_array_sort_with_data(tab,compare_func,data); }
+
+//--------------------------------------------------------------
+// arc_ptr_table_sort_bymask()
+GFSM_INLINE
+void gfsm_arc_ptr_table_sort_bymask(gfsmArcPtrTable *tab, gfsmArcCompMask m, gfsmSemiring *sr)
+{
+  gfsmArcCompData acdata = { m,sr,NULL,NULL };
+  gfsm_arc_ptr_table_sort_with_data(tab, (GCompareDataFunc)gfsm_arc_compare_bymask, &acdata);
+}
+
+//--------------------------------------------------------------
+// arc_ptr_table_seek()
+GFSM_INLINE
+gfsmArc *gfsm_arc_ptr_table_seek(gfsmArcPtrTable *tab, const gfsmArc *key, GCompareDataFunc compare_func, gpointer data)
+{
+  return (gfsmArc*)gfsm_ptr_array_lower_bound(tab, key, compare_func, data);
+}
+
+//--------------------------------------------------------------
+// arc_ptr_table_seek_bymask()
+GFSM_INLINE
+gfsmArc *gfsm_arc_ptr_table_seek_bymask(gfsmArcPtrTable *tab, const gfsmArc *key, gfsmArcCompMask m, gfsmSemiring *sr)
+{
+  gfsmArcCompData acdata = { m,sr,NULL,NULL };
+  return gfsm_arc_ptr_table_seek(tab, key, (GCompareDataFunc)gfsm_arc_compare_bymask, &acdata);
 }
 
 

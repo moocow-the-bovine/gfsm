@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: arc indices
  *
- * Copyright (c) 2006-2007 Bryan Jurish.
+ * Copyright (c) 2006-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,7 @@
 #define _GFSM_ARCINDEX_H
 
 #include <gfsmAutomaton.h>
+#include <gfsmArcIter.h>
 #include <gfsmIO.h>
 
 /*======================================================================
@@ -201,6 +202,46 @@ void gfsm_arc_table_free(gfsmArcTable *tab);
  */
 gfsmArcTable *gfsm_automaton_to_arc_table(gfsmAutomaton *fsm, gfsmArcTable *tab);
 
+/** Append arc values from a :gfsmArcList to a :gfsmArcTable
+ * \param arcs source list
+ * \param tab
+ *   arc table to which arc copies are to be appended.
+ *   May be passed as NULL to create a new arc table.
+ * \returns
+ *   \a tab if non-NULL, otherwise a new ::gfsmArcTable
+ * \note
+ *   Caller is responsible for freeing \a tab when it is no longer needed.
+ */
+gfsmArcTable *gfsm_arc_table_append_arclist(gfsmArcTable *tab, gfsmArcList *arcs);
+
+/** Append arc values from a :gfsmArcIter to a :gfsmArcTable
+ * \param ai source iterator
+ * \param tab
+ *   arc table to which arc copies are to be appended.
+ *   May be passed as NULL to create a new arc table.
+ * \returns
+ *   \a tab if non-NULL, otherwise a new ::gfsmArcTable
+ * \note
+ *   Caller is responsible for freeing \a tab when it is no longer needed.
+ */
+GFSM_INLINE
+gfsmArcTable *gfsm_arc_table_append_arciter(gfsmArcTable *tab, gfsmArcIter *ai);
+
+/** Append arc values for outgoing arcs for state \a qid in automaton \a fsm to a :gfsmArcTable
+ * \param fsm source automaton
+ * \param qid source state
+ * \param tab
+ *   arc table to populate.
+ *   May be passed as NULL to create a new arc table.
+ * \returns
+ *   \a tab if non-NULL, otherwise a new ::gfsmArcTable
+ * \note
+ *   Caller is responsible for freeing \a tab when it is no longer needed.
+ */
+GFSM_INLINE
+gfsmArcTable *gfsm_arc_table_append_state(gfsmArcTable *tab, gfsmAutomaton *fsm, gfsmStateId qid);
+
+
 /** Sort all arcs in a ::gfsmArcTable using a user-specified comparison function */
 GFSM_INLINE
 void gfsm_arc_table_sort_with_data(gfsmArcTable *tab, GCompareDataFunc compare_func, gpointer data);
@@ -208,6 +249,22 @@ void gfsm_arc_table_sort_with_data(gfsmArcTable *tab, GCompareDataFunc compare_f
 /** Sort arcs by comparison priority in a ::gfsmArcTable */
 GFSM_INLINE
 void gfsm_arc_table_sort_bymask(gfsmArcTable *tab, gfsmArcCompMask m, gfsmSemiring *sr);
+
+/** Search a ::gfsmArcTable \a tab sorted according to \a compare_func wrt \a data
+ *  for the first element less-than or equal to \a key.
+ *  \returns a pointer to the desired arc or \a NULL if no such element is found.
+ *  Uses gfsm_array_lower_bound() (binary search)
+ */
+GFSM_INLINE
+gfsmArc *gfsm_arc_table_seek(gfsmArcTable *tab, const gfsmArc *key, GCompareDataFunc compare_func, gpointer data);
+
+/** Search a ::gfsmArcTable \a tab sorted according to mask \a m for semring \a sr
+ *  for the first element less-than or equal to \a key.
+ *  \returns a pointer to the desired arc or \a NULL if no such element is found.
+ *  Uses gfsm_array_lower_bound() (binary search)
+ */
+GFSM_INLINE
+gfsmArc *gfsm_arc_table_seek_bymask(gfsmArcTable *tab, const gfsmArc *key, gfsmArcCompMask m, gfsmSemiring *sr);
 
 /** Write the contents of a ::gfsmArcTable to a (binary) ::gfsmIOHandle.
  *  \param tab table to write
@@ -225,6 +282,104 @@ gboolean gfsm_arc_table_write_bin_handle(gfsmArcTable *tab, gfsmIOHandle *ioh, g
  */
 gboolean gfsm_arc_table_read_bin_handle(gfsmArcTable *tab, gfsmIOHandle *ioh, gfsmError **errp);
 
+//@}
+
+/*======================================================================
+ * gfsmArcPTable
+ */
+///\name gfsmArcPtrTable
+//@{
+
+/// Type for pointer-index of ::gfsmArc*: ::GPtrArray of ::gfsmArc*
+typedef GPtrArray gfsmArcPtrTable;
+
+/** Create and return a new (empty) ::gfsmArcPtrTable */
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_new(void);
+
+/** Create and return a new (empty) ::gfsmArcPtrTable, specifying size */
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_sized_new(guint n_arcs);
+
+/** Resize a ::gfsmArcPtrTable */
+GFSM_INLINE
+void gfsm_arc_ptr_table_resize(gfsmArcTable *ptab, guint n_arcs);
+
+/** Copy a ::gfsmArcPtrTable \a src to \a dst.  \returns \a dst. */
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_copy(gfsmArcPtrTable *dst, gfsmArcPtrTable *src);
+
+/** Create and return an exact copy of a ::gfsmArcPtrTable \a src */
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_clone(gfsmArcPtrTable *src);
+
+/** Free a ::gfsmArcPtrTable */
+GFSM_INLINE
+void gfsm_arc_ptr_table_free(gfsmArcPtrTable *ptab);
+
+/** Append arc values from a :gfsmArcList to a :gfsmArcPtrTable
+ * \param arcs source list
+ * \param tab
+ *   arc table to which arc copies are to be appended.
+ *   May be passed as NULL to create a new arc table.
+ * \returns
+ *   \a tab if non-NULL, otherwise a new ::gfsmArcPtrTable
+ * \note
+ *   Caller is responsible for freeing \a tab when it is no longer needed.
+ */
+gfsmArcPtrTable *gfsm_arc_ptr_table_append_arclist(gfsmArcPtrTable *ptab, gfsmArcList *arcs);
+
+/** Append arc values from a :gfsmArcIter to a :gfsmArcPtrTable
+ * \param ai source iterator
+ * \param tab
+ *   arc table to which arc copies are to be appended.
+ *   May be passed as NULL to create a new arc table.
+ * \returns
+ *   \a tab if non-NULL, otherwise a new ::gfsmArcPtrTable
+ * \note
+ *   Caller is responsible for freeing \a tab when it is no longer needed.
+ */
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_append_arciter(gfsmArcPtrTable *ptab, gfsmArcIter *ai);
+
+/** Append arc values for outgoing arcs for state \a qid in automaton \a fsm to a :gfsmArcPtrTable
+ * \param fsm source automaton
+ * \param qid source state
+ * \param tab
+ *   arc table to populate.
+ *   May be passed as NULL to create a new arc table.
+ * \returns
+ *   \a tab if non-NULL, otherwise a new ::gfsmArcPtrTable
+ * \note
+ *   Caller is responsible for freeing \a tab when it is no longer needed.
+ */
+GFSM_INLINE
+gfsmArcPtrTable *gfsm_arc_ptr_table_append_state(gfsmArcPtrTable *ptab, gfsmAutomaton *fsm, gfsmStateId qid);
+
+
+/** Sort all arcs in a ::gfsmArcPtrTable using a user-specified comparison function */
+GFSM_INLINE
+void gfsm_arc_ptr_table_sort_with_data(gfsmArcPtrTable *ptab, GCompareDataFunc compare_func, gpointer data);
+
+/** Sort arcs by comparison priority in a ::gfsmArcPtrTable */
+GFSM_INLINE
+void gfsm_arc_ptr_table_sort_bymask(gfsmArcPtrTable *ptab, gfsmArcCompMask m, gfsmSemiring *sr);
+
+/** Search a ::gfsmArcPtrTable \a tab sorted according to \a compare_func wrt \a data
+ *  for the first element less-than or equal to \a key.
+ *  \returns a pointer to the desired arc or \a NULL if no such element is found.
+ *  Uses gfsm_array_lower_bound() (binary search)
+ */
+GFSM_INLINE
+gfsmArc *gfsm_arc_ptr_table_seek(gfsmArcPtrTable *ptab, const gfsmArc *key, GCompareDataFunc compare_func, gpointer data);
+
+/** Search a ::gfsmArcPtrTable \a tab sorted according to mask \a m for semring \a sr
+ *  for the first element less-than or equal to \a key.
+ *  \returns a pointer to the desired arc or \a NULL if no such element is found.
+ *  Uses gfsm_array_lower_bound() (binary search)
+ */
+GFSM_INLINE
+gfsmArc *gfsm_arc_ptr_table_seek_bymask(gfsmArcPtrTable *ptab, const gfsmArc *key, gfsmArcCompMask m, gfsmSemiring *sr);
 //@}
 
 /*======================================================================

@@ -76,6 +76,9 @@ gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which)
 {
   gfsmStateId id;
   gfsmArcIter ai;
+  gfsmArcCompMask acmask_old=fsm->flags.sort_mode, acmask_new=gfsmACNone;;
+  guint aci;
+
   if (which==gfsmLSBoth) return fsm;
 
   for (id=0; id < fsm->states->len; id++) {
@@ -85,6 +88,31 @@ gfsmAutomaton *gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which)
       else                    a->lower = a->upper;
     }
   }
+
+  //-- adjust flags
   fsm->flags.is_transducer = FALSE;
+
+  for (aci=0; aci < gfsmACMaxN; aci++) {
+    gfsmArcCompMask cmp = gfsm_acmask_nth(acmask_old,aci);
+    switch (cmp) {
+
+    case gfsmACLower:
+    case gfsmACLowerR:
+      if (which != gfsmLSLower) cmp=gfsmACNone;
+      break;
+
+    case gfsmACUpper:
+    case gfsmACUpperR:
+      if (which != gfsmLSUpper) cmp=gfsmACNone;
+      break;
+
+    default:
+      break;
+    }
+    acmask_new |= gfsm_acmask_new(cmp,aci);
+  }
+  fsm->flags.sort_mode = acmask_new;
+
+
   return fsm;
 }

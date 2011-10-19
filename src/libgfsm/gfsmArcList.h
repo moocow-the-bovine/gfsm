@@ -5,7 +5,7 @@
  * Description: finite state machine library: arc lists
  *  + formerly defined in gfsmArc.h
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -110,7 +110,8 @@ gfsmArcList *gfsm_arclist_clone(gfsmArcList *src);
 void gfsm_arclist_free(gfsmArcList *al);
 
 /* Free a single node of an arc-list */
-//void gfsm_arclist_free_node(gfsmArcList *nod);
+GFSM_INLINE
+void gfsm_arclist_free_1(gfsmArcList *nod);
 
 //@}
 
