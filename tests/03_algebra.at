@@ -71,6 +71,9 @@ gfsm_at_binop([intersect2],[],[algebra intersect],[],[gfsmintersect])
 ##-- invert
 gfsm_at_unop([invert],[],[algebra invert],[],[gfsminvert])
 
+##-- minimize
+gfsm_at_unop([minimize], [],[algebra minimize],[],[gfsmminimize])
+
 ##-- optional
 gfsm_at_unop([optional],[],[algebra optional],[],[gfsmoptional])
 
