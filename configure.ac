@@ -601,6 +601,7 @@ if test "$gfsm_doc_formats" != "none" ; then
   ##
   DOC_MAN1_GOGS="\
 	gfsmarcsort.gog \
+	gfsmarcuniq.gog \
 	gfsmarith.gog \
 	gfsmclosure.gog \
 	gfsmcompile.gog \

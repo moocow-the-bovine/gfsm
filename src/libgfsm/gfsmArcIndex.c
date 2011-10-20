@@ -278,7 +278,7 @@ gfsmArcPtrTable *gfsm_arc_ptr_table_append_arclist(gfsmArcPtrTable *tab, gfsmArc
   }
 
   //-- append arcs by value
-  for (arcpp=(gfsmArc**)tab->pdata+; arcs != NULL; arcs=arcs->next, arcpp++) {
+  for (arcpp=(gfsmArc**)tab->pdata+start; arcs != NULL; arcs=arcs->next, arcpp++) {
     *arcpp = &(arcs->arc);
   }
 

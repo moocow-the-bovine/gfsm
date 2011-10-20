@@ -303,7 +303,7 @@ gfsmArcPtrTable *gfsm_arc_ptr_table_sized_new(guint n_arcs);
 
 /** Resize a ::gfsmArcPtrTable */
 GFSM_INLINE
-void gfsm_arc_ptr_table_resize(gfsmArcTable *ptab, guint n_arcs);
+void gfsm_arc_ptr_table_resize(gfsmArcPtrTable *ptab, guint n_arcs);
 
 /** Copy a ::gfsmArcPtrTable \a src to \a dst.  \returns \a dst. */
 GFSM_INLINE

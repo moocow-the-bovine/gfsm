@@ -36,7 +36,7 @@
 //@{
 
 /** Search a ::GArray \a array of elements sorted according to \a compare_func
- *  for the first element less-than or equal to \a key, using \a data as comparison data.
+ *  for the first element not less-than or equal to \a key, using \a data as comparison data.
  *
  * \param array ::GArray to search
  * \param key  key element to search for
@@ -54,11 +54,15 @@ gpointer gfsm_array_lower_bound(GArray *array, gconstpointer key, GCompareDataFu
 /// \name GPtrArray Methods
 //@{
 
-/** Search a GPtrArray \a parray sorted according to \a compare_func for
- *  the first element less-than or equal to \a key, using \a data as comparison data.
+/** Search a ::GPtrArray \a parray sorted according to \a compare_func for
+ *  the first element not less-than or equal to \a key, using \a data as comparison data.
  *  \returns a pointer (gpointer*) to the desired element or \a NULL if no such element is found.
  */
 gpointer* gfsm_ptr_array_lower_bound(GPtrArray *parray, gconstpointer key, GCompareDataFunc compare_func, gpointer data);
+
+/** Insert an element into a sorted ::GPtrArray.
+ */
+gpointer* gfsm_ptr_array_insert_sorted(GPtrArray *parray, gpointer elt, GCompareDataFunc compare_func, gpointer data);
 
 //@}
 

@@ -2,17 +2,21 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmarcsort"
+program "gfsmarcuniq"
 #program_version "0.01"
 
-purpose	"Sort arcs of a finite state machine"
+purpose	"Collect weights on otherwise indistinguishable arcs of a gfsm automaton"
 author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
 #-----------------------------------------------------------------------------
 # Details
 #-----------------------------------------------------------------------------
-details ""
+details "
+This operation is most effective if the argument automaton has already been arc-sorted,
+e.g. by C<gfsmarcsort --lower>.  Note that you can sort and collect adjacent arcs
+without re-reading the automaton using the C<--unique> flag to L<gfsmarcsort(1)|gfsmarcsort>.
+"
 
 #-----------------------------------------------------------------------------
 # Files
@@ -25,54 +29,13 @@ details ""
 #-----------------------------------------------------------------------------
 argument "BINFILE" "Stored binary gfsm file" \
     details="
-If unspecified, standard input will be read
+If unspecified, standard input will be read.
 "
 
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
 #group "Basic Options"
-
-flag "lower"  l "Sort by (lower,upper,target) [default]."
-flag "upper"  u "Sort by (upper,lower,target)."
-flag "weight" w "Sort by weight (ascending)."
-
-flag -        i "Alias for '--lower'"
-flag -        o "Alias for '--upper'"
-flag "cost"   C "Alias for '--weight'"
-
-string "mode" m "Sort by explicit mode string (overrides -l, -u, etc.)" \
-  arg="MODE" \
-  default="" \
-  details="
-Sort by a mode string over the characters \"luwstLUWST_\", as accepted
-by gfsm_acmask_from_chars().  Each character in the string represents
-a single elementary arc field comparison, and the comparison with the
-highest priority should occur leftmost in the string.  Correspondence
-between characters in MODE and arc comparisons is:
-
-  CHAR : COMPARISON
-     l : sort by lower labels in ascending order
-     u : sort by upper labels in ascending order
-     w : sort by arc weight in semiring-ascending order
-     s : sort by source state in ascending order (useless here)
-     t : sort by target state in ascending order
-
-     L : sort by lower labels in descending order
-     U : sort by upper labels in descending order
-     W : sort by arc weight in semiring-descending order
-     S : sort by source state in descending order (useless here)
-     T : sort by target state in descending order
-
-     _ : no comparison at the corresponding priority level
-     x : user-specified comparison (useless here)
-
-"
-
-flag "unique" U "After sorting, collect weights on otherwise identical arcs" \
-  details="
-This is exactly what a subsequent call of L<gfsmarcuniq(1)|gfsmarcuniq> does.
-"
 
 int "compress" z "Specify compression level of output file." \
     arg="LEVEL" \
@@ -97,7 +60,7 @@ string "output" F "Specifiy output file (default=stdout)." \
 #-----------------------------------------------------------------------------
 bugs "
 
-None known.
+Probably many.
 
 "
 

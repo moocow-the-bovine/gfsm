@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: automata
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -335,4 +335,37 @@ void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, g
     qp->arcs = gfsm_arclist_sort_full(qp->arcs, cmpfunc, data);
   }
   fsm->flags.sort_mode = gfsmACUser;
+}
+
+/*--------------------------------------------------------------
+ * arcuniq()
+ */
+gfsmAutomaton *gfsm_automaton_arcuniq(gfsmAutomaton *fsm)
+{
+  gfsmStateId qid;
+  gfsmState *qptr;
+  gfsmArcList *al0, *al1;
+
+#if 0
+  //-- maybe pre-sort arcs
+  if (fsm->flags.sort_mode == gfsmASMNone) {
+    gfsm_automaton_arcsort(fsm, gfsmASMLower);
+  }
+#endif
+
+  //-- ye olde loope
+  for (qid=0; qid < fsm->states->len; qid++) {
+    qptr = gfsm_automaton_open_state(fsm,qid);
+    for (al0=qptr->arcs; al0 != NULL; al0=al0->next) {
+      for (al1=al0->next; al1!=NULL && al1->arc.lower==al0->arc.lower && al1->arc.upper==al0->arc.upper && al1->arc.target==al0->arc.target; al1=al0->next) {
+	al0->arc.weight = gfsm_sr_plus(fsm->sr, al0->arc.weight, al1->arc.weight);
+	al0->next       = al1->next;
+	gfsm_arclist_free_1(al1);
+      }
+    }
+    gfsm_automaton_close_state(fsm,qptr);
+  }
+
+  //-- return
+  return fsm;
 }

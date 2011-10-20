@@ -28,12 +28,12 @@
 
 #include <gfsm.h>
 
-#include "gfsmarcsort_cmdparser.h"
+#include "gfsmarcuniq_cmdparser.h"
 
 /*--------------------------------------------------------------------------
  * Globals
  *--------------------------------------------------------------------------*/
-char *progname = "gfsmarcsort";
+char *progname = "gfsmarcuniq";
 
 //-- options
 struct gengetopt_args_info args;
@@ -42,9 +42,8 @@ struct gengetopt_args_info args;
 const char *infilename  = "-";
 const char *outfilename = "-";
 
-//-- global structs & vars
+//-- global structs
 gfsmAutomaton *fsm;
-gfsmArcCompMask mode = gfsmASMLower;
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -60,12 +59,6 @@ void get_my_options(int argc, char **argv)
 
   //-- load environmental defaults
   //cmdline_parser_envdefaults(&args);
-
-  //-- mode?
-  if (args.mode_given) { mode = gfsm_acmask_from_chars(args.mode_arg); }
-  else if (args.lower_flag || args.i_flag)     mode = gfsmASMLower;
-  else if (args.upper_flag || args.o_flag)     mode = gfsmASMUpper;
-  else if (args.weight_flag || args.cost_flag) mode = gfsmASMWeight;
 
   //-- initialize automaton
   fsm = gfsm_automaton_new();
@@ -86,12 +79,8 @@ int main (int argc, char **argv)
     exit(255);
   }
 
-  //-- sort
-  gfsm_automaton_arcsort(fsm,mode);
-
-  //-- uniq?
-  if (args.unique_flag)
-    gfsm_automaton_arcuniq(fsm);
+  //-- arcuniq
+  gfsm_automaton_arcuniq(fsm);
 
   //-- spew automaton
   if (!gfsm_automaton_save_bin_filename(fsm,outfilename,args.compress_arg,&err)) {

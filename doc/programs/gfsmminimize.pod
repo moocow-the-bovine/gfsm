@@ -3,13 +3,13 @@
 
 =head1 NAME
 
-gfsmarcsort - Sort arcs of a finite state machine
+gfsmminimize - Minimize finite state machines as (pair)-acceptors
 
 
 
 =head1 SYNOPSIS
 
-gfsmarcsort [OPTIONS] BINFILE
+gfsmminimize [OPTIONS] BINFILE
 
  Arguments:
     BINFILE  Stored binary gfsm file
@@ -18,14 +18,8 @@ gfsmarcsort [OPTIONS] BINFILE
     -h       --help            Print help and exit.
     -V       --version         Print version and exit.
     -cFILE   --rcfile=FILE     Read an alternate configuration file.
-    -l       --lower           Sort by (lower,upper,target) [default].
-    -u       --upper           Sort by (upper,lower,target).
-    -w       --weight          Sort by weight (ascending).
-    -i                         Alias for '--lower'
-    -o                         Alias for '--upper'
-    -C       --cost            Alias for '--weight'
-    -mMODE   --mode=MODE       Sort by explicit mode string (overrides -l, -u, etc.)
-    -U       --unique          After sorting, collect weights on otherwise identical arcs
+    -D       --deterministic   Assume input automaton is deterministic.
+    -E       --epsilon         Skip epsilon removal.
     -zLEVEL  --compress=LEVEL  Specify compression level of output file.
     -FFILE   --output=FILE     Specifiy output file (default=stdout).
 
@@ -38,7 +32,7 @@ gfsmarcsort [OPTIONS] BINFILE
 
 =head1 DESCRIPTION
 
-Sort arcs of a finite state machine
+Minimize finite state machines as (pair)-acceptors
 
 
 
@@ -106,102 +100,29 @@ See also: L<CONFIGURATION FILES>.
 
 
 
-=item C<--lower> , C<-l>
+=item C<--deterministic> , C<-D>
 
-Sort by (lower,upper,target) [default].
-
-Default: '0'
-
-
-
-
-=item C<--upper> , C<-u>
-
-Sort by (upper,lower,target).
+Assume input automaton is deterministic.
 
 Default: '0'
 
 
-
-
-=item C<--weight> , C<-w>
-
-Sort by weight (ascending).
-
-Default: '0'
+If specified, input will be assumed deterministic.
+Otherwise, the value of the 'is_deterministic' header flag is used.
 
 
 
 
-=item C<-i>
 
-Alias for '--lower'
+=item C<--epsilon> , C<-E>
+
+Skip epsilon removal.
 
 Default: '0'
 
 
-
-
-=item C<-o>
-
-Alias for '--upper'
-
-Default: '0'
-
-
-
-
-=item C<--cost> , C<-C>
-
-Alias for '--weight'
-
-Default: '0'
-
-
-
-
-=item C<--mode=MODE> , C<-mMODE>
-
-Sort by explicit mode string (overrides -l, -u, etc.)
-
-Default: ''
-
-
-Sort by a mode string over the characters "luwstLUWST_", as accepted
-by gfsm_acmask_from_chars().  Each character in the string represents
-a single elementary arc field comparison, and the comparison with the
-highest priority should occur leftmost in the string.  Correspondence
-between characters in MODE and arc comparisons is:
-
-  CHAR : COMPARISON
-     l : sort by lower labels in ascending order
-     u : sort by upper labels in ascending order
-     w : sort by arc weight in semiring-ascending order
-     s : sort by source state in ascending order (useless here)
-     t : sort by target state in ascending order
-
-     L : sort by lower labels in descending order
-     U : sort by upper labels in descending order
-     W : sort by arc weight in semiring-descending order
-     S : sort by source state in descending order (useless here)
-     T : sort by target state in descending order
-
-     _ : no comparison at the corresponding priority level
-     x : user-specified comparison (useless here)
-
-
-
-
-
-
-=item C<--unique> , C<-U>
-
-After sorting, collect weights on otherwise identical arcs
-
-Default: '0'
-
-
-This is exactly what a subsequent call of L<gfsmarcuniq(1)|gfsmarcuniq> does.
+If specified, epsilons will be treated like other symbols at all stages.
+Otherwise, epsilons will be removed (repeatedly).
 
 
 
@@ -277,7 +198,7 @@ using Getopt::Gen version 0.13.
 Translation was initiated
 as:
 
-   optgen.perl -l --nocfile --nohfile --notimestamp -F gfsmarcsort gfsmarcsort.gog
+   optgen.perl -l --nocfile --nohfile --notimestamp -F gfsmminimize gfsmminimize.gog
 
 =cut
 
@@ -291,7 +212,21 @@ as:
 
 
 
-None known.
+=over 4
+
+=item
+
+Currently uses Brzozowski's (1963) minimization algorithm.
+
+=item
+
+Input automaton must be minimizable.
+
+=item
+
+Probably many more.
+
+=back
 
 
 

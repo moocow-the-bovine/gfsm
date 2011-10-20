@@ -72,7 +72,6 @@ gfsmAutomaton *gfsm_automaton_n_closure(gfsmAutomaton *fsm, guint n);
 gfsmAutomaton *gfsm_automaton_optional(gfsmAutomaton *fsm);
 //@}
 
-
 //------------------------------
 ///\name gfsmComplement.c: Complementation and Completion
 //@{

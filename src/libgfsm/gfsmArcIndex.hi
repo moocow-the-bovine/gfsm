@@ -1,4 +1,3 @@
-
 /*=============================================================================*\
  * File: gfsmArcIndex.hi
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
@@ -241,7 +240,7 @@ gfsmArcPtrTable *gfsm_arc_ptr_table_copy(gfsmArcPtrTable *dst, gfsmArcPtrTable *
 {
   g_ptr_array_set_size(dst, src->len);
   dst->len = src->len;
-  memcpy(dst->data, src->data, src->len*sizeof(gpointer));
+  memcpy(dst->pdata, src->pdata, src->len*sizeof(gpointer));
   return dst;
 }
 
@@ -283,7 +282,7 @@ gfsmArcPtrTable* gfsm_arc_ptr_table_append_state(gfsmArcPtrTable *tab, gfsmAutom
 // arc_ptr_table_sort_with_data()
 GFSM_INLINE
 void gfsm_arc_ptr_table_sort_with_data(gfsmArcPtrTable *tab, GCompareDataFunc compare_func, gpointer data)
-{ g_array_sort_with_data(tab,compare_func,data); }
+{ g_ptr_array_sort_with_data(tab,compare_func,data); }
 
 //--------------------------------------------------------------
 // arc_ptr_table_sort_bymask()

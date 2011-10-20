@@ -25,34 +25,58 @@
 /*======================================================================
  * Methods: GArray
  */
+
+//--------------------------------------------------------------
 gpointer gfsm_array_lower_bound(GArray *array, gconstpointer key, GCompareDataFunc compare_func, gpointer data)
 {
   guint element_size = g_array_get_element_size(array);
   gchar *min  = array->data;
   gchar *max  = array->data + array->len*element_size;
-  while (min && min < max) {
-    gchar   *mid = min + ((max-min)/2)*element_size;
-    gint     cmp = (*compare_func)(mid, key, data);
+  while (/*min &&*/ min < max) {
+    gchar *mid = min + ((max-min)/2)*element_size;
+    gint   cmp = (*compare_func)(mid, key, data);
     if (cmp < 0) { min=mid+element_size; }
     else         { max=mid; }
   }
-  return max==array->data || min >= (array->data + array->len*element_size) ? NULL : min;
+  return min >= (array->data + array->len*element_size) ? NULL : min;
 }
 
 /*======================================================================
  * Methods: GPtrArray
  */
+
+//--------------------------------------------------------------
 gpointer* gfsm_ptr_array_lower_bound(GPtrArray *parray, gconstpointer key, GCompareDataFunc compare_func, gpointer data)
 {
   gpointer *min = parray->pdata;
   gpointer *max = parray->pdata + parray->len;
-  while (min && min < max) {
+  while (/*min &&*/ min < max) {
     gpointer *mid = min + (max-min)/2;
     gint      cmp = (*compare_func)(*mid, key, data);
     if (cmp < 0) { min=mid+1; }
     else         { max=mid; }
   }
-  return max==parray->pdata || min >= parray->pdata+parray->len ? NULL : min;
+  return min >= parray->pdata+parray->len ? NULL : min;
 }
 
+//--------------------------------------------------------------
+gpointer* gfsm_ptr_array_insert_sorted(GPtrArray *parray, gpointer elt, GCompareDataFunc compare_func, gpointer data)
+{
+  gpointer *lb, *end;
+  g_ptr_array_set_size(parray,parray->len+1);
+  parray->len--;
+  end = parray->pdata+parray->len;
 
+  lb = gfsm_ptr_array_lower_bound(parray, elt, compare_func, data);
+  if (lb==NULL) {
+    *end = elt;
+    parray->len++;
+    return end;
+  }
+
+  //-- we need to shovel some data around
+  memmove(lb+1, lb, (end-lb)*sizeof(gpointer));
+  *lb = elt;
+  parray->len++;
+  return lb;
+}

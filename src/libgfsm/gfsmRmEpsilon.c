@@ -34,8 +34,6 @@
 /*======================================================================
  * Methods: algebra: rmepsilon
  */
-
-#if 1
 //-- implementation of algorithm from hh2010: (Hanneforth & de la Higuera, 2010)
 
 //--------------------------------------------------------------
@@ -68,9 +66,28 @@ int gfsm_rmeps_arc_compare(const gfsmArc *a, const gfsmArc *b, gpointer user_dat
 #endif
 }
 
+//--------------------------------------------------------------
+// + weight-independent arc comparison a la gfsmASMLower: (ReverseIsNull,lower,upper,target)
+GFSM_INLINE
+gint gfsm_rmeps_arc_compare_lut(const gfsmArc *a, const gfsmArc *b)
+{
+  if      (a==NULL && b==NULL)  return  0;
+  else if (a==NULL && b!=NULL)  return  1;
+  else if (a!=NULL && b==NULL)  return -1;
+  else if (a->lower < b->lower) return -1;
+  else if (a->lower > b->lower) return  1;
+  else if (a->upper < b->upper) return -1;
+  else if (a->upper > b->upper) return  1;
+  else if (a->target < b->target) return -1;
+  else if (a->target > b->target) return  1;
+  return 0;
+}
+
+
 //#define RME_DEBUG 1
 
 #ifdef RME_DEBUG
+# include <gfsmAutomatonIO.h>
 # define _debug(code) code
 # define _nodebug(code)
 #else
@@ -78,51 +95,77 @@ int gfsm_rmeps_arc_compare(const gfsmArc *a, const gfsmArc *b, gpointer user_dat
 # define _nodebug(code)
 #endif
 
+#define _arcfmt      "(%u --%u:%u--> %u / %g)"
+#define _arcargs(ap) (ap)->source, (ap)->lower, (ap)->upper, (ap)->target, (ap)->weight
+#define _showpalp(prefix) \
+   fprintf(stderr, prefix "palp=") \
+   if (*palp) { fprintf(stderr, _arcfmt "\n", _arcargs(&(*palp)->arc)); } \
+   else       { fprintf(stderr, "NULL\n"); })
+
+
 //--------------------------------------------------------------
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 {
   //-- variables
   gfsmPriorityQueue *pqueue;
-  gfsmStateId qid;
-  gfsmArcIter ai;
+  gfsmStateId pid;
   gfsmWeight westar, fw_p=0, fw_q=0;
-  gfsmArcTable *patab = gfsm_arc_table_sized_new(32);
-  gfsmArc *a, *aa;
+  gfsmArc *pwq;
+  gfsmState *pptr, *qptr;
+  gfsmArcList *pal,*pal1, *qal, **palp;
+  gint cmp;
+  //_debug(gfsmError *err=NULL);
 
   //-- pre-sort arcs
-  if (gfsm_acmask_nth(fsm->flags.sort_mode,0) != gfsmACLower || gfsm_acmask_nth(fsm->flags.sort_mode,1) != gfsmACUpper) {
-    _debug(fprintf(stderr, "rmeps[sort]\n"));
-    gfsm_automaton_arcsort(fsm, gfsmASMLower);
-  }
+  if (gfsm_acmask_nth(fsm->flags.sort_mode,0) != gfsmACLower
+      || gfsm_acmask_nth(fsm->flags.sort_mode,1) != gfsmACUpper
+      || gfsm_acmask_nth(fsm->flags.sort_mode,2) != gfsmACTarget)
+    {
+      //_debug(fprintf(stderr, "rmeps[sort]\n"));
+      gfsm_automaton_arcsort(fsm, gfsm_acmask_from_chars("lut"));
+    }
 
   //-- setup priority queue (hh2010:1-2)
-  _debug(fprintf(stderr, "rmeps[init]\n"));
+  //   : moo: collect (q --eps:eps--> r) runs in the style of gfsm_automaton_arcuniq()
+  //_debug(fprintf(stderr, "rmeps[init]\n"));
   pqueue = gfsm_pqueue_new((GCompareDataFunc)gfsm_rmeps_arc_compare, NULL);
-  for (qid=0; qid < fsm->states->len; qid++) {
-    for (gfsm_arciter_open(&ai, fsm, qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-      a = gfsm_arciter_arc(&ai);
-      if (a->lower != gfsmEpsilon || a->upper != gfsmEpsilon) {
-	_debug(fprintf(stderr, "rmeps[init]: break: (%u --%u:%u--> %u / %g)\n", a->source, a->lower,a->upper,a->target,a->weight));
+  for (pid=0; pid < fsm->states->len; pid++) {
+    pptr = gfsm_automaton_open_state(fsm,pid);
+    if (pptr == NULL) continue;
+
+    //-- seek epsilon arcs (should be initial since automaton is primarily sorted on (lower,upper))
+    for (pal=pptr->arcs; pal != NULL; pal=pal->next) {
+      if (pal->arc.lower != gfsmEpsilon || pal->arc.upper != gfsmEpsilon) {
+	//_debug(fprintf(stderr, "rmeps[init]: break: " _arcfmt "\n", _arcargs(&pal->arc)));
 	break;
       }
-      gfsm_pqueue_push(pqueue, a);
-      _debug(fprintf(stderr, "rmeps[init]: push(%u --%u:%u--> %u / %g)\n", a->source, a->lower,a->upper,a->target,a->weight));
+
+      //-- compress epsilon runs
+      for (pal1=pal->next; pal1!=NULL && pal1->arc.lower==gfsmEpsilon && pal1->arc.upper==gfsmEpsilon && pal1->arc.target==pal->arc.target; pal1=pal->next) {
+	pal->next = pal1->next;
+	pal->arc.weight = gfsm_sr_plus(fsm->sr, pal->arc.weight, pal1->arc.weight);
+	gfsm_arclist_free_1(pal1);
+      }
+
+      //-- initialize priority queue
+      gfsm_pqueue_push(pqueue, &(pal->arc));
+      //_debug(fprintf(stderr, "rmeps[init]: push" _arcfmt "\n", _arcargs(&pal->arc)));
     }
   }
 
   //-- disable "smart" arc-insertion
-  fsm->flags.sort_mode = gfsmASMNone;
+  //fsm->flags.sort_mode = gfsmASMNone;
 
   //-- queue-processing loop (hh2010:3-24)
-  _debug(fprintf(stderr, "rmeps[main]\n"));
+  //_debug(fprintf(stderr, "rmeps[main]\n"));
   while (!gfsm_pqueue_isempty(pqueue)) {
     //-- dequeue next arc to process, and remove it from the fsm (hh2010:4-5)
-    gfsmArc    *pwq = (gfsmArc*)gfsm_pqueue_pop(pqueue);
-    gfsmState *pptr = gfsm_automaton_open_state(fsm,pwq->source);
-    gfsmState *qptr = gfsm_automaton_open_state(fsm,pwq->target);
-    gfsm_automaton_remove_arc_ptr(fsm,pwq);
+    pwq  = (gfsmArc*)gfsm_pqueue_pop(pqueue);
+    pptr = gfsm_automaton_open_state(fsm,pwq->source);
+    pptr->arcs = gfsm_arclist_remove_node(pptr->arcs, (gfsmArcList*)pwq);
 
-    _debug(fprintf(stderr,"rms[main]: pop(%u --%u:%u--> %u / %g)\n", pwq->source, pwq->lower, pwq->upper, pwq->target, pwq->weight));
+    //_debug(fprintf(stderr,"rmeps[main]: pop" _arcfmt "\n", _arcargs(pwq)));
+    //_debug(gfsm_automaton_print_file(fsm,stderr,&err));
 
     //-- prelim: get final weight for pptr
     if (pptr->is_final)
@@ -130,11 +173,9 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 
     //-- check for eps-loops (hh2010:6-10)
     if (pwq->source==pwq->target) {
-      //_debug(fprintf(stderr,"rms[main]: loop!\n"));
       westar = gfsm_sr_star(fsm->sr, pwq->weight);
-      for (gfsm_arciter_open_ptr(&ai, fsm, pptr); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-	a = gfsm_arciter_arc(&ai);
-	a->weight  = gfsm_sr_times(fsm->sr, westar, a->weight);
+      for (pal=pptr->arcs; pal!=NULL; pal=pal->next) {
+	pal->arc.weight = gfsm_sr_times(fsm->sr, westar, pal->arc.weight);
       }
       if (pptr->is_final) {
 	gfsm_weightmap_insert(fsm->finals, GUINT_TO_POINTER(pwq->source), gfsm_sr_times(fsm->sr, westar, fw_p));
@@ -142,37 +183,43 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
     }
     else {
       //-- no eps-loops (hh2010:12-24)
+      qptr = gfsm_automaton_open_state(fsm,pwq->target);
+      palp = &(pptr->arcs);
 
-      //-- : get arcs from eps-reachable state
-      patab->len = 0;
-      gfsm_arc_table_append_arclist(patab, pptr->arcs);
-      gfsm_arc_table_sort_bymask(patab, gfsmASMLower, fsm->sr);
+      //-- adopt outgoing arcs from eps-reachable state q (hh2010:12-18)
+      for (qal=qptr->arcs; qal != NULL; qal=qal->next) {
+	//_debug(fprintf(stderr,"rmeps[main]: adopt" _arcfmt " . " _arcfmt "\n", _arcargs(pwq), _arcargs(&qal->arc)));
+	//_debug(_showpalp("rmeps[main]: adopt: "));
 
-      //-- adopt outgoing arcs from eps-reachable state (hh2010:12-18)
-      for (gfsm_arciter_open_ptr(&ai, fsm, qptr); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-	a = gfsm_arciter_arc(&ai);
-	_debug(fprintf(stderr,"rms[main]: adopt(%u --%u:%u--> %u / %g) + (%u --%u:%u--> %u / %g)\n", \
-		       pwq->source, pwq->lower, pwq->upper, pwq->target, pwq->weight, \
-		       a->source, a->lower, a->upper, a->target, a->weight));
+	//-- seek matching arc from p (~hh2010:13)
+	for (cmp=-1; *palp; palp=&((*palp)->next)) {
+	  cmp = gfsm_rmeps_arc_compare_lut(&(*palp)->arc, &qal->arc);
+	  //_debug(fprintf(stderr,"rmeps[main]: adopt: cmp(" _arcfmt " <=> " _arcfmt ") = %d\n", _arcargs(&(*palp)->arc), _arcargs(&qal->arc), cmp));
+	  if (cmp >= 0) break;
+	}
 
-	//-- try to find a matching arc from pwq->source we can modify
-	aa = gfsm_arc_table_seek_bymask(patab, a, gfsmASMLower, fsm->sr);
-	if (aa != NULL) {
-	  aa->weight = gfsm_sr_plus(fsm->sr, aa->weight, gfsm_sr_times(fsm->sr, pwq->weight, a->weight));
+	if (cmp==0) {
+	  //-- found a structure-matching arc: modify it (hh2010:14)
+	  //_debug(fprintf(stderr,"rmeps[main]: adopt: found " _arcfmt "\n", _arcargs(&(*palp)->arc)));
+	  (*palp)->arc.weight = gfsm_sr_plus(fsm->sr, (*palp)->arc.weight, gfsm_sr_times(fsm->sr, pwq->weight, qal->arc.weight));
+	  //_debug(gfsm_automaton_print_file(fsm,stderr,&err));
 	}
 	else {
-	  //-- no matching arc to modify: copy the source (hh2010:15-18)
-	  gfsmArc *paa = (gfsmArc*)gfsm_arclist_new_full(pwq->source, a->target, a->lower, a->upper, gfsm_sr_times(fsm->sr, pwq->weight, a->weight), NULL);
-	  gfsm_automaton_add_arc_node(fsm, pptr, (gfsmArcList*)paa);
-	  if (paa->lower==gfsmEpsilon && paa->upper==gfsmEpsilon) {
+	  //-- no matching arc: insert a new one (hh2010:15-18)
+	  //_debug(fprintf(stderr,"rmeps[main]: adopt: NOT found\n"));
+	  //_debug(_showpalp("rmeps[main]: adopt: "));
+	  pal1  = gfsm_arclist_new_full(pwq->source, qal->arc.target, qal->arc.lower, qal->arc.upper, gfsm_sr_times(fsm->sr, pwq->weight, qal->arc.weight), *palp);
+	  *palp = pal1;
+	  //_debug(gfsm_automaton_print_file(fsm,stderr,&err));
+	  if (qal->arc.lower==gfsmEpsilon && qal->arc.upper==gfsmEpsilon) {
 	    //-- ... and maybe enqueue it (hh2010:17-18)
-	    gfsm_pqueue_push(pqueue, paa);
-	    _debug(fprintf(stderr, "rmeps[main]: push(%u --%u:%u--> %u / %g)\n", paa->source,paa->lower,paa->upper,paa->target,paa->weight));
+	    gfsm_pqueue_push(pqueue, pal1);
+	    //_debug(fprintf(stderr, "rmeps[main]: push" _arcfmt "\n", _arcargs(&pal1->arc)));
 	  }
 	}
-      }
+      } //-- end loop: arcs(q)
 
-      //-- adopt final weight of eps-reachable state (hh2010:19-24)
+      //-- adopt final weight of eps-reachable state q (hh2010:19-24)
       if (qptr->is_final) {
 	gfsm_weightmap_lookup(fsm->finals, GUINT_TO_POINTER(pwq->target), &fw_q);
 	if (pptr->is_final) {
@@ -183,10 +230,13 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 					      gfsm_sr_times(fsm->sr, pwq->weight, fw_q));
 	}
       }
+
+      gfsm_automaton_close_state(fsm,qptr);
     }
 
     //-- local cleanup
     gfsm_arclist_free_1((gfsmArcList*)pwq);
+    gfsm_automaton_close_state(fsm,pptr);
   }
 
   //-- implicit connect (hh2010:25)
@@ -194,111 +244,5 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 
   //-- cleanup & return
   gfsm_pqueue_free(pqueue);
-  gfsm_arc_table_free(patab);
   return fsm;
 }
-
-#else
-/*--------------------------------------------------------------
- * rmepsilon_foreach_func() : v1
- */
-static
-void gfsm_automaton_rmeps_pass2_foreach_func_(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm)
-{
-  gfsmWeight  w = gfsm_ptr2weight(pw);
-  gfsmWeight  fw2;
-  gfsmArcIter ai;
-  gfsmArc     *a;
-  if (sp->id1==sp->id2) return; //-- sanity check
-
-  //-- adopt final weights (plus)
-  if (gfsm_automaton_lookup_final(fsm, sp->id2, &fw2)) {
-    gfsm_automaton_set_final_state_full(fsm, sp->id1, TRUE,
-					gfsm_sr_plus(fsm->sr,
-						     gfsm_automaton_get_final_weight(fsm, sp->id1),
-						     gfsm_sr_times(fsm->sr, w, fw2)));
-  }
-
-  //-- adopt non-epsilon arcs
-  for (gfsm_arciter_open(&ai,fsm,sp->id2); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-    a = gfsm_arciter_arc(&ai);
-    if (a->lower != gfsmEpsilon || a->upper != gfsmEpsilon) {
-      gfsm_automaton_add_arc(fsm, sp->id1, a->target, a->lower, a->upper,
-			     gfsm_sr_times(fsm->sr, a->weight, w));
-    }
-  }
-}
-
-/*--------------------------------------------------------------
- * rmepsilon_visit_state() : v1
- */
-void gfsm_automaton_rmeps_visit_state_(gfsmAutomaton *fsm,
-				       gfsmStateId qid_noeps, //-- state reachable by non-eps arcs
-				       gfsmStateId qid_eps,   //-- eps-reachable state from qid_noeps
-				       gfsmWeight weight_eps, //-- total weight of followed eps-arcs
-				       gfsmStatePair2WeightHash *sp2wh //-- maps (qid_noeps,qid_noeps)=>sum_weight_eps
-				       )
-{
-  gfsmState *q_noeps, *q_eps;
-  gfsmStatePair sp = {qid_noeps,qid_eps};
-  gfsmArcIter ai;
-  gfsmArc *a;
-
-  //-- visited check, mark
-  if (!gfsm_weighthash_insert_sum_if_less(sp2wh, &sp, weight_eps, fsm->sr))
-    return; //-- no update required
-
-  //-- sanity check
-  q_noeps = gfsm_automaton_find_state(fsm,qid_noeps);
-  q_eps   = gfsm_automaton_find_state(fsm,qid_eps);
-  if (!q_noeps || !q_noeps->is_valid || !q_eps || !q_eps->is_valid) return;
-
-  //-- visit epsilon-reachable states from q_eps
-  for (gfsm_arciter_open_ptr(&ai, fsm, q_eps), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon);
-       gfsm_arciter_ok(&ai);
-       gfsm_arciter_next(&ai), gfsm_arciter_seek_both(&ai,gfsmEpsilon,gfsmEpsilon))
-    {
-      a = gfsm_arciter_arc(&ai);
-      gfsm_automaton_rmeps_visit_state_(fsm, qid_noeps, a->target,
-					gfsm_sr_times(fsm->sr, weight_eps, a->weight),
-					sp2wh);
-    }
-}
-
-/*--------------------------------------------------------------
- * rmepsilon() : v1
- */
-gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
-{
-  gfsmStatePair2WeightHash *sp2wh = gfsm_statepair2weighthash_new();
-  gfsmArcIter ai;
-  gfsmStateId qid;
-  gfsmArc *a;
-
-  //-- pass-1: populate sp2wh with epsilon-reachable states
-  for (qid=0; qid < fsm->states->len; qid++) {
-    gfsm_automaton_rmeps_visit_state_(fsm, qid, qid, fsm->sr->one, sp2wh);
-  }
-
-  //-- pass-2: adopt non-epsilon arcs & final weights from eps-reachable states
-  gfsm_weighthash_foreach(sp2wh, (GHFunc)gfsm_automaton_rmeps_pass2_foreach_func_, fsm);
-
-  //-- pass-3: actual removal of now-redundant epsilon arcs
-  for (qid=0; qid < fsm->states->len; qid++) {
-    for (gfsm_arciter_open(&ai,fsm,qid); gfsm_arciter_ok(&ai); ) {
-      a = gfsm_arciter_arc(&ai);
-      if (a->lower==gfsmEpsilon && a->upper==gfsmEpsilon) {
-	gfsm_arciter_remove(&ai);
-      } else {
-	gfsm_arciter_next(&ai);
-      }
-    }
-  }
-
-  //-- cleanup
-  gfsm_weighthash_free(sp2wh);
-
-  return fsm;
-}
-
-#endif

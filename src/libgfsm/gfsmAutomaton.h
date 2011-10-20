@@ -554,6 +554,13 @@ void gfsm_automaton_arcsort_full(gfsmAutomaton *fsm, GCompareDataFunc cmpfunc, g
 /** Alias for gfsm_automaton_arcsort_full() */
 #define gfsm_automaton_arcsort_with_data(fsm,cmpfunc,data) gfsm_automaton_arcsort_full((fsm),(cmpfunc),(data))
 
+/** Collect weights on adjacent otherwise identical arcs.
+ *  Really only meaningful if automaton is arc-sorted e.g. by ::gfsmASMLower.
+ *  \param fsm  Automaton to modify
+ *  \returns modified \a fsm
+ */
+gfsmAutomaton* gfsm_automaton_arcuniq(gfsmAutomaton *fsm);
+
 //@}
 
 //-- inline definitions

@@ -19,6 +19,7 @@
 #bin_PROGRAMS = ${prog_1} ... ${prog_N}
 bin_PROGRAMS = \
 	gfsmarcsort \
+	gfsmarcuniq \
 	gfsmarith \
 	gfsmclosure \
 	gfsmcompile \
@@ -195,7 +196,18 @@ gfsmarcsort_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmarcsort_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmarcsort.gog
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmarcuniq_SOURCES = \
+	gfsmarcuniq_main.c \
+	gfsmarcuniq_cmdparser.c gfsmarcuniq_cmdparser.h
+
+gfsmarcuniq_main.o: gfsmarcuniq_cmdparser.h
+
+gfsmarcuniq_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmarcuniq_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmarcuniq.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmcomplement_SOURCES = \
