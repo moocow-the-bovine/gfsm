@@ -1,5 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.67])
+dnl AC_PREREQ([2.67])
+AC_PREREQ([2.61])
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
@@ -201,6 +202,7 @@ AC_CHECK_FUNCS([vfprintf],[],[])
 
 
 dnl v--- needed if Makefile.am uses _LTLIBRARIES targets
+AC_PROG_LIBTOOL
 LT_INIT
 
 dnl v--- for static-only libraries (non-libtool)
