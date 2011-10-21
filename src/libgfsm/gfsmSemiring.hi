@@ -109,6 +109,7 @@ gfsmSemiring *gfsm_semiring_copy(gfsmSemiring *sr)
 GFSM_INLINE
 void gfsm_semiring_free(gfsmSemiring *sr)
 {
+  g_assert(sr!=NULL);
   if (sr->type==gfsmSRTUser) gfsm_slice_free(gfsmUserSemiring,(gfsmUserSemiring*)sr);
   else gfsm_slice_free(gfsmSemiring,sr);
 }
@@ -117,6 +118,13 @@ void gfsm_semiring_free(gfsmSemiring *sr)
 /*======================================================================
  * Semiring: methods: general accessors
  */
+
+/*--------------------------------------------------------------
+ * type()
+ */
+GFSM_INLINE
+gfsmSRType gfsm_sr_type(const gfsmSemiring *sr)
+{ return sr ? sr->type : gfsmSRTUnknown; }
 
 /*--------------------------------------------------------------
  * zero()
@@ -136,7 +144,7 @@ gfsmWeight gfsm_sr_one(gfsmSemiring *sr) { return sr ? sr->one : 1; }
 GFSM_INLINE
 gboolean gfsm_sr_equal(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
-  return (sr->type == gfsmSRTUser && ((gfsmUserSemiring*)sr)->equal_func
+  return (sr && sr->type==gfsmSRTUser && ((gfsmUserSemiring*)sr)->equal_func
 	  ? ((*((gfsmUserSemiring*)sr)->equal_func)(sr,x,y)) \
 	  : (x==y));
 }
@@ -147,7 +155,7 @@ gboolean gfsm_sr_equal(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 GFSM_INLINE
 gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
-  switch (sr->type) {
+  switch (gfsm_sr_type(sr)) {
   case gfsmSRTLog:
   case gfsmSRTTropical:
     return (x < y);
@@ -176,8 +184,8 @@ gboolean gfsm_sr_less(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
  */
 GFSM_INLINE
 gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
-{ 
-  switch (sr->type) {
+{
+  switch (gfsm_sr_type(sr)) {
   case gfsmSRTBoolean:  return x || y;
   //case gfsmSRTLog:      return -log(exp(-x) + exp(-y));
   case gfsmSRTLog:      return -gfsm_log_add(-x,-y);
@@ -204,7 +212,7 @@ gfsmWeight gfsm_sr_plus(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 GFSM_INLINE
 gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
-  switch (sr->type) {
+  switch (gfsm_sr_type(sr)) {
   case gfsmSRTBoolean:  return x && y;
   case gfsmSRTLog:      
   case gfsmSRTPLog:
@@ -230,7 +238,7 @@ gfsmWeight gfsm_sr_times(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 GFSM_INLINE
 gfsmWeight gfsm_sr_inv_l(gfsmSemiring *sr, gfsmWeight x)
 {
-  switch (sr->type) {
+  switch (gfsm_sr_type(sr)) {
   case gfsmSRTBoolean: 
   case gfsmSRTFuzzy: return 1;
 
@@ -263,7 +271,7 @@ gfsmWeight gfsm_sr_inv_l(gfsmSemiring *sr, gfsmWeight x)
 GFSM_INLINE
 gfsmWeight gfsm_sr_pow(gfsmSemiring *sr, gfsmWeight x, gfsmWeight n)
 {
-  switch (sr->type) {
+  switch (gfsm_sr_type(sr)) {
   case gfsmSRTBoolean:
   case gfsmSRTFuzzy:
     return x;
@@ -297,7 +305,7 @@ gfsmWeight gfsm_sr_pow(gfsmSemiring *sr, gfsmWeight x, gfsmWeight n)
 GFSM_INLINE
 gfsmWeight gfsm_sr_star(gfsmSemiring *sr, gfsmWeight x)
 {
-  switch (sr->type) {
+  switch (gfsm_sr_type(sr)) {
   case gfsmSRTBoolean:
   case gfsmSRTTrivial:
   case gfsmSRTFuzzy:

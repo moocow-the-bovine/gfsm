@@ -137,6 +137,10 @@ void gfsm_semiring_free(gfsmSemiring *sr);
 ///\name General Accessors & Operations
 //@{
 
+/** Get type of a ::gfsmSemiring \a sr; returns gfsmSRTUnknown for sr==NULL */
+GFSM_INLINE
+gfsmSRType gfsm_sr_type(const gfsmSemiring *sr);
+
 /** Get 'zero' element of the ::gfsmSemiring* \a sr */
 GFSM_INLINE
 gfsmWeight gfsm_sr_zero(gfsmSemiring *sr);

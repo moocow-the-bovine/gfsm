@@ -81,7 +81,7 @@ void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type)
  */
 gint gfsm_sr_compare(gfsmSemiring *sr, gfsmWeight x, gfsmWeight y)
 {
-  switch (sr->type) {
+  switch (gfsm_sr_type(sr)) {
   case gfsmSRTTrivial:    return 0;
 
   case gfsmSRTLog:
