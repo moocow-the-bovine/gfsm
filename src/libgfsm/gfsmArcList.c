@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: arc lists
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2011 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -102,11 +102,15 @@ guint gfsm_arclist_length(gfsmArcList *al)
  */
 void gfsm_arclist_free(gfsmArcList *al)
 {
+#if 1
+  g_slice_free_chain_with_offset(sizeof(gfsmArcList), al, sizeof(gfsmArc));
+#else
   while (al != NULL) {
     gfsmArcList *nxt = al->next;
     gfsm_slice_free(gfsmArcList,al);
     al = nxt;
   }
+#endif
 }
 
 /*--------------------------------------------------------------

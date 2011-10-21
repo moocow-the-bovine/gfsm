@@ -94,14 +94,23 @@ void gfsm_slice_free1(gsize block_size, gpointer mem_block);
 /** Wrapper for g_slice_new(type) */
 #define gfsm_slice_new(type) g_slice_new(type)
 
+/** Wrapper for g_slice_alloc(sizeof(type)*n) */
+#define gfsm_slice_new_n(type,n) (type*)g_slice_alloc(sizeof(type)*(n))
+
 /** Wrapper for g_slice_new0(type) */
 #define gfsm_slice_new0(type) g_slice_new0(type)
+
+/** Wrapper for g_slice_alloc0(sizeof(type)*n) */
+#define gfsm_slice_new0_n(type,n) (type*)g_slice_alloc0(sizeof(type)*(n))
 
 /** Wrapper for g_slice_dup(type,mem) */
 #define gfsm_slice_dup(type,mem) g_slice_dup(type,(mem))
 
 /** Wrapper for g_slice_free(type,mem) */
 #define gfsm_slice_free(type,mem) g_slice_free(type,(type*)(mem))
+
+/** Wrapper for g_slice_free1(sizeof(type)*n,mem) */
+#define gfsm_slice_free_n(type,mem,n) g_slice_free1(sizeof(type)*(n),(gpointer)(mem))
 
 //@}
 
