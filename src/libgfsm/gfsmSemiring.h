@@ -113,7 +113,6 @@ GFSM_INLINE
 gfsmSemiring *gfsm_semiring_new(gfsmSRType type);
 
 /** Initialize and return a builtin semiring */
-GFSM_INLINE
 void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type);
 
 /** Initialize and return a semiring */

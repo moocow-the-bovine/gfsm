@@ -209,7 +209,7 @@ gint gfsm_arc_compare_bymask_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *a
 gint gfsm_arc_compare_bymask(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *acdata);
 
 /** Guts for gfsm_arc_compare_bymask_inline(): compare arcs w.r.t a single attribute \a cmp.
- *  \note gcc deems these calls "unlikely" and refuses to inline...
+ *  \note gcc deems all but the first call "unlikely" in gfsm_arc_compare_bymask() and refuses to inline...
  */
 GFSM_INLINE
 gint gfsm_arc_compare_bymask_1_(gfsmArc *a1, gfsmArc *a2, gfsmArcComp cmp, gfsmArcCompData *acdata);

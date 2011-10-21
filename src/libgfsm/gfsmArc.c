@@ -134,7 +134,6 @@ gfsmArcCompMask gfsm_acmask_from_args(gfsmArcComp cmp0, ...)
 gint gfsm_arc_compare_bymask(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *acdata)
 { return gfsm_arc_compare_bymask_inline(a1,a2,acdata); }
 
-
 /*--------------------------------------------------------------
  * acmask_to_chars()
  */

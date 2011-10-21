@@ -24,6 +24,7 @@
 #define my_compiler ((gfsmRegexCompiler*)yyextra)
 #define my_gstr     (my_compiler->gstr)
 #define my_abet     (my_compiler->abet)
+#define YY_NO_INPUT 1
 
 %}
 

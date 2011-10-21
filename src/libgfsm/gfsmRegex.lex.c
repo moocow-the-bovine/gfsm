@@ -9,7 +9,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 33
+#define YY_FLEX_SUBMINOR_VERSION 35
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -31,7 +31,7 @@
 
 /* C99 systems have <inttypes.h>. Non-C99 systems may or may not. */
 
-#if __STDC_VERSION__ >= 199901L
+#if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 
 /* C99 says to define __STDC_LIMIT_MACROS before including stdint.h,
  * if you want the limit (max/min) macros for int types. 
@@ -54,7 +54,6 @@ typedef int flex_int32_t;
 typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
-#endif /* ! C99 */
 
 /* Limits of integral types. */
 #ifndef INT8_MIN
@@ -85,6 +84,8 @@ typedef unsigned int flex_uint32_t;
 #define UINT32_MAX             (4294967295U)
 #endif
 
+#endif /* ! C99 */
+
 #endif /* ! FLEXINT_H */
 
 #ifdef __cplusplus
@@ -94,11 +95,12 @@ typedef unsigned int flex_uint32_t;
 
 #else	/* ! __cplusplus */
 
-#if __STDC__
+/* C99 requires __STDC__ to be defined as 1. */
+#if defined (__STDC__)
 
 #define YY_USE_CONST
 
-#endif	/* __STDC__ */
+#endif	/* defined (__STDC__) */
 #endif	/* ! __cplusplus */
 
 #ifdef YY_USE_CONST
@@ -134,8 +136,6 @@ typedef void* yyscan_t;
 #define yycolumn (YY_CURRENT_BUFFER_LVALUE->yy_bs_column)
 #define yy_flex_debug yyg->yy_flex_debug_r
 
-int gfsmRegex_yylex_init (yyscan_t* scanner);
-
 /* Enter a start condition.  This macro really ought to take a parameter,
  * but we do it the disgusting crufty way forced on us by the ()-less
  * definition of BEGIN.
@@ -159,7 +159,15 @@ int gfsmRegex_yylex_init (yyscan_t* scanner);
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k.
+ * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
+ * Ditto for the __ia64__ case accordingly.
+ */
+#define YY_BUF_SIZE 32768
+#else
 #define YY_BUF_SIZE 16384
+#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -206,14 +214,9 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
 
 #define unput(c) yyunput( c, yyg->yytext_ptr , yyscanner )
 
-/* The following is because we cannot portably get our hands on size_t
- * (without autoconf's help, which isn't available because we want
- * flex-generated scanners to compile on their own).
- */
-
 #ifndef YY_TYPEDEF_YY_SIZE_T
 #define YY_TYPEDEF_YY_SIZE_T
-typedef unsigned int yy_size_t;
+typedef size_t yy_size_t;
 #endif
 
 #ifndef YY_STRUCT_YY_BUFFER_STATE
@@ -563,6 +566,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[40] =
 #define my_compiler ((gfsmRegexCompiler*)yyextra)
 #define my_gstr     (my_compiler->gstr)
 #define my_abet     (my_compiler->abet)
+#define YY_NO_INPUT 1
 
 /*======================================================================
  * Flex Definitions
@@ -577,7 +581,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[40] =
 /*======================================================================
  * Rules
  */
-#line 581 "gfsmRegex.lex.c"
+#line 585 "gfsmRegex.lex.c"
 
 #define INITIAL 0
 #define STATE_ESCAPE 1
@@ -642,6 +646,10 @@ static int yy_init_globals (yyscan_t yyscanner );
      * from bison output in section 1.*/
     #    define yylval yyg->yylval_r
     
+int gfsmRegex_yylex_init (yyscan_t* scanner);
+
+int gfsmRegex_yylex_init_extra (YY_EXTRA_TYPE user_defined,yyscan_t* scanner);
+
 /* Accessor methods to globals.
    These are made visible to non-reentrant scanners for convenience. */
 
@@ -709,7 +717,12 @@ static int input (yyscan_t yyscanner );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k */
+#define YY_READ_BUF_SIZE 16384
+#else
 #define YY_READ_BUF_SIZE 8192
+#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -717,7 +730,7 @@ static int input (yyscan_t yyscanner );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO (void) fwrite( yytext, yyleng, 1, yyout )
+#define ECHO do { if (fwrite( yytext, yyleng, 1, yyout )) {} } while (0)
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -813,10 +826,10 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 51 "gfsmRegex.lex.l"
+#line 52 "gfsmRegex.lex.l"
 
 
-#line 820 "gfsmRegex.lex.c"
+#line 833 "gfsmRegex.lex.c"
 
     yylval = yylval_param;
 
@@ -915,7 +928,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 53 "gfsmRegex.lex.l"
+#line 54 "gfsmRegex.lex.l"
 {
   yylval->gs = gfsm_gstring_new_bytes(yytext,yyleng);
   return TOK_STRING;
@@ -923,17 +936,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 58 "gfsmRegex.lex.l"
+#line 59 "gfsmRegex.lex.l"
 { BEGIN(STATE_ESCAPE); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 60 "gfsmRegex.lex.l"
+#line 61 "gfsmRegex.lex.l"
 { BEGIN(STATE_COMMENT); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 62 "gfsmRegex.lex.l"
+#line 63 "gfsmRegex.lex.l"
 { 
   BEGIN(STATE_BRACKETED);
   return '[';
@@ -941,93 +954,93 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 67 "gfsmRegex.lex.l"
+#line 68 "gfsmRegex.lex.l"
 { BEGIN(STATE_WEIGHT); return '<'; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 69 "gfsmRegex.lex.l"
+#line 70 "gfsmRegex.lex.l"
 { return '('; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 70 "gfsmRegex.lex.l"
+#line 71 "gfsmRegex.lex.l"
 { return ')'; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 72 "gfsmRegex.lex.l"
+#line 73 "gfsmRegex.lex.l"
 { return '*'; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 73 "gfsmRegex.lex.l"
+#line 74 "gfsmRegex.lex.l"
 { return '+'; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 74 "gfsmRegex.lex.l"
+#line 75 "gfsmRegex.lex.l"
 { BEGIN(STATE_UINT); return '|'; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 75 "gfsmRegex.lex.l"
+#line 76 "gfsmRegex.lex.l"
 { return '?'; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 76 "gfsmRegex.lex.l"
+#line 77 "gfsmRegex.lex.l"
 { return '!'; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 77 "gfsmRegex.lex.l"
+#line 78 "gfsmRegex.lex.l"
 { return '|'; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 78 "gfsmRegex.lex.l"
+#line 79 "gfsmRegex.lex.l"
 { return '&'; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 79 "gfsmRegex.lex.l"
+#line 80 "gfsmRegex.lex.l"
 { return ':'; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 80 "gfsmRegex.lex.l"
+#line 81 "gfsmRegex.lex.l"
 { return '@'; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 81 "gfsmRegex.lex.l"
+#line 82 "gfsmRegex.lex.l"
 { return '-';  /*"/1"{return PROJ1;}*/ /*"/2"{return PROJ2;}*/ }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 83 "gfsmRegex.lex.l"
+#line 84 "gfsmRegex.lex.l"
 { return '$'; /* non-AT&T: determinize */ }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 84 "gfsmRegex.lex.l"
+#line 85 "gfsmRegex.lex.l"
 { return '%'; /* non-AT&T: rmepsilon */ }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 85 "gfsmRegex.lex.l"
+#line 86 "gfsmRegex.lex.l"
 { return '~'; /* non-AT&T: connect */ }
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 87 "gfsmRegex.lex.l"
+#line 88 "gfsmRegex.lex.l"
 { /* ignore */ }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 89 "gfsmRegex.lex.l"
+#line 90 "gfsmRegex.lex.l"
 {
   yylval->c = yytext[0];
   return TOK_CHAR;
@@ -1035,7 +1048,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 96 "gfsmRegex.lex.l"
+#line 97 "gfsmRegex.lex.l"
 {
   yylval->w = strtod(yytext,NULL);
   return TOK_WEIGHT;
@@ -1043,7 +1056,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 101 "gfsmRegex.lex.l"
+#line 102 "gfsmRegex.lex.l"
 {
   BEGIN(INITIAL);
   return '>';
@@ -1051,7 +1064,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 108 "gfsmRegex.lex.l"
+#line 109 "gfsmRegex.lex.l"
 {
   BEGIN(INITIAL);
   yylval->u = strtol(yytext,NULL,0);
@@ -1061,12 +1074,12 @@ YY_RULE_SETUP
 case 26:
 /* rule 26 can match eol */
 YY_RULE_SETUP
-#line 115 "gfsmRegex.lex.l"
+#line 116 "gfsmRegex.lex.l"
 { BEGIN(INITIAL); /* ignore comments */ }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 120 "gfsmRegex.lex.l"
+#line 121 "gfsmRegex.lex.l"
 {
   BEGIN(INITIAL);
   yylval->c = yytext[0];
@@ -1075,7 +1088,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 127 "gfsmRegex.lex.l"
+#line 128 "gfsmRegex.lex.l"
 {
   g_string_append_len(my_gstr,yytext,yyleng);
 }
@@ -1083,7 +1096,7 @@ YY_RULE_SETUP
 case 29:
 /* rule 29 can match eol */
 YY_RULE_SETUP
-#line 130 "gfsmRegex.lex.l"
+#line 131 "gfsmRegex.lex.l"
 {
   unput(']');
   BEGIN(STATE_BRACKETED_SEP);
@@ -1095,7 +1108,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 138 "gfsmRegex.lex.l"
+#line 139 "gfsmRegex.lex.l"
 {
   g_string_append(my_gstr, yytext);
 }
@@ -1103,7 +1116,7 @@ YY_RULE_SETUP
 case 31:
 /* rule 31 can match eol */
 YY_RULE_SETUP
-#line 141 "gfsmRegex.lex.l"
+#line 142 "gfsmRegex.lex.l"
 {
   unput('=');
   BEGIN(STATE_BRACKETED_SEP);
@@ -1116,7 +1129,7 @@ YY_RULE_SETUP
 case 32:
 /* rule 32 can match eol */
 YY_RULE_SETUP
-#line 149 "gfsmRegex.lex.l"
+#line 150 "gfsmRegex.lex.l"
 {
   unput(' ');
   BEGIN(STATE_BRACKETED_SEP);
@@ -1128,14 +1141,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 157 "gfsmRegex.lex.l"
+#line 158 "gfsmRegex.lex.l"
 {
   BEGIN(STATE_BRACKETED_ESCAPE);
 }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 162 "gfsmRegex.lex.l"
+#line 163 "gfsmRegex.lex.l"
 {
   BEGIN(INITIAL);
   if (my_gstr->len) {
@@ -1146,7 +1159,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 169 "gfsmRegex.lex.l"
+#line 170 "gfsmRegex.lex.l"
 {
   BEGIN(STATE_BRACKETED);
   g_string_truncate(my_gstr,0);
@@ -1155,7 +1168,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 174 "gfsmRegex.lex.l"
+#line 175 "gfsmRegex.lex.l"
 {
   BEGIN(STATE_BRACKETED);
   if (my_gstr->len) {
@@ -1166,7 +1179,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 183 "gfsmRegex.lex.l"
+#line 184 "gfsmRegex.lex.l"
 {
   BEGIN(STATE_BRACKETED);
   g_string_append_c(my_gstr, yytext[0]);
@@ -1174,7 +1187,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 190 "gfsmRegex.lex.l"
+#line 191 "gfsmRegex.lex.l"
 {
   gfsm_scanner_carp(yyextra, "bad character '%s'", yytext);
   return TOK_UNKNOWN;
@@ -1182,10 +1195,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 195 "gfsmRegex.lex.l"
+#line 196 "gfsmRegex.lex.l"
 ECHO;
 	YY_BREAK
-#line 1189 "gfsmRegex.lex.c"
+#line 1202 "gfsmRegex.lex.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STATE_ESCAPE):
 case YY_STATE_EOF(STATE_BRACKETED):
@@ -1447,6 +1460,14 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 	else
 		ret_val = EOB_ACT_CONTINUE_SCAN;
+
+	if ((yy_size_t) (yyg->yy_n_chars + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
+		/* Extend the array by 50%, plus the number we really need. */
+		yy_size_t new_size = yyg->yy_n_chars + number_to_move + (yyg->yy_n_chars >> 1);
+		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) gfsmRegex_yyrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,new_size ,yyscanner );
+		if ( ! YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
+			YY_FATAL_ERROR( "out of dynamic memory in yy_get_next_buffer()" );
+	}
 
 	yyg->yy_n_chars += number_to_move;
 	YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[yyg->yy_n_chars] = YY_END_OF_BUFFER_CHAR;
@@ -1887,7 +1908,9 @@ static void gfsmRegex_yyensure_buffer_stack (yyscan_t yyscanner)
 		yyg->yy_buffer_stack = (struct yy_buffer_state**)gfsmRegex_yyalloc
 								(num_to_alloc * sizeof(struct yy_buffer_state*)
 								, yyscanner);
-		
+		if ( ! yyg->yy_buffer_stack )
+			YY_FATAL_ERROR( "out of dynamic memory in gfsmRegex_yyensure_buffer_stack()" );
+								  
 		memset(yyg->yy_buffer_stack, 0, num_to_alloc * sizeof(struct yy_buffer_state*));
 				
 		yyg->yy_buffer_stack_max = num_to_alloc;
@@ -1905,6 +1928,8 @@ static void gfsmRegex_yyensure_buffer_stack (yyscan_t yyscanner)
 								(yyg->yy_buffer_stack,
 								num_to_alloc * sizeof(struct yy_buffer_state*)
 								, yyscanner);
+		if ( ! yyg->yy_buffer_stack )
+			YY_FATAL_ERROR( "out of dynamic memory in gfsmRegex_yyensure_buffer_stack()" );
 
 		/* zero only the new slots.*/
 		memset(yyg->yy_buffer_stack + yyg->yy_buffer_stack_max, 0, grow_size * sizeof(struct yy_buffer_state*));
@@ -1963,8 +1988,8 @@ YY_BUFFER_STATE gfsmRegex_yy_scan_string (yyconst char * yystr , yyscan_t yyscan
 
 /** Setup the input buffer state to scan the given bytes. The next call to gfsmRegex_yylex() will
  * scan from a @e copy of @a bytes.
- * @param bytes the byte buffer to scan
- * @param len the number of bytes in the buffer pointed to by @a bytes.
+ * @param yybytes the byte buffer to scan
+ * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
  * @param yyscanner The scanner object.
  * @return the newly allocated buffer state object.
  */
@@ -2211,6 +2236,42 @@ int gfsmRegex_yylex_init(yyscan_t* ptr_yy_globals)
     return yy_init_globals ( *ptr_yy_globals );
 }
 
+/* gfsmRegex_yylex_init_extra has the same functionality as gfsmRegex_yylex_init, but follows the
+ * convention of taking the scanner as the last argument. Note however, that
+ * this is a *pointer* to a scanner, as it will be allocated by this call (and
+ * is the reason, too, why this function also must handle its own declaration).
+ * The user defined value in the first argument will be available to gfsmRegex_yyalloc in
+ * the yyextra field.
+ */
+
+int gfsmRegex_yylex_init_extra(YY_EXTRA_TYPE yy_user_defined,yyscan_t* ptr_yy_globals )
+
+{
+    struct yyguts_t dummy_yyguts;
+
+    gfsmRegex_yyset_extra (yy_user_defined, &dummy_yyguts);
+
+    if (ptr_yy_globals == NULL){
+        errno = EINVAL;
+        return 1;
+    }
+	
+    *ptr_yy_globals = (yyscan_t) gfsmRegex_yyalloc ( sizeof( struct yyguts_t ), &dummy_yyguts );
+	
+    if (*ptr_yy_globals == NULL){
+        errno = ENOMEM;
+        return 1;
+    }
+    
+    /* By setting to 0xAA, we expose bugs in
+    yy_init_globals. Leave at 0x00 for releases. */
+    memset(*ptr_yy_globals,0x00,sizeof(struct yyguts_t));
+    
+    gfsmRegex_yyset_extra (yy_user_defined, *ptr_yy_globals);
+    
+    return yy_init_globals ( *ptr_yy_globals );
+}
+
 static int yy_init_globals (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
@@ -2322,7 +2383,7 @@ void gfsmRegex_yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 195 "gfsmRegex.lex.l"
+#line 196 "gfsmRegex.lex.l"
 
 
 

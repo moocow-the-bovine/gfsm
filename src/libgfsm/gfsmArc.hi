@@ -207,6 +207,8 @@ gint gfsm_arc_compare_bymask_1_(gfsmArc *a1, gfsmArc *a2, gfsmArcComp cmp, gfsmA
 }
 
 //--------------------------------------------------------------
+//#pragma GCC diagnostic push /* gcc >= v4.7 */
+//#pragma GCC diagnostic ignored "-Winline"
 GFSM_INLINE
 gint gfsm_arc_compare_bymask_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *acdata)
 {
@@ -226,6 +228,7 @@ gint gfsm_arc_compare_bymask_inline(gfsmArc *a1, gfsmArc *a2, gfsmArcCompData *a
   if ( (rc=gfsm_arc_compare_bymask_1_(a1,a2,gfsm_acmask_nth(acdata->mask,5),acdata)) ) return rc;
   return 0;
 }
+//#pragma GCC diagnostic pop /* gcc >= v4.7 */
 
 
 /*======================================================================

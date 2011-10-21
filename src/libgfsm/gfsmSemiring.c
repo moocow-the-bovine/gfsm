@@ -31,6 +31,45 @@
  * Semiring: methods: constructors etc.
  */
 
+//--------------------------------------------------------------
+void gfsm_semiring_init(gfsmSemiring *sr, gfsmSRType type)
+{
+  memset(sr, 0, type==gfsmSRTUser ? sizeof(gfsmUserSemiring) : sizeof(gfsmSemiring));
+  sr->type = type;
+  switch (type) {
+  case gfsmSRTBoolean:
+    sr->zero = 0;
+    sr->one  = 1;
+    break;
+  case gfsmSRTLog:
+    sr->zero = FLT_MAX;
+    sr->one  = 0;
+    break;
+  case gfsmSRTPLog:
+    sr->zero = -FLT_MAX;
+    sr->one  = 0;
+    break;
+  case gfsmSRTTrivial:
+    sr->zero = 0;
+    sr->one  = 0;
+    break;
+  case gfsmSRTTropical:
+    sr->zero = FLT_MAX;
+    sr->one  = 0;
+    break;
+  case gfsmSRTArctic:
+    sr->zero = -FLT_MAX;
+    sr->one  = 0;
+    break;
+  case gfsmSRTFuzzy:
+  case gfsmSRTProb:
+  case gfsmSRTReal:
+  default:
+    sr->zero = 0;
+    sr->one  = 1;
+    break;
+  }
+}
 
 
 /*======================================================================
