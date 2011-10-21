@@ -28,9 +28,9 @@
  */
 
 //--------------------------------------------------------------
-gpointer gfsm_array_lower_bound(GArray *array, gconstpointer key, GCompareDataFunc compare_func, gpointer data)
+gpointer gfsm_array_lower_bound(GArray *array, guint element_size, gconstpointer key, GCompareDataFunc compare_func, gpointer data)
 {
-  guint element_size = g_array_get_element_size(array);
+  //guint element_size = g_array_get_element_size(array); //-- requires glib > 2.16
   gchar *min  = array->data;
   gchar *max  = array->data + array->len*element_size;
   while (/*min &&*/ min < max) {

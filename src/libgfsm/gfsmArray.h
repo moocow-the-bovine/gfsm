@@ -35,17 +35,18 @@
 /// \name GArray Methods
 //@{
 
-/** Search a ::GArray \a array of elements sorted according to \a compare_func
+/** Search a ::GArray \a array of elements of size \a element_size sorted according to \a compare_func
  *  for the first element not less-than or equal to \a key, using \a data as comparison data.
  *
  * \param array ::GArray to search
+ * \param element_size size of elements in \a array
  * \param key  key element to search for
  * \param compare_func comparison function for search (array should be sorted consistently with \a compare_func)
  * \param data comparison data
  * 
  * \returns a pointer to the desired element or \a NULL if no such element is found.
  */
-gpointer gfsm_array_lower_bound(GArray *array, gconstpointer key, GCompareDataFunc compare_func, gpointer data);
+gpointer gfsm_array_lower_bound(GArray *array, guint element_size, gconstpointer key, GCompareDataFunc compare_func, gpointer data);
 //@}
 
 /*======================================================================

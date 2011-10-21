@@ -195,7 +195,7 @@ void gfsm_arc_table_sort_bymask(gfsmArcTable *tab, gfsmArcCompMask m, gfsmSemiri
 GFSM_INLINE
 gfsmArc *gfsm_arc_table_seek(gfsmArcTable *tab, const gfsmArc *key, GCompareDataFunc compare_func, gpointer data)
 {
-  return (gfsmArc*)gfsm_array_lower_bound(tab, key, compare_func, data);
+  return (gfsmArc*)gfsm_array_lower_bound(tab, sizeof(gfsmArc), key, compare_func, data);
 }
 
 //--------------------------------------------------------------
