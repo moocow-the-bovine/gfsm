@@ -255,7 +255,7 @@ AC_MSG_CHECKING([whether to build debug version])
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING([--enable-debug],[build debug version (default=no)]))
 
-if test "$enable_debug" == "yes" ; then
+if test "$enable_debug" = "yes" ; then
    AC_MSG_RESULT(yes)
 
    dnl-- this breaks default shared-library building
@@ -265,7 +265,7 @@ if test "$enable_debug" == "yes" ; then
    dnl    + libtool  1.5.20
    dnl
    dnl AC_DISABLE_SHARED
-   if test "$GCC" == "yes" ; then
+   if test "$GCC" = "yes" ; then
      AC_MSG_NOTICE([GNU C compiler detected: setting appropriate debug flags])
      gfsm_OFLAGS="-g"
    else
@@ -280,7 +280,7 @@ if test "$enable_debug" == "yes" ; then
    CONFIG_OPTIONS="DEBUG=1"
 else
   AC_MSG_RESULT(no)
-  if test "$GCC" == "yes"; then
+  if test "$GCC" = "yes"; then
    case "$CFLAGS" in
     *-O*|*-g*)
       AC_MSG_NOTICE([CFLAGS appears already to contain optimization flags - skipping])
@@ -832,7 +832,7 @@ AC_ARG_ENABLE(warnings,
 
 if test "$enable_warnings" != "no" ; then
    AC_MSG_RESULT(yes)
-   if test "$GCC" == "yes"; then
+   if test "$GCC" = "yes"; then
      AC_MSG_NOTICE([GNU C compiler detected: setting appropriate warning flags])
      gfsm_WFLAGS="-Wall" #-Winline
    else

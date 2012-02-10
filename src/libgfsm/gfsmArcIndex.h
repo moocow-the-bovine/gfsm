@@ -28,9 +28,7 @@
 #ifndef _GFSM_ARCINDEX_H
 #define _GFSM_ARCINDEX_H
 
-#include <gfsmAutomaton.h>
 #include <gfsmArcIter.h>
-#include <gfsmIO.h>
 
 /*======================================================================
  * ReverseArcIndex

@@ -95,6 +95,7 @@ gint gfsm_rmeps_arc_compare_lut(const gfsmArc *a, const gfsmArc *b)
 # define _nodebug(code)
 #endif
 
+//-- debugging macros
 #define _arcfmt      "(%u --%u:%u--> %u / %g)"
 #define _arcargs(ap) (ap)->source, (ap)->lower, (ap)->upper, (ap)->target, (ap)->weight
 #define _showpalp(prefix) \
@@ -114,20 +115,17 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
   gfsmState *pptr, *qptr;
   gfsmArcList *pal,*pal1, *qal, **palp;
   gint cmp;
-  //_debug(gfsmError *err=NULL);
 
   //-- pre-sort arcs
   if (gfsm_acmask_nth(fsm->flags.sort_mode,0) != gfsmACLower
       || gfsm_acmask_nth(fsm->flags.sort_mode,1) != gfsmACUpper
       || gfsm_acmask_nth(fsm->flags.sort_mode,2) != gfsmACTarget)
     {
-      //_debug(fprintf(stderr, "rmeps[sort]\n"));
       gfsm_automaton_arcsort(fsm, gfsm_acmask_from_chars("lut"));
     }
 
   //-- setup priority queue (hh2010:1-2)
   //   : moo: collect (q --eps:eps--> r) runs in the style of gfsm_automaton_arcuniq()
-  //_debug(fprintf(stderr, "rmeps[init]\n"));
   pqueue = gfsm_pqueue_new((GCompareDataFunc)gfsm_rmeps_arc_compare, NULL);
   for (pid=0; pid < fsm->states->len; pid++) {
     pptr = gfsm_automaton_open_state(fsm,pid);
@@ -136,7 +134,6 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
     //-- seek epsilon arcs (should be initial since automaton is primarily sorted on (lower,upper))
     for (pal=pptr->arcs; pal != NULL; pal=pal->next) {
       if (pal->arc.lower != gfsmEpsilon || pal->arc.upper != gfsmEpsilon) {
-	//_debug(fprintf(stderr, "rmeps[init]: break: " _arcfmt "\n", _arcargs(&pal->arc)));
 	break;
       }
 
@@ -149,23 +146,21 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 
       //-- initialize priority queue
       gfsm_pqueue_push(pqueue, &(pal->arc));
-      //_debug(fprintf(stderr, "rmeps[init]: push" _arcfmt "\n", _arcargs(&pal->arc)));
+      _debug(fprintf(stderr, "rmeps[init]: push" _arcfmt "\n", _arcargs(&pal->arc)));
     }
   }
 
-  //-- disable "smart" arc-insertion
+  //-- disable "smart" arc-insertion: NO!
   //fsm->flags.sort_mode = gfsmASMNone;
 
   //-- queue-processing loop (hh2010:3-24)
-  //_debug(fprintf(stderr, "rmeps[main]\n"));
   while (!gfsm_pqueue_isempty(pqueue)) {
     //-- dequeue next arc to process, and remove it from the fsm (hh2010:4-5)
     pwq  = (gfsmArc*)gfsm_pqueue_pop(pqueue);
     pptr = gfsm_automaton_open_state(fsm,pwq->source);
     pptr->arcs = gfsm_arclist_remove_node(pptr->arcs, (gfsmArcList*)pwq);
 
-    //_debug(fprintf(stderr,"rmeps[main]: pop" _arcfmt "\n", _arcargs(pwq)));
-    //_debug(gfsm_automaton_print_file(fsm,stderr,&err));
+    _debug(fprintf(stderr,"rmeps[main]: pop" _arcfmt "\n", _arcargs(pwq)));
 
     //-- prelim: get final weight for pptr
     if (pptr->is_final)
@@ -188,33 +183,24 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 
       //-- adopt outgoing arcs from eps-reachable state q (hh2010:12-18)
       for (qal=qptr->arcs; qal != NULL; qal=qal->next) {
-	//_debug(fprintf(stderr,"rmeps[main]: adopt" _arcfmt " . " _arcfmt "\n", _arcargs(pwq), _arcargs(&qal->arc)));
-	//_debug(_showpalp("rmeps[main]: adopt: "));
+	_debug(fprintf(stderr,"rmeps[main]: adopt" _arcfmt " . " _arcfmt "\n", _arcargs(pwq), _arcargs(&qal->arc)));
 
 	//-- seek matching arc from p (~hh2010:13)
 	for (cmp=-1; *palp; palp=&((*palp)->next)) {
 	  cmp = gfsm_rmeps_arc_compare_lut(&(*palp)->arc, &qal->arc);
-	  //_debug(fprintf(stderr,"rmeps[main]: adopt: cmp(" _arcfmt " <=> " _arcfmt ") = %d\n", _arcargs(&(*palp)->arc), _arcargs(&qal->arc), cmp));
 	  if (cmp >= 0) break;
 	}
-
 	if (cmp==0) {
 	  //-- found a structure-matching arc: modify it (hh2010:14)
-	  //_debug(fprintf(stderr,"rmeps[main]: adopt: found " _arcfmt "\n", _arcargs(&(*palp)->arc)));
 	  (*palp)->arc.weight = gfsm_sr_plus(fsm->sr, (*palp)->arc.weight, gfsm_sr_times(fsm->sr, pwq->weight, qal->arc.weight));
-	  //_debug(gfsm_automaton_print_file(fsm,stderr,&err));
 	}
 	else {
 	  //-- no matching arc: insert a new one (hh2010:15-18)
-	  //_debug(fprintf(stderr,"rmeps[main]: adopt: NOT found\n"));
-	  //_debug(_showpalp("rmeps[main]: adopt: "));
 	  pal1  = gfsm_arclist_new_full(pwq->source, qal->arc.target, qal->arc.lower, qal->arc.upper, gfsm_sr_times(fsm->sr, pwq->weight, qal->arc.weight), *palp);
 	  *palp = pal1;
-	  //_debug(gfsm_automaton_print_file(fsm,stderr,&err));
 	  if (qal->arc.lower==gfsmEpsilon && qal->arc.upper==gfsmEpsilon) {
 	    //-- ... and maybe enqueue it (hh2010:17-18)
 	    gfsm_pqueue_push(pqueue, pal1);
-	    //_debug(fprintf(stderr, "rmeps[main]: push" _arcfmt "\n", _arcargs(&pal1->arc)));
 	  }
 	}
       } //-- end loop: arcs(q)
@@ -238,9 +224,6 @@ gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
     gfsm_arclist_free_1((gfsmArcList*)pwq);
     gfsm_automaton_close_state(fsm,pptr);
   }
-
-  //-- implicit connect (hh2010:25)
-  //gfsm_automaton_connect(fsm);
 
   //-- cleanup & return
   gfsm_pqueue_free(pqueue);

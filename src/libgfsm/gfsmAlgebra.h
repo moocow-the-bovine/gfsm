@@ -29,7 +29,6 @@
 #define _GFSM_ALGEBRA_H
 
 #include <gfsmCompound.h>
-#include <gfsmArcIter.h>
 #include <gfsmArcIndex.h>
 
 /*======================================================================
@@ -139,8 +138,8 @@ gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
  *    Mapping from (\a fsm1,\a fsm2,\a filter) ::gfsmComposeState s to \a composition (::gfsmStateId)s,
  *    if it is passed as \a NULL, a temporary enum will be created and freed.
  *
- *  \sa Mohri, Pereira, and Riley (1996) "Weighted Automata in Text and Speech Processing",
- *      Proc. ECAI '96, John Wiley & Sons, Ltd.
+ *  \sa Mohri, Pereira, and Riley (1996), "Weighted Automata in Text and Speech Processing",
+ *      In: <em>Proc. ECAI '96</em>, John Wiley & Sons, Ltd.
  *
  *  \returns \a composition
  */
@@ -374,7 +373,8 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair  sp,
 //@{
 
 /** Minimize an automaton, treating transducers as pair-acceptors.
- *  Simple implementation of Brzozowski (1963) algorithm.
+ *  Just a wrapper for \c gfsm_automaton_minimimize_full(fsm,TRUE).
+ *
  *  \note pseudo-destructive on \a fsm
  *
  *  \param fsm Automaton to minimize.
@@ -382,13 +382,17 @@ gfsmStateId gfsm_automaton_intersect_visit_(gfsmStatePair  sp,
  */
 gfsmAutomaton *gfsm_automaton_minimize(gfsmAutomaton *fsm);
 
-/** Quasi-minimization using Brzozowski (1963) algorithm,
- *  with optional epsilon-removal. 
- *  \note pseudo-destructive on \a fsm
+/** Quasi-minimization using Brzozowski (1963) algorithm, with optional epsilon-removal. 
+ * \note pseudo-destructive on \a fsm
  *
- *  \param fsm Automaton to minimize.
- *  \param rmeps Whether to include epsilon-removal (true minimization) or not (quasi-minimization)
- *  \returns (quasi-)minimized \a fsm
+ * \sa J. A. Brzozowski, "Canonical regular expressions and minimal state graphs for definite
+ *  events", In: <em>Proc. Sympos. Math. Theory of Automata (New York, 1962)</em>,
+ *  Polytechnic Press of Polytechnic Inst. of Brooklyn, Brooklyn, NY, pp. 529–561,
+ *  URL: http://www.ams.org/mathscinet-getitem?mr=0175719
+ *
+ * \param fsm Automaton to minimize.
+ * \param rmeps Whether to include epsilon-removal (true minimization) or not (quasi-minimization)
+ * \returns (quasi-)minimized \a fsm
  */
 gfsmAutomaton *gfsm_automaton_minimize_full(gfsmAutomaton *fsm, gboolean rmeps);
 
@@ -497,35 +501,24 @@ gfsmAutomaton *gfsm_automaton_reverse(gfsmAutomaton *fsm);
 //------------------------------
 ///\name gfsmRmEpsilon.c: Epsilon Removal
 //@{
-/**
- * Remove epsilon arcs from \a fsm.
+
+/** Remove epsilon arcs from \a fsm.
  * - Destructively alters \a fsm.
- * - Multiple epsilon-paths between two states may not be weighted correctly in the output automaton.
- * .
+ * - Implementation of incremental algorithm from Hanneforth & de la Higueara (2010).
  *
- * \warning negative-cost epsilon cycles in \a fsm will cause infinite recursion!
+ * \warning negative-cost epsilon cycles in \a fsm will cause an infinite loop!
+ *
+ * \sa T. Hanneforth & C. de la Higuera (2010),
+ *  "ε-Removal by Loop Reduction for Finite-state Automata over Complete Semirings."
+ *  In T. Hanneforth and G. Fanselow, editors, <em>Language and Logos: Studies in
+ *  Theoretical and Computational Linguistics</em>, volume 72 of Studia grammatica.
+ *  Akademie Verlag, Berlin.  ISBN 978-3-05-004931-1.
  *
  * \param fsm Automaton
  * \returns \a fsm
  */
 gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm);
 
-/* Pass-1 guts for gfsm_automaton_rmepsilon(): populates the mapping \a sp2wh
- *  with state-pairs (qid_noeps,qid_eps)=>weight for all
- *  \a qid_eps epsilon-reachable from \a qid_noeps in \a fsm
- */
-/*
-void gfsm_automaton_rmeps_visit_state_(gfsmAutomaton *fsm,
-				       gfsmStateId qid_noeps,
-				       gfsmStateId qid_eps,
-				       gfsmWeight weight_eps,
-				       gfsmStatePair2WeightHash *sp2wh
-				       );
-*/
-
-
-/* Pass-2 for gfsm_automaton_rmepsilon(): arc-adoption iterator */
-//void gfsm_automaton_rmeps_pass2_foreach_func_(gfsmStatePair *sp, gpointer pw, gfsmAutomaton *fsm);
 //@}
 
 //------------------------------
@@ -558,8 +551,8 @@ gfsmAutomaton *gfsm_automaton_union(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
  *  \todo bestpath() ?
  *  \todo encode() ?
  *  \todo equiv() ?
- *  \todo minimize() ?
  *  \todo deterministic union ?
+ *  \todo xerox-style property-savvy lookup()?
  */
 
 #endif /* _GFSM_ALGEBRA_H */
