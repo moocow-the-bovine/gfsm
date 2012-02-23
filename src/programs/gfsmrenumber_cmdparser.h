@@ -19,11 +19,17 @@ extern "C" {
  */
 
 struct gengetopt_args_info {
+  int affine_flag;	 /* Just close state-enumeration gaps and map root to zero (default) (default=0). */
+  int depth_flag;	 /* Enumerate states by depth-first search (default=0). */
+  int breadth_flag;	 /* Enumerate states by breadth-first search (default=0). */
   int compress_arg;	 /* Specify compression level of output file. (default=-1). */
   char * output_arg;	 /* Specifiy output file (default=stdout). (default=-). */
 
   int help_given;	 /* Whether help was given */
   int version_given;	 /* Whether version was given */
+  int affine_given;	 /* Whether affine was given */
+  int depth_given;	 /* Whether depth was given */
+  int breadth_given;	 /* Whether breadth was given */
   int compress_given;	 /* Whether compress was given */
   int output_given;	 /* Whether output was given */
   

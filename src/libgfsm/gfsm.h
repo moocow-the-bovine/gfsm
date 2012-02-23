@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: top-level
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2012 Bryan Jurish.
  *
  * For information on usage and redistribution, and for a DISCLAIMER
  * OF ALL WARRANTIES, see the file "COPYING" in this distribution.
@@ -56,6 +56,7 @@ extern "C" {
 #include <gfsmAutomaton.h>
 #include <gfsmArcIter.h>
 #include <gfsmArcIndex.h>
+#include <gfsmStateSort.h>
 //#include <gfsmWStateSet.h>
 #include <gfsmIO.h>
 #include <gfsmAutomatonIO.h>

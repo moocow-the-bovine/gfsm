@@ -85,6 +85,9 @@ cmdline_parser_print_help (void)
   printf(" Options:\n");
   printf("   -h       --help            Print help and exit.\n");
   printf("   -V       --version         Print version and exit.\n");
+  printf("   -a       --affine          Just close state-enumeration gaps and map root to zero (default)\n");
+  printf("   -d       --depth           Enumerate states by depth-first search\n");
+  printf("   -b       --breadth         Enumerate states by breadth-first search\n");
   printf("   -zLEVEL  --compress=LEVEL  Specify compression level of output file.\n");
   printf("   -FFILE   --output=FILE     Specifiy output file (default=stdout).\n");
 }
@@ -109,6 +112,9 @@ gog_strdup (const char *s)
 static void
 clear_args(struct gengetopt_args_info *args_info)
 {
+  args_info->affine_flag = 0; 
+  args_info->depth_flag = 0; 
+  args_info->breadth_flag = 0; 
   args_info->compress_arg = -1; 
   args_info->output_arg = gog_strdup("-"); 
 }
@@ -122,6 +128,9 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
 
   args_info->help_given = 0;
   args_info->version_given = 0;
+  args_info->affine_given = 0;
+  args_info->depth_given = 0;
+  args_info->breadth_given = 0;
   args_info->compress_given = 0;
   args_info->output_given = 0;
 
@@ -142,6 +151,9 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
       static struct option long_options[] = {
 	{ "help", 0, NULL, 'h' },
 	{ "version", 0, NULL, 'V' },
+	{ "affine", 0, NULL, 'a' },
+	{ "depth", 0, NULL, 'd' },
+	{ "breadth", 0, NULL, 'b' },
 	{ "compress", 1, NULL, 'z' },
 	{ "output", 1, NULL, 'F' },
         { NULL,	0, NULL, 0 }
@@ -149,6 +161,9 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
       static char short_options[] = {
 	'h',
 	'V',
+	'a',
+	'd',
+	'b',
 	'z', ':',
 	'F', ':',
 	'\0'
@@ -214,6 +229,33 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
         
           break;
         
+        case 'a':	 /* Just close state-enumeration gaps and map root to zero (default) */
+          if (args_info->affine_given) {
+            fprintf(stderr, "%s: `--affine' (`-a') option given more than once\n", PROGRAM);
+          }
+          args_info->affine_given++;
+         if (args_info->affine_given <= 1)
+           args_info->affine_flag = !(args_info->affine_flag);
+          break;
+        
+        case 'd':	 /* Enumerate states by depth-first search */
+          if (args_info->depth_given) {
+            fprintf(stderr, "%s: `--depth' (`-d') option given more than once\n", PROGRAM);
+          }
+          args_info->depth_given++;
+         if (args_info->depth_given <= 1)
+           args_info->depth_flag = !(args_info->depth_flag);
+          break;
+        
+        case 'b':	 /* Enumerate states by breadth-first search */
+          if (args_info->breadth_given) {
+            fprintf(stderr, "%s: `--breadth' (`-b') option given more than once\n", PROGRAM);
+          }
+          args_info->breadth_given++;
+         if (args_info->breadth_given <= 1)
+           args_info->breadth_flag = !(args_info->breadth_flag);
+          break;
+        
         case 'z':	 /* Specify compression level of output file. */
           if (args_info->compress_given) {
             fprintf(stderr, "%s: `--compress' (`-z') option given more than once\n", PROGRAM);
@@ -252,6 +294,36 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
             cmdline_parser_print_version();
             exit(EXIT_SUCCESS);
           
+          }
+          
+          /* Just close state-enumeration gaps and map root to zero (default) */
+          else if (strcmp(olong, "affine") == 0) {
+            if (args_info->affine_given) {
+              fprintf(stderr, "%s: `--affine' (`-a') option given more than once\n", PROGRAM);
+            }
+            args_info->affine_given++;
+           if (args_info->affine_given <= 1)
+             args_info->affine_flag = !(args_info->affine_flag);
+          }
+          
+          /* Enumerate states by depth-first search */
+          else if (strcmp(olong, "depth") == 0) {
+            if (args_info->depth_given) {
+              fprintf(stderr, "%s: `--depth' (`-d') option given more than once\n", PROGRAM);
+            }
+            args_info->depth_given++;
+           if (args_info->depth_given <= 1)
+             args_info->depth_flag = !(args_info->depth_flag);
+          }
+          
+          /* Enumerate states by breadth-first search */
+          else if (strcmp(olong, "breadth") == 0) {
+            if (args_info->breadth_given) {
+              fprintf(stderr, "%s: `--breadth' (`-b') option given more than once\n", PROGRAM);
+            }
+            args_info->breadth_given++;
+           if (args_info->breadth_given <= 1)
+             args_info->breadth_flag = !(args_info->breadth_flag);
           }
           
           /* Specify compression level of output file. */

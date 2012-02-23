@@ -320,6 +320,8 @@ gfsmAlphabet *gfsm_automaton_get_alphabet(gfsmAutomaton *fsm,
  *  Destructively alters \c fsm.
  *  On return, \a fsm should have no 'gaps' in its state enumeration function, and its
  *  root state should have the ID 0 (zero).
+ *
+ *  \deprecated prefer gfsm_statesort_aff()
  */
 void gfsm_automaton_renumber_states(gfsmAutomaton *fsm);
 
@@ -332,6 +334,8 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm);
  *   \a qid_new may be ::gfsmNoState to ignore the corresponding \a qid_old
  *  \param n_new_states
  *   Maximum \a qid_new ::gfsmStateId value in \a old2new, or 0 (zero) to auto-compute.
+ *
+  *  \deprecated prefer gfsm_statemap_apply()
  */
 void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states);
 

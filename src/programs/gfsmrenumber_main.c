@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow.bovine@gmail.com>
+   Copyright (C) 2004-2012 by Bryan Jurish <moocow.bovine@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -57,6 +57,12 @@ void get_my_options(int argc, char **argv)
   if (args.inputs_num) infilename  = args.inputs[0];
   if (args.output_arg) outfilename = args.output_arg;
 
+  //-- sort-mode sanity check
+  if ((args.affine_flag + args.breadth_flag + args.depth_flag) > 1) {
+    g_printerr("%s: you may specify at most one of the '-a', '-b', or '-d' options!");
+    exit(1);
+  }
+
   //-- load environmental defaults
   //cmdline_parser_envdefaults(&args);
 
@@ -80,7 +86,9 @@ int main (int argc, char **argv)
   }
 
   //-- renumber
-  gfsm_automaton_renumber_states(fsm);
+  if      (args.breadth_flag)	 { gfsm_statesort_bfs(fsm,NULL); }
+  else if (args.depth_flag)	 { gfsm_statesort_dfs(fsm,NULL); }
+  else /*if (args.affine_flag)*/ { gfsm_statesort_aff(fsm,NULL); }
 
   //-- spew automaton
   if (!gfsm_automaton_save_bin_filename(fsm,outfilename,args.compress_arg,&err)) {

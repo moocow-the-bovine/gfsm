@@ -33,6 +33,16 @@ If unspecified, standard input will be read
 #-----------------------------------------------------------------------------
 #group "Basic Options"
 
+flag "affine"  a  "Just close state-enumeration gaps and map root to zero (default)" \
+  default=0
+
+flag "depth"   d  "Enumerate states by depth-first search" \
+  default=0
+
+flag "breadth" b  "Enumerate states by breadth-first search" \
+  default=0
+
+
 int "compress" z "Specify compression level of output file." \
     arg="LEVEL" \
     default="-1" \
