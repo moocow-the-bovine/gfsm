@@ -29,6 +29,7 @@ bin_PROGRAMS = \
 	gfsmconcat \
 	gfsmconnect \
 	gfsmconvert \
+	gfsmdepths \
 	gfsmdeterminize \
 	gfsmdifference \
 	gfsmdraw \
@@ -148,6 +149,18 @@ gfsmconvert_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmconvert_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmconvert.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmdepths_SOURCES = \
+	gfsmdepths_main.c \
+	gfsmdepths_cmdparser.c gfsmdepths_cmdparser.h
+
+gfsmdepths_main.o: gfsmdepths_cmdparser.h
+
+gfsmdepths_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmdepths_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmdepths.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmprint_SOURCES = \

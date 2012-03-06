@@ -613,6 +613,7 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmconcat.gog \
 	gfsmconnect.gog \
 	gfsmconvert.gog \
+	gfsmdepths.gog \
 	gfsmdeterminize.gog \
 	gfsmdifference.gog \
 	gfsmdraw.gog \
