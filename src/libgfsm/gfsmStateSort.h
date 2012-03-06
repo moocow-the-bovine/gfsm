@@ -69,7 +69,7 @@ void gfsm_statesort_dfs(gfsmAutomaton *fsm, gfsmStateIdMap *old2new);
  *  \param old2new target ::gfsmStateIdMap , or NULL to use a temporary map
  *  \sa gfsm_statemap_bfs(), gfsm_statemap_apply()
  */
-void gfsm_statesort_dfs(gfsmAutomaton *fsm, gfsmStateIdMap *old2new);
+void gfsm_statesort_bfs(gfsmAutomaton *fsm, gfsmStateIdMap *old2new);
 
 //@}
 

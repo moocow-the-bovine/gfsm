@@ -18,6 +18,9 @@ gfsmrenumber [OPTIONS] BINFILE
     -h       --help            Print help and exit.
     -V       --version         Print version and exit.
     -cFILE   --rcfile=FILE     Read an alternate configuration file.
+    -a       --affine          Just close state-enumeration gaps and map root to zero (default)
+    -d       --depth           Enumerate states by depth-first search
+    -b       --breadth         Enumerate states by breadth-first search
     -zLEVEL  --compress=LEVEL  Specify compression level of output file.
     -FFILE   --output=FILE     Specifiy output file (default=stdout).
 
@@ -94,6 +97,33 @@ Read an alternate configuration file.
 Default: 'NULL'
 
 See also: L<CONFIGURATION FILES>.
+
+
+
+
+=item C<--affine> , C<-a>
+
+Just close state-enumeration gaps and map root to zero (default)
+
+Default: '0'
+
+
+
+
+=item C<--depth> , C<-d>
+
+Enumerate states by depth-first search
+
+Default: '0'
+
+
+
+
+=item C<--breadth> , C<-b>
+
+Enumerate states by breadth-first search
+
+Default: '0'
 
 
 
