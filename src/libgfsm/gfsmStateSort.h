@@ -115,6 +115,13 @@ gfsmStateIdMap* gfsm_statemap_dfs(gfsmAutomaton *fsm, gfsmStateIdMap *old2new);
  */
 gfsmStateIdMap* gfsm_statemap_bfs(gfsmAutomaton *fsm, gfsmStateIdMap *old2new);
 
+/** Get depth information for each state; depths[q]==minim-path-length(q0,q) or gfsmNoState if non-accessible
+ *  \param fsm automaton to be investigated
+ *  \param depths destination ::gfsmStateIdMap , or NULL to create and return a new map
+ *  \returns \a depths or a new gfsmStateIdMap
+ */
+gfsmStateIdMap* gfsm_statemap_depths(gfsmAutomaton *fsm, gfsmStateIdMap *depths);
+
 //@}
 
 /*======================================================================*/
