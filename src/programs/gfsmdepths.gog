@@ -5,7 +5,7 @@
 program "gfsmdepths"
 #program_version "0.01"
 
-purpose	"Show basic information about stored gfsm files"
+purpose	"Get state-wise (minimum) depths for a gfsm automaton"
 author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 

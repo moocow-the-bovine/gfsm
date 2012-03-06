@@ -3,7 +3,7 @@
 
 =head1 NAME
 
-gfsmdepths - Show basic information about stored gfsm files
+gfsmdepths - Get state-wise (minimum) depths for a gfsm automaton
 
 
 
@@ -28,7 +28,7 @@ gfsmdepths [OPTIONS] BINFILE
 
 =head1 DESCRIPTION
 
-Show basic information about stored gfsm files
+Get state-wise (minimum) depths for a gfsm automaton
 
 
 

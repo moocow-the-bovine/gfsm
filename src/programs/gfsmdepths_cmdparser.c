@@ -72,7 +72,7 @@ cmdline_parser_print_help (void)
   cmdline_parser_print_version ();
   printf("\n");
   printf("Purpose:\n");
-  printf("  Show basic information about stored gfsm files\n");
+  printf("  Get state-wise (minimum) depths for a gfsm automaton\n");
   printf("\n");
   
   printf("Usage: %s [OPTIONS]... BINFILE\n", "gfsmdepths");
