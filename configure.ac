@@ -4,7 +4,7 @@ AC_PREREQ([2.61])
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.10-2])
+define([THE_PACKAGE_VERSION], [0.0.10-3])
 define([THE_PACKAGE_MAINTAINER],  [moocow.bovine@gmail.com])
 
 AC_INIT([THE_PACKAGE_NAME],[THE_PACKAGE_VERSION],[THE_PACKAGE_MAINTAINER])
@@ -379,6 +379,9 @@ fi
 ##-- use deprecated GAllocator funcs?
 if false ; then
   AC_DEFINE([GFSM_USE_GALLOCATOR],1,[Define this to enable deprecated pre-glib-2.10 GAllocator API])
+fi
+if false ; then
+  AC_DEFINE([GFSM_USE_GSLICE],1,[Define this to enable use of g_slice_* allocation])
 fi
 ##
 ## /glib

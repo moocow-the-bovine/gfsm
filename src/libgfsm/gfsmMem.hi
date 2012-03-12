@@ -105,7 +105,7 @@ void gfsm_allocators_free(void)
 GFSM_INLINE
 gpointer gfsm_slice_alloc(guint block_size)
 {
-#ifdef GFSM_USE_SLICES
+#ifdef GFSM_USE_GSLICE
   return g_slice_alloc(block_size);
 #else
   return g_malloc(block_size);
@@ -116,7 +116,7 @@ gpointer gfsm_slice_alloc(guint block_size)
 GFSM_INLINE
 gpointer gfsm_slice_alloc0(guint block_size)
 {
-#ifdef GFSM_USE_SLICES
+#ifdef GFSM_USE_GSLICE
   return g_slice_alloc0(block_size);
 #else
   return g_malloc0(block_size);
@@ -127,7 +127,7 @@ gpointer gfsm_slice_alloc0(guint block_size)
 GFSM_INLINE
 gpointer gfsm_slice_copy(guint block_size, gconstpointer src)
 {
-#ifdef GFSM_USE_SLICES
+#ifdef GFSM_USE_GSLICE
   return g_slice_copy(block_size,src);
 #else
   return g_memdup(src,block_size);
@@ -138,7 +138,7 @@ gpointer gfsm_slice_copy(guint block_size, gconstpointer src)
 GFSM_INLINE
 void gfsm_slice_free1(gsize block_size, gpointer mem_block)
 {
-#ifdef GFSM_USE_SLICES
+#ifdef GFSM_USE_GSLICE
   g_slice_free1(block_size,mem_block);
 #else
   g_free(mem_block);

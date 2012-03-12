@@ -102,7 +102,7 @@ guint gfsm_arclist_length(gfsmArcList *al)
  */
 void gfsm_arclist_free(gfsmArcList *al)
 {
-#ifdef GFSM_USE_SLICES
+#ifdef GFSM_USE_GSLICE
   g_slice_free_chain_with_offset(sizeof(gfsmArcList), al, sizeof(gfsmArc));
 #else
   while (al != NULL) {

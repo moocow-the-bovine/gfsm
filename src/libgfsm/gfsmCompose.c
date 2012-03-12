@@ -43,6 +43,21 @@ gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
   return fsm1;
 }
 
+/*--------------------------------------------------------------*/
+/** inner guts for gfsm_automaton_compose_visit_() */
+gfsmStateId gfsm_compose_qid_(gfsmAutomaton *fsm, gfsmComposeState sp, GQueue *queue, gfsmComposeStateEnum *spenum, GArray *spenumr)
+{
+  gfsmStateId qid = gfsm_enum_lookup(spenum,&sp);
+  if (qid==gfsmEnumNone) {
+    qid = gfsm_automaton_add_state(fsm);
+    gfsm_enum_insert_full(spenum, &sp, qid);
+    if (qid >= spenumr->len) g_array_set_size(spenumr,qid+1);
+    g_array_index(spenumr, gfsmComposeState, qid) = sp;
+    g_queue_push_tail(queue, GUINT_TO_POINTER(qid));
+  }
+  return qid;
+}
+
 /*--------------------------------------------------------------
  * compose_visit_()
  */
@@ -50,15 +65,17 @@ gfsmAutomaton *gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
 # include <stdio.h>
 #endif
-gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
-					  gfsmAutomaton     *fsm1,
-					  gfsmAutomaton     *fsm2,
-					  gfsmAutomaton     *fsm,
-					  gfsmComposeStateEnum *spenum,
-					  gfsmComposeFlags   flags)
+void gfsm_automaton_compose_visit_(gfsmStateId	      qid,
+				   gfsmAutomaton     *fsm1,
+				   gfsmAutomaton     *fsm2,
+				   gfsmAutomaton     *fsm,
+				   gfsmComposeStateEnum *spenum,
+				   GArray               *spenumr,
+				   GQueue               *queue,
+				   gfsmComposeFlags      flags)
 {
   gfsmState   *q1, *q2;
-  gfsmStateId qid = gfsm_enum_lookup(spenum,&sp);
+  gfsmComposeState sp = g_array_index(spenumr,gfsmComposeState,qid);
   gfsmStateId qid2;
   gfsmArcList *al1, *al2, *ai1, *ai2;
   gfsmArcList *ai1_noneps, *ai2_noneps, *ai2_continue;
@@ -69,9 +86,6 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 	  (int)(qid==gfsmEnumNone ? -1 : qid));
 #endif
 
-  //-- ignore already-visited states
-  if (qid != gfsmEnumNone) return qid;
-
   //-- get state pointers for input automata
   q1 = gfsm_automaton_find_state(fsm1,sp.id1);
   q2 = gfsm_automaton_find_state(fsm2,sp.id2);
@@ -79,14 +93,10 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
   //-- sanity check
   if ( !(q1 && q2 && q1->is_valid && q2->is_valid) ) {
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
-      fprintf(stderr, "compose(): BAD   : (q%u,f%u,q%u)     XXXXX\n", sp.id1, sp.idf, sp.id2);
+    fprintf(stderr, "compose(): BAD   : (q%u,f%u,q%u)     XXXXX\n", sp.id1, sp.idf, sp.id2);
 #endif
-    return gfsmNoState;
+    return;
   }
-
-  //-- insert new state into output automaton
-  qid = gfsm_automaton_add_state(fsm);
-  gfsm_enum_insert_full(spenum,&sp,qid);
 
 #ifdef GFSM_DEBUG_COMPOSE_VISIT
       fprintf(stderr, "compose(): CREATE: (q%u,f%u,q%u) => q%u ***\n", sp.id1, sp.idf, sp.id2, qid);
@@ -135,7 +145,7 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 	      sp.id1, a1->lower, a1->target,
 	      sp.id2, sp.id2);
 #endif
-      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target, sp.id2, 2}, fsm1,fsm2,fsm, spenum,flags);
+      qid2 = gfsm_compose_qid_(fsm, (gfsmComposeState){a1->target, sp.id2, 2}, queue,spenum,spenumr);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, gfsmEpsilon, a1->weight);
     }
@@ -150,7 +160,7 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 	      sp.id1, sp.id1,
 	      sp.id2, a2->upper, a2->target);
 #endif
-      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){sp.id1, a2->target, 1}, fsm1,fsm2,fsm, spenum,flags);
+      qid2 = gfsm_compose_qid_(fsm, (gfsmComposeState){sp.id1, a2->target, 1}, queue,spenum,spenumr);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, gfsmEpsilon, a2->upper, a2->weight);
     }
@@ -167,8 +177,7 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 		sp.id1, a1->lower, a1->target,
 		sp.id2, a2->upper, a2->target);
 #endif
-	qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target, a2->target, 0},
-					     fsm1,fsm2,fsm, spenum,flags);
+	qid2 = gfsm_compose_qid_(fsm, (gfsmComposeState){a1->target, a2->target, 0}, queue,spenum,spenumr);
 	if (qid2 != gfsmNoState)
 	  gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a2->upper,
 				 gfsm_sr_times(fsm->sr, a1->weight, a2->weight));
@@ -202,8 +211,7 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
 #endif
 
       //-- non-eps: case fsm1:(q1 --a:b--> q1'), fsm2:(q2 --b:c-->  q2')
-      qid2 = gfsm_automaton_compose_visit_((gfsmComposeState){a1->target,a2->target,0},
-					   fsm1,fsm2,fsm, spenum,flags);
+      qid2 = gfsm_compose_qid_(fsm, (gfsmComposeState){a1->target, a2->target, 0}, queue,spenum,spenumr);
       if (qid2 != gfsmNoState)
 	gfsm_automaton_add_arc(fsm, qid, qid2, a1->lower, a2->upper,
 			       gfsm_sr_times(fsm1->sr, a1->weight, a2->weight));
@@ -214,7 +222,7 @@ gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState   sp,
   if (flags&gfsmCFEfsm1NeedsArcSort) gfsm_arclist_free(al1);
   if (flags&gfsmCFEfsm2NeedsArcSort) gfsm_arclist_free(al2);
 
-  return qid;
+  return;
 }
 
 /*--------------------------------------------------------------
@@ -232,8 +240,10 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
 {
   gboolean          spenum_is_temp;
   gfsmComposeState  rootpair;
-  gfsmStateId       rootid;
+  gfsmStateId       rootid = 0;
   gfsmComposeFlags  flags = 0;
+  GQueue	   *queue = NULL;
+  GArray           *spenumr = NULL;
 #ifdef GFSM_DEBUG_COMPOSE
   gfsmError *err =NULL;
 #endif
@@ -256,16 +266,29 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
     spenum_is_temp=FALSE;
     gfsm_enum_clear(spenum);
   }
+  spenumr = g_array_sized_new(FALSE,FALSE,sizeof(gfsmComposeState),gfsmAutomatonDefaultSize);
+  spenumr->len = 1;
 
   //-- setup: flags
   if (gfsm_acmask_nth(fsm1->flags.sort_mode,0) != gfsmACUpper) flags |= gfsmCFEfsm1NeedsArcSort;
   if (gfsm_acmask_nth(fsm2->flags.sort_mode,0) != gfsmACLower) flags |= gfsmCFEfsm2NeedsArcSort;
 
+  //-- setup: queue
+  queue = g_queue_new();
+
   //-- guts: recursively visit states depth-first from root
   rootpair.id1 = fsm1->root_id;
   rootpair.id2 = fsm2->root_id;
   rootpair.idf = 0;
-  rootid = gfsm_automaton_compose_visit_(rootpair, fsm1, fsm2, composition, spenum, flags);
+  gfsm_automaton_ensure_state(composition,rootid);
+  gfsm_enum_insert_full(spenum, &rootpair, rootid);
+  g_array_index(spenumr, gfsmComposeState, rootid) = rootpair;
+  g_queue_push_tail(queue, GUINT_TO_POINTER(rootid));
+
+  while (!g_queue_is_empty(queue)) {
+    gfsmStateId qid = GPOINTER_TO_UINT(g_queue_pop_head(queue));
+    gfsm_automaton_compose_visit_(qid, fsm1,fsm2,composition, spenum,spenumr,queue, flags);
+  }
 
   //-- finalize: set new root state
   if (rootid != gfsmNoState) {
@@ -275,6 +298,8 @@ gfsmAutomaton *gfsm_automaton_compose_full(gfsmAutomaton *fsm1,
   }
   //-- cleanup
   if (spenum_is_temp) gfsm_enum_free(spenum);
+  g_array_free(spenumr,TRUE);
+  g_queue_free(queue);
 
   return composition;
 }

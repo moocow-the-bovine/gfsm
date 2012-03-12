@@ -34,6 +34,7 @@
 #define _GFSM_ARC_LIST_H
 
 #include <gfsmArc.h>
+#include <gfsmMem.h>
 
 /// "Heavy" arc-list structure, no longer using GSList
 typedef struct gfsmArcListNode_ {

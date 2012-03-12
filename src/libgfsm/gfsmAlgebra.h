@@ -157,12 +157,14 @@ typedef enum {
 } gfsmComposeFlagsE;
 
 /** Guts for gfsm_automaton_compose() \returns (new) StateId for \a sp */
-gfsmStateId gfsm_automaton_compose_visit_(gfsmComposeState  sp,
-					  gfsmAutomaton    *fsm1,
-					  gfsmAutomaton    *fsm2,
-					  gfsmAutomaton    *fsm,
-					  gfsmComposeStateEnum *spenum,
-					  gfsmComposeFlags  flags);
+void gfsm_automaton_compose_visit_(gfsmStateId       qid,
+				   gfsmAutomaton    *fsm1,
+				   gfsmAutomaton    *fsm2,
+				   gfsmAutomaton    *fsm,
+				   gfsmComposeStateEnum *spenum,
+				   GArray               *spenumr, //-- GArray of gfsmComposeState
+				   GQueue 	        *queue,   //-- queue of gfsmStateId
+				   gfsmComposeFlags  flags);
 //@}
 
 //------------------------------
