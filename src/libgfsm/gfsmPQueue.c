@@ -1,6 +1,7 @@
 #include <glib.h>
 
 #include "gfsmPQueue.h"
+#include "gfsmMem.h"
 
 static const gsize INITIAL_SIZE = 100;
 
@@ -16,7 +17,7 @@ struct s_gfsmPriorityQueue {
 gfsmPriorityQueue*
 gfsm_pqueue_new (GCompareDataFunc cmp, gpointer cmp_data)
 {
-  gfsmPriorityQueue *q = g_slice_new(gfsmPriorityQueue);
+  gfsmPriorityQueue *q = gfsm_slice_new(gfsmPriorityQueue);
   q->heap = g_new(gpointer, INITIAL_SIZE);
   q->map = g_hash_table_new(NULL, NULL);
   q->size = 0;
@@ -38,7 +39,7 @@ gfsm_pqueue_free (gfsmPriorityQueue *q)
 {
   g_hash_table_destroy(q->map);
   g_free(q->heap);
-  g_slice_free(gfsmPriorityQueue, q);
+  gfsm_slice_free(gfsmPriorityQueue, q);
 }
 
 gboolean
