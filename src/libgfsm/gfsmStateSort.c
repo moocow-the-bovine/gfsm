@@ -102,7 +102,7 @@ gfsmStateIdMap* gfsm_statemap_dfs(gfsmAutomaton *fsm, gfsmStateIdMap *old2new)
 //--------------------------------------------------------------
 gfsmStateIdMap* gfsm_statemap_bfs(gfsmAutomaton *fsm, gfsmStateIdMap *old2new)
 {
-  GQueue queue; //-- queue of gfsmStateId*
+  GQueue queue; //-- queue of gfsmStateId
   gfsmStateId newid = 0;
   old2new = gfsm_statemap_init(old2new,gfsm_automaton_n_states(fsm));
 
@@ -133,33 +133,35 @@ gfsmStateIdMap* gfsm_statemap_bfs(gfsmAutomaton *fsm, gfsmStateIdMap *old2new)
 //--------------------------------------------------------------
 gfsmStateIdMap* gfsm_statemap_depths(gfsmAutomaton *fsm, gfsmStateIdMap *depths)
 {
-  GSList *stack=NULL; //-- GSList of gfsmStateId
+  gfsmStateId qid;
+  gfsmStateId  *d0, d1;
+  gfsmArcIter  ai;
+  gfsmArc      *a;
+  GQueue queue = G_QUEUE_INIT; //-- queue of gfsmStateId
+
+
+  //-- initialize depth-map & bfs-queue
   depths = gfsm_statemap_init(depths,gfsm_automaton_n_states(fsm));
-
-  //-- ye olde bfs loope
-  stack = g_slist_prepend(NULL, GUINT_TO_POINTER((guint)fsm->root_id));
+  g_queue_push_tail(&queue, GUINT_TO_POINTER((guint)fsm->root_id));
   g_array_index(depths, gfsmStateId, fsm->root_id) = 0;
-  while (stack != NULL) {
-    GSList    *next = stack->next;
-    gfsmStateId qid = (gfsmStateId)GPOINTER_TO_UINT(stack->data);
-    gfsmStateId d1  = g_array_index(depths, gfsmStateId, qid) + 1;
-    gfsmArcIter ai;
 
-    //-- pop stack
-    g_slist_free_1(stack);
-    stack = next;
+  //-- ye olde loope
+  while (queue.length > 0) {
+    qid = GPOINTER_TO_UINT(g_queue_pop_head(&queue));
+    d1  = g_array_index(depths, gfsmStateId, qid) + 1;
 
-    //-- sanity checks
-    if (!gfsm_automaton_has_state(fsm,qid)) continue; //-- invalid state
+    //-- sanity check(s)
+    if (!gfsm_automaton_has_state(fsm,qid)) continue; //-- invalid state: should never happen
 
     //-- follow outgoing arcs
     for (gfsm_arciter_open(&ai,fsm,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
-      gfsmArc * a = gfsm_arciter_arc(&ai);
+      a = gfsm_arciter_arc(&ai);
 
       //-- enumerate new depth
-      if (g_array_index(depths, gfsmStateId, a->target) > d1) {
-	g_array_index(depths, gfsmStateId, a->target) = d1;
-	stack = g_slist_prepend(stack,GUINT_TO_POINTER((guint)a->target));	
+      d0 = &g_array_index(depths, gfsmStateId, a->target);
+      if (*d0 > d1) {
+	*d0 = d1;
+	g_queue_push_tail(&queue, GUINT_TO_POINTER((guint)a->target));
       }
     }
   }

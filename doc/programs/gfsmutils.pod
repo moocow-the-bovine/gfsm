@@ -88,6 +88,13 @@ Convert binary format gfsm files
 See L<gfsmconvert> for details.
 
 
+=head2 gfsmdepths
+
+Get state-wise (minimum) depths for a gfsm automaton
+
+See L<gfsmdepths> for details.
+
+
 =head2 gfsmdeterminize
 
 Determinize a finite state machine
@@ -307,6 +314,7 @@ gfsmcompre(1),
 gfsmconcat(1),
 gfsmconnect(1),
 gfsmconvert(1),
+gfsmdepths(1),
 gfsmdeterminize(1),
 gfsmdifference(1),
 gfsmdraw(1),
