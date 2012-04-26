@@ -106,7 +106,7 @@ GFSM_INLINE
 void gfsm_automaton_swap(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 {
   if (fsm1 != fsm2) {
-    gfsmAutomaton *tmp = gfsm_slice_dup(gfsmAutomaton,fsm2);
+    gfsmAutomaton *tmp = (gfsmAutomaton*)gfsm_slice_dup(gfsmAutomaton,fsm2);
     *fsm2 = *fsm1;
     *fsm1 = *tmp;
     gfsm_slice_free(gfsmAutomaton,tmp);

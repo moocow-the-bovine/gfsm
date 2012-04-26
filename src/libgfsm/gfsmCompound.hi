@@ -92,7 +92,7 @@ GFSM_INLINE
 gfsmStatePair *gfsm_statepair_clone(gfsmStatePair *sp)
 {
   //return (gfsmStatePair*)gfsm_mem_dup_n(sp, sizeof(gfsmStatePair));
-  return gfsm_slice_dup(gfsmStatePair, sp);
+  return (gfsmStatePair*)gfsm_slice_dup(gfsmStatePair, sp);
 }
 
 /*--------------------------------------------------------------
@@ -129,7 +129,7 @@ GFSM_INLINE
 gfsmComposeState *gfsm_compose_state_clone(gfsmComposeState *sp)
 {
   //return (gfsmComposeState*)gfsm_mem_dup_n(sp, sizeof(gfsmComposeState));
-  return gfsm_slice_dup(gfsmComposeState,sp);
+  return (gfsmComposeState*)gfsm_slice_dup(gfsmComposeState,sp);
 }
 
 /*--------------------------------------------------------------
@@ -162,7 +162,7 @@ GFSM_INLINE
 gfsmStateWeightPair *gfsm_state_weight_pair_clone(const gfsmStateWeightPair *swp)
 {
   //return gfsm_state_weight_pair_new(swp->id,swp->w);
-  return gfsm_slice_dup(gfsmStateWeightPair,swp);
+  return (gfsmStateWeightPair*)gfsm_slice_dup(gfsmStateWeightPair,swp);
 }
 
 //--------------------------------------------------------------

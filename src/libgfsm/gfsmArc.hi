@@ -72,7 +72,7 @@ gfsmArc *gfsm_arc_new_full(gfsmStateId src, gfsmStateId dst, gfsmLabelVal lo, gf
 GFSM_INLINE
 gfsmArc *gfsm_arc_clone(gfsmArc *src)
 {
-  return gfsm_slice_dup(gfsmArc,src);
+  return (gfsmArc*)gfsm_slice_dup(gfsmArc,src);
 }
 
 /*--------------------------------------------------------------
