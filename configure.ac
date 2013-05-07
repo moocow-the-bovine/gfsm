@@ -12,6 +12,7 @@ dnl AC_INIT([gfsm],[0.01],[moocow.bovine@gmail.com])
 
 dnl source && aux dir
 AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_MACRO_DIR([m4])
 
 dnl canonical target (sets $target, $target_(cpu|vendor|os) : used for bindist)
 AC_CANONICAL_TARGET
