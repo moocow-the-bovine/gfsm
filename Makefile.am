@@ -78,9 +78,12 @@ if HAVE_POD2HTML
 	pod2html --outfile $@ $<
 endif
 
+LICENSES = COPYING COPYING.GPL-3
+
 pkgdoc_DATA = \
 	$(PODS:.pod=.txt) \
-	$(PODS:.pod=.html)
+	$(PODS:.pod=.html) \
+	$(LICENSES)
 
 #-----------------------------------------------------------------------
 # Additional Variables & Rules: magic
@@ -123,9 +126,8 @@ EXTRA_DIST = \
 	autogen.sh \
 	configure \
 	README.cvs \
-	gfsm.magic
-
-#COPYING
+	gfsm.magic \
+	$(LICENSES)
 
 ## --- recursion subdirectories for 'make dist'
 #DIST_SUBDIRS = $(SUBDIRS)
