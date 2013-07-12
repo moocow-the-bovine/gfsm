@@ -2,11 +2,11 @@
 /** 
 \mainpage libgfsm : finite state utility library
 
-\author Bryan Jurish <moocow@ling.uni-potsdam.de>
+\author Bryan Jurish <moocow@cpan.org>
 
 \version @VERSION@
 
-<b>Project URL:</b> http://www.ling.uni-potsdam.de/~moocow/projects/gfsm
+<b>Project URL:</b> http://kaskade.dwds.de/~moocow/projects/gfsm
 
 \section Intro Introduction
 

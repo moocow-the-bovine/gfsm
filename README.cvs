@@ -13,7 +13,7 @@ You might (i.e. if you see complaints about 'optgen.perl')
 also need the 'Getopt::Gen' perl module, which should
 be available from:
 
-  http://www.ling.uni-potsdam.de/~moocow/projects/perl
+  http://kaskade.dwds.de/~moocow/projects/perl
 
 marmosets,
 	Bryan
