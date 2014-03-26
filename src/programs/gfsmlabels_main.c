@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2005-2008 by Bryan Jurish <moocow.bovine@gmail.com>
+   Copyright (C) 2005-2014 by Bryan Jurish <moocow.bovine@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -104,6 +104,7 @@ void get_my_options(int argc, char **argv)
   att_mode = args.att_mode_flag;
   map_mode = args.map_mode_flag;
   warn_on_undef = !args.quiet_flag;
+  labels->utf8 = args.utf8_flag;
 }
 
 /*--------------------------------------------------------------------------

@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: alphabet
  *
- * Copyright (c) 2004-2008 Bryan Jurish.
+ * Copyright (c) 2004-2014 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,6 +53,7 @@ typedef struct {
   gfsmAType     type;          /**< alphabet type */
   gfsmLabelVal  lab_min;       /**< minimum label */
   gfsmLabelVal  lab_max;       /**< maximum label */
+  gboolean      utf8;	       /**< whether to interpret strings in utf8 mode */
 } gfsmAlphabet;
 
 /// Ranged alphabet structure

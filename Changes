@@ -1,5 +1,8 @@
 Change log for gfsm
 
+v0.0.11 Wed, 26 Mar 2014 16:12:27 +0100 moocow
+	+ added gfsmAlphabet 'utf8' attribute (boolean) : modulates behavior of gfsm_alphabet_string_to_labels() and gfsm_alphabet_att_string_to_labels()
+
 v0.0.10 Thu, 04 Dec 2008 15:49:16 +0100 - Thu, 06 Aug 2009 11:48:00 +0200
    + added arctic, fuzzy, prob semirings
      - TODO: get user-defined on-demand loadable semirings working (including pointers!)
@@ -118,3 +121,7 @@ v0.0.2 Thu,  2 Sep 2004 17:34:18 +0200
 
 v0.0.1 Tue, 24 Aug 2004 11:34:59 +0200
    + created
+
+## Local Variables:
+## mode: change-log;
+## End:

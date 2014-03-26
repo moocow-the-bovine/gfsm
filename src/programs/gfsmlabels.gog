@@ -50,6 +50,9 @@ flag "map-mode" m "Output original strings in addition to label vectors." \
 flag "quiet" q "Suppress warnings about undefined symbols." \
    default="0"
 
+flag "utf8" u "Assume UTF-8 encoded labels" \
+  default="0"
+
 string "output" o "Specifiy output file (default=stdout)." \
     arg="FILE" \
     default="-"

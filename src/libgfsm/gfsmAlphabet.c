@@ -3,7 +3,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: alphabet
  *
- * Copyright (c) 2004-2011 Bryan Jurish.
+ * Copyright (c) 2004-2014 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -76,6 +76,7 @@ gfsmAlphabet *gfsm_alphabet_new(gfsmAType type)
   a->type = type;
   a->lab_min = gfsmNoLabel;
   a->lab_max = gfsmNoLabel;
+  a->utf8    = FALSE;
   return a;
 }
 
@@ -97,6 +98,7 @@ gfsmAlphabet *gfsm_alphabet_init(gfsmAlphabet *a)
 
   a->lab_min = gfsmNoLabel;
   a->lab_max = gfsmNoLabel;
+  a->utf8    = FALSE;
 
   switch (a->type) {
   case gfsmATIdentity:
@@ -123,6 +125,7 @@ gfsmAlphabet *gfsm_range_alphabet_init (gfsmRangeAlphabet *a, gfsmLabelVal min, 
 {
   a->lab_min = min;
   a->lab_max = max;
+  a->utf8    = FALSE;
   return a;
 }
 
@@ -217,6 +220,7 @@ void gfsm_alphabet_clear(gfsmAlphabet *a)
 
   a->lab_min = gfsmNoLabel;
   a->lab_max = gfsmNoLabel;
+  a->utf8    = FALSE;
 }
 
 /*--------------------------------------------------------------
@@ -829,6 +833,7 @@ gboolean gfsm_alphabet_save_file_func(gfsmAlphabet     *a,
  * Methods: String Alphabet Utilities
  */
 
+
 /*--------------------------------------------------------------
  * gfsm_alphabet_string_to_labels()
  */
@@ -838,9 +843,10 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
 						gboolean warn_on_undefined)
 {
   gfsmLabelVal lab;
-  const gchar *s = str;
-  GString     *gsym = g_string_sized_new(2);
+  const gchar *s = str, *s_nxt=NULL;
+  GString     *gsym = g_string_sized_new(5);
   gpointer     key;
+  gboolean     is_utf8 = abet->utf8;
 
   //-- setup vector
   if (vec==NULL) {
@@ -849,9 +855,20 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
     g_ptr_array_set_size(vec, 0);
   }
 
-  for (; *s; s++) {
-    g_string_truncate(gsym, 0);
-    g_string_append_c(gsym, *s);
+
+  for ( ; s && *s; s=s_nxt ) {
+    //-- read next character
+    if (is_utf8) {
+      if ( !(s_nxt = g_utf8_find_next_char(s,NULL)) ) break;
+      g_string_truncate(gsym, 0);
+      g_string_append_len(gsym, s, s_nxt-s);
+    } else {
+      g_string_truncate(gsym, 0);
+      g_string_append_c(gsym, *s);
+      s_nxt = s+1;
+    }
+
+    //-- lookup label
     key = gfsm_alphabet_string2key(abet, gsym);
     lab = gfsm_alphabet_find_label(abet, key);
 
@@ -860,8 +877,8 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
       if (warn_on_undefined) {
 	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
 			      g_quark_from_static_string("gfsm_alphabet_string_to_labels"), //-- code
-			      "Warning: unknown character '%c' in string '%s' -- skipping.",
-			      *s, str));
+			      "Warning: unknown %s character '%s' in string '%s' -- skipping.",
+			      (is_utf8 ? "UTF-8" : "byte"), gsym->str, str));
       }
       continue;
     }
@@ -875,6 +892,7 @@ gfsmLabelVector *gfsm_alphabet_string_to_labels(gfsmAlphabet *abet,
   return vec;
 }
 
+
 /*--------------------------------------------------------------
  * gfsm_alphabet_att_string_to_labels()
  */
@@ -884,10 +902,11 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
 						    gboolean warn_on_undefined)
 {
   gfsmLabelVal lab;
-  const gchar *s = str;
-  GString     *gsym = g_string_sized_new(4);  //-- single-label string buffer
+  const gchar *s = str, *s_nxt=NULL;
+  GString     *gsym = g_string_sized_new(5);  //-- single-label string buffer
   gpointer     key;
-  gchar        mode = 0;                      //-- parsing mode
+  gchar        mode = 0;                      //-- parsing mode: '[', '\\', or 0 (default)
+  gboolean     is_utf8 = abet->utf8;
 
   //-- setup vector
   if (vec==NULL) {
@@ -897,7 +916,15 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
   }
 
   //-- loop(str): beginning of next symbol
-  for (; *s; s++) {
+  for (; s && *s; s=s_nxt) {
+
+    //-- read next character
+    if (is_utf8) {
+      if ( !(s_nxt=g_utf8_find_next_char(s,NULL)) ) break;
+    } else {
+      s_nxt = s+1;
+    }
+
     switch (mode) {
     case '[':
       //-- bracket-escape mode
@@ -907,7 +934,7 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
 
     case '\\':
       //-- backslash-escape mode
-      g_string_append_c(gsym,*s);
+      g_string_append_len(gsym,s,s_nxt-s);
       mode = 0;
       break;
 
@@ -918,7 +945,7 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
       else if (*s == '\\')  { mode='\\'; continue; }
       else if (isspace(*s)) { continue; } //-- ignore spaces
       //-- plain single-character symbol: set key-string
-      g_string_append_c(gsym,*s);
+      g_string_append_len(gsym,s,s_nxt-s);
       break;
     }
 
@@ -931,8 +958,8 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
       if (warn_on_undefined) {
 	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
 			      g_quark_from_static_string("gfsm_alphabet_att_string_to_labels"), //-- code
-			      "Warning: unknown symbol [%s] in string '%s' -- skipping.",
-			      gsym->str, str));
+			      "Warning: unknown %s symbol [%s] in string '%s' -- skipping.",
+			      (is_utf8 ? "byte" : "UTF-8"), gsym->str, str));
       }
       g_string_truncate(gsym,0);
       continue;
