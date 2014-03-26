@@ -23,7 +23,7 @@ struct gengetopt_args_info {
   int att_mode_flag;	 /* Parse string(s) in AT&T-compatible mode. (default=0). */
   int map_mode_flag;	 /* Output original strings in addition to label vectors. (default=0). */
   int quiet_flag;	 /* Suppress warnings about undefined symbols. (default=0). */
-  int utf8_flag;	 /* Assume UTF-8 encoded labels (default=0). */
+  int utf8_flag;	 /* Assume UTF-8 encoded alphabet and input (default=0). */
   char * output_arg;	 /* Specifiy output file (default=stdout). (default=-). */
 
   int help_given;	 /* Whether help was given */

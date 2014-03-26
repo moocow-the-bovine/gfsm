@@ -89,7 +89,7 @@ cmdline_parser_print_help (void)
   printf("   -a        --att-mode       Parse string(s) in AT&T-compatible mode.\n");
   printf("   -m        --map-mode       Output original strings in addition to label vectors.\n");
   printf("   -q        --quiet          Suppress warnings about undefined symbols.\n");
-  printf("   -u        --utf8           Assume UTF-8 encoded labels\n");
+  printf("   -u        --utf8           Assume UTF-8 encoded alphabet and input\n");
   printf("   -oFILE    --output=FILE    Specifiy output file (default=stdout).\n");
 }
 
@@ -270,7 +270,7 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
            args_info->quiet_flag = !(args_info->quiet_flag);
           break;
         
-        case 'u':	 /* Assume UTF-8 encoded labels */
+        case 'u':	 /* Assume UTF-8 encoded alphabet and input */
           if (args_info->utf8_given) {
             fprintf(stderr, "%s: `--utf8' (`-u') option given more than once\n", PROGRAM);
           }
@@ -351,7 +351,7 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
              args_info->quiet_flag = !(args_info->quiet_flag);
           }
           
-          /* Assume UTF-8 encoded labels */
+          /* Assume UTF-8 encoded alphabet and input */
           else if (strcmp(olong, "utf8") == 0) {
             if (args_info->utf8_given) {
               fprintf(stderr, "%s: `--utf8' (`-u') option given more than once\n", PROGRAM);

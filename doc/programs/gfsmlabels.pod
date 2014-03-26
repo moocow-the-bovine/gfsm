@@ -22,7 +22,7 @@ gfsmlabels [OPTIONS] TXTFILE
     -a        --att-mode       Parse string(s) in AT&T-compatible mode.
     -m        --map-mode       Output original strings in addition to label vectors.
     -q        --quiet          Suppress warnings about undefined symbols.
-    -u        --utf8           Assume UTF-8 encoded labels
+    -u        --utf8           Assume UTF-8 encoded alphabet and input
     -oFILE    --output=FILE    Specifiy output file (default=stdout).
 
 =cut
@@ -140,7 +140,7 @@ Default: '0'
 
 =item C<--utf8> , C<-u>
 
-Assume UTF-8 encoded labels
+Assume UTF-8 encoded alphabet and input
 
 Default: '0'
 
