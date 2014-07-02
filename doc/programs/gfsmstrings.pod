@@ -28,6 +28,7 @@ gfsmstrings [OPTIONS] BINFILE
     -a         --att             Output in AT&T regex format.
     -A         --align           Output aligned arc paths.
     -v         --viterbi         Treat input automaton as a Viterbi trellis.
+    -u         --utf8            Assume UTF-8 encoded alphabet and input
     -FTXTFILE  --output=TXTFILE  Output file.
 
 =cut
@@ -186,6 +187,15 @@ Default: '0'
 =item C<--viterbi> , C<-v>
 
 Treat input automaton as a Viterbi trellis.
+
+Default: '0'
+
+
+
+
+=item C<--utf8> , C<-u>
+
+Assume UTF-8 encoded alphabet and input
 
 Default: '0'
 
