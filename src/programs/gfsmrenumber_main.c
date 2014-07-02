@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004-2012 by Bryan Jurish <moocow.bovine@gmail.com>
+   Copyright (C) 2004-2014 by Bryan Jurish <moocow.bovine@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -59,7 +59,7 @@ void get_my_options(int argc, char **argv)
 
   //-- sort-mode sanity check
   if ((args.affine_flag + args.breadth_flag + args.depth_flag) > 1) {
-    g_printerr("%s: you may specify at most one of the '-a', '-b', or '-d' options!");
+    g_printerr("%s: you may specify at most one of the '-a', '-b', or '-d' options!", progname);
     exit(1);
   }
 
