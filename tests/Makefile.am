@@ -141,12 +141,18 @@ DISTHOOK_FILES = \
 	data/project-lo-want.tfst \
 	data/renumber-in.tfst \
 	data/renumber-want.tfst \
-	data/rmepsilon-in.tfst \
-	data/rmepsilon-want.tfst \
 	data/test.lab \
 	data/union-in-1.tfst \
 	data/union-in-2.tfst \
-	data/union-want.tfst
+	data/union-want.tfst \
+	data/minimize-in.tfst \
+	data/minimize-want.tfst \
+	data/rmepsilon-1-in.tfst \
+	data/rmepsilon-1-want.tfst \
+	data/rmepsilon-2-in.tfst \
+	data/rmepsilon-2-want.tfst \
+	data/rmepsilon-3-in.tfst \
+	data/rmepsilon-3-want.tfst
 
 dist-hook:
 	for d in $(DISTHOOK_DIRS); do\
