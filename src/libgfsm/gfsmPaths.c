@@ -342,7 +342,7 @@ GSList *gfsm_automaton_arcpaths(gfsmAutomaton *fsm)
   GSList *r_paths = NULL, *r_nodes  = NULL, *paths = NULL, *rpi;
   _gfsm_automaton_arcpaths_r(fsm, gfsm_automaton_get_root(fsm), NULL, 0, &r_paths, &r_nodes);
 
-  //-- convert reversed GSList paths to forward gfsmArcPath*
+  //-- convert reversed GSList* r_paths to forward gfsmArcPath* ap
   for (rpi=r_paths; rpi != NULL; rpi=rpi->next) {
     GSList       *rpl = (GSList*)rpi->data;
     guint         len = g_slist_length(rpl);
@@ -361,6 +361,7 @@ GSList *gfsm_automaton_arcpaths(gfsmAutomaton *fsm)
     g_slist_free_1(rpl);
   }
   g_slist_free(r_nodes);
+  g_slist_free(r_paths);
 
   return paths;
 }

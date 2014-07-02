@@ -1054,6 +1054,9 @@ void gfsm_alphabet_label_to_gstring(gfsmAlphabet *abet,
 	break;
       }
     }
+    else if (abet->utf8 && !g_utf8_find_next_char(sym,NULL)) {
+      g_string_append_c(gstr,sym);
+    }
     else {
       g_string_append_c(gstr,'[');
       g_string_append(gstr,sym);
