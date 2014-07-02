@@ -1002,7 +1002,7 @@ void gfsm_alphabet_label_to_gstring(gfsmAlphabet *abet,
 				    GString      *gsym)
 {
   gpointer       key;
-  const gchar    *sym = NULL;
+  const gchar    *sym = NULL, *nxt;
 
   //-- sanity check: use numeric value (decimal) for NULL alphabet
   if (abet==NULL) {
@@ -1054,7 +1054,7 @@ void gfsm_alphabet_label_to_gstring(gfsmAlphabet *abet,
 	break;
       }
     }
-    else if (abet->utf8 && !g_utf8_find_next_char(sym,NULL)) {
+    else if (abet->utf8 && ( !(nxt=g_utf8_find_next_char(sym,NULL)) || !*nxt )) {
       g_string_append(gstr,sym);
     }
     else {

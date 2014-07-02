@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004-2011 by Bryan Jurish <moocow.bovine@gmail.com>
+   Copyright (C) 2004-2014 by Bryan Jurish <moocow.bovine@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -77,6 +77,7 @@ void get_my_options(int argc, char **argv)
   //-- labels: input
   if (args.ilabels_given) {
     ilabels = gfsm_string_alphabet_new();
+    ilabels->utf8 = args.utf8_flag;
     if (!gfsm_alphabet_load_filename(ilabels,args.ilabels_arg,&err)) {
       g_printerr("%s: load failed for input-labels file '%s': %s\n",
 		 progname, args.ilabels_arg, (err ? err->message : "?"));
@@ -86,6 +87,7 @@ void get_my_options(int argc, char **argv)
   //-- labels: output
   if (args.olabels_given) {
     olabels = gfsm_string_alphabet_new();
+    olabels->utf8 = args.utf8_flag;
     if (!gfsm_alphabet_load_filename(olabels,args.olabels_arg,&err)) {
       g_printerr("%s: load failed for output-labels file '%s': %s\n",
 		 progname, args.olabels_arg, (err ? err->message : "?"));
@@ -95,6 +97,7 @@ void get_my_options(int argc, char **argv)
   //-- labels: states
   if (args.qlabels_given) {
     qlabels = gfsm_string_alphabet_new();
+    qlabels->utf8 = args.utf8_flag;
     if (!gfsm_alphabet_load_filename(qlabels,args.qlabels_arg,&err)) {
       g_printerr("%s: load failed for state-labels file '%s': %s\n",
 		 progname, args.qlabels_arg, (err ? err->message : "?"));

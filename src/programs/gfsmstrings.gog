@@ -57,6 +57,9 @@ flag "align" A "Output aligned arc paths." \
 flag "viterbi" v "Treat input automaton as a Viterbi trellis." \
    default=0
 
+flag "utf8" u "Assume UTF-8 encoded alphabet and input" \
+  default="0"
+
 string "output"  F "Output file." \
    arg="TXTFILE" \
    details="
