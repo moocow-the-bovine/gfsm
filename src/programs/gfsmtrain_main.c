@@ -155,10 +155,10 @@ void train_pairfile(FILE *pairfile)
     ovec = gfsm_alphabet_generic_string_to_labels(olabels, ostr, ovec, warn_on_undef, att_mode);
 
     //-- training guts
-    gfsm_automaton_lookup_train(fst, ivec, ovec,
-				!args.ordered_flag,
-				args.distribute_by_path_flag,
-				args.distribute_by_arc_flag);
+    gfsm_automaton_train(fst, ivec, ovec,
+			 !args.ordered_flag,
+			 args.distribute_by_path_flag,
+			 args.distribute_by_arc_flag);
   }
 
   //-- cleanup

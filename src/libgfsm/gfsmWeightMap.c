@@ -1,9 +1,9 @@
 /*=============================================================================*\
- * File: gfsmWeightmap.c
+ * File: gfsmWeightMap.c
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: weight maps: extern definitions
  *
- * Copyright (c) 2004-2007 Bryan Jurish.
+ * Copyright (c) 2004-2014 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

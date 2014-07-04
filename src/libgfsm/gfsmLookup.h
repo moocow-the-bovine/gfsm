@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library
  *
- * Copyright (c) 2005-2007 Bryan Jurish.
+ * Copyright (c) 2005-2014 Bryan Jurish.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -114,40 +114,6 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 					  gfsmAutomaton     *result,
 					  gfsmStateIdVector *statemap);
 
-//------------------------------
-/** Transducer weight-training utility:
- *  count successful paths in \a fst for the i/o pair (\a input, \a output),
- *  destructively alters \a fst arc and final weights. On completion,
- *  each arc weight is the (real)-sum of its original weight and the
- *  number of occurrences of that arc in any successful path in \a fst
- *  with labels (\a input, \a output).
- *  Similarly, each state final weight
- *  is the (real)-sum of its original weight and the number of successful
- *  (\a input, \a output)-paths ending in that state.
- *  \param fst transducer (lower-upper)
- *  \param input input labels (lower)
- *  \param output output labels (upper)
- *  \param prunePathPermutations
- *         if true, only unique successful paths modulo arc-ordering will be considered;
- *         e.g. (q --[<epsilon>:a]--> q --[a:<epsilon>]--> q) and (q --[a:<epsilon>]--> q --[<epsilon>:a]--> q)
- *         are duplicates in this sense, since they differ only in the ordering of the arcs.
- *  \param distributeOverPaths
- *         If true, a total count-mass of 1 will be added for each (input,output) pair,
- *         and distributed uniformly among any successful paths for that pair.
- *         Otherwise, each successful path for a given pair will receive a count-mass of 1 (one).
- *  \param distributeOverArcs
- *         if true, the total count-mass added to each successful path will
- *         be distributed uniformly over all its arcs and its final weight.
- *         Otherwise, each arc in the path will receive the full count-mass alotted to that path.
- *  \returns modified \a fst
- */
-gfsmAutomaton* gfsm_automaton_lookup_train(gfsmAutomaton     *fst,
-					   gfsmLabelVector   *input,
-					   gfsmLabelVector   *output,
-					   gboolean prunePathPermutations,
-					   gboolean distributeOverPaths,
-					   gboolean distributeOverArcs
-					   );
 //@}
 
 
