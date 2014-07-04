@@ -1,0 +1,334 @@
+
+=pod
+
+=head1 NAME
+
+gfsmtrain - EXPERIMENTAL: count successful paths for training string pairs in a transducer
+
+
+
+=head1 SYNOPSIS
+
+gfsmtrain [OPTIONS] PAIR_FILE(s)...
+
+ Arguments:
+    PAIR_FILE(s)...  Input string-pair file(s)
+
+ Options
+    -h         --help                Print help and exit.
+    -V         --version             Print version and exit.
+    -cFILE     --rcfile=FILE         Read an alternate configuration file.
+    -iLABELS   --ilabels=LABELS      Specify input (lower) labels file.
+    -oLABELS   --olabels=LABELS      Specify output (upper) labels file.
+    -lLABELS   --labels=LABELS       Set -i and -o labels simultaneously.
+    -a         --att-mode            Parse string(s) in AT&T-compatible mode.
+    -q         --quiet               Suppress warnings about undefined symbols.
+    -u         --utf8                Assume UTF-8 encoded alphabet and input.
+    -O         --ordered             Count permutations in arc-order as multiple paths.
+    -P         --distribute-by-path  Distribute pair-mass over multiple paths.
+    -A         --distribute-by-arc   Distribute path-mass over arcs.
+    -fFSTFILE  --fst=FSTFILE         Transducer to apply (required).
+    -zLEVEL    --compress=LEVEL      Specify compression level of output file.
+    -FFILE     --output=FILE         Specifiy output file (default=stdout).
+
+=cut
+
+###############################################################
+# Description
+###############################################################
+=pod
+
+=head1 DESCRIPTION
+
+EXPERIMENTAL: count successful paths for training string pairs in a transducer
+
+
+
+=cut
+
+###############################################################
+# Arguments
+###############################################################
+=pod
+
+=head1 ARGUMENTS
+
+=over 4
+
+=item C<PAIR_FILE(s)...>
+
+Input string-pair file(s)
+
+
+One pair per line, TAB-separated.
+
+
+=back
+
+
+
+=cut
+
+
+###############################################################
+# Options
+###############################################################
+=pod
+
+=head1 OPTIONS
+
+=over 4
+
+=item C<--help> , C<-h>
+
+Print help and exit.
+
+Default: '0'
+
+
+
+
+=item C<--version> , C<-V>
+
+Print version and exit.
+
+Default: '0'
+
+
+
+
+=item C<--rcfile=FILE> , C<-cFILE>
+
+Read an alternate configuration file.
+
+Default: 'NULL'
+
+See also: L<CONFIGURATION FILES>.
+
+
+
+
+=item C<--ilabels=LABELS> , C<-iLABELS>
+
+Specify input (lower) labels file.
+
+Default: 'NULL'
+
+
+
+
+=item C<--olabels=LABELS> , C<-oLABELS>
+
+Specify output (upper) labels file.
+
+Default: 'NULL'
+
+
+
+
+=item C<--labels=LABELS> , C<-lLABELS>
+
+Set -i and -o labels simultaneously.
+
+Default: 'NULL'
+
+
+
+
+=item C<--att-mode> , C<-a>
+
+Parse string(s) in AT&T-compatible mode.
+
+Default: '0'
+
+
+
+
+=item C<--quiet> , C<-q>
+
+Suppress warnings about undefined symbols.
+
+Default: '0'
+
+
+
+
+=item C<--utf8> , C<-u>
+
+Assume UTF-8 encoded alphabet and input.
+
+Default: '0'
+
+
+
+
+=item C<--ordered> , C<-O>
+
+Count permutations in arc-order as multiple paths.
+
+Default: '0'
+
+
+If unspecified or false, only unique successful paths modulo arc-ordering will be considered;
+e.g. (q --[<epsilon>:a]--> q --[a:<epsilon>]--> q) and (q --[a:<epsilon>]--> q --[<epsilon>:a]--> q)
+are duplicates in this sense, since they differ only in the ordering of the arcs.
+
+
+
+
+
+=item C<--distribute-by-path> , C<-P>
+
+Distribute pair-mass over multiple paths.
+
+Default: '0'
+
+
+If true, a total count-mass of 1 will be added for each (input,output) pair,
+and distributed uniformly among any successful paths for that pair.
+Otherwise, each successful path for a given pair will receive a count-mass of 1 (one).
+
+
+
+
+
+=item C<--distribute-by-arc> , C<-A>
+
+Distribute path-mass over arcs.
+
+Default: '0'
+
+
+If true, the total count-mass added to each successful path will
+be distributed uniformly over all its arcs and its final weight.
+Otherwise, each arc in the path will receive the full count-mass alotted to that path.
+
+
+
+
+
+=item C<--fst=FSTFILE> , C<-fFSTFILE>
+
+Transducer to apply (required).
+
+Default: 'NULL'
+
+
+
+
+
+
+=item C<--compress=LEVEL> , C<-zLEVEL>
+
+Specify compression level of output file.
+
+Default: '-1'
+
+
+Specify zlib compression level of output file. -1 (default) indicates
+the default compression level, 0 (zero) indicates no zlib compression at all,
+and 9 indicates the best possible compression.
+
+
+
+
+
+=item C<--output=FILE> , C<-FFILE>
+
+Specifiy output file (default=stdout).
+
+Default: '-'
+
+
+
+
+=back
+
+
+
+
+=cut
+
+###############################################################
+# configuration files
+###############################################################
+=pod
+
+=head1 CONFIGURATION FILES
+
+Configuration files are expected to contain lines of the form:
+
+    LONG_OPTION_NAME    OPTION_VALUE
+
+where LONG_OPTION_NAME is the long name of some option,
+without the leading '--', and OPTION_VALUE is the value for
+that option, if any.  Fields are whitespace-separated.
+Blank lines and comments (lines beginning with '#')
+are ignored.
+
+No configuration files are read by default.
+
+=cut
+
+
+
+###############################################################
+# Addenda
+###############################################################
+=pod
+
+=head1 ADDENDA
+
+
+
+=head2 About this Document
+
+Documentation file auto-generated by optgen.perl version 0.07
+using Getopt::Gen version 0.13.
+Translation was initiated
+as:
+
+   optgen.perl -l --nocfile --nohfile --notimestamp -F gfsmtrain gfsmtrain.gog
+
+=cut
+
+
+###############################################################
+# Bugs
+###############################################################
+=pod
+
+=head1 BUGS AND LIMITATIONS
+
+
+
+No negative-cost epsilon cycles are allowed in the transducer.
+
+
+
+=cut
+
+###############################################################
+# Footer
+###############################################################
+=pod
+
+=head1 ACKNOWLEDGEMENTS
+
+Perl by Larry Wall.
+
+Getopt::Gen by Bryan Jurish.
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>moocow.bovine@gmail.comE<gt>
+
+=head1 SEE ALSO
+
+
+L<gfsmutils>
+
+
+=cut
+
+
