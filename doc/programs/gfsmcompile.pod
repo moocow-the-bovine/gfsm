@@ -21,6 +21,7 @@ gfsmcompile [OPTIONS] TXTFILE
     -a        --acceptor         Compile as acceptor (default=transducer)
     -iLABELS  --ilabels=LABELS   Specify input (lower) labels file.
     -oLABELS  --olabels=LABELS   Specify output (upper) labels file.
+    -lLABELS  --labels=LABELS    Set -i and -o labels simultaneously.
     -SLABELS  --slabels=LABELS   Specify state labels file.
     -sSRTYPE  --semiring=SRTYPE  Specify semiring type.
     -zLEVEL   --compress=LEVEL   Specify compression level of output file.
@@ -124,6 +125,15 @@ Default: 'NULL'
 =item C<--olabels=LABELS> , C<-oLABELS>
 
 Specify output (upper) labels file.
+
+Default: 'NULL'
+
+
+
+
+=item C<--labels=LABELS> , C<-lLABELS>
+
+Set -i and -o labels simultaneously.
 
 Default: 'NULL'
 

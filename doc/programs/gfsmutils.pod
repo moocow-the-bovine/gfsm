@@ -242,6 +242,13 @@ Serialize binary acyclic gfsm files to lists of strings
 See L<gfsmstrings> for details.
 
 
+=head2 gfsmtrain
+
+EXPERIMENTAL: count successful paths for training string pairs in a transducer
+
+See L<gfsmtrain> for details.
+
+
 =head2 gfsmunion
 
 Compute union of finite state machines
@@ -336,6 +343,7 @@ gfsmreverse(1),
 gfsmrmepsilon(1),
 gfsmsigma(1),
 gfsmstrings(1),
+gfsmtrain(1),
 gfsmunion(1),
 gfsmviterbi(1),
 fsm(1), fsm(5)

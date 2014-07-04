@@ -2,10 +2,10 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmprint"
+program "gfsmtrain"
 #program_version "0.01"
 
-purpose	"Convert binary format gfsm files to text"
+purpose	"EXPERIMENTAL: count successful paths for training string pairs in a transducer"
 author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
@@ -17,20 +17,15 @@ details ""
 #-----------------------------------------------------------------------------
 # Files
 #-----------------------------------------------------------------------------
-#rcfile "/etc/gfsmrc"
-#rcfile "~/.gfsmrc"
+#rcfile "/etc/mootrc"
+#rcfile "~/.mootrc"
 
 #-----------------------------------------------------------------------------
 # Arguments
 #-----------------------------------------------------------------------------
-argument "BINFILE" "Stored binary gfsm file" \
+argument "PAIR_FILE(s)..." "Input string-pair file(s)" \
     details="
-If unspecified, standard input will be read
-"
-
-argument "TXTFILE" "Output text file" \
-    details="
-If unspecified, output will be written to standard output.
+One pair per line, TAB-separated.
 "
 
 #-----------------------------------------------------------------------------
@@ -47,17 +42,55 @@ string "olabels" o "Specify output (upper) labels file." \
 string "labels" l "Set -i and -o labels simultaneously." \
    arg="LABELS"
 
-string "slabels" s "Specify state labels file." \
-   arg="LABELS"
+flag "att-mode" a "Parse string(s) in AT&T-compatible mode." \
+   default="0"
+
+flag "quiet" q "Suppress warnings about undefined symbols." \
+   default="0"
+
+flag "utf8" u "Assume UTF-8 encoded alphabet and input." \
+  default="0"
+
+flag "ordered" O "Count permutations in arc-order as multiple paths." \
+  default="0" \
+  details="
+If unspecified or false, only unique successful paths modulo arc-ordering will be considered;
+e.g. (q --[<epsilon>:a]--> q --[a:<epsilon>]--> q) and (q --[a:<epsilon>]--> q --[<epsilon>:a]--> q)
+are duplicates in this sense, since they differ only in the ordering of the arcs.
+"
+
+flag "distribute-by-path" P "Distribute pair-mass over multiple paths." \
+  default="0" \
+  details="
+If true, a total count-mass of 1 will be added for each (input,output) pair,
+and distributed uniformly among any successful paths for that pair.
+Otherwise, each successful path for a given pair will receive a count-mass of 1 (one).
+"
+
+flag "distribute-by-arc" A "Distribute path-mass over arcs." \
+  default="0" \
+  details="
+If true, the total count-mass added to each successful path will
+be distributed uniformly over all its arcs and its final weight.
+Otherwise, each arc in the path will receive the full count-mass alotted to that path.
+"
+
+string "fst" f "Transducer to apply (required)." \
+    arg="FSTFILE" \
+    details=""
 
 int "compress" z "Specify compression level of output file." \
     arg="LEVEL" \
-    default="0" \
+    default="-1" \
     details="
-Specify zlib compression level of output file. -1 indicates
-the library default compression level, 0 (default) indicates no zlib compression at all,
+Specify zlib compression level of output file. -1 (default) indicates
+the default compression level, 0 (zero) indicates no zlib compression at all,
 and 9 indicates the best possible compression.
 "
+
+string "output" F "Specifiy output file (default=stdout)." \
+    arg="FILE" \
+    default="-"
 
 #-----------------------------------------------------------------------------
 # Addenda
@@ -69,7 +102,7 @@ and 9 indicates the best possible compression.
 #-----------------------------------------------------------------------------
 bugs "
 
-None known.
+No negative-cost epsilon cycles are allowed in the transducer.
 
 "
 

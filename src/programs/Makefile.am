@@ -50,6 +50,7 @@ bin_PROGRAMS = \
 	gfsmrmepsilon \
 	gfsmsigma \
 	gfsmstrings \
+	gfsmtrain \
 	gfsmunion \
 	gfsmviterbi
 
@@ -510,6 +511,18 @@ gfsmstrings_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmstrings_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmstrings.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmtrain_SOURCES = \
+	gfsmtrain_main.c \
+	gfsmtrain_cmdparser.c gfsmtrain_cmdparser.h
+
+gfsmtrain_main.o: gfsmtrain_cmdparser.h
+
+gfsmtrain_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmtrain_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmtrain.gog
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

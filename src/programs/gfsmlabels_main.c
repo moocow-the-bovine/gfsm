@@ -145,37 +145,6 @@ void apply_labels_file(gfsmAlphabet *labels, FILE *infile, FILE *outfile)
   if (vec) g_ptr_array_free(vec,TRUE);
 }
 
-void apply_labels_file_0(gfsmAlphabet *labels, FILE *infile, FILE *outfile)
-{
-  char            *str = NULL;
-  size_t           buflen = 0;
-  ssize_t          linelen = 0;
-  ssize_t          i;
-  gfsmLabelVal     lab;
-  char             cs[2] = {'\0', '\0'};
-
-  while (!feof(infile)) {
-    /*linelen = getline(&str,&buflen,infile);*/
-    linelen = getdelim(&str,&buflen,'\n',infile);
-    for (i=0; i < linelen; i++) {
-      if (isspace(str[i])) continue;
-      cs[0] = str[i];
-      lab = gfsm_alphabet_find_label(labels,cs);
-
-      if (lab==gfsmNoLabel) {
-	g_printerr("%s: Warning: no label for character '%c' -- skipping.\n",
-		   progname, cs[0]);
-	continue;
-      }
-
-      fprintf(outfile, "%d ", lab);
-    }
-    fputs("\n", outfile);
-  }
-
-  if (str) free(str);
-}
-
 /*--------------------------------------------------------------------------
  * MAIN
  *--------------------------------------------------------------------------*/

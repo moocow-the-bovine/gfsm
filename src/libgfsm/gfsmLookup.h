@@ -22,7 +22,7 @@
  *=============================================================================*/
 
 /** \file gfsmLookup.h
- *  \brief Linear composition
+ *  \brief linear (string) composition
  */
 
 #ifndef _GFSM_LOOKUP_H
@@ -34,12 +34,14 @@
 /*======================================================================
  * Types: lookup
  */
+
 /** \brief Type for gfsm_automaton_lookup() computation state */
 typedef struct {
   gfsmStateId qt;  /**< current state in transducer */
   gfsmStateId qr;  /**< current state in result acceptor */
   guint32     i;   /**< current position in input vector */
 } gfsmLookupConfig;
+
 
 //------------------------------
 
@@ -87,7 +89,7 @@ extern const gfsmStateId gfsmLookupStateMapGet;
 //@{
 
 //------------------------------
-/** Compose linear automaton specified by \a input with the transducer
+/** Compose string automaton specified by \a input with the transducer
  *  \a fst , storing result in \a result.
  *  \param fst transducer (lower-upper)
  *  \param input input labels (lower)
@@ -98,7 +100,7 @@ extern const gfsmStateId gfsmLookupStateMapGet;
   gfsm_automaton_lookup_full((fst),(input),(result),NULL)
 
 //------------------------------
-/** Compose linear automaton specified by \a input with the transducer
+/** Compose string automaton specified by \a input with the transducer
  *  \a fst , storing result in \a result , and storing state-translation map \a statemap.
  *  \param fst transducer (lower-upper)
  *  \param input input labels (lower)
@@ -112,6 +114,40 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 					  gfsmAutomaton     *result,
 					  gfsmStateIdVector *statemap);
 
+//------------------------------
+/** Transducer weight-training utility:
+ *  count successful paths in \a fst for the i/o pair (\a input, \a output),
+ *  destructively alters \a fst arc and final weights. On completion,
+ *  each arc weight is the (real)-sum of its original weight and the
+ *  number of occurrences of that arc in any successful path in \a fst
+ *  with labels (\a input, \a output).
+ *  Similarly, each state final weight
+ *  is the (real)-sum of its original weight and the number of successful
+ *  (\a input, \a output)-paths ending in that state.
+ *  \param fst transducer (lower-upper)
+ *  \param input input labels (lower)
+ *  \param output output labels (upper)
+ *  \param prunePathPermutations
+ *         if true, only unique successful paths modulo arc-ordering will be considered;
+ *         e.g. (q --[<epsilon>:a]--> q --[a:<epsilon>]--> q) and (q --[a:<epsilon>]--> q --[<epsilon>:a]--> q)
+ *         are duplicates in this sense, since they differ only in the ordering of the arcs.
+ *  \param distributeOverPaths
+ *         If true, a total count-mass of 1 will be added for each (input,output) pair,
+ *         and distributed uniformly among any successful paths for that pair.
+ *         Otherwise, each successful path for a given pair will receive a count-mass of 1 (one).
+ *  \param distributeOverArcs
+ *         if true, the total count-mass added to each successful path will
+ *         be distributed uniformly over all its arcs and its final weight.
+ *         Otherwise, each arc in the path will receive the full count-mass alotted to that path.
+ *  \returns modified \a fst
+ */
+gfsmAutomaton* gfsm_automaton_lookup_train(gfsmAutomaton     *fst,
+					   gfsmLabelVector   *input,
+					   gfsmLabelVector   *output,
+					   gboolean prunePathPermutations,
+					   gboolean distributeOverPaths,
+					   gboolean distributeOverArcs
+					   );
 //@}
 
 

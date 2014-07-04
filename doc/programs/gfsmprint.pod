@@ -21,6 +21,7 @@ gfsmprint [OPTIONS] BINFILE TXTFILE
     -cFILE    --rcfile=FILE     Read an alternate configuration file.
     -iLABELS  --ilabels=LABELS  Specify input (lower) labels file.
     -oLABELS  --olabels=LABELS  Specify output (upper) labels file.
+    -lLABELS  --labels=LABELS   Set -i and -o labels simultaneously.
     -sLABELS  --slabels=LABELS  Specify state labels file.
     -zLEVEL   --compress=LEVEL  Specify compression level of output file.
 
@@ -121,6 +122,15 @@ Default: 'NULL'
 =item C<--olabels=LABELS> , C<-oLABELS>
 
 Specify output (upper) labels file.
+
+Default: 'NULL'
+
+
+
+
+=item C<--labels=LABELS> , C<-lLABELS>
+
+Set -i and -o labels simultaneously.
 
 Default: 'NULL'
 

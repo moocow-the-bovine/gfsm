@@ -4,7 +4,7 @@ AC_PREREQ([2.61])
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.12])
+define([THE_PACKAGE_VERSION], [0.0.13-1])
 define([THE_PACKAGE_MAINTAINER],  [moocow.bovine@gmail.com])
 
 AC_INIT([THE_PACKAGE_NAME],[THE_PACKAGE_VERSION],[THE_PACKAGE_MAINTAINER])
@@ -641,6 +641,7 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmunion.gog \
 	gfsmviterbi.gog \
 	gfsmindex.gog \
+	gfsmtrain.gog \
 	"
  DOC_MAN1_GOGS="$DOC_MAN1_GOGS"
   for g in $DOC_MAN1_GOGS ; do

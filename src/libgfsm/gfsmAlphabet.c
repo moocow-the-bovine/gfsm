@@ -929,7 +929,7 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
     case '[':
       //-- bracket-escape mode
       if (*s==']') { mode=0; }
-      else { g_string_append_c(gsym,*s); continue; }
+      else { g_string_append_len(gsym,s,s_nxt-s); continue; }
       break;
 
     case '\\':
@@ -959,7 +959,7 @@ gfsmLabelVector *gfsm_alphabet_att_string_to_labels(gfsmAlphabet *abet,
 	gfsm_carp(g_error_new(g_quark_from_static_string("gfsm"), //--domain
 			      g_quark_from_static_string("gfsm_alphabet_att_string_to_labels"), //-- code
 			      "Warning: unknown %s symbol [%s] in string '%s' -- skipping.",
-			      (is_utf8 ? "byte" : "UTF-8"), gsym->str, str));
+			      (is_utf8 ? "UTF-8" : "byte"), gsym->str, str));
       }
       g_string_truncate(gsym,0);
       continue;

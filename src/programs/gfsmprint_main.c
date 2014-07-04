@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2004 by Bryan Jurish <moocow.bovine@gmail.com>
+   Copyright (C) 2004-2014 by Bryan Jurish <moocow.bovine@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -61,6 +61,18 @@ void get_my_options(int argc, char **argv)
   //-- filenames
   if (args.inputs_num > 0) infilename = args.inputs[0];
   if (args.inputs_num > 1) outfilename = args.inputs[1];
+
+  //-- labels: input + output
+  if (args.labels_given) {
+    if (!args.ilabels_given) {
+      args.ilabels_given = 1;
+      args.ilabels_arg   = args.labels_arg;
+    }
+    if (!args.olabels_given) {
+      args.olabels_given = 1;
+      args.olabels_arg   = args.labels_arg;
+    }
+  }
 
   //-- labels: input
   if (args.ilabels_given) {
