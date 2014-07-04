@@ -45,12 +45,14 @@ const char *outfilename = "-";
 const char *input_default = "-";
 
 //-- global structs and options
-gfsmAutomaton *fst = NULL;
+gfsmTrainer *trainer=NULL;
+gfsmAutomaton *fst  =NULL;
 gfsmAlphabet  *ilabels=NULL, *olabels=NULL;
 gfsmError     *err = NULL;
 
 gboolean       att_mode = FALSE;
 gboolean       warn_on_undef = TRUE;
+
 
 /*--------------------------------------------------------------------------
  * Option Processing
@@ -113,6 +115,12 @@ void get_my_options(int argc, char **argv)
     exit(255);
   }
 
+  //-- setup trainer
+  trainer = gfsm_trainer_new(fst);
+  trainer->prunePathPermutations = !args.ordered_flag;
+  trainer->distributeOverPaths   = args.distribute_by_path_flag;
+  trainer->distributeOverArcs    = args.distribute_by_arc_flag;
+
   //-- mode flags
   att_mode = args.att_mode_flag;
   warn_on_undef = !args.quiet_flag;
@@ -155,10 +163,7 @@ void train_pairfile(FILE *pairfile)
     ovec = gfsm_alphabet_generic_string_to_labels(olabels, ostr, ovec, warn_on_undef, att_mode);
 
     //-- training guts
-    gfsm_automaton_train(fst, ivec, ovec,
-			 !args.ordered_flag,
-			 args.distribute_by_path_flag,
-			 args.distribute_by_arc_flag);
+    gfsm_trainer_train(trainer, ivec, ovec);
   }
 
   //-- cleanup
@@ -193,12 +198,14 @@ int main (int argc, char **argv)
   }
 
   //-- save output
+  fst = gfsm_trainer_automaton(trainer, TRUE);
   if (!gfsm_automaton_save_bin_filename(fst, outfilename, args.compress_arg, &err)) {
     g_printerr("%s: store failed to '%s': %s\n", progname, outfilename, err->message);
     exit(4);
   }
 
   //-- cleanup
+  if (trainer) gfsm_trainer_free(trainer,TRUE);
   if (fst)     gfsm_automaton_free(fst);
   if (olabels) gfsm_alphabet_free(olabels);
   if (ilabels) gfsm_alphabet_free(ilabels);

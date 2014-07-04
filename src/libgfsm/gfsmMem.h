@@ -153,10 +153,10 @@ typedef gpointer    (*gfsmDupNFunc)    (gconstpointer src, gsize size);
 typedef gpointer    (*gfsmDupFunc)     (gconstpointer src);
 
 /** Wrapper for g_new() */
-#define gfsm_new(struct_type, n_structs) g_new((struct_type), (n_structs))
+#define gfsm_new(struct_type, n_structs) g_new(struct_type, (n_structs))
 
 /** Wrapper for g_new0() */
-#define gfsm_new0(struct_type, n_structs) g_new0((struct_type), (n_structs))
+#define gfsm_new0(struct_type, n_structs) g_new0(struct_type, (n_structs))
 
 /** Wrapper for g_free() */
 GFSM_INLINE
