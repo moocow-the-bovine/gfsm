@@ -197,7 +197,7 @@ gint gfsm_lookup_train_path_compare(gfsmLookupTrainPath *p1, gfsmLookupTrainPath
 {
   guint i1,i2;
   for (i1=0, i2=0; i1<p1->len && i2<p2->len; ++i1, ++i2) {
-    gint cmp = gfsm_lookup_train_config_compare((gfsmLookupTrainConfig**)p1->pdata+i1, (gfsmLookupTrainConfig**)p2->pdata+i2);
+    gint cmp = gfsm_lookup_train_config_compare((const gfsmLookupTrainConfig**)p1->pdata+i1, (const gfsmLookupTrainConfig**)p2->pdata+i2);
     if (cmp != 0) return cmp;
   }
   if      (i1==p1->len && i2< p2->len) return -1;
@@ -218,6 +218,7 @@ gfsmLookupTrainPath* gfsm_lookup_train_path_new(gfsmLookupTrainConfig *cfg)
 
 
 //--------------------------------------------------------------
+#ifdef GFSM_DEBUG_TRAIN
 static
 void gfsm_lookup_train_path_dump(FILE *f, gfsmLookupTrainPath *path, gfsmAutomaton *fst)
 {
@@ -243,6 +244,7 @@ void gfsm_lookup_train_paths_dump(FILE *f, GSList *paths, gfsmAutomaton *fst)
     gfsm_lookup_train_path_dump(f, ((gfsmLookupTrainPath*)paths->data), fst);
   }
 }
+#endif /* GFSM_DEBUG_TRAIN */
 
 //--------------------------------------------------------------
 gfsmAutomaton* gfsm_automaton_lookup_train(gfsmAutomaton     *fst,
