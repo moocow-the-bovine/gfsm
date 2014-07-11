@@ -24,6 +24,7 @@ gfsmtrain [OPTIONS] PAIR_FILE(s)...
     -a         --att-mode            Parse string(s) in AT&T-compatible mode.
     -q         --quiet               Suppress warnings about undefined symbols.
     -u         --utf8                Assume UTF-8 encoded alphabet and input.
+    -B         --best                Only consider cost-minimal path(s) for each training pair.
     -O         --ordered             Count permutations in arc-order as multiple paths.
     -P         --distribute-by-path  Distribute pair-mass over multiple paths.
     -A         --distribute-by-arc   Distribute path-mass over arcs.
@@ -158,6 +159,20 @@ Default: '0'
 Assume UTF-8 encoded alphabet and input.
 
 Default: '0'
+
+
+
+
+=item C<--best> , C<-B>
+
+Only consider cost-minimal path(s) for each training pair.
+
+Default: '0'
+
+
+If specified and true, only minimal-cost path(s) will be considered for each training pair,
+otherwise all successful paths will be considered.
+
 
 
 

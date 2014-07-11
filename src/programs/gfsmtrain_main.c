@@ -117,9 +117,10 @@ void get_my_options(int argc, char **argv)
 
   //-- setup trainer
   trainer = gfsm_trainer_new(fst);
+  trainer->bestPathsOnly         =  args.best_flag;
   trainer->prunePathPermutations = !args.ordered_flag;
-  trainer->distributeOverPaths   = args.distribute_by_path_flag;
-  trainer->distributeOverArcs    = args.distribute_by_arc_flag;
+  trainer->distributeOverPaths   =  args.distribute_by_path_flag;
+  trainer->distributeOverArcs    =  args.distribute_by_arc_flag;
 
   //-- mode flags
   att_mode = args.att_mode_flag;

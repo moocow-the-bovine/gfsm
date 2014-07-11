@@ -91,6 +91,7 @@ cmdline_parser_print_help (void)
   printf("   -a         --att-mode            Parse string(s) in AT&T-compatible mode.\n");
   printf("   -q         --quiet               Suppress warnings about undefined symbols.\n");
   printf("   -u         --utf8                Assume UTF-8 encoded alphabet and input.\n");
+  printf("   -B         --best                Only consider cost-minimal path(s) for each training pair.\n");
   printf("   -O         --ordered             Count permutations in arc-order as multiple paths.\n");
   printf("   -P         --distribute-by-path  Distribute pair-mass over multiple paths.\n");
   printf("   -A         --distribute-by-arc   Distribute path-mass over arcs.\n");
@@ -125,6 +126,7 @@ clear_args(struct gengetopt_args_info *args_info)
   args_info->att_mode_flag = 0; 
   args_info->quiet_flag = 0; 
   args_info->utf8_flag = 0; 
+  args_info->best_flag = 0; 
   args_info->ordered_flag = 0; 
   args_info->distribute_by_path_flag = 0; 
   args_info->distribute_by_arc_flag = 0; 
@@ -148,6 +150,7 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
   args_info->att_mode_given = 0;
   args_info->quiet_given = 0;
   args_info->utf8_given = 0;
+  args_info->best_given = 0;
   args_info->ordered_given = 0;
   args_info->distribute_by_path_given = 0;
   args_info->distribute_by_arc_given = 0;
@@ -178,6 +181,7 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
 	{ "att-mode", 0, NULL, 'a' },
 	{ "quiet", 0, NULL, 'q' },
 	{ "utf8", 0, NULL, 'u' },
+	{ "best", 0, NULL, 'B' },
 	{ "ordered", 0, NULL, 'O' },
 	{ "distribute-by-path", 0, NULL, 'P' },
 	{ "distribute-by-arc", 0, NULL, 'A' },
@@ -195,6 +199,7 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
 	'a',
 	'q',
 	'u',
+	'B',
 	'O',
 	'P',
 	'A',
@@ -316,6 +321,15 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
           args_info->utf8_given++;
          if (args_info->utf8_given <= 1)
            args_info->utf8_flag = !(args_info->utf8_flag);
+          break;
+        
+        case 'B':	 /* Only consider cost-minimal path(s) for each training pair. */
+          if (args_info->best_given) {
+            fprintf(stderr, "%s: `--best' (`-B') option given more than once\n", PROGRAM);
+          }
+          args_info->best_given++;
+         if (args_info->best_given <= 1)
+           args_info->best_flag = !(args_info->best_flag);
           break;
         
         case 'O':	 /* Count permutations in arc-order as multiple paths. */
@@ -452,6 +466,16 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
             args_info->utf8_given++;
            if (args_info->utf8_given <= 1)
              args_info->utf8_flag = !(args_info->utf8_flag);
+          }
+          
+          /* Only consider cost-minimal path(s) for each training pair. */
+          else if (strcmp(olong, "best") == 0) {
+            if (args_info->best_given) {
+              fprintf(stderr, "%s: `--best' (`-B') option given more than once\n", PROGRAM);
+            }
+            args_info->best_given++;
+           if (args_info->best_given <= 1)
+             args_info->best_flag = !(args_info->best_flag);
           }
           
           /* Count permutations in arc-order as multiple paths. */

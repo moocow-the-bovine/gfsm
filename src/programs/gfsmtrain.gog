@@ -33,6 +33,7 @@ One pair per line, TAB-separated.
 #-----------------------------------------------------------------------------
 #group "Basic Options"
 
+##-- alphabet options
 string "ilabels" i "Specify input (lower) labels file." \
    arg="LABELS"
 
@@ -50,6 +51,14 @@ flag "quiet" q "Suppress warnings about undefined symbols." \
 
 flag "utf8" u "Assume UTF-8 encoded alphabet and input." \
   default="0"
+
+##-- training options
+flag "best" B "Only consider cost-minimal path(s) for each training pair." \
+  default="0" \
+  details="
+If specified and true, only minimal-cost path(s) will be considered for each training pair,
+otherwise all successful paths will be considered.
+"
 
 flag "ordered" O "Count permutations in arc-order as multiple paths." \
   default="0" \
@@ -75,6 +84,7 @@ be distributed uniformly over all its arcs and its final weight.
 Otherwise, each arc in the path will receive the full count-mass alotted to that path.
 "
 
+##-- i/o options
 string "fst" f "Transducer to apply (required)." \
     arg="FSTFILE" \
     details=""

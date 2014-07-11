@@ -25,6 +25,7 @@ struct gengetopt_args_info {
   int att_mode_flag;	 /* Parse string(s) in AT&T-compatible mode. (default=0). */
   int quiet_flag;	 /* Suppress warnings about undefined symbols. (default=0). */
   int utf8_flag;	 /* Assume UTF-8 encoded alphabet and input. (default=0). */
+  int best_flag;	 /* Only consider cost-minimal path(s) for each training pair. (default=0). */
   int ordered_flag;	 /* Count permutations in arc-order as multiple paths. (default=0). */
   int distribute_by_path_flag;	 /* Distribute pair-mass over multiple paths. (default=0). */
   int distribute_by_arc_flag;	 /* Distribute path-mass over arcs. (default=0). */
@@ -40,6 +41,7 @@ struct gengetopt_args_info {
   int att_mode_given;	 /* Whether att-mode was given */
   int quiet_given;	 /* Whether quiet was given */
   int utf8_given;	 /* Whether utf8 was given */
+  int best_given;	 /* Whether best was given */
   int ordered_given;	 /* Whether ordered was given */
   int distribute_by_path_given;	 /* Whether distribute-by-path was given */
   int distribute_by_arc_given;	 /* Whether distribute-by-arc was given */
