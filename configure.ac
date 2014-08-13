@@ -268,7 +268,7 @@ if test "$enable_debug" = "yes" ; then
    dnl AC_DISABLE_SHARED
    if test "$GCC" = "yes" ; then
      AC_MSG_NOTICE([GNU C compiler detected: setting appropriate debug flags])
-     gfsm_OFLAGS="-g"
+     gfsm_OFLAGS="-O0 -g -ggdb"
    else
      AC_MSG_WARN([GNU C compiler not detected: you must use CFLAGS to set compiler debugging flags])
      gfsm_OFLAGS=""
