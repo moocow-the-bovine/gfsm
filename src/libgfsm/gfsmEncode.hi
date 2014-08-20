@@ -1,0 +1,73 @@
+/*=============================================================================*\
+ * File: gfsmEncode.hi
+ * Author: Bryan Jurish <moocow.bovine@gmail.com>
+ * Description: finite state machine library: encoding: inline definitions
+ *
+ * Copyright (c) 2014 Bryan Jurish.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *=============================================================================*/
+
+/*======================================================================
+ * gfsmArcLabel Methods
+ */
+
+//--------------------------------------------------------------
+GFSM_INLINE
+void gfsm_arclabel_set(gfsmArcLabel *al, gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w)
+{
+  al->lo = lo;
+  al->hi = hi;
+  al->w  = w;
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmArcLabel *gfsm_arclabel_new(gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w)
+{
+  gfsmArcLabel *al = gfsm_slice_new(gfsmArcLabel);
+  gfsm_arclabel_set(al, lo,hi,w);
+  return al;
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+void gfsm_arclabel_clone(gfsmArcLabel *al)
+{
+  return (gfsmArcLabel*)gfsm_slice_dup(gfsmArcLabel, al);
+}
+
+//--------------------------------------------------------------
+GFSM_INLINE
+void gfsm_arclabel_free(gfsmArcLabel *al)
+{
+  gfsm_slice_free(gfsmArcLabel,al);
+}
+
+
+/*======================================================================
+ * Methods: gfsmArcLabelAlphabet
+ */
+
+//--------------------------------------------------------------
+GFSM_INLINE
+gfsmArcLabelKey *gfsm_arclabel_key_new(void)
+{
+  return gfsm_pointer_alphabet_new((gfsmDupFunc)gfsm_arclabel_clone,
+				   (GHashFunc)gfsm_arclabel_hash,
+				   (GEqualFunc)gfsm_arclabel_equal,
+				   (GDestroyNotify)gfsm_arclabel_free);
+}
+
