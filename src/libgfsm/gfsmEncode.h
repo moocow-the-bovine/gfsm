@@ -71,7 +71,7 @@ gfsmArcLabel *gfsm_arclabel_clone(gfsmArcLabel *al);
 
 /** Free a ::gfsmArcLabel */
 GFSM_INLINE
-void gfsm_statepair_free(gfsmStatePair *sp);
+void gfsm_arclabel_free(gfsmArcLabel *al);
 
 /** Hash function alias for ::gfsmArcLabel */
 guint gfsm_arclabel_hash(gfsmArcLabel *al);
@@ -79,8 +79,6 @@ guint gfsm_arclabel_hash(gfsmArcLabel *al);
 /** Equal function alias for ::gfsmArcLabel */
 guint gfsm_arclabel_equal(const gfsmArcLabel *al1, const gfsmArcLabel *al2);
 
-/** Comparison function for ::gfsmArcLabel */
-guint gfsm_arclabel_compare(const gfsmArcLabel *al1, const gfsmArcLabel *al2);
 //@}
 
 /*======================================================================
@@ -141,7 +139,11 @@ gfsmArcLabelKey *gfsm_automaton_encode(gfsmAutomaton *fsm, gfsmArcLabelKey *key,
  */
 gfsmAutomaton *gfsm_automaton_decode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, gboolean encode_labels, gboolean encode_weights);
 
-
 //@}
+
+//-- inline definitions
+#ifdef GFSM_INLINE_ENABLED
+# include <gfsmEncode.hi>
+#endif
 
 #endif /* _GFSM_ENCODE_H */

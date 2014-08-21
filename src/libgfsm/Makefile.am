@@ -82,6 +82,7 @@ libgfsm_la_SOURCES = \
 	gfsmUnion.c \
 	\
 	gfsmArith.c \
+	gfsmEncode.c \
 	gfsmLookup.c \
 	gfsmTrain.c \
 	gfsmPaths.c \
@@ -149,6 +150,7 @@ pkginclude_HEADERS = \
 	gfsmDraw.h \
 	gfsmAlgebra.h \
 	gfsmArith.h \
+	gfsmEncode.h \
 	gfsmLookup.h \
 	gfsmTrain.h \
 	gfsmPaths.h gfsmPaths.hi \

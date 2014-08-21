@@ -22,6 +22,7 @@ bin_PROGRAMS = \
 	gfsmarcuniq \
 	gfsmarith \
 	gfsmclosure \
+	gfsmcompact \
 	gfsmcompile \
 	gfsmcomplement \
 	gfsmcompose \
@@ -33,6 +34,7 @@ bin_PROGRAMS = \
 	gfsmdeterminize \
 	gfsmdifference \
 	gfsmdraw \
+	gfsmencode \
 	gfsmheader \
 	gfsminfo \
 	gfsmintersect \
@@ -126,6 +128,18 @@ gfsmarith_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmarith_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmarith.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmcompact_SOURCES = \
+	gfsmcompact_main.c \
+	gfsmcompact_cmdparser.c gfsmcompact_cmdparser.h
+
+gfsmcompact_main.o: gfsmcompact_cmdparser.h
+
+gfsmcompact_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmcompact_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmcompact.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmcompile_SOURCES = \
@@ -331,6 +345,18 @@ gfsmdraw_LDFLAGS = $(LDFLAGS_COMMON)
 gfsmdraw_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsmdraw.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmencode_SOURCES = \
+	gfsmencode_main.c \
+	gfsmencode_cmdparser.c gfsmencode_cmdparser.h
+
+gfsmencode_main.o: gfsmencode_cmdparser.h
+
+gfsmencode_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmencode_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmencode.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmheader_SOURCES = \

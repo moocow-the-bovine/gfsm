@@ -23,6 +23,29 @@
 #include <gfsmEncode.h>
 #include <gfsmArcIter.h>
 
+//-- no-inline definitions
+#ifndef GFSM_INLINE_ENABLED
+# include <gfsmEncode.hi>
+#endif
+
+/*======================================================================
+ * gfsmArcLabel Methods
+ */
+
+//--------------------------------------------------------------
+guint gfsm_arclabel_hash(gfsmArcLabel *al)
+{
+  //-- prime factors 4091,8179; see http://en.wikipedia.org/wiki/List_of_prime_numbers#Largest_primes_smaller_than_2n
+  //   + glib hash table uses  4093,8191
+  return 4091*al->lo + 8179*al->hi + GPOINTER_TO_UINT(gfsm_weight2ptr(al->w));
+}
+
+//--------------------------------------------------------------
+guint gfsm_arclabel_equal(const gfsmArcLabel *al1, const gfsmArcLabel *al2)
+{
+  return al1->lo==al2->lo && al1->hi==al2->hi && al1->w==al2->w;
+}
+
 /*======================================================================
  * gfsmArcLabelKey Methods
  */
@@ -31,6 +54,7 @@
 gfsmAutomaton *gfsm_arclabel_key_to_fsm(gfsmArcLabelKey *key, gfsmAutomaton *fsm)
 {
   gfsmPointerAlphabet *pkey = (gfsmPointerAlphabet*)key;
+  gfsmState    *q0;
   gfsmLabelVal lab;
 
   if (!fsm) {
@@ -41,12 +65,18 @@ gfsmAutomaton *gfsm_arclabel_key_to_fsm(gfsmArcLabelKey *key, gfsmAutomaton *fsm
 
   //-- set root
   gfsm_automaton_set_root(fsm, 0);
+  q0 = gfsm_automaton_find_state(fsm, 0);
 
   //-- copy labels (in order)
   for (lab=0; lab < pkey->labels2keys->len; lab++) {
     gfsmArcLabel *al = (gfsmArcLabel*)g_ptr_array_index(pkey->labels2keys, lab);
-    gfsm_automaton_add_arc(fsm, 0,0, al->lo, al->hi, al->w);
+    q0->arcs = gfsm_arclist_new_full(0,0, al->lo,al->hi,al->w, q0->arcs);
   }
+
+  //-- reverse arcs and set sort mode
+  // + ensures that arcs will always be loaded in order, cf gfsm_automaton_load_bin_handle_0_0_8() in gfsmAutomatonIO.c
+  q0->arcs = gfsm_arclist_reverse(q0->arcs);
+  fsm->flags.sort_mode = gfsmACTarget;
 
   //-- ... and return
   return fsm;
@@ -55,7 +85,6 @@ gfsmAutomaton *gfsm_arclabel_key_to_fsm(gfsmArcLabelKey *key, gfsmAutomaton *fsm
 //--------------------------------------------------------------
 gfsmArcLabelKey *gfsm_arclabel_fsm_to_key(gfsmAutomaton *fsm, gfsmArcLabelKey *key)
 {
-  gfsmPointerAlphabet *pkey = (gfsmPointerAlphabet*)key;
   gfsmLabelVal lab;
   gfsmArcLabel al;
   gfsmArcIter ai;
@@ -81,15 +110,16 @@ gfsmArcLabelKey *gfsm_arclabel_fsm_to_key(gfsmAutomaton *fsm, gfsmArcLabelKey *k
 /*======================================================================
  * Top-Level Methods
  */
+const gfsmLabelVal gfsmEncodeFinal = 1;
 
 //--------------------------------------------------------------
 gfsmArcLabelKey *gfsm_automaton_encode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, gboolean encode_labels, gboolean encode_weights)
 {
   gfsmWeight   w0 = gfsm_sr_one(fsm->sr);
-  gfsmStateId qid, qf;
+  gfsmStateId qid, qf=gfsmNoState;
   gfsmArcIter ai;
   gfsmArcLabel al;
-  gfsmLabelVal lab;
+  gfsmLabelVal lab, loFinal = (encode_labels ? gfsmEncodeFinal : gfsmEpsilon);
 
   if (!key) {
     key = gfsm_arclabel_key_new();
@@ -107,7 +137,7 @@ gfsmArcLabelKey *gfsm_automaton_encode(gfsmAutomaton *fsm, gfsmArcLabelKey *key,
 
   //-- encoding guts
   for (qid=0; qid < gfsm_automaton_n_states(fsm); qid++) {
-    if (!gfsm_automaton_has_state(fsm,qid)) continue;
+    if (qid==qf || !gfsm_automaton_has_state(fsm,qid)) continue;
 
     //-- encode arc-labels
     for (gfsm_arciter_open(&ai, fsm,qid); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai)) {
@@ -116,31 +146,39 @@ gfsmArcLabelKey *gfsm_automaton_encode(gfsmAutomaton *fsm, gfsmArcLabelKey *key,
       //-- build gfsmArcLabel key
       if (encode_labels) {
 	//-- add 1 to non-epsilon labels to allow (0:1/W) keys to identify final weights
-	al->lo = a->lower==0 ? 0 : (a->lower+1);
-	al->hi = a->upper==0 ? 0 : (a->upper+1);
+	al.lo = a->lower==0 ? 0 : (a->lower+1);
       }
+      al.hi = a->upper==0 ? 0 : (a->upper+1);
       if (encode_weights) {
-	al->w = a->weight;
+	al.w = a->weight;
       }
 
       //-- ensure enumeration for current arc-key
       lab = gfsm_alphabet_get_label(key, &al);
 
       //-- modify automaton
-      if (encode_labels) al->lo = lab;
-      a->hi = lab
-      if (encode_weights) a->w = w0;
+      if (encode_labels) a->lower = lab;
+      a->upper = lab;
+      if (encode_weights) a->weight = w0;
     }
 
     //-- encode final weights
     if (encode_weights && gfsm_automaton_state_is_final(fsm,qid)) {
-      //-- special entry-type 0:1/W for final weights
-      gfsm_arclabel_set(&al, 0,1, gfsm_automaton_get_final_weight(fsm,qid));
+      //-- special entry-type *:1/W for final weights
+      gfsm_arclabel_set(&al, loFinal,gfsmEncodeFinal, gfsm_automaton_get_final_weight(fsm,qid));
       lab = gfsm_alphabet_get_label(key, &al);
-      gfsm_automaton_add_arc(fsm, qid,qf, 0,lab, w0);
+      if (encode_labels)
+	gfsm_automaton_add_arc(fsm, qid,qf, lab,lab, w0);
+      else
+	gfsm_automaton_add_arc(fsm, qid,qf, loFinal,lab, w0);
       gfsm_automaton_set_final_state(fsm,qid,FALSE);
     }
   }
+
+  //-- set flags
+  if (encode_labels) fsm->flags.is_transducer = FALSE;
+  if (encode_weights) fsm->flags.is_weighted = FALSE;
+  fsm->flags.sort_mode = gfsmASMNone;
 
   //-- dump
   return key;
@@ -149,8 +187,16 @@ gfsmArcLabelKey *gfsm_automaton_encode(gfsmAutomaton *fsm, gfsmArcLabelKey *key,
 //--------------------------------------------------------------
 gfsmAutomaton *gfsm_automaton_decode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, gboolean decode_labels, gboolean decode_weights)
 {
-  gfsmStateId qid;
+  gfsmWeight   w0 = gfsm_sr_one(fsm->sr);
+  gfsmStateId qid, qf=gfsmNoState;
   gfsmArcIter ai;
+
+  //-- decoding: attempt to find dummy final state
+  if (decode_weights && gfsm_automaton_n_states(fsm) > 0 && gfsm_automaton_n_final_states(fsm)==1) {
+    qf = gfsm_automaton_n_states(fsm)-1;
+    if (!gfsm_automaton_state_is_final(fsm,qf) || gfsm_automaton_out_degree(fsm,qf)!=0)
+      qf=gfsmNoState;
+  }
 
   //-- decoding guts
   for (qid=0; qid < gfsm_automaton_n_states(fsm); qid++) {
@@ -158,23 +204,31 @@ gfsmAutomaton *gfsm_automaton_decode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, g
 
     for (gfsm_arciter_open(&ai, fsm,qid); gfsm_arciter_ok(&ai); ) {
       gfsmArc       *a = gfsm_arciter_arc(&ai);
-      gfsmArcLabel *al = (gfsmArcLabel*)g_ptr_array_index(pkey->labels2keys, a->upper);
+      gfsmArcLabel *al = (gfsmArcLabel*)gfsm_alphabet_find_key(key, a->upper);
 
-      if (al->hi==1 && decode_weights) {
-	//-- decode: final weight
-	gfsm_automaton_set_final_state_full(fsm,qid,TRUE,al->w);
-	gfsm_arciter_remove(&ai);
-	continue;
+      if (al && al->hi==gfsmEncodeFinal && decode_weights) {
+	//-- decode: encoded final-weight transition
+	if (a->target==qf || (gfsm_automaton_state_is_final(fsm,a->target) && gfsm_automaton_out_degree(fsm,a->target)==0)) {
+	  //-- decode as final weight and remove dummy arc
+	  gfsm_automaton_set_final_state_full(fsm,qid,TRUE,al->w);
+	  gfsm_arciter_remove(&ai);
+	  continue;
+	}
+	else {
+	  //-- decode as epsilon-transition
+	  a->lower  = a->upper = gfsmEpsilon;
+	  a->weight = al->w;
+	}
       }
-      else if (al->hi!=1) {
+      else {
 	//-- decode: arc
 	if (decode_labels) {
 	  //-- subtract 1 from non-epsilon labels to allow (*:1/W) keys to identify final weights
-	  a->lower = al->lo==0 ? 0 : (al->lo-1);
+	  a->lower = !al || al->lo==0 ? 0 : (al->lo-1);
 	}
-	a->upper = al->hi==0 ? 0 : (al->hi-1);
+	a->upper = !al || al->hi==0 ? 0 : (al->hi-1);
 	if (decode_weights) {
-	  a->weight = al->w;
+	  a->weight = al ? al->w : w0;
 	}
       }
 
@@ -183,8 +237,15 @@ gfsmAutomaton *gfsm_automaton_decode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, g
     }
   }
 
-  //-- todo: figure out whehter rsp. how to recognize and/or implicitly remove dummy final state(s)
+  //-- implicitly remove dummy final state, if any
+  if (qf != gfsmNoState) {
+    gfsm_automaton_remove_state(fsm,qf);
+  }
 
+  //-- set flags
+  if (decode_labels) fsm->flags.is_transducer = TRUE;
+  if (decode_weights) fsm->flags.is_weighted = TRUE;
+  fsm->flags.sort_mode = gfsmASMNone;
 
   //-- dump
   return fsm;

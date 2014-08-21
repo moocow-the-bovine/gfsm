@@ -63,9 +63,10 @@ extern "C" {
 #include <gfsmDraw.h>
 #include <gfsmAlgebra.h>
 #include <gfsmArith.h>
+#include <gfsmEncode.h>
 #include <gfsmLookup.h>
-#include <gfsmTrain.h>
 #include <gfsmPaths.h>
+#include <gfsmTrain.h>
 #include <gfsmTrie.h>
 #include <gfsmScanner.h>
 #include <gfsmRegexCompiler.h>

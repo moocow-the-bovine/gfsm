@@ -1,0 +1,104 @@
+# -*- Mode: Shell-Script -*-
+#
+# Getopt::Gen specification
+#-----------------------------------------------------------------------------
+program "gfsmencode"
+#program_version "0.01"
+
+purpose	"Encode weights and/or label-pairs of (weighted) finite state machines"
+author  "Bryan Jurish <moocow.bovine@gmail.com>"
+on_reparse "warn"
+
+#-----------------------------------------------------------------------------
+# Details
+#-----------------------------------------------------------------------------
+details ""
+
+#-----------------------------------------------------------------------------
+# Files
+#-----------------------------------------------------------------------------
+#rcfile "/etc/gfsmrc"
+#rcfile "~/.gfsmrc"
+
+#-----------------------------------------------------------------------------
+# Arguments
+#-----------------------------------------------------------------------------
+argument "BINFILE" "Stored binary gfsm file to be encoded" \
+    details="
+If unspecified, standard input will be read
+"
+
+argument "KEYFILE" "Binary gfsm representing encoding key" \
+    details="
+If unspecified, standard input will be read in decoding mode and standard output will be written to in encoding mode.
+"
+
+#-----------------------------------------------------------------------------
+# Options
+#-----------------------------------------------------------------------------
+#group "Basic Options"
+
+flag "decode" d "Decode an encoded automaton (default: encode)" \
+  default="0" \
+  details="
+If unspecified, argument automaton will be encoded.
+"
+
+flag "encode" e "Force encoding mode for KEYFILE re-generation" \
+  default="0" \
+  details="
+Normally, an existing KEYFSM will be loaded and used in encoding mode.
+Specifying this option causes an existing KEYFSM file to be ignored and
+a new key to be generated.
+"
+
+flag "costs" c "Encode/decode costs (weights); encodes as unweighted automaton" \
+  default="0" \
+  details=""
+
+flag "labels" l "Encode/decode labels (pairs); encodes as acceptor" \
+  default="0" \
+  details=""
+
+int "compress" z "Specify compression level of output file." \
+    arg="LEVEL" \
+    default="-1" \
+    details="
+Specify zlib compression level of output file. -1 (default) indicates
+the default compression level, 0 (zero) indicates no zlib compression at all,
+and 9 indicates the best possible compression.
+"
+
+string "output" F "Specifiy output file (default=stdout)." \
+    arg="FILE" \
+    default="-"
+
+#-----------------------------------------------------------------------------
+# Addenda
+#-----------------------------------------------------------------------------
+#addenda ""
+
+#-----------------------------------------------------------------------------
+# Bugs
+#-----------------------------------------------------------------------------
+bugs "
+
+=over 4
+
+=item
+
+Not be 100% compatibile with AT&T C<fsmencode>, particularly regarding handling of encoded final weights.
+C<gfsmencode>'s final-weight encoding is intended to be more robust than the AT&T variant.
+
+=back
+
+"
+
+#-----------------------------------------------------------------------------
+# Footer
+#-----------------------------------------------------------------------------
+#acknowledge `cat acknowledge.pod`
+
+seealso "
+L<gfsmutils>
+"

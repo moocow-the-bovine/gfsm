@@ -44,7 +44,7 @@ gfsmArcLabel *gfsm_arclabel_new(gfsmLabelVal lo, gfsmLabelVal hi, gfsmWeight w)
 
 //--------------------------------------------------------------
 GFSM_INLINE
-void gfsm_arclabel_clone(gfsmArcLabel *al)
+gfsmArcLabel *gfsm_arclabel_clone(gfsmArcLabel *al)
 {
   return (gfsmArcLabel*)gfsm_slice_dup(gfsmArcLabel, al);
 }
@@ -56,16 +56,23 @@ void gfsm_arclabel_free(gfsmArcLabel *al)
   gfsm_slice_free(gfsmArcLabel,al);
 }
 
-
 /*======================================================================
  * Methods: gfsmArcLabelAlphabet
  */
 
 //--------------------------------------------------------------
 GFSM_INLINE
+gfsmArcLabel *gfsm_arclabel_key_keydup(gfsmArcLabelKey *key, gfsmArcLabel *arg)
+{
+  return gfsm_arclabel_clone(arg);
+}
+
+
+//--------------------------------------------------------------
+GFSM_INLINE
 gfsmArcLabelKey *gfsm_arclabel_key_new(void)
 {
-  return gfsm_pointer_alphabet_new((gfsmDupFunc)gfsm_arclabel_clone,
+  return gfsm_pointer_alphabet_new((gfsmAlphabetKeyDupFunc)gfsm_arclabel_key_keydup,
 				   (GHashFunc)gfsm_arclabel_hash,
 				   (GEqualFunc)gfsm_arclabel_equal,
 				   (GDestroyNotify)gfsm_arclabel_free);

@@ -21,6 +21,7 @@
  *=============================================================================*/
 
 #include <gfsmAlgebra.h>
+#include <gfsmEncode.h>
 
 /*======================================================================
  * Methods: algebra: minimization
@@ -31,9 +32,7 @@
  *    of Brooklyn, Brooklyn, N.Y., pp. 529–561, MR0175719.
  */
 
-/*--------------------------------------------------------------
- * minimize()
- */
+//--------------------------------------------------------------
 gfsmAutomaton *gfsm_automaton_minimize_full(gfsmAutomaton *fsm, gboolean rmeps)
 {
   gfsmAutomaton *tmp=gfsm_automaton_shadow(fsm);
@@ -59,5 +58,37 @@ gfsmAutomaton *gfsm_automaton_minimize_full(gfsmAutomaton *fsm, gboolean rmeps)
   gfsm_automaton_free(tmp);
   return fsm;
 }
+
+//--------------------------------------------------------------
+gfsmAutomaton *gfsm_automaton_minimize(gfsmAutomaton *fsm)
+{
+  return gfsm_automaton_minimize_full(fsm,TRUE);
+}
+
+
+/*--------------------------------------------------------------
+ * compact()
+ */
+gfsmAutomaton *gfsm_automaton_compact_full(gfsmAutomaton *fsm, gboolean rmeps)
+{
+  gfsmArcLabelKey *key;
+
+  //-- guts
+  key = gfsm_automaton_encode(fsm, key, TRUE,TRUE);
+  gfsm_automaton_minimize_full(fsm, rmeps);
+  gfsm_automaton_decode(fsm, key, TRUE,TRUE);
+
+  //-- cleanup
+  if (key) gfsm_arclabel_key_free(key);
+
+  return fsm;
+}
+
+//--------------------------------------------------------------
+gfsmAutomaton *gfsm_automaton_compact(gfsmAutomaton *fsm)
+{
+  return gfsm_automaton_compact_full(fsm,TRUE);
+}
+
 
 

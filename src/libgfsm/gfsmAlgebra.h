@@ -398,6 +398,25 @@ gfsmAutomaton *gfsm_automaton_minimize(gfsmAutomaton *fsm);
  */
 gfsmAutomaton *gfsm_automaton_minimize_full(gfsmAutomaton *fsm, gboolean rmeps);
 
+/** Heuristically compact an automaton.
+ *  Really just a wrapper for \c gfsm_automaton_compact_full(fsm,TRUE).
+ *
+ *  \note pseudo-destructive on \a fsm
+ *
+ *  \param fsm Automaton to compact.
+ *  \returns compacted \a fsm
+ */
+gfsmAutomaton *gfsm_automaton_compact(gfsmAutomaton *fsm);
+
+/** Heuristic compaction like <code>gfsmencode fsm KEY | gfsmminimize | gfsmdecode - KEY</code>
+ * \note destructively alters \a fsm
+ *
+ * \param fsm automaton to compact
+ * \param rmeps Whether to include epsilon-removal in encoded-acceptor minimization step
+ * \returns compacted \a fsm
+ */
+gfsmAutomaton *gfsm_automaton_compact_full(gfsmAutomaton *fsm, gboolean rmeps);
+
 //@}
 
 
