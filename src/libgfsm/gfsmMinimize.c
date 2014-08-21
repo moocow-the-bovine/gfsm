@@ -74,7 +74,7 @@ gfsmAutomaton *gfsm_automaton_compact_full(gfsmAutomaton *fsm, gboolean rmeps)
   gfsmArcLabelKey *key;
 
   //-- guts
-  key = gfsm_automaton_encode(fsm, key, TRUE,TRUE);
+  key = gfsm_automaton_encode(fsm, NULL, TRUE,TRUE);
   gfsm_automaton_minimize_full(fsm, rmeps);
   gfsm_automaton_decode(fsm, key, TRUE,TRUE);
 

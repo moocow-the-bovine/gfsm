@@ -241,6 +241,14 @@ void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gf
   gfsm_statemap_apply(fsm, old2new, n_new_states);
 }
 
+//--------------------------------------------------------------
+void gfsm_automaton_truncate_invalid_states(gfsmAutomaton *fsm)
+{
+  gfsmState *s;
+  for (s = gfsm_automaton_find_state(fsm, fsm->states->len-1); s && s>(gfsmState*)fsm->states->data && !s->is_valid; s--) {
+    --fsm->states->len;
+  }
+}
 
 /*======================================================================
  * Methods: Accessors: Automaton Arcs

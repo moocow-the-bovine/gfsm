@@ -115,7 +115,7 @@ const gfsmLabelVal gfsmEncodeFinal = 1;
 //--------------------------------------------------------------
 gfsmArcLabelKey *gfsm_automaton_encode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, gboolean encode_labels, gboolean encode_weights)
 {
-  gfsmWeight   w0 = gfsm_sr_one(fsm->sr);
+  gfsmWeight   w0 = gfsm_sr_one(fsm->sr), wf;
   gfsmStateId qid, qf=gfsmNoState;
   gfsmArcIter ai;
   gfsmArcLabel al;
@@ -163,9 +163,9 @@ gfsmArcLabelKey *gfsm_automaton_encode(gfsmAutomaton *fsm, gfsmArcLabelKey *key,
     }
 
     //-- encode final weights
-    if (encode_weights && gfsm_automaton_state_is_final(fsm,qid)) {
+    if (encode_weights && gfsm_automaton_lookup_final(fsm, qid, &wf) && wf != w0) {
       //-- special entry-type *:1/W for final weights
-      gfsm_arclabel_set(&al, loFinal,gfsmEncodeFinal, gfsm_automaton_get_final_weight(fsm,qid));
+      gfsm_arclabel_set(&al, loFinal,gfsmEncodeFinal, wf);
       lab = gfsm_alphabet_get_label(key, &al);
       if (encode_labels)
 	gfsm_automaton_add_arc(fsm, qid,qf, lab,lab, w0);
@@ -188,11 +188,11 @@ gfsmArcLabelKey *gfsm_automaton_encode(gfsmAutomaton *fsm, gfsmArcLabelKey *key,
 gfsmAutomaton *gfsm_automaton_decode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, gboolean decode_labels, gboolean decode_weights)
 {
   gfsmWeight   w0 = gfsm_sr_one(fsm->sr);
-  gfsmStateId qid, qf=gfsmNoState;
+  gfsmStateId qid, qf=gfsmNoState, nfdummy=0;
   gfsmArcIter ai;
 
   //-- decoding: attempt to find dummy final state
-  if (decode_weights && gfsm_automaton_n_states(fsm) > 0 && gfsm_automaton_n_final_states(fsm)==1) {
+  if (decode_weights && gfsm_automaton_n_states(fsm) > 0) {
     qf = gfsm_automaton_n_states(fsm)-1;
     if (!gfsm_automaton_state_is_final(fsm,qf) || gfsm_automaton_out_degree(fsm,qf)!=0)
       qf=gfsmNoState;
@@ -206,11 +206,11 @@ gfsmAutomaton *gfsm_automaton_decode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, g
       gfsmArc       *a = gfsm_arciter_arc(&ai);
       gfsmArcLabel *al = (gfsmArcLabel*)gfsm_alphabet_find_key(key, a->upper);
 
-      if (al && al->hi==gfsmEncodeFinal && decode_weights) {
+      if (al && decode_weights && (al->hi==gfsmEncodeFinal || (a->target==qf && al->lo<=gfsmEncodeFinal && al->hi==gfsmEpsilon))) {
 	//-- decode: encoded final-weight transition
 	if (a->target==qf || (gfsm_automaton_state_is_final(fsm,a->target) && gfsm_automaton_out_degree(fsm,a->target)==0)) {
-	  //-- decode as final weight and remove dummy arc
-	  gfsm_automaton_set_final_state_full(fsm,qid,TRUE,al->w);
+	  //-- decode into final weight and remove dummy arc
+	  gfsm_automaton_set_final_state_full(fsm,qid,TRUE, gfsm_sr_plus(fsm->sr, gfsm_automaton_get_final_weight(fsm,qid), al->w));
 	  gfsm_arciter_remove(&ai);
 	  continue;
 	}
@@ -232,13 +232,16 @@ gfsmAutomaton *gfsm_automaton_decode(gfsmAutomaton *fsm, gfsmArcLabelKey *key, g
 	}
       }
 
+      //-- track adjusted in-degree of "dummy" final-state
+      if (a->target == qf) ++nfdummy;
+
       //-- increment arc iterator
       gfsm_arciter_next(&ai);
     }
   }
 
   //-- implicitly remove dummy final state, if any
-  if (qf != gfsmNoState) {
+  if (qf != gfsmNoState && nfdummy==0) {
     gfsm_automaton_remove_state(fsm,qf);
   }
 

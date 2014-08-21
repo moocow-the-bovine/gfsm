@@ -339,6 +339,9 @@ void gfsm_automaton_renumber_states(gfsmAutomaton *fsm);
  */
 void gfsm_automaton_renumber_states_full(gfsmAutomaton *fsm, GArray *old2new, gfsmStateId n_new_states);
 
+/** Truncate any invalid states off the end state vector: fast */
+void gfsm_automaton_truncate_invalid_states(gfsmAutomaton *fsm);
+
 //@}
 
 /*======================================================================*/

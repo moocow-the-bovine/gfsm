@@ -4,7 +4,7 @@ AC_PREREQ([2.61])
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.13-1])
+define([THE_PACKAGE_VERSION], [0.0.14-1])
 define([THE_PACKAGE_MAINTAINER],  [moocow.bovine@gmail.com])
 
 AC_INIT([THE_PACKAGE_NAME],[THE_PACKAGE_VERSION],[THE_PACKAGE_MAINTAINER])
@@ -268,7 +268,7 @@ if test "$enable_debug" = "yes" ; then
    dnl AC_DISABLE_SHARED
    if test "$GCC" = "yes" ; then
      AC_MSG_NOTICE([GNU C compiler detected: setting appropriate debug flags])
-     gfsm_OFLAGS="-O0 -g -ggdb"
+     gfsm_OFLAGS="-O0 -ggdb"
    else
      AC_MSG_WARN([GNU C compiler not detected: you must use CFLAGS to set compiler debugging flags])
      gfsm_OFLAGS=""
@@ -610,6 +610,7 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmarcuniq.gog \
 	gfsmarith.gog \
 	gfsmclosure.gog \
+	gfsmcompact.gog \
 	gfsmcompile.gog \
 	gfsmcomplement.gog \
 	gfsmcompose.gog \
@@ -621,6 +622,7 @@ if test "$gfsm_doc_formats" != "none" ; then
 	gfsmdeterminize.gog \
 	gfsmdifference.gog \
 	gfsmdraw.gog \
+	gfsmencode.gog \
 	gfsmheader.gog \
 	gfsminfo.gog \
 	gfsmintersect.gog \
