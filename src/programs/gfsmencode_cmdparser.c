@@ -87,9 +87,10 @@ cmdline_parser_print_help (void)
   printf("   -h       --help            Print help and exit.\n");
   printf("   -V       --version         Print version and exit.\n");
   printf("   -d       --decode          Decode an encoded automaton (default: encode)\n");
-  printf("   -e       --encode          Force encoding mode for KEYFILE re-generation\n");
-  printf("   -c       --costs           Encode/decode costs (weights); encodes as unweighted automaton\n");
-  printf("   -l       --labels          Encode/decode labels (pairs); encodes as acceptor\n");
+  printf("   -c       --costs           Encode/decode costs (weights); encodes as unweighted automaton.\n");
+  printf("   -l       --labels          Encode/decode labels (pairs); encodes as acceptor.\n");
+  printf("   -r       --reuse-key       Re-use existing KEYFILE in encoding mode.\n");
+  printf("   -u       --update-key      Update an existing KEYFILE in encoding mode.\n");
   printf("   -zLEVEL  --compress=LEVEL  Specify compression level of output file.\n");
   printf("   -FFILE   --output=FILE     Specifiy output file (default=stdout).\n");
 }
@@ -115,9 +116,10 @@ static void
 clear_args(struct gengetopt_args_info *args_info)
 {
   args_info->decode_flag = 0; 
-  args_info->encode_flag = 0; 
   args_info->costs_flag = 0; 
   args_info->labels_flag = 0; 
+  args_info->reuse_key_flag = 0; 
+  args_info->update_key_flag = 0; 
   args_info->compress_arg = -1; 
   args_info->output_arg = gog_strdup("-"); 
 }
@@ -132,9 +134,10 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
   args_info->help_given = 0;
   args_info->version_given = 0;
   args_info->decode_given = 0;
-  args_info->encode_given = 0;
   args_info->costs_given = 0;
   args_info->labels_given = 0;
+  args_info->reuse_key_given = 0;
+  args_info->update_key_given = 0;
   args_info->compress_given = 0;
   args_info->output_given = 0;
 
@@ -156,9 +159,10 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
 	{ "help", 0, NULL, 'h' },
 	{ "version", 0, NULL, 'V' },
 	{ "decode", 0, NULL, 'd' },
-	{ "encode", 0, NULL, 'e' },
 	{ "costs", 0, NULL, 'c' },
 	{ "labels", 0, NULL, 'l' },
+	{ "reuse-key", 0, NULL, 'r' },
+	{ "update-key", 0, NULL, 'u' },
 	{ "compress", 1, NULL, 'z' },
 	{ "output", 1, NULL, 'F' },
         { NULL,	0, NULL, 0 }
@@ -167,9 +171,10 @@ cmdline_parser (int argc, char * const *argv, struct gengetopt_args_info *args_i
 	'h',
 	'V',
 	'd',
-	'e',
 	'c',
 	'l',
+	'r',
+	'u',
 	'z', ':',
 	'F', ':',
 	'\0'
@@ -244,16 +249,7 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
            args_info->decode_flag = !(args_info->decode_flag);
           break;
         
-        case 'e':	 /* Force encoding mode for KEYFILE re-generation */
-          if (args_info->encode_given) {
-            fprintf(stderr, "%s: `--encode' (`-e') option given more than once\n", PROGRAM);
-          }
-          args_info->encode_given++;
-         if (args_info->encode_given <= 1)
-           args_info->encode_flag = !(args_info->encode_flag);
-          break;
-        
-        case 'c':	 /* Encode/decode costs (weights); encodes as unweighted automaton */
+        case 'c':	 /* Encode/decode costs (weights); encodes as unweighted automaton. */
           if (args_info->costs_given) {
             fprintf(stderr, "%s: `--costs' (`-c') option given more than once\n", PROGRAM);
           }
@@ -262,13 +258,31 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
            args_info->costs_flag = !(args_info->costs_flag);
           break;
         
-        case 'l':	 /* Encode/decode labels (pairs); encodes as acceptor */
+        case 'l':	 /* Encode/decode labels (pairs); encodes as acceptor. */
           if (args_info->labels_given) {
             fprintf(stderr, "%s: `--labels' (`-l') option given more than once\n", PROGRAM);
           }
           args_info->labels_given++;
          if (args_info->labels_given <= 1)
            args_info->labels_flag = !(args_info->labels_flag);
+          break;
+        
+        case 'r':	 /* Re-use existing KEYFILE in encoding mode. */
+          if (args_info->reuse_key_given) {
+            fprintf(stderr, "%s: `--reuse-key' (`-r') option given more than once\n", PROGRAM);
+          }
+          args_info->reuse_key_given++;
+         if (args_info->reuse_key_given <= 1)
+           args_info->reuse_key_flag = !(args_info->reuse_key_flag);
+          break;
+        
+        case 'u':	 /* Update an existing KEYFILE in encoding mode. */
+          if (args_info->update_key_given) {
+            fprintf(stderr, "%s: `--update-key' (`-u') option given more than once\n", PROGRAM);
+          }
+          args_info->update_key_given++;
+         if (args_info->update_key_given <= 1)
+           args_info->update_key_flag = !(args_info->update_key_flag);
           break;
         
         case 'z':	 /* Specify compression level of output file. */
@@ -321,17 +335,7 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
              args_info->decode_flag = !(args_info->decode_flag);
           }
           
-          /* Force encoding mode for KEYFILE re-generation */
-          else if (strcmp(olong, "encode") == 0) {
-            if (args_info->encode_given) {
-              fprintf(stderr, "%s: `--encode' (`-e') option given more than once\n", PROGRAM);
-            }
-            args_info->encode_given++;
-           if (args_info->encode_given <= 1)
-             args_info->encode_flag = !(args_info->encode_flag);
-          }
-          
-          /* Encode/decode costs (weights); encodes as unweighted automaton */
+          /* Encode/decode costs (weights); encodes as unweighted automaton. */
           else if (strcmp(olong, "costs") == 0) {
             if (args_info->costs_given) {
               fprintf(stderr, "%s: `--costs' (`-c') option given more than once\n", PROGRAM);
@@ -341,7 +345,7 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
              args_info->costs_flag = !(args_info->costs_flag);
           }
           
-          /* Encode/decode labels (pairs); encodes as acceptor */
+          /* Encode/decode labels (pairs); encodes as acceptor. */
           else if (strcmp(olong, "labels") == 0) {
             if (args_info->labels_given) {
               fprintf(stderr, "%s: `--labels' (`-l') option given more than once\n", PROGRAM);
@@ -349,6 +353,26 @@ cmdline_parser_parse_option(char oshort, const char *olong, const char *val,
             args_info->labels_given++;
            if (args_info->labels_given <= 1)
              args_info->labels_flag = !(args_info->labels_flag);
+          }
+          
+          /* Re-use existing KEYFILE in encoding mode. */
+          else if (strcmp(olong, "reuse-key") == 0) {
+            if (args_info->reuse_key_given) {
+              fprintf(stderr, "%s: `--reuse-key' (`-r') option given more than once\n", PROGRAM);
+            }
+            args_info->reuse_key_given++;
+           if (args_info->reuse_key_given <= 1)
+             args_info->reuse_key_flag = !(args_info->reuse_key_flag);
+          }
+          
+          /* Update an existing KEYFILE in encoding mode. */
+          else if (strcmp(olong, "update-key") == 0) {
+            if (args_info->update_key_given) {
+              fprintf(stderr, "%s: `--update-key' (`-u') option given more than once\n", PROGRAM);
+            }
+            args_info->update_key_given++;
+           if (args_info->update_key_given <= 1)
+             args_info->update_key_flag = !(args_info->update_key_flag);
           }
           
           /* Specify compression level of output file. */

@@ -19,9 +19,10 @@ gfsmencode [OPTIONS] BINFILE KEYFILE
     -h       --help            Print help and exit.
     -V       --version         Print version and exit.
     -d       --decode          Decode an encoded automaton (default: encode)
-    -e       --encode          Force encoding mode for KEYFILE re-generation
-    -c       --costs           Encode/decode costs (weights); encodes as unweighted automaton
-    -l       --labels          Encode/decode labels (pairs); encodes as acceptor
+    -c       --costs           Encode/decode costs (weights); encodes as unweighted automaton.
+    -l       --labels          Encode/decode labels (pairs); encodes as acceptor.
+    -r       --reuse-key       Re-use existing KEYFILE in encoding mode.
+    -u       --update-key      Update an existing KEYFILE in encoding mode.
     -zLEVEL  --compress=LEVEL  Specify compression level of output file.
     -FFILE   --output=FILE     Specifiy output file (default=stdout).
 
@@ -112,24 +113,9 @@ If unspecified, argument automaton will be encoded.
 
 
 
-=item C<--encode> , C<-e>
-
-Force encoding mode for KEYFILE re-generation
-
-Default: '0'
-
-
-Normally, an existing KEYFSM will be loaded and used in encoding mode.
-Specifying this option causes an existing KEYFSM file to be ignored and
-a new key to be generated.
-
-
-
-
-
 =item C<--costs> , C<-c>
 
-Encode/decode costs (weights); encodes as unweighted automaton
+Encode/decode costs (weights); encodes as unweighted automaton.
 
 Default: '0'
 
@@ -140,10 +126,38 @@ Default: '0'
 
 =item C<--labels> , C<-l>
 
-Encode/decode labels (pairs); encodes as acceptor
+Encode/decode labels (pairs); encodes as acceptor.
 
 Default: '0'
 
+
+
+
+
+
+=item C<--reuse-key> , C<-r>
+
+Re-use existing KEYFILE in encoding mode.
+
+Default: '0'
+
+
+Normally, an existing KEYFSM will be ignored and overwritten in encoding mode.
+Specifying this option causes an existing KEYFSM file to be loaded and used for encoding,
+but not overwritten by default (unless --update-key (-u) is specified as well).
+
+
+
+
+
+=item C<--update-key> , C<-u>
+
+Update an existing KEYFILE in encoding mode.
+
+Default: '0'
+
+
+Causes an existing KEYFILE to be updated in encoding mode.  Implies --reuse-key (-r).
 
 
 

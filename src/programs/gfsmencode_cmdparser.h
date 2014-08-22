@@ -20,18 +20,20 @@ extern "C" {
 
 struct gengetopt_args_info {
   int decode_flag;	 /* Decode an encoded automaton (default: encode) (default=0). */
-  int encode_flag;	 /* Force encoding mode for KEYFILE re-generation (default=0). */
-  int costs_flag;	 /* Encode/decode costs (weights); encodes as unweighted automaton (default=0). */
-  int labels_flag;	 /* Encode/decode labels (pairs); encodes as acceptor (default=0). */
+  int costs_flag;	 /* Encode/decode costs (weights); encodes as unweighted automaton. (default=0). */
+  int labels_flag;	 /* Encode/decode labels (pairs); encodes as acceptor. (default=0). */
+  int reuse_key_flag;	 /* Re-use existing KEYFILE in encoding mode. (default=0). */
+  int update_key_flag;	 /* Update an existing KEYFILE in encoding mode. (default=0). */
   int compress_arg;	 /* Specify compression level of output file. (default=-1). */
   char * output_arg;	 /* Specifiy output file (default=stdout). (default=-). */
 
   int help_given;	 /* Whether help was given */
   int version_given;	 /* Whether version was given */
   int decode_given;	 /* Whether decode was given */
-  int encode_given;	 /* Whether encode was given */
   int costs_given;	 /* Whether costs was given */
   int labels_given;	 /* Whether labels was given */
+  int reuse_key_given;	 /* Whether reuse-key was given */
+  int update_key_given;	 /* Whether update-key was given */
   int compress_given;	 /* Whether compress was given */
   int output_given;	 /* Whether output was given */
   

@@ -64,6 +64,15 @@ gfsm_at_unop([determinize],[],[algebra determinize],[],[gfsmdeterminize])
 ##  + found bug: clone() wasn't setting root_id (assumed to have been done in copy_shallow())
 gfsm_at_binop([difference],[],[algebra difference],[],[gfsmdifference])
 
+##-- encode+decode
+gfsm_at_encode_test([encode],[-c],[algebra encode],[],[-c])
+gfsm_at_encode_test([encode],[-l],[algebra encode],[],[-l])
+gfsm_at_encode_test([encode],[-cl],[algebra encode],[],[-cl])
+##
+gfsm_at_decode_test([decode],[-c],[algebra encode],[],[-c])
+gfsm_at_decode_test([decode],[-l],[algebra encode],[-a],[-l])
+gfsm_at_decode_test([decode],[-cl],[algebra encode],[-a],[-cl])
+
 ##-- intersect
 gfsm_at_binop([intersect], [],[algebra intersect],[],[gfsmintersect])
 gfsm_at_binop([intersect2],[],[algebra intersect],[],[gfsmintersect])

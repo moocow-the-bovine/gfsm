@@ -44,21 +44,27 @@ flag "decode" d "Decode an encoded automaton (default: encode)" \
 If unspecified, argument automaton will be encoded.
 "
 
-flag "encode" e "Force encoding mode for KEYFILE re-generation" \
+flag "costs" c "Encode/decode costs (weights); encodes as unweighted automaton." \
+  default="0" \
+  details=""
+
+flag "labels" l "Encode/decode labels (pairs); encodes as acceptor." \
+  default="0" \
+  details=""
+
+flag "reuse-key" r "Re-use existing KEYFILE in encoding mode." \
   default="0" \
   details="
-Normally, an existing KEYFSM will be loaded and used in encoding mode.
-Specifying this option causes an existing KEYFSM file to be ignored and
-a new key to be generated.
+Normally, an existing KEYFSM will be ignored and overwritten in encoding mode.
+Specifying this option causes an existing KEYFSM file to be loaded and used for encoding,
+but not overwritten by default (unless --update-key (-u) is specified as well).
 "
 
-flag "costs" c "Encode/decode costs (weights); encodes as unweighted automaton" \
+flag "update-key" u "Update an existing KEYFILE in encoding mode." \
   default="0" \
-  details=""
-
-flag "labels" l "Encode/decode labels (pairs); encodes as acceptor" \
-  default="0" \
-  details=""
+  details="
+Causes an existing KEYFILE to be updated in encoding mode.  Implies --reuse-key (-r).
+"
 
 int "compress" z "Specify compression level of output file." \
     arg="LEVEL" \

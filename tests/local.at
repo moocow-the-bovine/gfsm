@@ -1,0 +1,64 @@
+##--------------------------------------------------------------
+## definitions
+
+## gfsm_at_binop(1:opname, 2:opsuffix, 3:keywords, 4:compile_args, 5:op_cmd_and_opts)
+m4_define([gfsm_at_unop],
+ [
+  AT_SETUP([$1][$2])
+  AT_KEYWORDS([$3])
+  opname="[$1]"
+  AT_CHECK([$][progdir/gfsmcompile $4 $[]tdata/$1-in.tfst -F $1-in.gfst])
+  AT_CHECK([$][progdir/$5 $1-in.gfst -F $1-got.gfst])
+  rm -f $1-want.tfst; ln $][tdata/$1-want.tfst expout
+  AT_CHECK([$][progdir/gfsmprint $1-got.gfst],0,expout)
+  AT_CLEANUP
+ ])
+
+## gfsm_at_binop(1:opname, 2:opsuffix, 3:keywords, 4:compile_args, 5:op_cmd_and_opts)
+m4_define([gfsm_at_binop],
+ [
+  AT_SETUP([$1][$2])
+  AT_KEYWORDS([$3])
+  opname="[$1]"
+  AT_CHECK([$][progdir/gfsmcompile $4 $[]tdata/$1-in-1.tfst -F $1-in-1.gfst])
+  AT_CHECK([$][progdir/gfsmcompile $4 $[]tdata/$1-in-2.tfst -F $1-in-2.gfst])
+  AT_CHECK([$][progdir/$5 $1-in-1.gfst $1-in-2.gfst -F $1-got.gfst])
+  rm -f $1-want.tfst; ln $][tdata/$1-want.tfst expout
+  AT_CHECK([$][progdir/gfsmprint $1-got.gfst],0,expout)
+  AT_CLEANUP
+ ])
+
+## gfsm_at_encode_test(1:opname, 2:encsuffix, 3:keywords, 4:compile_args, 5:encode_args)
+## + uses files (in $[]tdata/): ${opname}-in.tfst, ${opname}${encsuffix}-enc-want.tfst, ${opname}${encsuffix}-key-want.tfst
+m4_define([gfsm_at_encode_test],
+ [
+  AT_SETUP([$1$2][])
+  AT_KEYWORDS([$3])
+  opname="[$1$2]"
+  AT_CHECK([$][progdir/gfsmcompile $4 $[]tdata/$1-in.tfst -F $1-in.gfst])
+  AT_CHECK([$][progdir/gfsmencode  $5 $1-in.gfst $1$2-key-got.gfst -F $1$2-enc-got.gfst])
+  ##-- check encoding output
+  rm -f expout $1$2-enc-want.tfst; ln $][tdata/$1$2-enc-want.tfst expout
+  AT_CHECK([$][progdir/gfsmprint $1$2-enc-got.gfst],0,expout)
+  ##-- check key output
+  rm -f expout $1$2-key-want.tfst; ln $][tdata/$1$2-key-want.tfst expout
+  AT_CHECK([$][progdir/gfsmprint $1$2-key-got.gfst],0,expout)
+  AT_CLEANUP
+ ])
+
+
+## gfsm_at_decode_test(1:opname, 2:encsuffix, 3:keywords, 4:compileargs, 5:decodeargs)
+## + uses files (in $[]tdata/): ${opname}${encsuffix}-key-in.tfst, ${opname}${encsuffix}-in.tfst, ${opname}${encsuffix}-want.tfst
+m4_define([gfsm_at_decode_test],
+ [
+  AT_SETUP([$1$2][])
+  AT_KEYWORDS([$3])
+  opname="[$1$2]"
+  AT_CHECK([$][progdir/gfsmcompile $4 $[]tdata/$1$2-in.tfst      -F $1$2-in.gfst])
+  AT_CHECK([$][progdir/gfsmcompile    $[]tdata/$1$2-key-in.tfst  -F $1$2-key-in.gfst])
+  AT_CHECK([$][progdir/gfsmencode -d $5 $1$2-in.gfst $1$2-key-in.gfst -F $1$2-got.gfst])
+  ##-- check decoded output
+  rm -f $1$2-want.tfst; cp $][tdata/$1$2-want.tfst expout
+  AT_CHECK([$][progdir/gfsmprint $1$2-got.gfst],0,expout)
+  AT_CLEANUP
+ ])

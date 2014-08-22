@@ -56,7 +56,7 @@ void get_my_options(int argc, char **argv)
     exit(1);
 
   //-- mode
-  if (args.encode_flag) args.decode_flag = 0;
+  if (args.update_key_flag) args.reuse_key_flag = TRUE;
 
   //-- output
   if (args.inputs_num>0) infilename  = args.inputs[0];
@@ -86,7 +86,7 @@ int main (int argc, char **argv)
   }
 
   //-- load key automaton 
-  if (args.decode_flag || (!args.encode_flag && keyfilename!=NULL && g_file_test(keyfilename, G_FILE_TEST_EXISTS))) {
+  if (args.decode_flag || args.reuse_key_flag) {
     keyfsm = gfsm_automaton_new();
     if (keyfilename==NULL) keyfilename = "-";
     if (!gfsm_automaton_load_bin_filename(keyfsm, keyfilename, &err)) {
@@ -105,10 +105,12 @@ int main (int argc, char **argv)
     key = gfsm_automaton_encode(fsm, key, args.labels_flag, args.costs_flag);
 
     //-- encode: dump key
-    keyfsm = gfsm_arclabel_key_to_fsm(key, keyfsm);
-    if (!gfsm_automaton_save_bin_filename(keyfsm,keyfilename,args.compress_arg,&err)) {
-      g_printerr("%s: store failed for key fsm to  '%s': %s\n", progname, keyfilename, err->message);
-      exit(4);
+    if (!args.reuse_key_flag || args.update_key_flag) {
+      keyfsm = gfsm_arclabel_key_to_fsm(key, keyfsm);
+      if (!gfsm_automaton_save_bin_filename(keyfsm,keyfilename,args.compress_arg,&err)) {
+	g_printerr("%s: store failed for key fsm to  '%s': %s\n", progname, keyfilename, err->message);
+	exit(4);
+      }
     }
   }
 
