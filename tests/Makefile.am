@@ -118,6 +118,22 @@ DISTHOOK_FILES = \
 	data/difference-in-1.tfst \
 	data/difference-in-2.tfst \
 	data/difference-want.tfst \
+	data/encode-in.tfst \
+	data/encode-c-enc-want.tfst \
+	data/encode-c-key-want.tfst \
+	data/encode-cl-enc-want.tfst \
+	data/encode-cl-key-want.tfst \
+	data/encode-l-enc-want.tfst \
+	data/encode-l-key-want.tfst \
+	data/decode-c-in.tfst \
+	data/decode-c-key-in.tfst \
+	data/decode-cl-in.tfst \
+	data/decode-cl-key-in.tfst \
+	data/decode-cl-want.tfst \
+	data/decode-c-want.tfst \
+	data/decode-l-in.tfst \
+	data/decode-l-key-in.tfst \
+	data/decode-l-want.tfst \
 	data/intersect-in-1.tfst \
 	data/intersect-in-2.tfst \
 	data/intersect-want.tfst \

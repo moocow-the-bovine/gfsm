@@ -150,7 +150,7 @@ pkginclude_HEADERS = \
 	gfsmDraw.h \
 	gfsmAlgebra.h \
 	gfsmArith.h \
-	gfsmEncode.h \
+	gfsmEncode.h gfsmEncode.hi \
 	gfsmLookup.h \
 	gfsmTrain.h \
 	gfsmPaths.h gfsmPaths.hi \
