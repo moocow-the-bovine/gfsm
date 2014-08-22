@@ -3,22 +3,25 @@
 
 =head1 NAME
 
-gfsmminimize - Minimize finite state machines as (pair)-acceptors
+gfsmencode - Encode weights and/or label-pairs of (weighted) finite state machines
 
 
 
 =head1 SYNOPSIS
 
-gfsmminimize [OPTIONS] BINFILE
+gfsmencode [OPTIONS] BINFILE KEYFILE
 
  Arguments:
-    BINFILE  Stored binary gfsm file
+    BINFILE  Stored binary gfsm file to be encoded
+    KEYFILE  Binary gfsm representing encoding key
 
  Options
     -h       --help            Print help and exit.
     -V       --version         Print version and exit.
-    -D       --deterministic   Assume input automaton is deterministic.
-    -E       --epsilon         Skip epsilon removal.
+    -d       --decode          Decode an encoded automaton (default: encode)
+    -e       --encode          Force encoding mode for KEYFILE re-generation
+    -c       --costs           Encode/decode costs (weights); encodes as unweighted automaton
+    -l       --labels          Encode/decode labels (pairs); encodes as acceptor
     -zLEVEL  --compress=LEVEL  Specify compression level of output file.
     -FFILE   --output=FILE     Specifiy output file (default=stdout).
 
@@ -31,7 +34,7 @@ gfsmminimize [OPTIONS] BINFILE
 
 =head1 DESCRIPTION
 
-Minimize finite state machines as (pair)-acceptors
+Encode weights and/or label-pairs of (weighted) finite state machines
 
 
 
@@ -48,10 +51,18 @@ Minimize finite state machines as (pair)-acceptors
 
 =item C<BINFILE>
 
-Stored binary gfsm file
+Stored binary gfsm file to be encoded
 
 
 If unspecified, standard input will be read
+
+
+=item C<KEYFILE>
+
+Binary gfsm representing encoding key
+
+
+If unspecified, standard input will be read in decoding mode and standard output will be written to in encoding mode.
 
 
 =back
@@ -88,29 +99,51 @@ Default: '0'
 
 
 
-=item C<--deterministic> , C<-D>
+=item C<--decode> , C<-d>
 
-Assume input automaton is deterministic.
-
-Default: '0'
-
-
-If specified, input will be assumed deterministic.
-Otherwise, the value of the 'is_deterministic' header flag is used.
-
-
-
-
-
-=item C<--epsilon> , C<-E>
-
-Skip epsilon removal.
+Decode an encoded automaton (default: encode)
 
 Default: '0'
 
 
-If specified, epsilons will be treated like other symbols at all stages.
-Otherwise, epsilons will be removed (repeatedly).
+If unspecified, argument automaton will be encoded.
+
+
+
+
+
+=item C<--encode> , C<-e>
+
+Force encoding mode for KEYFILE re-generation
+
+Default: '0'
+
+
+Normally, an existing KEYFSM will be loaded and used in encoding mode.
+Specifying this option causes an existing KEYFSM file to be ignored and
+a new key to be generated.
+
+
+
+
+
+=item C<--costs> , C<-c>
+
+Encode/decode costs (weights); encodes as unweighted automaton
+
+Default: '0'
+
+
+
+
+
+
+=item C<--labels> , C<-l>
+
+Encode/decode labels (pairs); encodes as acceptor
+
+Default: '0'
+
 
 
 
@@ -170,7 +203,7 @@ using Getopt::Gen version 0.13.
 Translation was initiated
 as:
 
-   optgen.perl -l --no-handle-rcfile --nocfile --nohfile --notimestamp -F gfsmminimize gfsmminimize.gog
+   optgen.perl -l --no-handle-rcfile --nocfile --nohfile --notimestamp -F gfsmencode gfsmencode.gog
 
 =cut
 
@@ -188,15 +221,8 @@ as:
 
 =item
 
-Currently uses Brzozowski's (1963) minimization algorithm.
-
-=item
-
-Input automaton must be minimizable.
-
-=item
-
-Probably many more.
+Not be 100% compatibile with AT&T C<fsmencode>, particularly regarding handling of encoded final weights.
+C<gfsmencode>'s final-weight encoding is intended to be more robust than the AT&T variant.
 
 =back
 

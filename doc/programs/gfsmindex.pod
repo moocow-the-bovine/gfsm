@@ -17,7 +17,6 @@ gfsmindex [OPTIONS] FSMFILE
  Options
     -h       --help            Print help and exit.
     -V       --version         Print version and exit.
-    -cFILE   --rcfile=FILE     Read an alternate configuration file.
     -u       --unindex         Convert indexed automaton to unindexed format
     -zLEVEL  --compress=LEVEL  Specify compression level of output file.
     -FFILE   --output=FILE     Specifiy output file (default=stdout).
@@ -88,17 +87,6 @@ Default: '0'
 
 
 
-=item C<--rcfile=FILE> , C<-cFILE>
-
-Read an alternate configuration file.
-
-Default: 'NULL'
-
-See also: L<CONFIGURATION FILES>.
-
-
-
-
 =item C<--unindex> , C<-u>
 
 Convert indexed automaton to unindexed format
@@ -146,22 +134,6 @@ Default: '-'
 ###############################################################
 # configuration files
 ###############################################################
-=pod
-
-=head1 CONFIGURATION FILES
-
-Configuration files are expected to contain lines of the form:
-
-    LONG_OPTION_NAME    OPTION_VALUE
-
-where LONG_OPTION_NAME is the long name of some option,
-without the leading '--', and OPTION_VALUE is the value for
-that option, if any.  Fields are whitespace-separated.
-Blank lines and comments (lines beginning with '#')
-are ignored.
-
-No configuration files are read by default.
-
 =cut
 
 
@@ -182,7 +154,7 @@ using Getopt::Gen version 0.13.
 Translation was initiated
 as:
 
-   optgen.perl -l --nocfile --nohfile --notimestamp -F gfsmindex gfsmindex.gog
+   optgen.perl -l --no-handle-rcfile --nocfile --nohfile --notimestamp -F gfsmindex gfsmindex.gog
 
 =cut
 

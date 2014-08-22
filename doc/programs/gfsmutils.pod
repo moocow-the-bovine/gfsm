@@ -39,6 +39,13 @@ Compute Kleene closure of a finite state machine
 See L<gfsmclosure> for details.
 
 
+=head2 gfsmcompact
+
+Heuristically compact finite state machines
+
+See L<gfsmcompact> for details.
+
+
 =head2 gfsmcompile
 
 Compile text format gfsm files to binary
@@ -114,6 +121,13 @@ See L<gfsmdifference> for details.
 Generate graph specifications from binary gfsm files
 
 See L<gfsmdraw> for details.
+
+
+=head2 gfsmencode
+
+Encode weights and/or label-pairs of (weighted) finite state machines
+
+See L<gfsmencode> for details.
 
 
 =head2 gfsmheader
@@ -313,6 +327,8 @@ gfsmarcsort(1),
 gfsmarcuniq(1),
 gfsmarith(1),
 gfsmclosure(1),
+(1),
+gfsmcompact(1),
 gfsmcompile(1),
 gfsmcomplement(1),
 gfsmcompose(1),
@@ -324,6 +340,7 @@ gfsmdepths(1),
 gfsmdeterminize(1),
 gfsmdifference(1),
 gfsmdraw(1),
+gfsmencode(1),
 gfsmheader(1),
 gfsmindex(1),
 gfsminfo(1),
