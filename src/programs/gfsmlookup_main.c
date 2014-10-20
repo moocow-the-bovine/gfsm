@@ -1,6 +1,6 @@
 /*
    gfsm-utils : finite state automaton utilities
-   Copyright (C) 2005 by Bryan Jurish <moocow.bovine@gmail.com>
+   Copyright (C) 2005-2014 by Bryan Jurish <moocow.bovine@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -80,6 +80,7 @@ gfsmAutomaton *lookup_labels(gfsmAutomaton *fst, int argc, char **argv)
   gfsmLabelVal     lab;
   gfsmAutomaton   *result = NULL;
   int              i;
+  gfsmStateId      max_states = args.maxq_arg;
 
   //-- fill input vector
   for (i=0; i < argc; i++) {
@@ -88,8 +89,11 @@ gfsmAutomaton *lookup_labels(gfsmAutomaton *fst, int argc, char **argv)
     }
   }
 
+  //-- state limit
+  if (max_states==0) max_states = gfsmNoState;
+
   //-- actual lookup
-  result = gfsm_automaton_lookup(fst, vec, result);
+  result = gfsm_automaton_lookup_full(fst, vec, result, NULL, max_states);
 
   //-- cleanup
   g_ptr_array_free(vec,TRUE);

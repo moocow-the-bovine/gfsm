@@ -81,6 +81,8 @@ typedef gfsmState gfsmViterbiNode;
 /** Number of states to pre-allocate when extending state-map vector on lookup_full() (>= 1) */
 extern const gfsmStateId gfsmLookupStateMapGet;
 
+/** Default maximum number of result states for lookup */
+extern const gfsmStateId gfsmLookupMaxResultStates;
 
 /*======================================================================
  * Methods: lookup
@@ -97,7 +99,7 @@ extern const gfsmStateId gfsmLookupStateMapGet;
  *  \returns \a result if non-NULL, otherwise a new automaton.
  */
 #define gfsm_automaton_lookup(fst,input,result) \
-  gfsm_automaton_lookup_full((fst),(input),(result),NULL)
+  gfsm_automaton_lookup_full((fst),(input),(result),NULL,gfsmLookupMaxResultStates)
 
 //------------------------------
 /** Compose string automaton specified by \a input with the transducer
@@ -112,7 +114,8 @@ extern const gfsmStateId gfsmLookupStateMapGet;
 gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 					  gfsmLabelVector   *input,
 					  gfsmAutomaton     *result,
-					  gfsmStateIdVector *statemap);
+					  gfsmStateIdVector *statemap,
+					  gfsmStateId	     max_result_states);
 
 //@}
 

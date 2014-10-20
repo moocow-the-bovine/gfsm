@@ -18,6 +18,7 @@
 ## --- executable programs
 #bin_PROGRAMS = ${prog_1} ... ${prog_N}
 bin_PROGRAMS = \
+	gfsmapply \
 	gfsmarcsort \
 	gfsmarcuniq \
 	gfsmarith \
@@ -212,6 +213,18 @@ gfsminfo_LDFLAGS = $(LDFLAGS_COMMON)
 gfsminfo_LDADD = $(LDADD_COMMON)
 
 EXTRA_DIST += gfsminfo.gog
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gfsmapply_SOURCES = \
+	gfsmapply_main.c \
+	gfsmapply_cmdparser.c gfsmapply_cmdparser.h
+
+gfsmapply_main.o: gfsmapply_cmdparser.h
+
+gfsmapply_LDFLAGS = $(LDFLAGS_COMMON)
+gfsmapply_LDADD = $(LDADD_COMMON)
+
+EXTRA_DIST += gfsmapply.gog
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 gfsmarcsort_SOURCES = \

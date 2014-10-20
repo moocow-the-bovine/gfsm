@@ -3,22 +3,30 @@
 
 =head1 NAME
 
-gfsmlookup - Apply a transducer to a linear label sequence
+gfsmapply - Apply a transducer to a list of input strings
 
 
 
 =head1 SYNOPSIS
 
-gfsmlookup [OPTIONS] LABELID...
+gfsmapply [OPTIONS] INPUT...
 
  Arguments:
-    LABELID...  Input label IDs
+    INPUT...  Input files or strings (with -w)
 
  Options
     -h         --help            Print help and exit.
     -V         --version         Print version and exit.
+    -w         --words           INPUT(s) are words to lookup, not filenames.
+    -iLABELS   --ilabels=LABELS  Specify input (lower) labels file.
+    -oLABELS   --olabels=LABELS  Specify output (upper) labels file.
+    -lLABELS   --labels=LABELS   Set -i and -o labels simultaneously.
+    -a         --att-mode        Parse/format string(s) in AT&T-compatible mode.
+    -u         --utf8            Assume UTF-8 encoded alphabet(s) and input(s).
+    -q         --quiet           Suppress warnings about undefined symbols.
     -fFSTFILE  --fst=FSTFILE     Transducer to apply (default=stdin).
     -QN        --maxq=N          Maximum number of result states to generate (default=0:system limit)
+    -A         --align           Output aligned arc paths.
     -zLEVEL    --compress=LEVEL  Specify compression level of output file.
     -FFILE     --output=FILE     Specifiy output file (default=stdout).
 
@@ -31,7 +39,7 @@ gfsmlookup [OPTIONS] LABELID...
 
 =head1 DESCRIPTION
 
-Apply a transducer to a linear label sequence
+Apply a transducer to a list of input strings
 
 
 
@@ -46,12 +54,12 @@ Apply a transducer to a linear label sequence
 
 =over 4
 
-=item C<LABELID...>
+=item C<INPUT...>
 
-Input label IDs
+Input files or strings (with -w)
 
 
-In ASCII decimal notation.
+Input strings are parsed using gfsm_alphabet_generic_string_to_labels().
 
 
 =back
@@ -88,15 +96,74 @@ Default: '0'
 
 
 
+=item C<--words> , C<-w>
+
+INPUT(s) are words to lookup, not filenames.
+
+Default: '0'
+
+
+
+
+=item C<--ilabels=LABELS> , C<-iLABELS>
+
+Specify input (lower) labels file.
+
+Default: 'NULL'
+
+
+
+
+=item C<--olabels=LABELS> , C<-oLABELS>
+
+Specify output (upper) labels file.
+
+Default: 'NULL'
+
+
+
+
+=item C<--labels=LABELS> , C<-lLABELS>
+
+Set -i and -o labels simultaneously.
+
+Default: 'NULL'
+
+
+
+
+=item C<--att-mode> , C<-a>
+
+Parse/format string(s) in AT&T-compatible mode.
+
+Default: '0'
+
+
+
+
+=item C<--utf8> , C<-u>
+
+Assume UTF-8 encoded alphabet(s) and input(s).
+
+Default: '0'
+
+
+
+
+=item C<--quiet> , C<-q>
+
+Suppress warnings about undefined symbols.
+
+Default: '0'
+
+
+
+
 =item C<--fst=FSTFILE> , C<-fFSTFILE>
 
 Transducer to apply (default=stdin).
 
 Default: '-'
-
-
-If unspecified, standard input will be read.
-
 
 
 
@@ -110,6 +177,15 @@ Default: '0'
 
 Default or 0 maps to 32-bit unsigned int limit, 4294967296.
 
+
+
+
+
+=item C<--align> , C<-A>
+
+Output aligned arc paths.
+
+Default: '0'
 
 
 
@@ -168,7 +244,7 @@ using Getopt::Gen version 0.13.
 Translation was initiated
 as:
 
-   optgen.perl -l --no-handle-rcfile --nocfile --nohfile --notimestamp -F gfsmlookup gfsmlookup.gog
+   optgen.perl -l --no-handle-rcfile --nocfile --nohfile --notimestamp -F gfsmapply gfsmapply.gog
 
 =cut
 

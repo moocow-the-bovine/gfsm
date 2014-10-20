@@ -2,10 +2,10 @@
 #
 # Getopt::Gen specification
 #-----------------------------------------------------------------------------
-program "gfsmlookup"
+program "gfsmapply"
 #program_version "0.01"
 
-purpose	"Apply a transducer to a linear label sequence"
+purpose	"Apply a transducer to a list of input strings"
 author  "Bryan Jurish <moocow.bovine@gmail.com>"
 on_reparse "warn"
 
@@ -23,22 +23,43 @@ details ""
 #-----------------------------------------------------------------------------
 # Arguments
 #-----------------------------------------------------------------------------
-argument "LABELID..." "Input label IDs" \
+argument "INPUT..." "Input files or strings (with -w)" \
     details="
-In ASCII decimal notation.
+Input strings are parsed using gfsm_alphabet_generic_string_to_labels().
 "
 
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
-#group "Basic Options"
+#group "Alphabet Options"
+
+flag "words" w "INPUT(s) are words to lookup, not filenames." \
+   default="0"
+
+string "ilabels" i "Specify input (lower) labels file." \
+   arg="LABELS"
+
+string "olabels" o "Specify output (upper) labels file." \
+   arg="LABELS"
+
+string "labels" l "Set -i and -o labels simultaneously." \
+   arg="LABELS"
+
+flag "att-mode" a "Parse/format string(s) in AT&T-compatible mode." \
+   default="0"
+
+flag "utf8" u "Assume UTF-8 encoded alphabet(s) and input(s)." \
+  default="0"
+
+flag "quiet" q "Suppress warnings about undefined symbols." \
+   default="0"
+
+#-----------------------------------------------------------------------------
+#group "Lookup Options"
 
 string "fst" f "Transducer to apply (default=stdin)." \
     arg="FSTFILE" \
     default="-" \
-    details="
-If unspecified, standard input will be read.
-"
 
 int "maxq" Q "Maximum number of result states to generate (default=0:system limit)" \
    arg="N" \
@@ -46,6 +67,12 @@ int "maxq" Q "Maximum number of result states to generate (default=0:system limi
    details="
 Default or 0 maps to 32-bit unsigned int limit, 4294967296.
 "
+
+#-----------------------------------------------------------------------------
+#group "I/O Options"
+
+flag "align" A "Output aligned arc paths." \
+   default=0
 
 int "compress" z "Specify compression level of output file." \
     arg="LEVEL" \

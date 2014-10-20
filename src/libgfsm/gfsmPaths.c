@@ -286,8 +286,9 @@ GString *gfsm_path_to_gstring(gfsmPath     *path,
   if (abet_lo && path->lo->len > 0) {
     gfsm_alphabet_labels_to_gstring(abet_lo, path->lo, gs, warn_on_undefined, att_style);
   }
-  if (abet_hi && path->hi->len > 0) {
+  if (abet_lo && abet_hi)
     g_string_append(gs," : ");
+  if (abet_hi && path->hi->len > 0) {
     gfsm_alphabet_labels_to_gstring(abet_hi, path->hi, gs, warn_on_undefined, att_style);
   }
   if (gfsm_sr_compare(sr, path->w, sr->one) != 0) {

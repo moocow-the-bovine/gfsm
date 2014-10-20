@@ -30,10 +30,21 @@
 
 #include <string.h>
 
+//#define LKP_DEBUG 1
+
+#ifdef LKP_DEBUG
+# define _debug(code) code
+# define _nodebug(code)
+#else
+# define _debug(code)
+# define _nodebug(code)
+#endif
+
 /*======================================================================
  * Constants
  */
 const gfsmStateId gfsmLookupStateMapGet = 16;
+const gfsmStateId gfsmLookupMaxResultStates = 16384;
 
 /*======================================================================
  * Methods: lookup
@@ -43,7 +54,9 @@ const gfsmStateId gfsmLookupStateMapGet = 16;
 gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 					  gfsmLabelVector   *input,
 					  gfsmAutomaton     *result,
-					  gfsmStateIdVector *statemap)
+					  gfsmStateIdVector *statemap,
+					  gfsmStateId	     max_result_states
+					  )
 {
   GSList           *stack = NULL;
   gfsmLookupConfig *cfg   = (gfsmLookupConfig*)gfsm_slice_new(gfsmLookupConfig);
@@ -73,6 +86,8 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
     cfg   = (gfsmLookupConfig*)(stack->data);
     stack = g_slist_delete_link(stack, stack);
 
+    _debug(printf("POP\t\t{qt=%u,qr=%u,i=%u}\n", cfg->qt,cfg->qr,cfg->i);)
+
     //-- add config to the state-map, if non-NULL
     if (statemap) {
       if (cfg->qr >= statemap->len) {
@@ -90,6 +105,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 
     //-- check for final states
     if (cfg->i >= input->len && gfsm_state_is_final(qt)) {
+      _debug(printf("FINAL\t\t{qt=%u,qr=%u,i=%u}\n", cfg->qt,cfg->qr,cfg->i);)
       gfsm_automaton_set_final_state_full(result, cfg->qr, TRUE,
 					  gfsm_automaton_get_final_weight(fst, cfg->qt));
     }
@@ -98,6 +114,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
     for (gfsm_arciter_open_ptr(&ai, fst, (gfsmState*)qt); gfsm_arciter_ok(&ai); gfsm_arciter_next(&ai))
       {
 	gfsmArc *arc = gfsm_arciter_arc(&ai);
+	cfg_new = NULL;
 
 	//-- epsilon arcs
 	if (arc->lower == gfsmEpsilon) {
@@ -107,6 +124,7 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 	  cfg_new->i  = cfg->i;
 	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->lower, arc->upper, arc->weight);
 	  stack = g_slist_prepend(stack, cfg_new);
+	  _debug(printf("PUSH\t[%u:%u]\t{qt=%u,qr=%u,i=%u}\n", arc->lower,arc->upper, cfg_new->qt,cfg_new->qr,cfg_new->i);)
 	}
 	//-- input-matching arcs
 	else if (a != gfsmNoLabel && arc->lower == a) {
@@ -116,11 +134,26 @@ gfsmAutomaton *gfsm_automaton_lookup_full(gfsmAutomaton     *fst,
 	  cfg_new->i  = cfg->i+1;
 	  gfsm_automaton_add_arc(result, cfg->qr, cfg_new->qr, arc->lower, arc->upper, arc->weight);
 	  stack = g_slist_prepend(stack, cfg_new);
+	  _debug(printf("PUSH\t[%u:%u]\t{qt=%u,qr=%u,i=%u}\n", arc->lower,arc->upper, cfg_new->qt,cfg_new->qr,cfg_new->i);)
 	}
       }
 
     //-- we're done with this config
+    _debug(printf("FREE\t\t{qt=%u,qr=%u,i=%u}\n", cfg->qt,cfg->qr,cfg->i);)
     gfsm_slice_free(gfsmLookupConfig,cfg);
+
+    //-- check state-limit threshhold
+    if (gfsm_automaton_n_states(result) >= max_result_states) {
+      g_printerr("gfsm_automaton_lookup(): Warning: maximum number of result-states (%u) exceeded, aborting lookup\n", max_result_states);
+      break;
+    }
+  }
+
+  //-- ensure stack is empty
+  while (stack != NULL) {
+    //-- clear stack
+    gfsm_slice_free(gfsmLookupConfig,(gfsmLookupConfig*)(stack->data));
+    stack = g_slist_delete_link(stack, stack);
   }
 
   //-- set final size of the state-map

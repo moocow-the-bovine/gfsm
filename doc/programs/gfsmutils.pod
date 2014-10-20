@@ -11,6 +11,13 @@ The following is a list of the programs
 and user documentation contained in the gfsm package.
 See the individual manpages for details.
 
+=head2 gfsmapply
+
+Apply a transducer to a list of input strings
+
+See L<gfsmapply> for details.
+
+
 =head2 gfsmarcsort
 
 Sort arcs of a finite state machine
@@ -323,6 +330,7 @@ as:
 
 =head1 SEE ALSO
 
+gfsmapply(1),
 gfsmarcsort(1),
 gfsmarcuniq(1),
 gfsmarith(1),

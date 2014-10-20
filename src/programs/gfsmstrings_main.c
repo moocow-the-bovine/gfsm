@@ -38,6 +38,7 @@ char *progname = "gfsmstrings";
 struct gengetopt_args_info args;
 
 //-- files
+const char *fstfilename = "-";
 const char *infilename = "-";
 const char *outfilename = "-";
 FILE *outfile = NULL;
@@ -138,7 +139,6 @@ int main (int argc, char **argv)
     exit(4);
   }
   
-
   //-- get & stringify full paths
   if (args.align_flag) {
     //-- aligned paths
@@ -193,6 +193,7 @@ int main (int argc, char **argv)
   if (arcpaths) gfsm_arcpath_list_free(arcpaths);
   if (ilabels)  gfsm_alphabet_free(ilabels);
   if (olabels)  gfsm_alphabet_free(olabels);
+  if (qlabels)  gfsm_alphabet_free(qlabels);
   if (fsm)      gfsm_automaton_free(fsm);
 
   if (outfile != stdout) fclose(outfile);
