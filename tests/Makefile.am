@@ -82,6 +82,8 @@ EXTRA_DIST = \
 	package.m4 \
 	01_basic.at \
 	02_arith.at \
+	03_algebra.at \
+	local.at \
 	testsuite.at \
 	testsuite.stamp \
 	testsuite
