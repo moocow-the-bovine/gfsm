@@ -152,7 +152,8 @@ endif
 ## --- clean:  built by 'make'
 CLEANFILES = $(STAMPFILE) $(TAGFILE) $(DOXYBASE).log \
 	doxy-filter.log \
-	doxy-filter.cfg
+	doxy-filter.cfg \
+	doxygen_*.db
 
 clean-local:
 	rm -rf html latex man

@@ -4,7 +4,7 @@ AC_PREREQ([2.61])
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.15-1])
+define([THE_PACKAGE_VERSION], [0.0.16-1])
 define([THE_PACKAGE_MAINTAINER],  [moocow.bovine@gmail.com])
 
 AC_INIT([THE_PACKAGE_NAME],[THE_PACKAGE_VERSION],[THE_PACKAGE_MAINTAINER])
@@ -865,7 +865,10 @@ AC_CONFIG_TESTDIR(tests,tests)
 
 ##vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ## no-autoheader
-AC_CONFIG_LINKS(src/libgfsm/gfsmConfigNoAuto.h:src/libgfsm/gfsmConfigAuto.h.in)
+##  + this method breaks some dependent packages by #undefing system macros like EOVERFLOW
+##    (reported by Florian Petran, 2017-02-20)
+##  + workaround uses a sed 1-liner in src/libgfsm/Makefile.am to generate at build time
+dnl AC_CONFIG_LINKS(src/libgfsm/gfsmConfigNoAuto.h:src/libgfsm/gfsmConfigAuto.h.in)
 ## /no-autoheader
 ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

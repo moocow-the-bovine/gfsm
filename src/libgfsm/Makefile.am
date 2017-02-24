@@ -108,9 +108,9 @@ sources_argh = \
 ##----------------------------------------------------
 ## Additional rules
 
-#gfsmConfigNoAuto.h: gfsmConfigAuto.h.in
-#	rm -f "$@"
-#	cp "$<" "$@"
+gfsmConfigNoAuto.h: gfsmConfigAuto.h
+	echo "/* src/libgfsm/gfsmConfigNoAuto.h. Generated from gfsmConfigAuto.h by make */"
+	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' $< >> $@
 
 ##-----------------------------------------------------------------------
 ## headers
@@ -253,8 +253,10 @@ libgfsm_la_LIBADD  = gnulib/libgnu.la @gfsm_LIBS@ $(LIBS)
 ## --- clean:  built by 'make'
 #CLEANFILES =
 
+
 ## --- distclean: built by 'configure'
-#DISTCLEANFILES =
+DISTCLEANFILES = \
+	gfsmConfigNoAuto.h
 
 ## -- maintainerclean: built by maintainer / by hand
 MAINTAINERCLEANFILES = \

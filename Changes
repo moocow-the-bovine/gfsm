@@ -1,6 +1,19 @@
 Change log for gfsm
 
-v0.0.14 Fri, 22 Aug 2014 11:21:52 +0200
+v0.0.16 Fri, 24 Feb 2017 09:46:57 +0100 moocow
+	+ added missing tests/03_algebra.at to distribution (bug reported by Victor Miller)
+	+ gfsmConfigNoAuto.h now generated at build time via sed
+	  - idea: avoid bogus #undef of system macros (e.g. EOVERFLOW) which don't get
+	    redefined by subsequent #include "gfsmConfigAuto.h"
+	  - bug reported by Florian Petran
+
+v0.0.15 Mon, 20 Oct 2014 10:46:02 +0200 moocow
+	+ lookup max_result_states, added program gfsmapply
+	+ lookup max_result_states defaults to 16k, fixes weird segfaults with epsilon confusion arising e.g. from
+	  lookup of "Iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii" (1 upper-case "I" + 34 lower-case "i"s) in tagh-v2.3.0
+	+ added program gfsmapply similar to mootm in gfsm mode, may even obviate the need for mootm
+
+v0.0.14 Fri, 22 Aug 2014 11:21:52 +0200 moocow
 	+ added library functions gfsm_automaton_encode(), gfsm_automaton_decode(), gfsm_automaton_compact()
 	+ added command-line utilities gfsmencode, gfsmcompact
 
