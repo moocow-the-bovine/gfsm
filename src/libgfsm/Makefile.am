@@ -109,7 +109,7 @@ sources_argh = \
 ## Additional rules
 
 gfsmConfigNoAuto.h: gfsmConfigAuto.h
-	echo "/* src/libgfsm/gfsmConfigNoAuto.h. Generated from gfsmConfigAuto.h by make */"
+	echo "/* src/libgfsm/gfsmConfigNoAuto.h. Generated from gfsmConfigAuto.h by make */" > $@
 	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' $< >> $@
 
 ##-----------------------------------------------------------------------
