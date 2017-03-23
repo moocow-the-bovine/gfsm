@@ -98,7 +98,9 @@ nodist_libgfsm_la_SOURCES = \
 	gfsmConfigNoAuto.h
 
 BUILT_SOURCES = \
-	gfsmConfigNoAuto.h
+	gfsmConfigNoAuto.h \
+	gfsmRegex.lex.c \
+	gfsmRegex.tab.c
 
 sources_argh = \
 	gfsmIndexed.c \

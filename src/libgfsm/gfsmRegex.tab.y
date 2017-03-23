@@ -1,27 +1,33 @@
 /*======================================================================
  * Bison Options
  */
-%pure_parser
+%pure-parser
+
+/* for bison >= v3.0 */
+%param { gfsmRegexCompiler* reparser }
 
 %{
 /*======================================================================
  * Bison C Header
  */
+
 #include <gfsmRegexCompiler.h>
 #include <gfsmAutomatonIO.h>
 #include <string.h>
 
-#include "gfsmRegex.tab.h"
-#include "gfsmRegex.lex.h"
-
-#define my_compiler ((gfsmRegexCompiler*)reparser)
-
+/*-- these must come BEFORE include gfsmRegex.tab.h for bison >= 2.6 --*/
 #define YYLEX_PARAM   ((gfsmRegexCompiler*)reparser)->scanner.yyscanner
 #define YYPARSE_PARAM reparser
 
+#include "gfsmRegex.tab.h"
+#include "gfsmRegex.lex.h"
+
+/* for bison < 2.6 */
+#define my_compiler ((gfsmRegexCompiler*)reparser)
+
 #define YYERROR_VERBOSE 1
-#define gfsmRegex_yyerror(msg) \
-  gfsm_scanner_carp((gfsmScanner*)reparser, (msg));  
+#define gfsmRegex_yyerror(reparser, msg) \
+  gfsm_scanner_carp(((gfsmScanner*)(reparser)), (msg));  
 
 %}
 
