@@ -276,7 +276,6 @@ MAINTAINERCLEANFILES = \
 ## --- extra distribution files
 EXTRA_DIST = \
 	config.h \
-	gfsmConfigNoAuto.h \
 	gfsmRegex.lex.c \
 	gfsmRegex.lex.h \
 	gfsmRegex.tab.c \
