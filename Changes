@@ -1,5 +1,9 @@
 Change log for gfsm
 
+v0.0.17 Thu, 23 Mar 2017 12:06:41 +0100 moocow
+	+ use automake BUILT_SOURCES for gfsmConfigNoAuto.h
+	  - build from svn was failing b/c gfsmConfigNoAuto.h didn't get generated before attempt to compile gfsmCommon.lo
+
 v0.0.16 Fri, 24 Feb 2017 09:46:57 +0100 moocow
 	+ added missing tests/03_algebra.at to distribution (bug reported by Victor Miller)
 	+ gfsmConfigNoAuto.h now generated at build time via sed
