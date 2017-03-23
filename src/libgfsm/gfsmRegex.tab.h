@@ -70,7 +70,7 @@ extern int gfsmRegex_yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 36 "gfsmRegex.tab.y" /* yacc.c:1909  */
+#line 37 "gfsmRegex.tab.y" /* yacc.c:1909  */
 
    gfsmAutomaton *fsm; //-- automaton
    GString       *gs;  //-- needs to be freed by hand

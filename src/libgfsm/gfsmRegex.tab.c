@@ -78,13 +78,14 @@
 #include <gfsmAutomatonIO.h>
 #include <string.h>
 
+/*-- these must come BEFORE include gfsmRegex.tab.h for bison >= 2.6 --*/
+#define YYLEX_PARAM   ((gfsmRegexCompiler*)reparser)->scanner.yyscanner
+#define YYPARSE_PARAM reparser
+
 #include "gfsmRegex.tab.h"
 #include "gfsmRegex.lex.h"
 
 /* for bison < 2.6 */
-#define YYLEX_PARAM   ((gfsmRegexCompiler*)reparser)->scanner.yyscanner
-#define YYPARSE_PARAM reparser
-
 #define my_compiler ((gfsmRegexCompiler*)reparser)
 
 #define YYERROR_VERBOSE 1
@@ -92,7 +93,7 @@
   gfsm_scanner_carp(((gfsmScanner*)(reparser)), (msg));  
 
 
-#line 96 "gfsmRegex.tab.c" /* yacc.c:339  */
+#line 97 "gfsmRegex.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -152,7 +153,7 @@ extern int gfsmRegex_yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 36 "gfsmRegex.tab.y" /* yacc.c:355  */
+#line 37 "gfsmRegex.tab.y" /* yacc.c:355  */
 
    gfsmAutomaton *fsm; //-- automaton
    GString       *gs;  //-- needs to be freed by hand
@@ -160,7 +161,7 @@ union YYSTYPE
    guint32        u;
    gfsmWeight     w;
 
-#line 164 "gfsmRegex.tab.c" /* yacc.c:355  */
+#line 165 "gfsmRegex.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -174,7 +175,7 @@ int gfsmRegex_yyparse (gfsmRegexCompiler* reparser);
 
 /* Copy the second part of user declarations.  */
 
-#line 178 "gfsmRegex.tab.c" /* yacc.c:358  */
+#line 179 "gfsmRegex.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -472,9 +473,9 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    82,    82,    85,    88,    91,    94,    97,   100,   103,
-     106,   109,   112,   115,   118,   121,   124,   127,   130,   133,
-     137,   140,   143,   147
+       0,    83,    83,    86,    89,    92,    95,    98,   101,   104,
+     107,   110,   113,   116,   119,   122,   125,   128,   131,   134,
+     138,   141,   144,   148
 };
 #endif
 
@@ -1309,139 +1310,139 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 83 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 84 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=(yyvsp[-1].fsm); }
-#line 1315 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1316 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 86 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 87 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_label_fsm(my_compiler, (yyvsp[0].u)); }
-#line 1321 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1322 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 89 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 90 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_prepend_lab(my_compiler, (yyvsp[-1].u), (yyvsp[0].fsm)); }
-#line 1327 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1328 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 92 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 93 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_concat(my_compiler, (yyvsp[-1].fsm), (yyvsp[0].fsm)); }
-#line 1333 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1334 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 95 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 96 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_rmepsilon(my_compiler, (yyvsp[0].fsm)); /* non-ATT */ }
-#line 1339 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1340 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 98 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 99 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_determinize(my_compiler, (yyvsp[0].fsm)); /* non-ATT */ }
-#line 1345 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1346 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 101 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 102 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_connect(my_compiler, (yyvsp[0].fsm)); /* non-ATT */ }
-#line 1351 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1352 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 104 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 105 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_closure(my_compiler,(yyvsp[-1].fsm),FALSE); }
-#line 1357 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1358 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 107 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 108 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_closure(my_compiler,(yyvsp[-1].fsm),TRUE); }
-#line 1363 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1364 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 110 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 111 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_power(my_compiler,(yyvsp[-2].fsm),(yyvsp[0].u)); }
-#line 1369 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1370 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 113 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 114 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_optional(my_compiler,(yyvsp[-1].fsm)); }
-#line 1375 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1376 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 116 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 117 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_complement(my_compiler,(yyvsp[0].fsm)); }
-#line 1381 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1382 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 119 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 120 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_union(my_compiler,(yyvsp[-2].fsm),(yyvsp[0].fsm)); }
-#line 1387 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1388 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 122 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 123 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_intersect(my_compiler,(yyvsp[-2].fsm),(yyvsp[0].fsm)); }
-#line 1393 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1394 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 125 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 126 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_product(my_compiler,(yyvsp[-2].fsm),(yyvsp[0].fsm)); }
-#line 1399 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1400 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 128 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 129 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_compose(my_compiler,(yyvsp[-2].fsm),(yyvsp[0].fsm)); }
-#line 1405 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1406 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 131 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 132 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_difference(my_compiler,(yyvsp[-2].fsm),(yyvsp[0].fsm)); }
-#line 1411 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1412 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 134 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 135 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.fsm)=gfsm_regex_compiler_weight(my_compiler,(yyvsp[-1].fsm),(yyvsp[0].w)); }
-#line 1417 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1418 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 138 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 139 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.u)=gfsm_regex_compiler_char2label(my_compiler, (yyvsp[0].c)); }
-#line 1423 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1424 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 141 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 142 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.u)=gfsm_regex_compiler_gstring2label(my_compiler, (yyvsp[0].gs)); }
-#line 1429 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1430 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 144 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 145 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.u)=gfsm_regex_compiler_gstring2label(my_compiler, (yyvsp[-1].gs)); }
-#line 1435 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1436 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 147 "gfsmRegex.tab.y" /* yacc.c:1646  */
+#line 148 "gfsmRegex.tab.y" /* yacc.c:1646  */
     { (yyval.w)=(yyvsp[-1].w); }
-#line 1441 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1442 "gfsmRegex.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1445 "gfsmRegex.tab.c" /* yacc.c:1646  */
+#line 1446 "gfsmRegex.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1669,7 +1670,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 150 "gfsmRegex.tab.y" /* yacc.c:1906  */
+#line 151 "gfsmRegex.tab.y" /* yacc.c:1906  */
 
 
 /*======================================================================

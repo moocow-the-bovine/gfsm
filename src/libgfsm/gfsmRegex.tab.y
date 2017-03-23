@@ -15,13 +15,14 @@
 #include <gfsmAutomatonIO.h>
 #include <string.h>
 
+/*-- these must come BEFORE include gfsmRegex.tab.h for bison >= 2.6 --*/
+#define YYLEX_PARAM   ((gfsmRegexCompiler*)reparser)->scanner.yyscanner
+#define YYPARSE_PARAM reparser
+
 #include "gfsmRegex.tab.h"
 #include "gfsmRegex.lex.h"
 
 /* for bison < 2.6 */
-#define YYLEX_PARAM   ((gfsmRegexCompiler*)reparser)->scanner.yyscanner
-#define YYPARSE_PARAM reparser
-
 #define my_compiler ((gfsmRegexCompiler*)reparser)
 
 #define YYERROR_VERBOSE 1
