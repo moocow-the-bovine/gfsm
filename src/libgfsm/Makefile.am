@@ -94,6 +94,12 @@ libgfsm_la_SOURCES = \
 	gfsmIndexed.c \
 	gfsmIndexedIO.c
 
+nodist_libgfsm_la_SOURCES = \
+	gfsmConfigNoAuto.h
+
+BUILT_SOURCES = \
+	gfsmConfigNoAuto.h
+
 sources_argh = \
 	gfsmIndexed.c \
 	gfsmIndexed2.c \
