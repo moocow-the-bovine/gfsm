@@ -1,5 +1,15 @@
 Change log for gfsm
 
+v0.0.19 Wed, 13 Feb 2019 13:07:43 +0100 moocow
+	+ added m4/ax_have_gnu_make.m4 to check for GNU make
+	+ wrapped GNU-make syntax ("vpath") in doc/libgfsm/Makefile.am in "HAVE_GNU_MAKE" condititional
+	+ should avoid problems like RT bug #128486 (maybe also consider using Alien::gmake for this)
+
+v0.0.18 Thu, 22 Feb 2018 12:49:55 +0100 moocow
+	+ explicit argument in rule generating gfsmConfigNoAuto.h (BSD make chokes otherwise)
+	  - this probably happens with other (non-pattern?) rules too, fortunately BSD make dies before they're encountered
+	  - should fix Alien::Moot RT bug #124451
+
 v0.0.17 Thu, 23 Mar 2017 12:06:41 +0100 moocow
 	+ use automake BUILT_SOURCES for gfsmConfigNoAuto.h
 	  - build from svn was failing b/c gfsmConfigNoAuto.h didn't get generated before attempt to compile gfsmCommon.lo

@@ -118,7 +118,7 @@ sources_argh = \
 
 gfsmConfigNoAuto.h: gfsmConfigAuto.h
 	echo "/* src/libgfsm/gfsmConfigNoAuto.h. Generated from gfsmConfigAuto.h by make */" > $@
-	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' $< >> $@
+	sed 's/^#define \([^ ]*\).*$$/#undef \1/;' gfsmConfigAuto.h >> $@
 
 ##-----------------------------------------------------------------------
 ## headers

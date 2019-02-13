@@ -79,7 +79,9 @@ all-local: $(STAMPFILE)
 
 ## -- directories for prerequisite-search
 DOXY_INCLUDES = $(top_srcdir)/src/libgfsm $(top_builddir)/src/libgfsm
+if HAVE_GNU_MAKE
 vpath %.h $(DOXY_INCLUDES)
+endif
 
 DOXY_INPUTS = \
 	mainpage.dox \
