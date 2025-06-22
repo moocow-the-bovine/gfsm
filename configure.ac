@@ -4,7 +4,7 @@ AC_PREREQ([2.61])
 
 dnl Some handy macros
 define([THE_PACKAGE_NAME],    [gfsm])
-define([THE_PACKAGE_VERSION], [0.0.19-1])
+define([THE_PACKAGE_VERSION], [0.0.20-1])
 define([THE_PACKAGE_MAINTAINER],  [moocow@cpan.org])
 
 AC_INIT([THE_PACKAGE_NAME],[THE_PACKAGE_VERSION],[THE_PACKAGE_MAINTAINER])
@@ -849,7 +849,7 @@ if test "$enable_warnings" != "no" ; then
      gfsm_WFLAGS="-Wall" #-Winline
    else
      AC_MSG_NOTICE([GNU C compiler not detected: not setting warning flags])
-     gfsm_WFLAGS=""
+     gfsm_WFLAGS="-w"
    fi
 else
   AC_MSG_RESULT(no)

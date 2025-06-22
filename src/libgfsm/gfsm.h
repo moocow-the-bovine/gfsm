@@ -4,7 +4,7 @@
  * Author: Bryan Jurish <moocow.bovine@gmail.com>
  * Description: finite state machine library: top-level
  *
- * Copyright (c) 2004-2014 Bryan Jurish.
+ * Copyright (c) 2004-2025 Bryan Jurish.
  *
  * For information on usage and redistribution, and for a DISCLAIMER
  * OF ALL WARRANTIES, see the file "COPYING" in this distribution.
@@ -31,13 +31,12 @@
 #ifndef _GFSM_H
 #define _GFSM_H
 
-/*
-#ifdef __cplusplus
-extern "C" {
-#endif
-*/
-
+/* 2025-06-22: glib.h no longer likes to be included as extern "C" ... sigh
+ * - see https://gitlab.gnome.org/GNOME/glib/-/issues/2331
+ */
 #include <glib.h>
+
+G_BEGIN_DECLS
 #include <gfsmArray.h>
 #include <gfsmAssert.h>
 #include <gfsmCommon.h>
@@ -72,11 +71,6 @@ extern "C" {
 #include <gfsmRegexCompiler.h>
 #include <gfsmIndexed.h>
 #include <gfsmIndexedIO.h>
-
-/*
-#ifdef __cplusplus
-}
-#endif
-*/
+G_END_DECLS
 
 #endif /* _GFSM_H */
