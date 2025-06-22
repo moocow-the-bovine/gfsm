@@ -1,1 +1,3 @@
-tagprefix=gfsm
+#svntags=svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/tags
+scm=git
+tagprefix=gfsm-
